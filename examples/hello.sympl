@@ -1,0 +1,8 @@
+// Example of a hello world program that will run
+// in a console environment.
+
+package examples
+
+@func main() {
+    print("Hello World!")
+}

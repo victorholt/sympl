@@ -1,0 +1,20 @@
+# Projects
+.idea_modules/
+*.sublime-workspace
+*.vscode
+
+# OSX template
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Scons
+.sconsign.dblite
+src/*.o
+
+# Output
+builds/*
+!builds/.keep
+
+examples/compiled/*
+!examples/compiled/.keep
