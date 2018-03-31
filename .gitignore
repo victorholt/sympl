@@ -10,7 +10,10 @@
 
 # Scons
 .sconsign.dblite
-src/*.o
+*.o
+*.obj
+*.lib
+*.dll
 
 # Output
 builds/*
