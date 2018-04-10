@@ -21,9 +21,39 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "writer.h"
+#ifndef __SYMPL_STRING_BUFFER_H__
+#define __SYMPL_STRING_BUFFER_H__
 
-void sympl_write_file(char8 *filepath, uchar8 *data, size_t len)
+#include "sympl_pch.h"
+#include "alloc.h"
+
+#define SYMPL_DEFAULT_STRING_BUFFER_CAPACITY 256
+
+// Base string type for the language.
+typedef struct sympl_string_buffer
 {
-    printf("Writing data to a file\n");
-}
+    uchar8      *buffer;
+    size_t      length;
+    size_t      capacity;
+    sympl_ref   *ref;
+} sympl_string_buffer;
+
+// Creates a string buffer.
+sympl_string_buffer *sympl_string_buffer_create2(uchar8* str, size_t capacity);
+
+// Creates a string buffer.
+sympl_string_buffer *sympl_string_buffer_create(uchar8* str);
+
+// Appends a string to the buffer.
+void sympl_string_buffer_append(sympl_string_buffer *src, const char8 *str);
+
+// Resize our string buffer.
+void sympl_string_buffer_resize(sympl_string_buffer *src, size_t new_capacity);
+
+// Clears a string buffer.
+void sympl_string_buffer_clear(sympl_string_buffer *src);
+
+// Frees the string buffer.
+void sympl_string_buffer_free(sympl_string_buffer *src);
+
+#endif

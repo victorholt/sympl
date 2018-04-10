@@ -1,0 +1,2 @@
+D:\MingGW\x86_64-6.2.0-posix-seh-rt_v5-rev1\mingw64\bin\ar.exe qc ..\builds\debug\libSymplLib.a  CMakeFiles/SymplLib.dir/src/sympl/core/alloc.c.obj CMakeFiles/SymplLib.dir/src/sympl/core/resource.c.obj CMakeFiles/SymplLib.dir/src/sympl/core/string_buffer.c.obj CMakeFiles/SymplLib.dir/src/sympl/io/reader.c.obj CMakeFiles/SymplLib.dir/src/sympl/io/writer.c.obj CMakeFiles/SymplLib.dir/src/sympl/thirdparty/getoptutil.c.obj
+D:\MingGW\x86_64-6.2.0-posix-seh-rt_v5-rev1\mingw64\bin\ranlib.exe ..\builds\debug\libSymplLib.a

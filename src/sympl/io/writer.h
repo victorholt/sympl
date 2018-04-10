@@ -21,33 +21,12 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#ifndef __SYMPL_PCH_H__
-#define __SYMPL_PCH_H__
+#ifndef __SYMPL_WRITER_H__
+#define __SYMPL_WRITER_H__
 
-#ifdef _WIN32
-#include <uchar.h>
-#endif
+#include <stdio.h>
+#include "../core/sympl_pch.h"
 
-#ifndef _WIN32
-#include <sys/time.h>
-#define w_gettimeofday gettimeofday
-
-#include <dirent.h>
-#include <getopt.h>
-#include <unistd.h>
-
-#else
-
-#include "../thirdparty/direntutil.h"
-#include "../thirdparty/getoptutil.h"
-#include "../thirdparty/timeutil.h"
-#include "../thirdparty/unistdutil.h"
-
-#endif
-
-// Types
-typedef char char8;
-typedef unsigned char uchar8;
-typedef unsigned long ulong64;
+void sympl_write_file(const char8*, const uchar8*, size_t);
 
 #endif

@@ -1,9 +1,0 @@
-env = Environment()
-env.Program('sympl-compiler',
-    source = [
-        'parser/reader.c',
-        'parser/writer.c',
-
-        'compiler/main.c'
-    ]
-)

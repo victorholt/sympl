@@ -21,21 +21,48 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#ifndef __SYMPL_STRING_BUFFER_H__
-#define __SYMPL_STRING_BUFFER_H__
+#ifndef __SYMPL_PCH_H__
+#define __SYMPL_PCH_H__
 
-#include "sympl_pch.h"
+#ifdef _WIN32
+#include <uchar.h>
+#endif
 
-//
-typedef struct sympl_string_buffer
-{
-    uchar8  *buffer;
-    uchar8  *tmp_buffer;
-    size_t  length;
-    size_t  capacity;
-} sympl_string_buffer;
+#ifndef _WIN32
+#include <sys/time.h>
+#define w_gettimeofday gettimeofday
 
-// Concats a string to the buffer.
-bool sstr_concat(const char8* src, const char8* str);
+#include <dirent.h>
+#include <getopt.h>
+#include <unistd.h>
+#else
+
+#include "../thirdparty/direntutil.h"
+#include "../thirdparty/getoptutil.h"
+#include "../thirdparty/timeutil.h"
+#include "../thirdparty/unistdutil.h"
+
+#endif
+
+// Types
+typedef char char8;
+typedef unsigned char uchar8;
+typedef unsigned long ulong64;
+
+#ifndef bool
+typedef unsigned short bool;
+#endif
+
+#ifndef false
+#define false 0
+#endif
+
+#ifndef true
+#define true 1
+#endif
+
+#ifndef NULL
+#define NULL 0
+#endif
 
 #endif

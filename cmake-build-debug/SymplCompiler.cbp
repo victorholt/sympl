@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="SymplCompiler"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\src\;CMake Files\src\sympl\;CMake Files\src\compiler\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="D:/Projects/sympl/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SymplLib">
+				<Option output="D:/Projects/sympl/builds/debug/libSymplLib.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="D:/Projects/sympl/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D_WIN32"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++/x86_64-w64-mingw32"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++/backward"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include-fixed"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 SymplLib"/>
+					<CompileFile command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SymplLib/fast">
+				<Option output="D:/Projects/sympl/builds/debug/libSymplLib.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="D:/Projects/sympl/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D_WIN32"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++/x86_64-w64-mingw32"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++/backward"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include-fixed"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 SymplLib/fast"/>
+					<CompileFile command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="D:/Projects/sympl/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SymplCompiler">
+				<Option output="D:/Projects/sympl/builds/debug/SymplCompiler.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="D:/Projects/sympl/builds/debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DSYMPL_IMPORTS"/>
+					<Add option="-D_WIN32"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++/x86_64-w64-mingw32"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++/backward"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include-fixed"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 SymplCompiler"/>
+					<CompileFile command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SymplCompiler/fast">
+				<Option output="D:/Projects/sympl/builds/debug/SymplCompiler.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="D:/Projects/sympl/builds/debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DSYMPL_IMPORTS"/>
+					<Add option="-D_WIN32"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++/x86_64-w64-mingw32"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include/c++/backward"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/include-fixed"/>
+					<Add directory="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/6.2.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 SymplCompiler/fast"/>
+					<CompileFile command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="D:/Projects/sympl/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/MingGW/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/mingw32-make.exe -f &quot;D:/Projects/sympl/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="D:/Projects/sympl/src/compiler/main.c">
+			<Option target="SymplCompiler"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/core/alloc.c">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/core/alloc.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/core/resource.c">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/core/resource.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/core/string_buffer.c">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/core/string_buffer.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/core/sympl.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/core/sympl_pch.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/io/reader.c">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/io/reader.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/io/writer.c">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/io/writer.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/thirdparty/direntutil.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/thirdparty/getoptutil.c">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/thirdparty/getoptutil.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/thirdparty/timeutil.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/thirdparty/unistdutil.h">
+			<Option target="SymplLib"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/sympl/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\sympl\"/>
+		</Unit>
+		<Unit filename="D:/Projects/sympl/src/compiler/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\src\compiler\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

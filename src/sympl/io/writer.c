@@ -21,12 +21,9 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#ifndef __SYMPL_WRITER_H__
-#define __SYMPL_WRITER_H__
+#include "writer.h"
 
-#include <stdio.h>
-#include "../core/sympl_pch.h"
-
-void sympl_write_file(char8*, uchar8*, size_t);
-
-#endif
+void sympl_write_file(const char8 *filepath, const uchar8 *data, size_t len)
+{
+    printf("Writing data to a file\n");
+}

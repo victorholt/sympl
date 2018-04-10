@@ -26,7 +26,11 @@
 
 #include "sympl_pch.h"
 
-#include "../parser/reader.h"
-#include "../parser/writer.h"
+#include "alloc.h"
+#include "resource.h"
+#include "string_buffer.h"
+
+#include "../io/reader.h"
+#include "../io/writer.h"
 
 #endif
