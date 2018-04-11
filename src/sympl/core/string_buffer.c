@@ -23,12 +23,13 @@
  **********************************************************/
 #include "string_buffer.h"
 
-sympl_string_buffer *sympl_string_buffer_create2(uchar8* str, size_t capacity)
+sympl_string_buffer *sympl_string_buffer_create2(const char8 *str, size_t capacity)
 {
     // Create our reference object.
-    sympl_string_buffer *src = NULL;
-    sympl_ref *ref = sympl_new_ref(&str, sizeof(sympl_string_buffer));
-return src;
+    sympl_string_buffer *str_buffer = NULL;
+    sympl_ref *ref = sympl_new_ref(&str_buffer, sizeof(sympl_string_buffer));
+    str_buffer->ref = ref;
+
     // Confirm the string capacity.
     size_t confirmed_capacity = capacity;
     if (strlen(str) > confirmed_capacity) {
@@ -39,16 +40,16 @@ return src;
     size_t str_capacity = sizeof(uchar8) * confirmed_capacity;
 
     // Create/clean up our string.
-    src->buffer = sympl_new(str_capacity);
-    memset(src->buffer, 0, str_capacity);
-    memcpy(src->buffer, str, strlen(str));
+    str_buffer->buffer = (uchar8 *)sympl_new(str_capacity);
+    memset(str_buffer->buffer, 0, str_capacity);
+    memcpy(str_buffer->buffer, str, strlen(str) + 1);
 
-    src->length = strlen(str);
-    src->capacity = capacity;
-    return src;
+    str_buffer->length = strlen(str);
+    str_buffer->capacity = capacity;
+    return str_buffer;
 }
 
-sympl_string_buffer *sympl_string_buffer_create(uchar8* str)
+sympl_string_buffer *sympl_string_buffer_create(const char8 *str)
 {
     return sympl_string_buffer_create2(str, SYMPL_DEFAULT_STRING_BUFFER_CAPACITY);
 }
@@ -82,10 +83,15 @@ void sympl_string_buffer_resize(sympl_string_buffer *src, size_t new_capacity)
 
 void sympl_string_buffer_clear(sympl_string_buffer *src)
 {
-
+    src->length = 0;
+    memset(src->buffer, 0, src->capacity);
 }
 
-void sympl_string_buffer_free(sympl_string_buffer *src)
+void sympl_string_buffer_free(sympl_string_buffer **src)
 {
+    sympl_string_buffer* str_buffer = *src;
+    sympl_string_buffer_clear(str_buffer);
 
+    sympl_delete_ref(&str_buffer->ref);
+    *src = NULL;
 }

@@ -24,6 +24,10 @@
 #ifndef __SYMPL_PCH_H__
 #define __SYMPL_PCH_H__
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #ifdef _WIN32
 #include <uchar.h>
 #endif

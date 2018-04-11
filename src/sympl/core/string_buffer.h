@@ -39,10 +39,10 @@ typedef struct sympl_string_buffer
 } sympl_string_buffer;
 
 // Creates a string buffer.
-sympl_string_buffer *sympl_string_buffer_create2(uchar8* str, size_t capacity);
+sympl_string_buffer *sympl_string_buffer_create2(const char8 *str, size_t capacity);
 
 // Creates a string buffer.
-sympl_string_buffer *sympl_string_buffer_create(uchar8* str);
+sympl_string_buffer *sympl_string_buffer_create(const char8 *str);
 
 // Appends a string to the buffer.
 void sympl_string_buffer_append(sympl_string_buffer *src, const char8 *str);
@@ -54,6 +54,6 @@ void sympl_string_buffer_resize(sympl_string_buffer *src, size_t new_capacity);
 void sympl_string_buffer_clear(sympl_string_buffer *src);
 
 // Frees the string buffer.
-void sympl_string_buffer_free(sympl_string_buffer *src);
+void sympl_string_buffer_free(sympl_string_buffer **src);
 
 #endif

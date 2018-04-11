@@ -21,3 +21,6 @@ builds/*
 
 examples/compiled/*
 !examples/compiled/.keep
+
+cmake-build-debug/*
+cmake-build-release/*

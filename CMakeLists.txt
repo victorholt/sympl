@@ -9,12 +9,14 @@ endif ()
 
 set(CMAKE_C_STANDARD 11)
 
-# Setup our common directory.
-set (SYMPL_INCLUDES)
-set (SYMPL_SOURCES)
-
 # Set the base directory for the source.
 set (SYMPL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+# Setup our common directory.
+set (SYMPL_INCLUDES
+    "${SYMPL_SOURCE_DIR}"
+)
+set (SYMPL_SOURCES)
 
 # Setup the build locations.
 if (CMAKE_BUILD_TYPE MATCHES Debug)

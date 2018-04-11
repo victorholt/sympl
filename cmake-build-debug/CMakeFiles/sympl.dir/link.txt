@@ -1,3 +1,0 @@
-C:\Users\VictorGaming\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\181.4203.549\bin\cmake\bin\cmake.exe -E remove -f CMakeFiles\sympl.dir/objects.a
-D:\MingGW\x86_64-6.2.0-posix-seh-rt_v5-rev1\mingw64\bin\ar.exe cr CMakeFiles\sympl.dir/objects.a @CMakeFiles\sympl.dir\objects1.rsp
-D:\MingGW\x86_64-6.2.0-posix-seh-rt_v5-rev1\mingw64\bin\gcc.exe -g   -Wl,--whole-archive CMakeFiles\sympl.dir/objects.a -Wl,--no-whole-archive  -o sympl.exe -Wl,--out-implib,libsympl.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\sympl.dir\linklibs.rsp
