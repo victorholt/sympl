@@ -21,12 +21,68 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#ifndef __SYMPL_PCH_H__
-#define __SYMPL_PCH_H__
+#pragma once
 
-#include <stdio.h>
+// CPP Core Files
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#include <string>
+#include <iostream>
+#include <sstream>
+
+#include <algorithm>
+#include <atomic>
+#include <array>
+
+#include <ctime>
+#include <cstring>
+#include <ctype.h>
+#include <cctype>
+#include <chrono>
+#include <cstdio>
+#include <cstdlib>
+
+#include <fcntl.h>
+#include <fstream>
+#include <functional>
+#include <future>
+
+#include <locale>
+#include <list>
+
+#include <istream>
+#include <ostream>
+#include <streambuf>
+#include <iterator>
+
+#include <math.h>
+#include <memory>
+#include <mutex>
+
+#include <numeric>
+
+#include <regex>
+
+#include <set>
+#include <sstream>
 #include <stdlib.h>
-#include <string.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include <typeinfo>
+#include <type_traits>
+#include <thread>
+
+#include <unordered_set>
+#include <unordered_map>
+#include <utility>
+
+#include <vector>
+
+#include <wchar.h>
 
 #ifdef _WIN32
 #include <uchar.h>
@@ -39,34 +95,53 @@
 #include <dirent.h>
 #include <getopt.h>
 #include <unistd.h>
-#else
 
+#define IsSpaceChar(c, loc) std::isspace(c, loc)
+
+#else
+#include <time.h>
 #include "../thirdparty/direntutil.h"
 #include "../thirdparty/getoptutil.h"
 #include "../thirdparty/timeutil.h"
 #include "../thirdparty/unistdutil.h"
 
+//#define IsSpaceChar(c, loc) std::isspace(static_cast<int>(c), loc)
+#define IsSpaceChar(c, loc) std::isspace(c, loc)
 #endif
+
+#ifdef _WIN32
+#define GUID_WINDOWS
+#elif defined(_APPLE)
+#define GUID_CFUUID
+#elif defined(__ANDROID__)
+#define GUID_ANDROID
+#else
+    #define GUID_LIBUUID
+#endif
+
+#include "../thirdparty/guid.h"
+
+#ifdef _WIN32
+#ifndef SYMPL_IMPORTS
+/* We are building this library */
+#define SYMPL_API __declspec(dllexport)
+#else
+/* We are using this library */
+    #define SYMPL_API __declspec(dllimport)
+#endif
+#else
+#define SYMPL_API
+#endif
+
+#define IsNullObject(Object) (Object == NULL || Object == nullptr)
+
+#define sympl_nsstart namespace Sympl {
+#define sympl_nsend }
+#define sympl_namespaces using namespace Sympl;
 
 // Types
 typedef char char8;
 typedef unsigned char uchar8;
 typedef unsigned long ulong64;
 
-#ifndef bool
-typedef unsigned short bool;
-#endif
-
-#ifndef false
-#define false 0
-#endif
-
-#ifndef true
-#define true 1
-#endif
-
-#ifndef NULL
-#define NULL 0
-#endif
-
-#endif
+#define SYMPL_VERSION 0x00010000 // ver. 0.1.0.0

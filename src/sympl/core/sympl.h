@@ -27,10 +27,12 @@
 #include "sympl_pch.h"
 
 #include "alloc.h"
-#include "resource.h"
+#include "sympl_ref.h"
+#include "sympl_object.h"
 #include "string_buffer.h"
+#include "variant.h"
 
-#include "../io/reader.h"
-#include "../io/writer.h"
+//#include "../io/reader.h"
+//#include "../io/writer.h"
 
 #endif

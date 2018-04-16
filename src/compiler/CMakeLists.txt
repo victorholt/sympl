@@ -2,7 +2,7 @@
 project(SymplCompiler)
 
 file (GLOB SYMPL_COMPILER_SRC
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/compiler/main.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/compiler/main.cpp"
 )
 list (APPEND SYMPL_SOURCES ${SYMPL_COMPILER_SRC})
 

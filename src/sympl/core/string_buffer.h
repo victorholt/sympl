@@ -21,39 +21,68 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#ifndef __SYMPL_STRING_BUFFER_H__
-#define __SYMPL_STRING_BUFFER_H__
+#pragma
 
 #include "sympl_pch.h"
-#include "alloc.h"
+#include "sympl_object.h"
 
-#define SYMPL_DEFAULT_STRING_BUFFER_CAPACITY 256
+sympl_nsstart
 
-// Base string type for the language.
-typedef struct sympl_string_buffer
+#define SYMPL_STRING_BUFFER_CAPACITY 512
+
+class SYMPL_API StringBuffer : public Object
 {
-    uchar8      *buffer;
-    size_t      length;
-    size_t      capacity;
-    sympl_ref   *ref;
-} sympl_string_buffer;
+private:
+    /// Buffer for holding the string.
+    uchar8      *_Buffer = nullptr;
+    /// Current length of the string.
+    size_t      _Length = 0;
+    /// Capacity for the string
+    size_t      _Capacity = SYMPL_STRING_BUFFER_CAPACITY;
 
-// Creates a string buffer.
-sympl_string_buffer *sympl_string_buffer_create2(const char8 *str, size_t capacity);
+    //! Initializes the string buffer.
+    //! \param str
+    //! \param capacity
+    void Init(const char8 *str, size_t capacity);
 
-// Creates a string buffer.
-sympl_string_buffer *sympl_string_buffer_create(const char8 *str);
+public:
+    //! Constructor.
+    //! \param str
+    //! \param capacity
+    StringBuffer(const char8 *str, size_t capacity);
 
-// Appends a string to the buffer.
-void sympl_string_buffer_append(sympl_string_buffer *src, const char8 *str);
+    //! Constructor.
+    //! \param str
+    StringBuffer(const char8 *str);
 
-// Resize our string buffer.
-void sympl_string_buffer_resize(sympl_string_buffer *src, size_t new_capacity);
+    //! Constructor.
+    StringBuffer();
 
-// Clears a string buffer.
-void sympl_string_buffer_clear(sympl_string_buffer *src);
+    //! Destructor.
+    ~StringBuffer();
 
-// Frees the string buffer.
-void sympl_string_buffer_free(sympl_string_buffer **src);
+    //! Appends a string to the current buffer.
+    //! \param str
+    void Append(const char8 *str);
 
-#endif
+    //! Resizes the string buffer.
+    //! \param newCapacity
+    void Resize(size_t newCapacity);
+
+    //! Clears out the string buffer.
+    void Clear();
+
+    //! Returns the string buffer.
+    //! \return uchar8*
+    inline uchar8* Str() const { return _Buffer; }
+
+    //! Returns the length of the string.
+    //! \return size_t
+    inline size_t Length() const { return _Length; }
+
+    //! Returns the capacity of the string.
+    //! \return size_t
+    inline size_t Capacity() const { return _Capacity; }
+};
+
+sympl_nsend

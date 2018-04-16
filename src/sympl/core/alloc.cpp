@@ -22,61 +22,32 @@
  *
  **********************************************************/
 #include "alloc.h"
+#include "sympl_ref.h"
+sympl_namespaces
 
-extern size_t sympl_mem_size = 0;
+Alloc* Alloc::_Instance = nullptr;
 
-void* sympl_new(size_t size)
-{
-    sympl_mem_size += size;
-    return malloc(size);
-}
+//template<class T>
+//T* Alloc::Malloc(size_t size)
+//{
+//    T* ref = new T();
+//    ref->_MemSize = size;
+//    ref->_Data = malloc(size);
+//
+//    AddMemAllocated(sizeof(Ref) + ref->_MemSize);
+//    return ref;
+//}
 
-void sympl_delete(void* src, size_t size)
-{
-    sympl_mem_size -= size;
-    free(src);
-}
+//void Alloc::Free(SymplRef*& ref)
+//{
+//    if (!ref->Destroy()) {
+//        return;
+//    }
+//
+//    free(ref->_Data);
+//    delete ref;
+//    ref = nullptr;
+//    RemoveMemAllocated(sizeof(Ref) + ref->_MemSize);
+//}
 
-sympl_ref *sympl_new_ref(void **dest, size_t size)
-{
-    sympl_mem_size += (size + sizeof(sympl_ref));
 
-    sympl_ref *ref = malloc(sizeof(sympl_ref));
-
-    ref->ref_count = 1;
-    ref->data = malloc(size);
-    ref->memsize = size + sizeof(sympl_ref);
-
-    *dest = ref->data;
-
-    return ref;
-}
-
-void sympl_delete_ref(sympl_ref **p_ref)
-{
-    sympl_ref* ref = *p_ref;
-    ref->ref_count--;
-    if (ref->ref_count >= 1) {
-        return;
-    }
-
-    // Free up both the data and our reference.
-    sympl_mem_size -= ref->memsize;
-    free(ref->data);
-    free(ref);
-
-    ref = NULL;
-}
-
-void sympl_add_ref(sympl_ref **p_ref)
-{
-    sympl_ref *ref = *p_ref;
-    if (ref != NULL) {
-        ref->ref_count++;
-    }
-}
-
-void sympl_remove_ref(sympl_ref *ref)
-{
-    sympl_delete_ref(&ref);
-}

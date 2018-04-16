@@ -21,44 +21,38 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma
+#pragma once
 
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
+#include "sympl_pch.h"
+#include "alloc.h"
 
 sympl_nsstart
 
-class StringBuffer;
+class SYMPL_API Ref {
+protected:
+    /// Reference to our data that has been allocated.
+    void *_Data;
 
-#define SYMPL_STRING_BUFFER_CAPACITY 512
+    /// Current reference count before we can delete the reference.
+    ulong64 _RefCount = 0;
 
-class SYMPL_API FileWriter : public Object
-{
-private:
-    /// Buffer for holding the string.
-    uchar8      *_Buffer = nullptr;
-    /// Current length of the string.
-    size_t      _Length = 0;
-    /// Capacity for the string
-    size_t      _Capacity = SYMPL_STRING_BUFFER_CAPACITY;
+    /// Size of the memory.
+    size_t _MemSize = 0;
+
+    /// Allow Alloc access to our data storage.
+    friend Alloc;
+
+    //! Returns the allocated memory data.
+    //! \return
+    void *GetMemData() const { return _Data; }
 
 public:
-    //! Constructor.
-    FileWriter();
 
-    //! Destructor.
-    ~FileWriter();
+    //! Adds to the reference count.
+    inline void AddRef() { _RefCount++; }
 
-    //! Appends a string to the current buffer.
-    //! \param str
-    void Append(const char8 *str);
-
-    //! Writes to the file.
-    //! \param str
-    void Write(const char *str);
-
-    //! Cleans out the file.
-    void Clean();
+    //! Attempts to destroy the reference object.
+    bool Destroy();
 };
 
 sympl_nsend

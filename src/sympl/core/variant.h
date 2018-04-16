@@ -21,44 +21,53 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma
+#pragma once
 
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
+#include "sympl_pch.h"
 
 sympl_nsstart
 
-class StringBuffer;
-
-#define SYMPL_STRING_BUFFER_CAPACITY 512
-
-class SYMPL_API FileWriter : public Object
+enum class VariantType : uint8_t
 {
+    Bool = 0,
+    Byte,
+    Char,
+    Short,
+    UnsignedShort,
+    Int,
+    UnsignedInt,
+    Long,
+    UnsignedLong,
+    Float,
+    Double
+};
+
+template<class T>
+class SYMPL_API Variant {
 private:
-    /// Buffer for holding the string.
-    uchar8      *_Buffer = nullptr;
-    /// Current length of the string.
-    size_t      _Length = 0;
-    /// Capacity for the string
-    size_t      _Capacity = SYMPL_STRING_BUFFER_CAPACITY;
+    typedef union {
+        bool            _bVal;
+        unsigned char   _byteVal;
+        char            _charVal;
+        short           _sVal;
+        unsigned short  _usVal;
+        int             _iVal;
+        unsigned int    _uiVal;
+        long            _lVal;
+        unsigned long   _ulVal;
+        float           _fVal;
+        double          _dVal;
+    } DataType;
+
+    DataType _Data;
 
 public:
-    //! Constructor.
-    FileWriter();
-
-    //! Destructor.
-    ~FileWriter();
-
-    //! Appends a string to the current buffer.
-    //! \param str
-    void Append(const char8 *str);
-
-    //! Writes to the file.
-    //! \param str
-    void Write(const char *str);
-
-    //! Cleans out the file.
-    void Clean();
+    inline void Set(const T val) {
+        _Data = val;
+    }
+    const T Get() const {
+        return reinterpret_cast<T>(_Data);
+    }
 };
 
 sympl_nsend

@@ -7,7 +7,25 @@ elseif (APPLE)
     add_definitions(-D_APPLE)
 endif ()
 
-set(CMAKE_C_STANDARD 11)
+#set(CMAKE_C_STANDARD 11)
+set (SYMPL_SHOW_CONSOLE_WINDOW TRUE)
+
+# Compile with C++11 libraries.
+if (SYMPL_SHOW_CONSOLE_WINDOW)
+    if (WIN32)
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -fno-keep-inline-dllexport -std=c99")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++ -std=c++11 -fno-keep-inline-dllexport")
+    else ()
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    endif ()
+else ()
+    if (WIN32)
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -fno-keep-inline-dllexport -std=c99")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++ -std=c++11 -fno-keep-inline-dllexport -mwindows")
+    else ()
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    endif ()
+endif()
 
 # Set the base directory for the source.
 set (SYMPL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")

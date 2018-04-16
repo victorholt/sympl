@@ -21,35 +21,124 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#ifndef __SYMPL_ALLOC_H__
-#define __SYMPL_ALLOC_H__
+#pragma once
 
 #include "sympl_pch.h"
 
-static size_t sympl_mem_size;
+sympl_nsstart
 
-typedef struct sympl_ref {
-    void        *data;
-    unsigned    ref_count;
-    ulong64     memsize;
-} sympl_ref;
+class SYMPL_API Alloc {
+private:
+    /// Alloc singleton instance.
+    static Alloc* _Instance;
 
-// Allocates memory.
-void* sympl_new(size_t size);
+    /// Memory allocated by our alloc class.
+    size_t _MemAllocated = 0;
 
-// Frees memory.
-void sympl_delete(void* src, size_t size);
+    /// Memory table for keeping track of the size allocated.
+    std::unordered_map<int*, size_t> _MemTable;
 
-// Allocates memory for a reference.
-sympl_ref *sympl_new_ref(void **dest, size_t size);
+    //! Constructor.
+    Alloc() {}
 
-// Frees memory for a reference.
-void sympl_delete_ref(sympl_ref **p_ref);
+    //! Add to the memory allocated.
+    //! \param amount
+    inline void AddMemAllocated(size_t amount) { _MemAllocated += amount; }
 
-// Increments the reference count.
-void sympl_add_ref(sympl_ref **p_ref);
+    //! Remove from the memory allocated.
+    //! \param amount
+    inline void RemoveMemAllocated(size_t amount) { _MemAllocated -= amount; }
 
-// Decrements the reference count.
-void sympl_remove_ref(sympl_ref *ref);
+public:
+    //! Destructor.
+    ~Alloc() {
+        if (!IsNullObject(_Instance)) {
+            _Instance->_MemTable.clear();
+            delete _Instance;
+        }
+    }
 
-#endif
+    //! Returns the singleton for our Alloc class.
+    //! \return Alloc*
+    inline static Alloc* GetInstance() {
+        if (IsNullObject(_Instance)) {
+            _Instance = new Alloc();
+        }
+        return _Instance;
+    }
+
+    //! Returns our memory allocated.
+    //! \return
+    inline size_t GetMemAllocated() const { return _MemAllocated; }
+
+    //! Allocate memory to a sympl reference.
+    template<class T>
+    inline T* MallocRef(size_t size)
+    {
+        T* ref = new T();
+        ref->_MemSize = size;
+        ref->_Data = malloc(size);
+
+        AddMemAllocated(sizeof(T) + ref->_MemSize);
+        _MemTable[reinterpret_cast<int*>(ref)] = sizeof(T) + ref->_MemSize;
+
+        return ref;
+    }
+
+    //! Free memory from a sympl reference.
+    template<class T>
+    inline void FreeRef(T*& ref)
+    {
+        if (!ref->Destroy()) {
+            return;
+        }
+
+        size_t size = _MemTable[reinterpret_cast<int*>(ref)];
+        RemoveMemAllocated(size);
+
+        free(ref->_Data);
+        delete ref;
+        ref = nullptr;
+    }
+
+    //! Allocate memory to a sympl reference.
+    template<class T>
+    inline T* Malloc(size_t size)
+    {
+        T *ref = new T[size];
+
+        AddMemAllocated(size);
+        _MemTable[reinterpret_cast<int*>(ref)] = size;
+
+        return ref;
+    }
+
+    //! Free memory from a sympl reference.
+    template<class T>
+    inline void Free(T* data)
+    {
+        size_t size = _MemTable[reinterpret_cast<int*>(data)];
+        RemoveMemAllocated(size);
+
+        delete data;
+    }
+
+    //! Free memory from a sympl reference.
+    template<class T>
+    inline void FreeArray(T* data)
+    {
+        size_t size = _MemTable[reinterpret_cast<int*>(data)];
+        RemoveMemAllocated(size);
+
+        delete []data;
+    }
+};
+
+#define alloc_ref(clazz) Sympl::Alloc::GetInstance()->MallocRef<clazz>(sizeof(clazz))
+#define free_ref(ref) Sympl::Alloc::GetInstance()->FreeRef(ref)
+
+#define alloc_data(type, size) static_cast<type*>(Sympl::Alloc::GetInstance()->Malloc<type>(size))
+#define free_data(type, data) Sympl::Alloc::GetInstance()->Free<type>(data)
+#define free_data_array(type, data) Sympl::Alloc::GetInstance()->FreeArray<type>(data)
+
+sympl_nsend

@@ -6,8 +6,9 @@ file (GLOB SYMPL_HEADERS
 )
 
 file (GLOB SYMPL_SRC
-    "${SYMPL_SOURCE_DIR}/sympl/core/*.c"
-    "${SYMPL_SOURCE_DIR}/sympl/io/*.c"
+    "${SYMPL_SOURCE_DIR}/sympl/core/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/io/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/thirdparty/*.cpp"
     "${SYMPL_SOURCE_DIR}/sympl/thirdparty/*.c"
 )
 

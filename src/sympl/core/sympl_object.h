@@ -21,44 +21,17 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma
+#pragma once
 
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
+#include "sympl_pch.h"
+#include "sympl_ref.h"
 
 sympl_nsstart
 
-class StringBuffer;
-
-#define SYMPL_STRING_BUFFER_CAPACITY 512
-
-class SYMPL_API FileWriter : public Object
-{
-private:
-    /// Buffer for holding the string.
-    uchar8      *_Buffer = nullptr;
-    /// Current length of the string.
-    size_t      _Length = 0;
-    /// Capacity for the string
-    size_t      _Capacity = SYMPL_STRING_BUFFER_CAPACITY;
+class SYMPL_API Object : public Ref {
+protected:
 
 public:
-    //! Constructor.
-    FileWriter();
-
-    //! Destructor.
-    ~FileWriter();
-
-    //! Appends a string to the current buffer.
-    //! \param str
-    void Append(const char8 *str);
-
-    //! Writes to the file.
-    //! \param str
-    void Write(const char *str);
-
-    //! Cleans out the file.
-    void Clean();
 };
 
 sympl_nsend
