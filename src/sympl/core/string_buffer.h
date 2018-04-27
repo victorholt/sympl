@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma
+#pragma once
 
 #include "sympl_pch.h"
 #include "sympl_object.h"
@@ -65,6 +65,10 @@ public:
     //! \param str
     void Append(const char8 *str);
 
+    //! Appends a string to the current buffer.
+    //! \param str
+    void AppendByte(const char8 byte);
+
     //! Resizes the string buffer.
     //! \param newCapacity
     void Resize(size_t newCapacity);
@@ -74,7 +78,11 @@ public:
 
     //! Returns the string buffer.
     //! \return uchar8*
-    inline uchar8* Str() const { return _Buffer; }
+    inline const uchar8* Str() const { return _Buffer; }
+
+    //! Returns the byte value of the buffer.
+    //! \return
+    inline const char8* CStr() const { return reinterpret_cast<char8*>(_Buffer); }
 
     //! Returns the length of the string.
     //! \return size_t

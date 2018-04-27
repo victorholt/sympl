@@ -21,9 +21,60 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "writer.h"
+#pragma once
 
-void sympl_write_file(const char8 *filepath, const uchar8 *data, size_t len)
+#include "../core/sympl_pch.h"
+#include "../core/sympl_object.h"
+#include "script_symbol.h"
+
+sympl_nsstart
+
+class StringBuffer;
+
+class SYMPL_API ScriptReader : public Object
 {
-    printf("Writing data to a file\n");
-}
+private:
+    /// Buffer holding the script data.
+    StringBuffer* _Buffer;
+
+    /// File path of the script.
+    std::string _FilePath;
+
+    /// Script string given.
+    std::string _ScriptString;
+
+    /// Symbol helper for parsing.
+    ScriptSymbol* _ScriptSymbol;
+
+    //! Processes the script file/string.
+    //! \param fileStream
+    //! \param bufferLength
+    void ProcessScript(std::ifstream& fileStream, size_t bufferLength);
+
+public:
+    //! Constructor.
+    ScriptReader();
+
+    //! Destructor.
+    ~ScriptReader();
+
+    //! Reads a script from a given file path.
+    //! \param filePath
+    //! \return bool
+    bool ReadFile(const char* filePath);
+
+    //! Reads a string.
+    //! \param scriptString
+    //! \return
+    bool ReadString(const char* scriptString);
+
+    //! Saves the output to a given file path.
+    //! \param filePath
+    void SaveOutputTo(const char* filePath);
+
+    //! Returns the script's string buffer.
+    //! \return StringBuffer*
+    StringBuffer* GetBuffer() const;
+};
+
+sympl_nsend

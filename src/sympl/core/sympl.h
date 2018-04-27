@@ -31,6 +31,11 @@
 #include "sympl_object.h"
 #include "string_buffer.h"
 #include "variant.h"
+#include "thread.h"
+#include "mutex.h"
+#include "../util/profiler.h"
+#include "../io/script_symbol.h"
+#include "../io/script_reader.h"
 
 //#include "../io/reader.h"
 //#include "../io/writer.h"

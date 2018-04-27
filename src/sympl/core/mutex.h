@@ -21,7 +21,32 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#ifndef __SYMPL_READER_H__
-#define __SYMPL_READER_H__
+#pragma once
 
-#endif
+#include "sympl_pch.h"
+#include "sympl_object.h"
+
+sympl_nsstart
+
+typedef std::function<void()> SymplThreadCallback;
+
+class SYMPL_API Mutex {
+protected:
+    /// Reference to the mutex.
+    std::mutex _SystemMutex;
+
+public:
+    //! Constructor.
+    Mutex();
+
+    //! Destructor.
+    ~Mutex();
+
+    //! Locks the mutex.
+    void Lock();
+
+    //! Unlocks the mutex.
+    void Unlock();
+};
+
+sympl_nsend

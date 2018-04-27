@@ -21,44 +21,25 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma
+#include "mutex.h"
+sympl_namespaces
 
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
-
-sympl_nsstart
-
-class StringBuffer;
-
-#define SYMPL_STRING_BUFFER_CAPACITY 512
-
-class SYMPL_API FileWriter : public Object
+Mutex::Mutex()
 {
-private:
-    /// Buffer for holding the string.
-    uchar8      *_Buffer = nullptr;
-    /// Current length of the string.
-    size_t      _Length = 0;
-    /// Capacity for the string
-    size_t      _Capacity = SYMPL_STRING_BUFFER_CAPACITY;
 
-public:
-    //! Constructor.
-    FileWriter();
+}
 
-    //! Destructor.
-    ~FileWriter();
+Mutex::~Mutex()
+{
 
-    //! Appends a string to the current buffer.
-    //! \param str
-    void Append(const char8 *str);
+}
 
-    //! Writes to the file.
-    //! \param str
-    void Write(const char *str);
+void Mutex::Lock()
+{
+    _SystemMutex.lock();
+}
 
-    //! Cleans out the file.
-    void Clean();
-};
-
-sympl_nsend
+void Mutex::Unlock()
+{
+    _SystemMutex.unlock();
+}

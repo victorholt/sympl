@@ -24,14 +24,15 @@
 #pragma once
 
 #include "sympl_pch.h"
+#include "string_buffer.h"
 
 sympl_nsstart
 
+/// Support types for the Variant.
 enum class VariantType : uint8_t
 {
-    Bool = 0,
-    Byte,
-    Char,
+    None = 0,
+    Bool,
     Short,
     UnsignedShort,
     Int,
@@ -39,34 +40,380 @@ enum class VariantType : uint8_t
     Long,
     UnsignedLong,
     Float,
-    Double
+    Double,
+
+    StringBuffer,
+
+    MaxVariantTypes
 };
 
-template<class T>
+/// Container for our Variant value.
+struct VariantValue {
+    union {
+        bool                BoolVal;
+        short               ShortVal;
+        unsigned short      UnsignedShortVal;
+        int                 IntVal;
+        unsigned int        UnsignedIntVal;
+        long                LongVal;
+        unsigned long       UnsignedLongVal;
+        float               FloatVal;
+        double              DoubleVal;
+        void*               Ptr;
+    };
+};
+
 class SYMPL_API Variant {
 private:
-    typedef union {
-        bool            _bVal;
-        unsigned char   _byteVal;
-        char            _charVal;
-        short           _sVal;
-        unsigned short  _usVal;
-        int             _iVal;
-        unsigned int    _uiVal;
-        long            _lVal;
-        unsigned long   _ulVal;
-        float           _fVal;
-        double          _dVal;
-    } DataType;
-
-    DataType _Data;
+    /// Type of variant.
+    VariantType _Type;
+    /// Value for the variant object.
+    VariantValue _Value;
 
 public:
-    inline void Set(const T val) {
-        _Data = val;
+    //! Constructor.
+    Variant()
+        : _Type(VariantType::None)
+    {}
+
+    //! Constructor.
+    //! \param value
+    Variant(bool value) {
+        Set(value);
     }
-    const T Get() const {
-        return reinterpret_cast<T>(_Data);
+
+    //! Constructor.
+    //! \param value
+    Variant(short value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
+    Variant(unsigned short value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
+    Variant(int value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
+    Variant(unsigned int value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
+    Variant(long value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
+    Variant(unsigned long value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
+    Variant(float value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
+    Variant(double value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
+    Variant(StringBuffer* value) {
+        Set(value);
+    }
+
+    //! Destructor.
+    ~Variant() {
+        Free();
+    }
+
+    //! Sets the type of the variant.
+    //! \param type
+    void SetType(VariantType type) {
+        _Type = type;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(bool value) {
+        SetType(VariantType::Bool);
+        _Value.BoolVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return bool
+    bool GetBool() {
+        if (_Type != VariantType::Bool) {
+            return false;
+        }
+        return _Value.BoolVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(short value) {
+        SetType(VariantType::Short);
+        _Value.ShortVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return short
+    short GetShort() {
+        if (_Type != VariantType::Short) {
+            return 0;
+        }
+        return _Value.ShortVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(unsigned short value) {
+        SetType(VariantType::UnsignedShort);
+        _Value.UnsignedShortVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return unsigned short
+    unsigned short GetUnsignedShort() {
+        if (_Type != VariantType::UnsignedShort) {
+            return 0;
+        }
+        return _Value.UnsignedShortVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(int value) {
+        SetType(VariantType::Int);
+        _Value.IntVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return int
+    int GetInt() {
+        if (_Type != VariantType::Int) {
+            return 0;
+        }
+        return _Value.IntVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(unsigned int value) {
+        SetType(VariantType::UnsignedInt);
+        _Value.UnsignedIntVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return int
+    int GetUnsignedInt() {
+        if (_Type != VariantType::UnsignedInt) {
+            return 0;
+        }
+        return _Value.UnsignedIntVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(long value) {
+        SetType(VariantType::Long);
+        _Value.LongVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return long
+    int GetLong() {
+        if (_Type != VariantType::Long) {
+            return 0;
+        }
+        return _Value.LongVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(unsigned long value) {
+        SetType(VariantType::UnsignedLong);
+        _Value.UnsignedLongVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return unsigned long
+    int GetUnsignedLong() {
+        if (_Type != VariantType::UnsignedLong) {
+            return 0;
+        }
+        return _Value.UnsignedLongVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(float value) {
+        SetType(VariantType::Float);
+        _Value.FloatVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return float
+    float GetFloat() {
+        if (_Type != VariantType::Float) {
+            return 0;
+        }
+        return _Value.FloatVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(double value) {
+        SetType(VariantType::Double);
+        _Value.DoubleVal = value;
+    }
+
+    //! Returns the variant value.
+    //! \return double
+    double GetDouble() {
+        if (_Type != VariantType::Double) {
+            return 0;
+        }
+        return _Value.DoubleVal;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(StringBuffer* value) {
+        SetType(VariantType::StringBuffer);
+        _Value.Ptr = value;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(const char* value) {
+        if (_Type != VariantType::StringBuffer) {
+            return;
+        }
+        GetStringBuffer()->Clear();
+        GetStringBuffer()->Append(value);
+    }
+
+    //! Returns the string buffer.
+    //! \return StringBuffer
+    StringBuffer* GetStringBuffer() {
+        if (_Type != VariantType::StringBuffer) {
+            return nullptr;
+        }
+        return reinterpret_cast<StringBuffer*>(_Value.Ptr);
+    }
+
+    //////////////////////////////////////////////////////////
+    // Operator Overlading
+    //////////////////////////////////////////////////////////
+
+    //! Operator for assigning boolean.
+    //! \param rhs
+    //! \return
+    Variant& operator =(bool rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning short.
+    //! \param rhs
+    //! \return
+    Variant& operator =(short rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning unsigned short.
+    //! \param rhs
+    //! \return
+    Variant& operator =(unsigned short rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning integer.
+    //! \param rhs
+    //! \return
+    Variant& operator =(int rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning unsigned integer.
+    //! \param rhs
+    //! \return
+    Variant& operator =(unsigned int rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning long.
+    //! \param rhs
+    //! \return
+    Variant& operator =(long rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning unsigned long.
+    //! \param rhs
+    //! \return
+    Variant& operator =(unsigned long rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning float.
+    //! \param rhs
+    //! \return
+    Variant& operator =(float rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning double.
+    //! \param rhs
+    //! \return
+    Variant& operator =(double rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning StringBuffer.
+    //! \param rhs
+    //! \return
+    Variant& operator =(StringBuffer* rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Frees the pointer.
+    void Free() {
+        // Check to see if we have a reference.
+        if (IsNullObject(_Value.Ptr)) {
+            return;
+        }
+
+        // Free our string buffer.
+        if (_Type == VariantType::StringBuffer) {
+            StringBuffer* buffer = GetStringBuffer();
+            free_ref(StringBuffer, buffer);
+            _Value.Ptr = nullptr;
+        }
     }
 };
 

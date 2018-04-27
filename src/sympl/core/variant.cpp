@@ -21,3 +21,5 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
+#include "variant.h"
+sympl_namespaces

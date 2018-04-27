@@ -33,6 +33,7 @@ set (SYMPL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 # Setup our common directory.
 set (SYMPL_INCLUDES
     "${SYMPL_SOURCE_DIR}"
+    "${SYMPL_SOURCE_DIR}/sympl/thirdparty"
 )
 set (SYMPL_SOURCES)
 
@@ -48,6 +49,7 @@ else ()
 endif ()
 
 # Include the source.
+include(src/sympl/thirdparty/fmt/CMakeLists.txt)
 include(src/sympl/CMakeLists.txt)
 
 # Include the compiler.

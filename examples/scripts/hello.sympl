@@ -4,5 +4,5 @@
 package examples
 
 @func main() {
-    print("Hello World!")
+    print("Hello World /* comments don't work in strings */!")
 }

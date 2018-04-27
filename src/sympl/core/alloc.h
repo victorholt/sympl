@@ -93,8 +93,14 @@ public:
             return;
         }
 
-        size_t size = _MemTable[reinterpret_cast<int*>(ref)];
+        auto entry = _MemTable.find(reinterpret_cast<int*>(ref));
+        if (entry == _MemTable.end()) {
+            return;
+        }
+
+        size_t size = entry->second;
         RemoveMemAllocated(size);
+        _MemTable.erase(entry);
 
         free(ref->_Data);
         delete ref;
@@ -135,10 +141,12 @@ public:
 };
 
 #define alloc_ref(clazz) Sympl::Alloc::GetInstance()->MallocRef<clazz>(sizeof(clazz))
-#define free_ref(ref) Sympl::Alloc::GetInstance()->FreeRef(ref)
+#define free_ref(type, ref) Sympl::Alloc::GetInstance()->FreeRef<type>(ref)
 
 #define alloc_data(type, size) static_cast<type*>(Sympl::Alloc::GetInstance()->Malloc<type>(size))
 #define free_data(type, data) Sympl::Alloc::GetInstance()->Free<type>(data)
 #define free_data_array(type, data) Sympl::Alloc::GetInstance()->FreeArray<type>(data)
+
+#define AllocInstance Sympl::Alloc::GetInstance()
 
 sympl_nsend

@@ -80,11 +80,35 @@ void StringBuffer::Append(const char8 *str)
     _Length += strlen(str);
 }
 
+void StringBuffer::AppendByte(const char8 byte)
+{
+    // Ensure we have enough capacity.
+    if ((_Length + 2) >= _Capacity) {
+        Resize(_Length + 2 + SYMPL_STRING_BUFFER_CAPACITY);
+    }
+
+    _Buffer[_Length] = static_cast<uchar8>(byte);
+    _Length += 1;
+}
+
 void StringBuffer::Resize(size_t newCapacity)
 {
+    // Check if we need to clear everything.
+    if (newCapacity < _Capacity) {
+        free_data_array(uchar8, _Buffer);
+        _Capacity = newCapacity;
+
+        _Buffer = alloc_data(uchar8, _Capacity);
+        memset(_Buffer, 0, _Capacity);
+        return;
+    }
+
     uchar8 *tmpStr = alloc_data(uchar8, newCapacity);
     memset(tmpStr, 0, newCapacity);
-    memcpy(tmpStr, _Buffer, _Length);
+
+    if (_Length > 0) {
+        memcpy(tmpStr, _Buffer, _Length);
+    }
 
     free_data_array(uchar8, _Buffer);
     _Buffer = tmpStr;

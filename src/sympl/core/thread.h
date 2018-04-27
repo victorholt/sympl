@@ -35,14 +35,53 @@ protected:
     /// Reference to the system thread.
     std::thread _SystemThread;
 
-public:
-    void Run();
+    /// Reference to the thread callback.
+    SymplThreadCallback _Callback;
 
+    /// Whether or not the thread has started.
+    bool _ThreadStarted = false;
+
+    /// Whether or not to pause the thread.
+    bool _IsPaused = false;
+
+    /// Whether or not the thread is a single-run thread.
+    bool _IsSingleRun = true;
+
+    /// Whether or not the thread has joined to the main thread.
+    bool _IsJoined = false;
+
+    /// Whether or not the thread is running.
+    bool _IsRunning = false;
+
+    /// Whether or not the thread has a callback.
+    bool _HasCallback = false;
+
+public:
+    //! Constructor.
+    Thread();
+
+    //! Destructor.
+    ~Thread();
+
+    //! Starts the thread.
+    void Start();
+
+    //! Joins the thread to the main thread.
     void Join();
 
+    //! Pauses a non single-run thread.
+    void Pause();
+
+    //! Stops a non single-run thread.
     void Stop();
 
+    //! Sets the callback for the thread.
+    //! \param callback
     void SetCallback(SymplThreadCallback callback);
+
+    //! Returns whether or not the thread is running.
+    //! \return
+    inline bool IsRunning() const { return _IsRunning; }
 };
 
 sympl_nsend

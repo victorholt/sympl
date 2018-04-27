@@ -1,0 +1,318 @@
+/**********************************************************
+ * Author:  GameSencha, LLC
+ * The MIT License (MIT)
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
+ *  Software is furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ *  DEALINGS IN THE SOFTWARE.
+ *
+ **********************************************************/
+#include "script_reader.h"
+#include "../core/string_buffer.h"
+#include <fmt/format.h>
+sympl_namespaces
+
+ScriptReader::ScriptReader()
+{
+    _Buffer = alloc_ref(StringBuffer);
+    _ScriptSymbol = alloc_ref(ScriptSymbol);
+    _FilePath = "";
+    _ScriptString = "";
+}
+
+ScriptReader::~ScriptReader()
+{
+    free_ref(StringBuffer, _Buffer);
+    free_ref(ScriptSymbol, _ScriptSymbol);
+}
+
+bool ScriptReader::ReadFile(const char* filePath)
+{
+//    DIR *dir;
+//    dirent *pdir;
+//    dir=opendir(".");
+//    while((pdir=readdir(dir)))
+//    {
+//        std::cout<< pdir->d_name << std::endl;
+////        break;
+//    }
+//    closedir(dir);
+
+    _FilePath = filePath;
+
+    std::ifstream inputStream (filePath, std::ifstream::in);
+    if (!inputStream.is_open()) {
+        return false;
+    }
+
+    inputStream.seekg(0, inputStream.end);
+    size_t fileLength = static_cast<size_t>(inputStream.tellg());
+    inputStream.seekg(0, inputStream.beg);
+
+    ProcessScript(inputStream, fileLength);
+
+    // Close the stream.
+    inputStream.close();
+    return true;
+}
+
+bool ScriptReader::ReadString(const char* scriptString)
+{
+    _ScriptString = scriptString;
+    std::ifstream inputStream (_ScriptString);
+    if (!inputStream.is_open()) {
+        return false;
+    }
+
+    inputStream.seekg(0, inputStream.end);
+    size_t fileLength = static_cast<size_t>(inputStream.tellg());
+    inputStream.seekg(0, inputStream.beg);
+
+    ProcessScript(inputStream, fileLength);
+    return true;
+}
+
+void ScriptReader::SaveOutputTo(const char* filePath)
+{
+    std::ofstream outputStream(filePath, std::ofstream::out);
+    outputStream << _Buffer->CStr();
+    outputStream.close();
+}
+
+StringBuffer* ScriptReader::GetBuffer() const
+{
+    return _Buffer;
+}
+
+void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
+{
+    int nestLevel = 0;
+    int currentLine = 1;
+    char previousChar = '\0';
+    char previousValidChar = '\0';
+    bool recording = false;
+    bool newWord = false;
+    bool isComment = false;
+    bool isBlockComment = false;
+    bool valueMode = false;
+    bool inArray = false;
+    std::locale loc;
+
+    bool addLineNumbers = true;
+
+    // Open the file.
+    char currentChar;
+
+    fileStream.seekg(0, fileStream.end);
+    size_t sz = static_cast<size_t>(fileStream.tellg());
+    fileStream.seekg(0, fileStream.beg);
+
+    // Delete any previous script buffer.
+    if (!IsNullObject(_Buffer)) {
+        _Buffer->Clear();
+    } else {
+        _Buffer = alloc_ref(StringBuffer);
+    }
+    _Buffer->Resize(2000);
+
+    if (addLineNumbers) {
+        _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
+    }
+
+    //while ((currentChar = getc(fp)) != EOF) {
+    while (fileStream.get(currentChar)) {
+        char nextChar = static_cast<char>(fileStream.peek());
+
+        // Check if we're inside of a block comment.
+        if ((!recording && currentChar == '/' && nextChar == '*') || isBlockComment) {
+            isBlockComment = true;
+
+            // Update the next line.
+            if (currentChar == '\n') {
+                currentLine++;
+
+                // Add our line number.
+                if (addLineNumbers) {
+                    _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
+                }
+            }
+
+            // Check if we need to close the comment.
+            if (currentChar == '*' && nextChar == '/') {
+                isBlockComment = false;
+            }
+
+            continue;
+        }
+
+        // Check if we're inside of a comment.
+        if ( (currentChar == '/' && nextChar == '/' && !recording) ||
+             (currentChar == '#' && !recording) ||
+             isComment) {
+            isComment = true;
+            if (currentChar == '\n') {
+                currentLine++;
+                isComment = false;
+
+                // Add our line number.
+                if (addLineNumbers) {
+                    _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
+                }
+            }
+            continue;
+        }
+
+        // Check if we need to start recording.
+        if (currentChar == '"') {
+            std::string encodedString = "";
+            if (!recording && _ScriptSymbol->EncodeSpecialChar(currentChar, encodedString)) {
+                if (previousValidChar == '"') {
+                    _Buffer->AppendByte(',');
+                }
+
+                _Buffer->Append(encodedString.c_str());
+            }
+
+            if (recording) {
+                // Check for empty string.
+                if (previousChar == ' ') {
+                    _Buffer->Append("\\0");
+                }
+
+                if (_ScriptSymbol->EncodeSpecialChar(currentChar, encodedString)) {
+                    _Buffer->Append(encodedString.c_str());
+                }
+                //pBuffer->AppendByte(';');
+            }
+            previousChar = currentChar;
+            previousValidChar = currentChar;
+            recording = !recording;
+            newWord = false;
+            continue;
+        }
+
+        // Check if we have a whitespace character.
+        if (!IsSpaceChar(currentChar, loc) || recording) {
+            if (!recording) {
+                if (_ScriptSymbol->IsOperator(currentChar)) {
+                    valueMode = true;
+                    inArray = false;
+                }
+
+                // Handle closing the nest.
+                if (nestLevel == 0 && newWord) {
+                    if (currentChar == '}' || previousChar == '}') {
+                        _Buffer->AppendByte(';');
+                        inArray = false;
+                    }
+                    else if (_ScriptSymbol->IsObject(previousValidChar) && _ScriptSymbol->IsObject(currentChar)) {
+                        _Buffer->AppendByte(';');
+                        inArray = false;
+                    }
+                }
+
+                // Handle the last item in an object that is a variable.
+                if (valueMode && !inArray && currentChar == '}') {
+                    _Buffer->AppendByte(';');
+                    inArray = false;
+                }
+
+                // Handle variable semi-colons.
+                if (IsSpaceChar(previousChar, loc) &&
+                    _ScriptSymbol->IsObject(previousValidChar) &&
+                    _ScriptSymbol->IsObject(currentChar) &&
+                    valueMode)
+                {
+                    if (previousChar != '\n' && previousChar != ';' && previousValidChar != ';')
+                        _Buffer->AppendByte(';');
+                    valueMode = false;
+                }
+
+                    // Handle arrays.
+                else if (IsSpaceChar(previousChar, loc) && _ScriptSymbol->IsObject(currentChar) && nestLevel > 0 &&
+                         !_ScriptSymbol->IsOperator(previousValidChar) && !_ScriptSymbol->IsIdentifier(previousValidChar) &&
+                         _ScriptSymbol->IsObject(previousValidChar))
+                {
+                    _Buffer->AppendByte(',');
+                    inArray = true;
+                }
+            }
+
+            // Handle nesting.
+            if (currentChar == '{') {
+                valueMode = false;
+                nestLevel++;
+            }
+
+            if (currentChar == '}') {
+                valueMode = false;
+                if (--nestLevel < 0) {
+//                    GetService<FileLogger>()->Error(fmt::format("Found nesting issue on line {0} in the script file {1}", currentLine, scriptDataPath).c_str());
+                    return;
+                }
+            }
+
+            // Append out the new line number.
+            if (previousChar == '\n') {
+                currentLine++;
+                isComment = false;
+
+                // Add our line number.
+                if (addLineNumbers) {
+                    _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
+                }
+            }
+
+            // Save to the buffer.
+            std::string encodedString;
+            if (recording && _ScriptSymbol->EncodeSpecialChar(currentChar, encodedString)) {
+                _Buffer->Append(encodedString.c_str());
+            }
+            else {
+                _Buffer->AppendByte(currentChar);
+
+                // Add a semicolon to the last closing scope.
+                if (nestLevel == 0 && currentChar == '}') {
+                    _Buffer->AppendByte(';');
+                }
+            }
+
+            previousValidChar = currentChar;
+            newWord = false;
+        }
+
+        // Increase the line number we're on.
+        if (IsSpaceChar(currentChar, loc)) {
+            if (previousChar == '\n') {
+                currentLine++;
+                isComment = false;
+
+                // Add our line number.
+                if (addLineNumbers) {
+                    _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
+                }
+            }
+
+            newWord = true;
+        }
+
+        previousChar = currentChar;
+    }
+    _Buffer->AppendByte(';');
+
+    fileStream.close();
+}
