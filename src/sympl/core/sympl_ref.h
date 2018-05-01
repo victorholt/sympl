@@ -34,7 +34,7 @@ protected:
     void *_Data;
 
     /// Current reference count before we can delete the reference.
-    ulong64 _RefCount = 0;
+    unsigned _RefCount = 0;
 
     /// Size of the memory.
     size_t _MemSize = 0;
@@ -47,12 +47,20 @@ protected:
     void *GetMemData() const { return _Data; }
 
 public:
+    // Attempts to dec the reference count.
+    virtual ~Ref() {
+        Free();
+    }
 
     //! Adds to the reference count.
     inline void AddRef() { _RefCount++; }
 
-    //! Attempts to destroy the reference object.
-    bool Destroy();
+    //! Returns the reference count.
+    //! \return
+    inline unsigned GetRefCount() const { return _RefCount; }
+
+    //! Attempts to free the reference object.
+    virtual bool Free();
 };
 
 sympl_nsend

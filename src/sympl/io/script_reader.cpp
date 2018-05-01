@@ -112,8 +112,6 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
     bool inArray = false;
     std::locale loc;
 
-    bool addLineNumbers = true;
-
     // Open the file.
     char currentChar;
 
@@ -129,7 +127,7 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
     }
     _Buffer->Resize(2000);
 
-    if (addLineNumbers) {
+    if (_AddLineNumbers) {
         _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
     }
 
@@ -146,7 +144,7 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
                 currentLine++;
 
                 // Add our line number.
-                if (addLineNumbers) {
+                if (_AddLineNumbers) {
                     _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
                 }
             }
@@ -169,7 +167,7 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
                 isComment = false;
 
                 // Add our line number.
-                if (addLineNumbers) {
+                if (_AddLineNumbers) {
                     _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
                 }
             }
@@ -180,16 +178,12 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
         if (currentChar == '"') {
             std::string encodedString = "";
             if (!recording && _ScriptSymbol->EncodeSpecialChar(currentChar, encodedString)) {
-                if (previousValidChar == '"') {
-                    _Buffer->AppendByte(',');
-                }
-
                 _Buffer->Append(encodedString.c_str());
             }
 
             if (recording) {
                 // Check for empty string.
-                if (previousChar == ' ') {
+                if (previousChar == '"' && currentChar == '"') {
                     _Buffer->Append("\\0");
                 }
 
@@ -207,92 +201,7 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
 
         // Check if we have a whitespace character.
         if (!IsSpaceChar(currentChar, loc) || recording) {
-            if (!recording) {
-                if (_ScriptSymbol->IsOperator(currentChar)) {
-                    valueMode = true;
-                    inArray = false;
-                }
-
-                // Handle closing the nest.
-                if (nestLevel == 0 && newWord) {
-                    if (currentChar == '}' || previousChar == '}') {
-                        _Buffer->AppendByte(';');
-                        inArray = false;
-                    }
-                    else if (_ScriptSymbol->IsObject(previousValidChar) && _ScriptSymbol->IsObject(currentChar)) {
-                        _Buffer->AppendByte(';');
-                        inArray = false;
-                    }
-                }
-
-                // Handle the last item in an object that is a variable.
-                if (valueMode && !inArray && currentChar == '}') {
-                    _Buffer->AppendByte(';');
-                    inArray = false;
-                }
-
-                // Handle variable semi-colons.
-                if (IsSpaceChar(previousChar, loc) &&
-                    _ScriptSymbol->IsObject(previousValidChar) &&
-                    _ScriptSymbol->IsObject(currentChar) &&
-                    valueMode)
-                {
-                    if (previousChar != '\n' && previousChar != ';' && previousValidChar != ';')
-                        _Buffer->AppendByte(';');
-                    valueMode = false;
-                }
-
-                    // Handle arrays.
-                else if (IsSpaceChar(previousChar, loc) && _ScriptSymbol->IsObject(currentChar) && nestLevel > 0 &&
-                         !_ScriptSymbol->IsOperator(previousValidChar) && !_ScriptSymbol->IsIdentifier(previousValidChar) &&
-                         _ScriptSymbol->IsObject(previousValidChar))
-                {
-                    _Buffer->AppendByte(',');
-                    inArray = true;
-                }
-            }
-
-            // Handle nesting.
-            if (currentChar == '{') {
-                valueMode = false;
-                nestLevel++;
-            }
-
-            if (currentChar == '}') {
-                valueMode = false;
-                if (--nestLevel < 0) {
-//                    GetService<FileLogger>()->Error(fmt::format("Found nesting issue on line {0} in the script file {1}", currentLine, scriptDataPath).c_str());
-                    return;
-                }
-            }
-
-            // Append out the new line number.
-            if (previousChar == '\n') {
-                currentLine++;
-                isComment = false;
-
-                // Add our line number.
-                if (addLineNumbers) {
-                    _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
-                }
-            }
-
-            // Save to the buffer.
-            std::string encodedString;
-            if (recording && _ScriptSymbol->EncodeSpecialChar(currentChar, encodedString)) {
-                _Buffer->Append(encodedString.c_str());
-            }
-            else {
-                _Buffer->AppendByte(currentChar);
-
-                // Add a semicolon to the last closing scope.
-                if (nestLevel == 0 && currentChar == '}') {
-                    _Buffer->AppendByte(';');
-                }
-            }
-
-            previousValidChar = currentChar;
-            newWord = false;
+            _Buffer->AppendByte(currentChar);
         }
 
         // Increase the line number we're on.
@@ -302,17 +211,16 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
                 isComment = false;
 
                 // Add our line number.
-                if (addLineNumbers) {
+                if (_AddLineNumbers) {
                     _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
                 }
+            } else if (!recording && previousChar != ' ') {
+                _Buffer->AppendByte('#');
             }
-
-            newWord = true;
         }
 
         previousChar = currentChar;
     }
-    _Buffer->AppendByte(';');
 
     fileStream.close();
 }

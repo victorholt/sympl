@@ -24,9 +24,9 @@
 #include "sympl_ref.h"
 sympl_namespaces
 
-bool Ref::Destroy()
+bool Ref::Free()
 {
-    if (_RefCount != 0) {
+    if (_RefCount > 0) {
         _RefCount--;
     }
     return (_RefCount == 0);

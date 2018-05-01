@@ -21,48 +21,11 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "variant.h"
-#include "../script/script_object.h"
+#include "shared_ref.h"
 sympl_namespaces
 
-Variant::Variant(ScriptObject* value) {
-    Set(value);
-}
-
-void Variant::Set(ScriptObject* value) {
-    SetType(VariantType::ScriptObject);
-    _Value.Ptr = value;
-}
-
-ScriptObject* Variant::GetScriptObject() {
-    if (_Type != VariantType::ScriptObject) {
-        return nullptr;
-    }
-    return reinterpret_cast<ScriptObject*>(_Value.Ptr);
-}
-
-Variant& Variant::operator =(ScriptObject* rhs) {
-    Set(rhs);
-    return *this;
-}
-
-void Variant::Free() {
-    // Check to see if we have a reference.
-    if (IsNullObject(_Value.Ptr)) {
-        return;
-    }
-
-    // Free our string buffer.
-    if (_Type == VariantType::StringBuffer) {
-        StringBuffer* buffer = GetStringBuffer();
-        free_ref(StringBuffer, buffer);
-        _Value.Ptr = nullptr;
-    }
-
-    // Free our script object.
-    if (_Type == VariantType::ScriptObject) {
-        ScriptObject* sobj = GetScriptObject();
-        free_ref(ScriptObject, sobj);
-        _Value.Ptr = nullptr;
-    }
-}
+//SharedRef& SharedRef::operator =(ScriptObject* rhs) {
+//    _Data = rhs;
+//    _Data->AddRef();
+//    return *this;
+//}

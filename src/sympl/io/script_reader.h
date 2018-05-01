@@ -46,6 +46,9 @@ private:
     /// Symbol helper for parsing.
     ScriptSymbol* _ScriptSymbol;
 
+    /// Adds the line numbers to the compiler's output (for debugging).
+    bool _AddLineNumbers = true;
+
     //! Processes the script file/string.
     //! \param fileStream
     //! \param bufferLength
@@ -56,7 +59,7 @@ public:
     ScriptReader();
 
     //! Destructor.
-    ~ScriptReader();
+    virtual ~ScriptReader();
 
     //! Reads a script from a given file path.
     //! \param filePath
@@ -75,6 +78,10 @@ public:
     //! Returns the script's string buffer.
     //! \return StringBuffer*
     StringBuffer* GetBuffer() const;
+
+    //! Sets whether or not to add line numbers to the string buffer.
+    //! \param addLineNumbers
+    inline void SetAddLineNumbers(bool addLineNumbers) { _AddLineNumbers = addLineNumbers; }
 };
 
 sympl_nsend

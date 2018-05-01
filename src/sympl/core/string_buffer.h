@@ -59,7 +59,7 @@ public:
     StringBuffer();
 
     //! Destructor.
-    ~StringBuffer();
+    virtual ~StringBuffer();
 
     //! Appends a string to the current buffer.
     //! \param str

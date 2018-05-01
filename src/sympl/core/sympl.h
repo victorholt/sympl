@@ -28,16 +28,20 @@
 
 #include "alloc.h"
 #include "sympl_ref.h"
+#include "shared_ref.h"
+#include "weak_ref.h"
 #include "sympl_object.h"
 #include "string_buffer.h"
 #include "variant.h"
 #include "thread.h"
 #include "mutex.h"
+
 #include "../util/profiler.h"
+
 #include "../io/script_symbol.h"
 #include "../io/script_reader.h"
 
-//#include "../io/reader.h"
-//#include "../io/writer.h"
+#include "../script/sympl_vm.h"
+#include "../script/script_object.h"
 
 #endif

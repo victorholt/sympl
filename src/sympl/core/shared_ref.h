@@ -21,48 +21,43 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "variant.h"
-#include "../script/script_object.h"
-sympl_namespaces
+#pragma once
 
-Variant::Variant(ScriptObject* value) {
-    Set(value);
-}
+#include "sympl_pch.h"
+#include "sympl_object.h"
 
-void Variant::Set(ScriptObject* value) {
-    SetType(VariantType::ScriptObject);
-    _Value.Ptr = value;
-}
+sympl_nsstart
 
-ScriptObject* Variant::GetScriptObject() {
-    if (_Type != VariantType::ScriptObject) {
-        return nullptr;
-    }
-    return reinterpret_cast<ScriptObject*>(_Value.Ptr);
-}
+template<class T>
+class SharedRef
+{
+private:
+    T* _Data = nullptr;
 
-Variant& Variant::operator =(ScriptObject* rhs) {
-    Set(rhs);
-    return *this;
-}
+public:
+    SharedRef() {}
 
-void Variant::Free() {
-    // Check to see if we have a reference.
-    if (IsNullObject(_Value.Ptr)) {
-        return;
+    //! Destructor.
+    ~SharedRef() {
+        if (!IsNullObject(_Data)) {
+            if (_Data->Free()) {
+                free_ref(T, _Data);
+            }
+        }
     }
 
-    // Free our string buffer.
-    if (_Type == VariantType::StringBuffer) {
-        StringBuffer* buffer = GetStringBuffer();
-        free_ref(StringBuffer, buffer);
-        _Value.Ptr = nullptr;
-    }
+    //! Returns the pointer.
+    //! \return
+    T* Get() const { return _Data; }
 
-    // Free our script object.
-    if (_Type == VariantType::ScriptObject) {
-        ScriptObject* sobj = GetScriptObject();
-        free_ref(ScriptObject, sobj);
-        _Value.Ptr = nullptr;
+    //! Operator for assigning long.
+    //! \param rhs
+    //! \return
+    SharedRef<T>& operator =(T* rhs) {
+        _Data = rhs;
+        _Data->AddRef();
+        return *this;
     }
-}
+};
+
+sympl_nsend

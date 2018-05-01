@@ -92,7 +92,7 @@ public:
     ScriptSymbol();
 
     //! Destructor.
-    ~ScriptSymbol();
+    virtual ~ScriptSymbol();
 
     //! Returns if the input is a specific type.
     //! \param type

@@ -61,7 +61,7 @@ public:
     Thread();
 
     //! Destructor.
-    ~Thread();
+    virtual ~Thread();
 
     //! Starts the thread.
     void Start();

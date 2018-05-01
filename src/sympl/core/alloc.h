@@ -89,7 +89,7 @@ public:
     template<class T>
     inline void FreeRef(T*& ref)
     {
-        if (!ref->Destroy()) {
+        if (!ref->Free()) {
             return;
         }
 

@@ -21,48 +21,22 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "variant.h"
-#include "../script/script_object.h"
-sympl_namespaces
+#pragma once
+#include "../core/sympl_pch.h"
+#include "../core/sympl_object.h"
+#include "../core/variant.h"
+#include "script_common.h"
 
-Variant::Variant(ScriptObject* value) {
-    Set(value);
-}
+sympl_nsstart
 
-void Variant::Set(ScriptObject* value) {
-    SetType(VariantType::ScriptObject);
-    _Value.Ptr = value;
-}
+enum class ScriptObjectType : uint8_t {
+    Empty = 0,
+    Object,
+    Variable,
+    Array,
+    Method
+};
 
-ScriptObject* Variant::GetScriptObject() {
-    if (_Type != VariantType::ScriptObject) {
-        return nullptr;
-    }
-    return reinterpret_cast<ScriptObject*>(_Value.Ptr);
-}
+sympl_nsend
 
-Variant& Variant::operator =(ScriptObject* rhs) {
-    Set(rhs);
-    return *this;
-}
 
-void Variant::Free() {
-    // Check to see if we have a reference.
-    if (IsNullObject(_Value.Ptr)) {
-        return;
-    }
-
-    // Free our string buffer.
-    if (_Type == VariantType::StringBuffer) {
-        StringBuffer* buffer = GetStringBuffer();
-        free_ref(StringBuffer, buffer);
-        _Value.Ptr = nullptr;
-    }
-
-    // Free our script object.
-    if (_Type == VariantType::ScriptObject) {
-        ScriptObject* sobj = GetScriptObject();
-        free_ref(ScriptObject, sobj);
-        _Value.Ptr = nullptr;
-    }
-}

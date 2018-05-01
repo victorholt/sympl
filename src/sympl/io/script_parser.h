@@ -21,48 +21,25 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "variant.h"
-#include "../script/script_object.h"
-sympl_namespaces
+#pragma once
 
-Variant::Variant(ScriptObject* value) {
-    Set(value);
-}
+#include "../core/sympl_pch.h"
+#include "../core/sympl_object.h"
+#include "script_reader.h"
 
-void Variant::Set(ScriptObject* value) {
-    SetType(VariantType::ScriptObject);
-    _Value.Ptr = value;
-}
+sympl_nsstart
 
-ScriptObject* Variant::GetScriptObject() {
-    if (_Type != VariantType::ScriptObject) {
-        return nullptr;
-    }
-    return reinterpret_cast<ScriptObject*>(_Value.Ptr);
-}
+class SYMPL_API ScriptParser : public Object
+{
+private:
 
-Variant& Variant::operator =(ScriptObject* rhs) {
-    Set(rhs);
-    return *this;
-}
 
-void Variant::Free() {
-    // Check to see if we have a reference.
-    if (IsNullObject(_Value.Ptr)) {
-        return;
-    }
+public:
+    //! Constructor.
+    ScriptParser();
 
-    // Free our string buffer.
-    if (_Type == VariantType::StringBuffer) {
-        StringBuffer* buffer = GetStringBuffer();
-        free_ref(StringBuffer, buffer);
-        _Value.Ptr = nullptr;
-    }
+    //! Destructor.
+    virtual ~ScriptParser();
+};
 
-    // Free our script object.
-    if (_Type == VariantType::ScriptObject) {
-        ScriptObject* sobj = GetScriptObject();
-        free_ref(ScriptObject, sobj);
-        _Value.Ptr = nullptr;
-    }
-}
+sympl_nsend

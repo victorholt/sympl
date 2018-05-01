@@ -28,6 +28,8 @@
 
 sympl_nsstart
 
+class ScriptObject;
+
 /// Support types for the Variant.
 enum class VariantType : uint8_t
 {
@@ -43,6 +45,7 @@ enum class VariantType : uint8_t
     Double,
 
     StringBuffer,
+    ScriptObject,
 
     MaxVariantTypes
 };
@@ -135,6 +138,10 @@ public:
     Variant(StringBuffer* value) {
         Set(value);
     }
+
+    //! Constructor.
+    //! \param value
+    Variant(ScriptObject* value);
 
     //! Destructor.
     ~Variant() {
@@ -317,9 +324,26 @@ public:
         return reinterpret_cast<StringBuffer*>(_Value.Ptr);
     }
 
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(ScriptObject* value);
+
+    //! Returns the script object.
+    //! \return StringBuffer
+    ScriptObject* GetScriptObject();
+
     //////////////////////////////////////////////////////////
     // Operator Overlading
     //////////////////////////////////////////////////////////
+
+    //! Operator for assigning Variant.
+    //! \param rhs
+    //! \return
+    Variant& operator =(Variant& rhs) {
+        _Type = rhs._Type;
+        _Value = rhs._Value;
+        return *this;
+    }
 
     //! Operator for assigning boolean.
     //! \param rhs
@@ -401,20 +425,13 @@ public:
         return *this;
     }
 
-    //! Frees the pointer.
-    void Free() {
-        // Check to see if we have a reference.
-        if (IsNullObject(_Value.Ptr)) {
-            return;
-        }
+    //! Operator for assigning ScriptObject.
+    //! \param rhs
+    //! \return
+    Variant& operator =(ScriptObject* rhs);
 
-        // Free our string buffer.
-        if (_Type == VariantType::StringBuffer) {
-            StringBuffer* buffer = GetStringBuffer();
-            free_ref(StringBuffer, buffer);
-            _Value.Ptr = nullptr;
-        }
-    }
+    //! Frees the pointer.
+    void Free();
 };
 
 sympl_nsend

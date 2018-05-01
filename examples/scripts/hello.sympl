@@ -3,6 +3,8 @@
 
 package examples
 
+var name = "" + "SymplProgrammer" // Testing concatenation
+
 @func main() {
-    print("Hello World /* comments don't work in strings */!")
+    print("Hello " + name + " /* comments don't work in strings */!")
 }

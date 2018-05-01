@@ -29,6 +29,10 @@ ScriptSymbol::ScriptSymbol()
 {
     // Setup the symbols.
     AddStdSymbol(SymbolType::Operator, "=", "=");
+    AddStdSymbol(SymbolType::Operator, "+", "+");
+    AddStdSymbol(SymbolType::Operator, "-", "-");
+    AddStdSymbol(SymbolType::Operator, "/", "/");
+    AddStdSymbol(SymbolType::Operator, "*", "*");
 
     AddStdSymbol(SymbolType::Identifier, "{", "{");
     AddStdSymbol(SymbolType::Identifier, "}", "}");

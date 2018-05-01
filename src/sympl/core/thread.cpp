@@ -33,6 +33,7 @@ Thread::~Thread()
 {
     Join();
     _IsRunning = false;
+    Free();
 }
 
 void Thread::Start()
