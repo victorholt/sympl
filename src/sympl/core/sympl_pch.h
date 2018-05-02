@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <atomic>
 #include <array>
+#include <assert.h>
 
 #include <ctime>
 #include <cstring>

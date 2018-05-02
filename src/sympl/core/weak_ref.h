@@ -32,19 +32,71 @@ template<class T>
 class WeakRef
 {
 private:
+    /// Reference to the data.
     T* _Data;
 
+    //! Sets the data.
+    //! \param ptr
+    void _Set(T* ptr) {
+        _Data = ptr;
+    }
+
 public:
+    //! Constructor.
+    explicit WeakRef() {}
+
+    //! Constructor.
+    //! \param ptr
+    WeakRef(T* ptr) {
+        _Set(ptr);
+    }
+
+    //! Destructor.
+    ~WeakRef() {
+    }
+
     //! Returns the pointer.
     //! \return
-    T* Get() const { return _Data; }
+    T* Ptr() const { return _Data; }
 
     //! Operator for assigning long.
     //! \param rhs
     //! \return
-    WeakRef& operator =(T* rhs) {
-        _Data = rhs;
+    WeakRef<T>& operator =(T* rhs) {
+        _Set(rhs);
         return *this;
+    }
+
+    //! Operator for assigning long.
+    //! \param rhs
+    //! \return
+    WeakRef<T>& operator =(const WeakRef<T> rhs) {
+        _Set(rhs.Ptr());
+        return *this;
+    }
+
+    //! Dereference access.
+    const T *operator->() const {
+        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        return *_Data;
+    }
+
+    //! Dereference object.
+    const T &operator*() const {
+        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        return *_Data;
+    }
+
+    //! Dereference access.
+    T *operator->() {
+        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        return *_Data;
+    }
+
+    //! Dereference object.
+    T &operator*() {
+        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        return *_Data;
     }
 };
 

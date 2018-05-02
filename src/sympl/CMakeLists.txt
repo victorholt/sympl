@@ -16,7 +16,7 @@ file (GLOB SYMPL_SRC
     "${SYMPL_SOURCE_DIR}/sympl/thirdparty/*.c"
 )
 
-add_library(SymplLib
+add_library(SymplLib STATIC
     ${SYMPL_HEADERS} ${SYMPL_SRC}
 )
 

@@ -13,4 +13,6 @@ target_link_libraries(
     SymplCompiler
     SymplLib
 )
-set_property(TARGET SymplCompiler PROPERTY COMPILE_DEFINITIONS SYMPL_IMPORTS)
+
+# Only necessary if we've compiled as a dll.
+#set_property(TARGET SymplCompiler PROPERTY COMPILE_DEFINITIONS SYMPL_IMPORTS)

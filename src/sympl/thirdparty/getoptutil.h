@@ -112,7 +112,7 @@ struct option
 #endif  /* need getopt */
 
 
-/* Get definitions and prototypes for functions to process the
+/* Ptr definitions and prototypes for functions to process the
 arguments in ARGV (ARGC of them, minus the program name) for
 options given in OPTS.
 Return the option character from OPTS just read.  Return -1 when

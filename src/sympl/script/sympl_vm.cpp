@@ -48,11 +48,16 @@ void SymplVM::Startup()
 void SymplVM::Shutdown()
 {
     GC();
+    _ObjectMap.clear();
 }
 
 void SymplVM::GC()
 {
-
+    for (auto entryIt : _ObjectMap) {
+        if (!entryIt.second.IsValid()) {
+            _ObjectMap.erase(entryIt.first);
+        }
+    }
 }
 
 ScriptObject& SymplVM::CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent)
@@ -68,7 +73,7 @@ ScriptObject& SymplVM::CreateObject(const char* name, ScriptObjectType type, Scr
     _ObjectMap[scriptObject->GetPath()] = scriptObject;
 
     if (!IsNullObject(parent)) {
-        parent->_AddChild(scriptObject);
+        parent->_AddChild(scriptObject.Ptr());
     }
 
     return *scriptObject;
@@ -86,7 +91,7 @@ ScriptObject& SymplVM::FindObject(const std::string& path)
         return ScriptObject::Empty;
     }
 
-    return *entryIt->second;
+    return *entryIt->second.Ptr();
 }
 
 std::string SymplVM::_BuildPath(const char* name, ScriptObject* parent)

@@ -28,35 +28,115 @@
 
 sympl_nsstart
 
+class ScriptObject;
+
 template<class T>
 class SharedRef
 {
 private:
+    /// Reference to the data.
     T* _Data = nullptr;
 
+    //! Sets the data.
+    //! \param ptr
+    void _Set(T* ptr) {
+        if (IsNullObject(ptr)) {
+            return;
+        }
+        _Data = ptr;
+        _AddRef();
+    }
+
+    //! Adds to the reference count.
+    void _AddRef() {
+        if (!IsNull()) {
+            _Data->AddRef();
+        }
+    }
+
+    //! Attempts to release the object.
+    void _Release() {
+        if (IsNull()) {
+            return;
+        }
+        free_ref(T, _Data);
+    }
+
 public:
-    SharedRef() {}
+    //! Constructor.
+    explicit SharedRef() { _AddRef(); }
+
+    //! Constructor.
+    //! \param ptr
+    SharedRef(T* ptr) {
+        _Set(ptr);
+    }
+
+    //! Constructor.
+    //! \param rhs
+    SharedRef(const SharedRef<T>& rhs) {
+        _Set(rhs.Ptr());
+    }
 
     //! Destructor.
     ~SharedRef() {
-        if (!IsNullObject(_Data)) {
-            if (_Data->Free()) {
-                free_ref(T, _Data);
-            }
-        }
+        _Release();
+    }
+
+    //! Returns whether or not the reference is valid.
+    //! \return bool
+    bool IsNull() const {
+        return IsNullObject(_Data);
+    }
+
+    //! Returns whether or not the reference is valid.
+    //! \return bool
+    const bool IsValid() const {
+        return !IsNull() && (_Data->RefCount() > 0);
     }
 
     //! Returns the pointer.
     //! \return
-    T* Get() const { return _Data; }
+    T* Ptr() const { return _Data; }
 
     //! Operator for assigning long.
     //! \param rhs
     //! \return
     SharedRef<T>& operator =(T* rhs) {
-        _Data = rhs;
-        _Data->AddRef();
+        _Set(rhs);
         return *this;
+    }
+
+    //! Operator for assigning long.
+    //! \param rhs
+    //! \return
+    SharedRef<T>& operator =(const SharedRef<T>& rhs) {
+        _Set(rhs.Ptr());
+        return *this;
+    }
+
+    //! Dereference access.
+    const T *operator->() const {
+        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        return _Data;
+    }
+
+    //! Dereference object.
+    const T &operator*() const {
+        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        return *_Data;
+    }
+
+    //! Dereference access.
+    T *operator->() {
+        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        return _Data;
+    }
+
+    //! Dereference object.
+    T &operator*() {
+        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        return *_Data;
     }
 };
 

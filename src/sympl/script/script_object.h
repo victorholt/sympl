@@ -26,6 +26,7 @@
 #include "../core/sympl_pch.h"
 #include "../core/sympl_object.h"
 #include "../core/variant.h"
+#include "../core/shared_ref.h"
 #include "script_common.h"
 
 sympl_nsstart
@@ -37,7 +38,7 @@ class SYMPL_API ScriptObject : public Object
 {
 protected:
     /// Parent reference for the object.
-    ScriptObject* _Parent = nullptr;
+    SharedRef<ScriptObject> _Parent;
 
     /// Empty script object.
     static ScriptObject Empty;
@@ -47,7 +48,7 @@ protected:
 
     /// Children added to the object in the order they
     /// were added.
-    std::vector<ScriptObject*> _Children;
+    std::vector<SharedRef<ScriptObject>> _Children;
 
     /// Name of the object.
     std::string _Name;
@@ -103,22 +104,27 @@ public:
 
     //! Returns the parent object.
     //! \return ScriptObject
-    ScriptObject& GetParent() const;
-
-    //! Script value variant.
-    //! \return
-    const Variant& GetValue() const;
+    const SharedRef<ScriptObject>& GetParent() const;
 
     //! Returns the child objects.
     //! \return std::vector<ScriptObject*>
-    const std::vector<ScriptObject*>& GetChildren() const;
-
-    //! Attempts to free child objects attached.
-    bool Free() override ;
+    const std::vector<SharedRef<ScriptObject>>& GetChildren() const;
 
     //! Returns a string of the script object.
     //! \return
     std::string Print();
+
+    //! Sets the value of the object.
+    //! \param value
+    inline void SetValue(const Variant& value) {
+        _Value = value;
+    }
+
+    //! Script value variant.
+    //! \return
+    inline const Variant& GetValue() const {
+        return _Value;
+    }
 
     //! Returns the name of the object.
     //! \return

@@ -39,7 +39,7 @@ ScriptObject::ScriptObject()
 
 ScriptObject::~ScriptObject()
 {
-
+    _Children.clear();
 }
 
 void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject* parent)
@@ -47,15 +47,10 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
     _Name = name;
     _Path = path;
     _Parent = parent;
-
-    if (!IsNullObject(parent)) {
-        parent->AddRef();
-    }
 }
 
 void ScriptObject::_AddChild(ScriptObject* scriptObject)
 {
-    scriptObject->AddRef();
     scriptObject->_SetNestLevel(_NestLevel + 1);
     _Children.push_back(scriptObject);
 }
@@ -65,21 +60,12 @@ bool ScriptObject::Execute(Variant*& result)
     return false;
 }
 
-ScriptObject& ScriptObject::GetParent() const
+const SharedRef<ScriptObject>& ScriptObject::GetParent() const
 {
-    if (!IsNullObject(_Parent)) {
-        _Parent->AddRef();
-        return *_Parent;
-    }
-    return ScriptObject::Empty;
+    return _Parent;
 }
 
-const Variant& ScriptObject::GetValue() const
-{
-    return _Value;
-}
-
-const std::vector<ScriptObject*>& ScriptObject::GetChildren() const
+const std::vector<SharedRef<ScriptObject>>& ScriptObject::GetChildren() const
 {
     return _Children;
 }
@@ -94,13 +80,6 @@ void ScriptObject::_SetType(ScriptObjectType type)
     _Type = type;
 }
 
-bool ScriptObject::Free()
-{
-    if (Ref::Free()) {
-        return false;
-    }
-}
-
 std::string ScriptObject::Print()
 {
     auto buffer = alloc_ref(StringBuffer);
@@ -108,7 +87,7 @@ std::string ScriptObject::Print()
     buffer->Append("\n");
 
     for (auto childIt : _Children) {
-        _PrintChild(childIt, buffer);
+        _PrintChild(childIt.Ptr(), buffer);
     }
 
     std::string results = buffer->CStr();
@@ -126,6 +105,6 @@ void ScriptObject::_PrintChild(ScriptObject* childObj, StringBuffer*& buffer)
     buffer->Append("\n");
 
     for (auto childIt : childObj->GetChildren()) {
-        _PrintChild(childIt, buffer);
+        _PrintChild(childIt.Ptr(), buffer);
     }
 }

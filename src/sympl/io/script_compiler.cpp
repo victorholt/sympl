@@ -21,14 +21,33 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "sympl_ref.h"
+#include "script_compiler.h"
+
+#include <fmt/format.h>
 sympl_namespaces
 
-bool Ref::Free()
+ScriptCompiler::ScriptCompiler()
 {
-    if (_RefCount > 0) {
-        _RefCount--;
-    }
-    return (_RefCount <= 0);
+    _CurrentBuffer = alloc_ref(StringBuffer);
+    _CurrentBuffer->Resize(2000);
 }
 
+ScriptCompiler::~ScriptCompiler()
+{
+    free_ref(StringBuffer, _CurrentBuffer);
+}
+
+void ScriptCompiler::CompileFile(const std::string& filePath)
+{
+
+}
+
+void ScriptCompiler::CompileString(const std::string& str)
+{
+
+}
+
+void ScriptCompiler::ParseBuffer()
+{
+
+}

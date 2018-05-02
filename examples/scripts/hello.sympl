@@ -5,6 +5,6 @@ package examples
 
 var name = "" + "SymplProgrammer" // Testing concatenation
 
-@func main() {
+func main() {
     print("Hello " + name + " /* comments don't work in strings */!")
 }

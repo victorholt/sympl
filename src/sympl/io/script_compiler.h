@@ -24,22 +24,39 @@
 #pragma once
 
 #include "../core/sympl_pch.h"
+#include "../core/string_buffer.h"
 #include "../core/sympl_object.h"
+#include "../core/shared_ref.h"
 #include "script_reader.h"
 
 sympl_nsstart
 
-class SYMPL_API ScriptParser : public Object
+class SYMPL_API ScriptCompiler : public Object
 {
 private:
+    /// Root object we're compiling.
+    SharedRef<ScriptObject> _RootObject;
 
+    /// Current string buffer.
+    StringBuffer* _CurrentBuffer;
+
+    //! Parses the current buffer.
+    void ParseBuffer();
 
 public:
     //! Constructor.
-    ScriptParser();
+    ScriptCompiler();
 
     //! Destructor.
-    virtual ~ScriptParser();
+    virtual ~ScriptCompiler();
+
+    //! Handles compiling a file.
+    //! \param filePath
+    void CompileFile(const std::string& filePath);
+
+    //! Handles parsing a string.
+    //! \param str
+    void CompileString(const std::string& str);
 };
 
 sympl_nsend

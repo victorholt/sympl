@@ -551,7 +551,7 @@ _wrewinddir(
     }
 }
 
-/* Get first directory entry (internal) */
+/* Ptr first directory entry (internal) */
 static WIN32_FIND_DATAW*
 dirent_first(
         _WDIR *dirp)
@@ -579,14 +579,14 @@ dirent_first(
     return datap;
 }
 
-/* Get next directory entry (internal) */
+/* Ptr next directory entry (internal) */
 static WIN32_FIND_DATAW*
 dirent_next(
         _WDIR *dirp)
 {
     WIN32_FIND_DATAW *p;
 
-    /* Get next directory entry */
+    /* Ptr next directory entry */
     if (dirp->cached != 0) {
 
         /* A valid directory entry already in memory */
@@ -596,7 +596,7 @@ dirent_next(
     }
     else if (dirp->handle != INVALID_HANDLE_VALUE) {
 
-        /* Get the next directory entry from stream */
+        /* Ptr the next directory entry from stream */
         if (FindNextFileW(dirp->handle, &dirp->data) != FALSE) {
             /* Got a file */
             p = &dirp->data;

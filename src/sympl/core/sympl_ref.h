@@ -49,7 +49,6 @@ protected:
 public:
     // Attempts to dec the reference count.
     virtual ~Ref() {
-        Free();
     }
 
     //! Adds to the reference count.
@@ -57,7 +56,7 @@ public:
 
     //! Returns the reference count.
     //! \return
-    inline unsigned GetRefCount() const { return _RefCount; }
+    inline unsigned RefCount() const { return _RefCount; }
 
     //! Attempts to free the reference object.
     virtual bool Free();
