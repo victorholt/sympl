@@ -9,7 +9,11 @@ int main()
     Variant str = alloc_ref(StringBuffer);
     str.Set("Testing this string");
     str.GetStringBuffer()->AppendByte('!');
-    cout << str.GetStringBuffer()->Str() << endl;
+
+    auto buffer = str.GetStringBuffer();
+    auto c = buffer[buffer->Length() - 1];
+    printf("%d\n", c);
+    cout << buffer->Str() << endl;
     cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
     str.Free();
     // End string buffer test.
@@ -64,16 +68,16 @@ int main()
 //    }
 
     // Testing the script reader.
-    sympl_profile_start("script_reader");
-    auto scriptReader = alloc_ref(ScriptReader);
-    if (!scriptReader->ReadFile("../../examples/scripts/hello.sympl")) {
-        printf("Failed to read example script!\n");
-    } else {
-        cout << scriptReader->GetBuffer()->CStr() << endl;
-    }
-    free_ref(ScriptReader, scriptReader);
-    sympl_profile_stop("script_reader");
-    sympl_profile_print("script_reader");
+//    sympl_profile_start("script_reader");
+//    auto scriptReader = alloc_ref(ScriptReader);
+//    if (!scriptReader->ReadFile("../../examples/scripts/hello.sympl")) {
+//        printf("Failed to read example script!\n");
+//    } else {
+//        cout << scriptReader->GetBuffer()->CStr() << endl;
+//    }
+//    free_ref(ScriptReader, scriptReader);
+//    sympl_profile_stop("script_reader");
+//    sympl_profile_print("script_reader");
 
     // Test out the VM.
     Sympl::SymplVM* vm = SymplVMInstance;
@@ -82,6 +86,11 @@ int main()
         auto obj2 = vm->CreateObject("MyObject2", &obj);
         cout << obj.Print() << endl;
     }
+
+//    auto compiler = alloc_ref(Sympl::ScriptCompiler);
+//    compiler->CompileFile("../../examples/scripts/hello.sympl");
+//    free_ref(Sympl::ScriptCompiler, compiler);
+
     free_ref(Sympl::SymplVM, vm);
 
     // Free our profiler.

@@ -21,39 +21,35 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "shared_ref.h"
-#include "sympl_object.h"
-sympl_namespaces
+#pragma once
 
-//template<class T>
-//unsigned SharedRef<T>::RefCount() const
-//{
-//    return _Data->RefCount();
-//}
-//
-//template<class T>
-//void SharedRef<T>::_Set(T* ptr)
-//{
-//    if (IsNullObject(ptr)) {
-//        return;
-//    }
-//    _Data = ptr;
-//    _AddRef();
-//}
-//
-//template<class T>
-//void SharedRef<T>::_AddRef()
-//{
-//    if (!IsNull()) {
-//        _Data->AddRef();
-//    }
-//}
-//
-//template<class T>
-//void SharedRef<T>::_Release()
-//{
-//    if (IsNull()) {
-//        return;
-//    }
-//    free_ref(T, _Data);
-//}
+#include "../core/sympl_pch.h"
+#include "../core/sympl_object.h"
+#include "../core/shared_ref.h"
+
+sympl_nsstart
+
+enum class KeywordType : uint8_t
+{
+    System = 0,
+    Custom
+};
+
+class SYMPL_API KeywordHandle : public Object
+{
+private:
+    /// Keyword name.
+    std::string _Name;
+
+    /// Keyword type.
+    KeywordType _Type;
+
+public:
+    //! Constructor.
+    KeywordHandle(const char* name, KeywordType type);
+
+    //! Destructor.
+    virtual ~KeywordHandle();
+};
+
+sympl_nsend

@@ -28,8 +28,6 @@
 
 sympl_nsstart
 
-class ScriptObject;
-
 template<class T>
 class SharedRef
 {
@@ -39,7 +37,8 @@ private:
 
     //! Sets the data.
     //! \param ptr
-    void _Set(T* ptr) {
+    void _Set(T* ptr)
+    {
         if (IsNullObject(ptr)) {
             return;
         }
@@ -48,14 +47,16 @@ private:
     }
 
     //! Adds to the reference count.
-    void _AddRef() {
+    void _AddRef()
+    {
         if (!IsNull()) {
             _Data->AddRef();
         }
     }
 
     //! Attempts to release the object.
-    void _Release() {
+    void _Release()
+    {
         if (IsNull()) {
             return;
         }
@@ -83,6 +84,13 @@ public:
         _Release();
     }
 
+    //! Returns the data reference count.
+    //! \return
+    unsigned RefCount() const
+    {
+        return _Data->RefCount();
+    }
+
     //! Returns whether or not the reference is valid.
     //! \return bool
     bool IsNull() const {
@@ -92,7 +100,7 @@ public:
     //! Returns whether or not the reference is valid.
     //! \return bool
     const bool IsValid() const {
-        return !IsNull() && (_Data->RefCount() > 0);
+        return !IsNull() && (RefCount() > 0);
     }
 
     //! Returns the pointer.
@@ -117,25 +125,25 @@ public:
 
     //! Dereference access.
     const T *operator->() const {
-        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        assert(_Data != nullptr && RefCount() > 0 && "Attempted to access empty pointer");
         return _Data;
     }
 
     //! Dereference object.
     const T &operator*() const {
-        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        assert(_Data != nullptr && RefCount() > 0 && "Attempted to access empty pointer");
         return *_Data;
     }
 
     //! Dereference access.
     T *operator->() {
-        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        assert(_Data != nullptr && RefCount() > 0 && "Attempted to access empty pointer");
         return _Data;
     }
 
     //! Dereference object.
     T &operator*() {
-        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        assert(_Data != nullptr && RefCount() > 0 && "Attempted to access empty pointer");
         return *_Data;
     }
 };

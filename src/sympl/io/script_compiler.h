@@ -27,6 +27,9 @@
 #include "../core/string_buffer.h"
 #include "../core/sympl_object.h"
 #include "../core/shared_ref.h"
+
+#include "../script/script_object.h"
+
 #include "script_reader.h"
 
 sympl_nsstart
@@ -37,11 +40,26 @@ private:
     /// Root object we're compiling.
     SharedRef<ScriptObject> _RootObject;
 
-    /// Current string buffer.
-    StringBuffer* _CurrentBuffer;
+    /// Current identifier.
+    char _CurrentIdentifier[6];
+
+    /// Current operator for the object.
+    char _CurrentOperator[3];
+
+    /// Current object string buffer.
+    StringBuffer* _CurrentObjectBuffer;
+
+    /// Current value string buffer.
+    StringBuffer* _CurrentValueBuffer;
 
     //! Parses the current buffer.
-    void ParseBuffer();
+    void _ParseBuffer(ScriptReader* reader);
+
+    //! Builds the current object.
+    void _BuildObject();
+
+    //! Clears the buffers.
+    void _ClearBuffers();
 
 public:
     //! Constructor.
@@ -52,11 +70,11 @@ public:
 
     //! Handles compiling a file.
     //! \param filePath
-    void CompileFile(const std::string& filePath);
+    void CompileFile(const char* filePath);
 
     //! Handles parsing a string.
     //! \param str
-    void CompileString(const std::string& str);
+    void CompileString(const char* str);
 };
 
 sympl_nsend

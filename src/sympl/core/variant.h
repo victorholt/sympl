@@ -81,6 +81,12 @@ public:
 
     //! Constructor.
     //! \param value
+    Variant(const Variant& value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
     Variant(bool value) {
         Set(value);
     }
@@ -152,6 +158,13 @@ public:
     //! \param type
     void SetType(VariantType type) {
         _Type = type;
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(const Variant& value) {
+        _Type = value._Type;
+        _Value = value._Value;
     }
 
     //! Sets the value for the variant.
@@ -332,6 +345,10 @@ public:
     //! \return StringBuffer
     ScriptObject* GetScriptObject();
 
+    //! Returns the variant type.
+    //! \return
+    inline VariantType GetType() const { return _Type; }
+
     //////////////////////////////////////////////////////////
     // Operator Overlading
     //////////////////////////////////////////////////////////
@@ -339,9 +356,8 @@ public:
     //! Operator for assigning Variant.
     //! \param rhs
     //! \return
-    Variant& operator =(Variant& rhs) {
-        _Type = rhs._Type;
-        _Value = rhs._Value;
+    Variant& operator =(const Variant& rhs) {
+        Set(rhs);
         return *this;
     }
 

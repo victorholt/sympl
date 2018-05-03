@@ -21,39 +21,16 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "shared_ref.h"
-#include "sympl_object.h"
+#include "keyword_handle.h"
 sympl_namespaces
 
-//template<class T>
-//unsigned SharedRef<T>::RefCount() const
-//{
-//    return _Data->RefCount();
-//}
-//
-//template<class T>
-//void SharedRef<T>::_Set(T* ptr)
-//{
-//    if (IsNullObject(ptr)) {
-//        return;
-//    }
-//    _Data = ptr;
-//    _AddRef();
-//}
-//
-//template<class T>
-//void SharedRef<T>::_AddRef()
-//{
-//    if (!IsNull()) {
-//        _Data->AddRef();
-//    }
-//}
-//
-//template<class T>
-//void SharedRef<T>::_Release()
-//{
-//    if (IsNull()) {
-//        return;
-//    }
-//    free_ref(T, _Data);
-//}
+KeywordHandle::KeywordHandle(const char* name, KeywordType type)
+{
+    _Name = name;
+    _Type = type;
+}
+
+KeywordHandle::~KeywordHandle()
+{
+
+}

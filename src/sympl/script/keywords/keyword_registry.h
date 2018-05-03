@@ -21,39 +21,47 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "shared_ref.h"
-#include "sympl_object.h"
-sympl_namespaces
+#pragma once
 
-//template<class T>
-//unsigned SharedRef<T>::RefCount() const
-//{
-//    return _Data->RefCount();
-//}
-//
-//template<class T>
-//void SharedRef<T>::_Set(T* ptr)
-//{
-//    if (IsNullObject(ptr)) {
-//        return;
-//    }
-//    _Data = ptr;
-//    _AddRef();
-//}
-//
-//template<class T>
-//void SharedRef<T>::_AddRef()
-//{
-//    if (!IsNull()) {
-//        _Data->AddRef();
-//    }
-//}
-//
-//template<class T>
-//void SharedRef<T>::_Release()
-//{
-//    if (IsNull()) {
-//        return;
-//    }
-//    free_ref(T, _Data);
-//}
+#include "../core/sympl_pch.h"
+#include "../core/sympl_object.h"
+#include "../core/shared_ref.h"
+
+#include "keyword_handle.h"
+
+sympl_nsstart
+
+class SYMPL_API KeywordRegistry : public Object
+{
+private:
+    /// List of keywords available.
+    std::unordered_map<std::string, SharedRef<KeywordHandle> >_Keywords;
+
+    //! Initializes the system keywords.
+    void _Initialize();
+
+public:
+    //! Constructor.
+    KeywordRegistry();
+
+    //! Destructor.
+    ~KeywordRegistry() override;
+
+    //! Adds a keyword to the registry.
+    //! \param keyword
+    //! \param handle
+    void AddKeyword(const char* keyword, KeywordHandle* handle);
+
+    //! Finds and returns a keyword.
+    //! \param keyword
+    //! \return KeywordHandle*
+    KeywordHandle* FindKeyword(const char* keyword);
+
+    //! Returns whether a keyword was found.
+    //! \param keyword
+    //! \param handle
+    //! \return bool
+    bool TryFindKeyword(const char* keyword, KeywordHandle*& handle);
+};
+
+sympl_nsend

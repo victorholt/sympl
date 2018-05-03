@@ -1,10 +1,10 @@
 // Example of a hello world program that will run
 // in a console environment.
 
-package examples
+package examples;
 
-var name = "" + "SymplProgrammer" // Testing concatenation
+var name = "" + "SymplProgrammer"; // Testing concatenation
 
 func main() {
-    print("Hello " + name + " /* comments don't work in strings */!")
+    print("Hello " + name + " /* comments don't work in strings */!");
 }

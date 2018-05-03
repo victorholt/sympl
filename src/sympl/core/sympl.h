@@ -40,6 +40,10 @@
 
 #include "../io/script_symbol.h"
 #include "../io/script_reader.h"
+#include "../io/script_compiler.h"
+
+#include "../script/script_common.h"
+#include "../script/script_object.h"
 
 #include "../script/sympl_vm.h"
 #include "../script/script_object.h"

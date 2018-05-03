@@ -91,6 +91,13 @@ public:
     //! Returns the capacity of the string.
     //! \return size_t
     inline size_t Capacity() const { return _Capacity; }
+
+    //! Returns the char at a given location.
+    //! \param place
+    //! \return
+    const char Get(size_t location) {
+        return _Buffer[location];
+    }
 };
 
 sympl_nsend
