@@ -52,7 +52,7 @@ private:
     //! Processes the script file/string.
     //! \param fileStream
     //! \param bufferLength
-    void ProcessScript(std::ifstream& fileStream, size_t bufferLength);
+    void ProcessScript(std::istream& fileStream, size_t bufferLength);
 
 public:
     //! Constructor.

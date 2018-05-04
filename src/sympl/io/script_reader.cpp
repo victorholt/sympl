@@ -73,10 +73,7 @@ bool ScriptReader::ReadFile(const char* filePath)
 bool ScriptReader::ReadString(const char* scriptString)
 {
     _ScriptString = scriptString;
-    std::ifstream inputStream (_ScriptString);
-    if (!inputStream.is_open()) {
-        return false;
-    }
+    std::istringstream inputStream (_ScriptString.c_str());
 
     inputStream.seekg(0, inputStream.end);
     size_t fileLength = static_cast<size_t>(inputStream.tellg());
@@ -98,7 +95,7 @@ StringBuffer* ScriptReader::GetBuffer() const
     return _Buffer;
 }
 
-void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
+void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
 {
     int nestLevel = 0;
     int currentLine = 1;
@@ -114,10 +111,6 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
 
     // Open the file.
     char currentChar;
-
-    fileStream.seekg(0, fileStream.end);
-    size_t sz = static_cast<size_t>(fileStream.tellg());
-    fileStream.seekg(0, fileStream.beg);
 
     // Delete any previous script buffer.
     if (!IsNullObject(_Buffer)) {
@@ -221,6 +214,4 @@ void ScriptReader::ProcessScript(std::ifstream& fileStream, size_t bufferLength)
 
         previousChar = currentChar;
     }
-
-    fileStream.close();
 }

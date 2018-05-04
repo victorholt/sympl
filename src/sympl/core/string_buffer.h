@@ -96,6 +96,9 @@ public:
     //! \param place
     //! \return
     const char Get(size_t location) {
+        if (location > Length()) {
+            return '\0';
+        }
         return _Buffer[location];
     }
 };

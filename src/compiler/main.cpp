@@ -11,8 +11,6 @@ int main()
     str.GetStringBuffer()->AppendByte('!');
 
     auto buffer = str.GetStringBuffer();
-    auto c = buffer[buffer->Length() - 1];
-    printf("%d\n", c);
     cout << buffer->Str() << endl;
     cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
     str.Free();
@@ -80,17 +78,19 @@ int main()
 //    sympl_profile_print("script_reader");
 
     // Test out the VM.
+//    Sympl::SymplVM* vm = SymplVMInstance;
+//    {
+//        auto obj = vm->CreateObject("MyObject");
+//        auto obj2 = vm->CreateObject("MyObject2", obj);
+//        cout << obj->Print() << endl;
+//    }
+
+    auto compiler = alloc_ref(Sympl::ScriptParser);
+    compiler->ParseString("var x = 1;");
+    free_ref(Sympl::ScriptParser, compiler);
+
+    cout << SymplVMInstance->PrintObjects() << endl;
     Sympl::SymplVM* vm = SymplVMInstance;
-    {
-        auto obj = vm->CreateObject("MyObject");
-        auto obj2 = vm->CreateObject("MyObject2", &obj);
-        cout << obj.Print() << endl;
-    }
-
-//    auto compiler = alloc_ref(Sympl::ScriptCompiler);
-//    compiler->CompileFile("../../examples/scripts/hello.sympl");
-//    free_ref(Sympl::ScriptCompiler, compiler);
-
     free_ref(Sympl::SymplVM, vm);
 
     // Free our profiler.

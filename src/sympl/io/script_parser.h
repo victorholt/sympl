@@ -34,11 +34,17 @@
 
 sympl_nsstart
 
-class SYMPL_API ScriptCompiler : public Object
+class SYMPL_API ScriptParser : public Object
 {
 private:
-    /// Root object we're compiling.
-    SharedRef<ScriptObject> _RootObject;
+    enum class ParserScanMode {
+        Type = 0,
+        VarName,
+        Value
+    };
+
+    /// Current object we're building.
+    SharedRef<ScriptObject> _CurrentObject;
 
     /// Current identifier.
     char _CurrentIdentifier[6];
@@ -52,29 +58,35 @@ private:
     /// Current value string buffer.
     StringBuffer* _CurrentValueBuffer;
 
+    /// Determines what the parser is currently looking for.
+    ParserScanMode _ScanMode = ParserScanMode::Type;
+
     //! Parses the current buffer.
     void _ParseBuffer(ScriptReader* reader);
 
     //! Builds the current object.
     void _BuildObject();
 
+    //! Attempts to update the scan mode.
+    void _UpdateScanMode();
+
     //! Clears the buffers.
     void _ClearBuffers();
 
 public:
     //! Constructor.
-    ScriptCompiler();
+    ScriptParser();
 
     //! Destructor.
-    virtual ~ScriptCompiler();
+    ~ScriptParser() override;
 
-    //! Handles compiling a file.
+    //! Handles parsing a file.
     //! \param filePath
-    void CompileFile(const char* filePath);
+    void ParseFile(const char* filePath);
 
     //! Handles parsing a string.
     //! \param str
-    void CompileString(const char* str);
+    void ParseString(const char* str);
 };
 
 sympl_nsend

@@ -77,18 +77,22 @@ public:
     //! \param name
     //! \param parent
     //! \return
-    ScriptObject& CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent = nullptr);
+    ScriptObject* CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent = nullptr);
 
     //! Creates a new script object.
     //! \param name
     //! \param parent
     //! \return
-    ScriptObject& CreateObject(const char* name, ScriptObject* parent = nullptr);
+    ScriptObject* CreateObject(const char* name, ScriptObject* parent = nullptr);
 
     //! Attempts to find an object.
     //! \param path
     //! \return ScriptObject
-    ScriptObject& FindObject(const std::string& path);
+    ScriptObject* FindObject(const std::string& path);
+
+    //! Returns a string representing objects in the vm.
+    //! \return string
+    std::string PrintObjects();
 
     /// Ensure the alloc class can access this object properly.
     friend Alloc;

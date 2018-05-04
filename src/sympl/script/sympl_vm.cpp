@@ -60,12 +60,12 @@ void SymplVM::GC()
     }
 }
 
-ScriptObject& SymplVM::CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent)
+ScriptObject* SymplVM::CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent)
 {
-    std::string path = _BuildPath(name, parent).c_str();
-    auto* searchObj = &FindObject(path);
+    std::string path = _BuildPath(name, parent);
+    auto* searchObj = FindObject(path);
     if (!searchObj->IsEmpty()) {
-        return *searchObj;
+        return searchObj;
     }
 
     SharedRef<ScriptObject> scriptObject = alloc_ref(ScriptObject);
@@ -76,28 +76,41 @@ ScriptObject& SymplVM::CreateObject(const char* name, ScriptObjectType type, Scr
         parent->_AddChild(scriptObject.Ptr());
     }
 
-    return *scriptObject;
+    return scriptObject.Ptr();
 }
 
-ScriptObject& SymplVM::CreateObject(const char* name, ScriptObject* parent)
+ScriptObject* SymplVM::CreateObject(const char* name, ScriptObject* parent)
 {
     return CreateObject(name, ScriptObjectType::Object, parent);
 }
 
-ScriptObject& SymplVM::FindObject(const std::string& path)
+ScriptObject* SymplVM::FindObject(const std::string& path)
 {
     auto entryIt = _ObjectMap.find(path);
     if (entryIt == _ObjectMap.end()) {
-        return ScriptObject::Empty;
+        return &ScriptObject::Empty;
     }
 
-    return *entryIt->second.Ptr();
+    return entryIt->second.Ptr();
 }
 
 std::string SymplVM::_BuildPath(const char* name, ScriptObject* parent)
 {
     if (!IsNullObject(parent)) {
-        return fmt::format("{0}/{1}", parent->GetPath(), name);
+        return fmt::format(".{0}.{1}", parent->GetPath(), name);
     }
-    return fmt::format("{0}", name);
+    return fmt::format(".{0}", name);
+}
+
+std::string SymplVM::PrintObjects()
+{
+    auto buffer = alloc_ref(StringBuffer);
+    for (auto entryIt : _ObjectMap) {
+        buffer->Append(entryIt.second->Print().c_str());
+    }
+
+    std::string results = buffer->CStr();
+    free_ref(StringBuffer, buffer);
+
+    return results;
 }

@@ -40,7 +40,7 @@
 
 #include "../io/script_symbol.h"
 #include "../io/script_reader.h"
-#include "../io/script_compiler.h"
+#include "sympl/io/script_parser.h"
 
 #include "../script/script_common.h"
 #include "../script/script_object.h"
