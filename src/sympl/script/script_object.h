@@ -33,6 +33,7 @@ sympl_nsstart
 
 class Variant;
 class StringBuffer;
+class ScriptStatement;
 
 class SYMPL_API ScriptObject : public Object
 {
@@ -44,7 +45,7 @@ protected:
     static ScriptObject Empty;
 
     /// Value of the script object.
-    Variant _Value;
+    SharedRef<ScriptStatement> _Value;
 
     /// Children added to the object in the order they
     /// were added.
@@ -97,10 +98,10 @@ public:
     //! Destructor.
     virtual ~ScriptObject();
 
-    //! Executes and returns the results of the object.
+    //! Evaluates and returns the results of the object.
     //! \param result
     //! \return
-    bool Execute(Variant*& result);
+    bool Evaluate(Variant *&result);
 
     //! Returns the parent object.
     //! \return ScriptObject
@@ -116,15 +117,11 @@ public:
 
     //! Sets the value of the object.
     //! \param value
-    inline void SetValue(const Variant& value) {
-        _Value = value;
-    }
+    void SetValue(ScriptStatement*& value);
 
     //! Script value variant.
     //! \return
-    inline const Variant& GetValue() const {
-        return _Value;
-    }
+    ScriptStatement* GetValue();
 
     //! Returns the name of the object.
     //! \return

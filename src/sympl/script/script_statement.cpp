@@ -21,23 +21,28 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
-#include "../core/variant.h"
-#include "script_common.h"
+#include "script_statement.h"
+sympl_namespaces
 
-sympl_nsstart
+void ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)
+{
+    ObjectEntry entry;
+    entry.Op = op;
+    entry.Value = scriptObject;
+    _Entries.push_back(entry);
+}
 
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
-};
+const Variant& ScriptStatement::Evaluate()
+{
+    assert(_Entries.size() > 00 && "Unable to evaluate without a statement");
 
-sympl_nsend
+    // Evaluate if we only have a single entry.
+    if (_Entries.size() == 1) {
+        const ObjectEntry& entry = _Entries[0];
+        if (entry.Op == StatementOperator::Equals) {
+//            return entry.Value->GetValue();
+        }
+    }
 
-
+    return Variant::Empty;
+}

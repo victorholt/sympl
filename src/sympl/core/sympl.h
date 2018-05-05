@@ -21,8 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#ifndef __SYMPL_H__
-#define __SYMPL_H__
+#pragma once
 
 #include "sympl_pch.h"
 
@@ -44,8 +43,7 @@
 
 #include "../script/script_common.h"
 #include "../script/script_object.h"
+#include "../script/script_statement.h"
 
 #include "../script/sympl_vm.h"
 #include "../script/script_object.h"
-
-#endif

@@ -17,6 +17,7 @@
 *.dll
 
 # Output
+build
 builds/*
 !builds/.keep
 

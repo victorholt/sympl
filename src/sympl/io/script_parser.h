@@ -23,16 +23,16 @@
  **********************************************************/
 #pragma once
 
-#include "../core/sympl_pch.h"
-#include "../core/string_buffer.h"
-#include "../core/sympl_object.h"
-#include "../core/shared_ref.h"
-
-#include "../script/script_object.h"
-
-#include "script_reader.h"
+#include <sympl/core/sympl_pch.h>
+#include <sympl/core/string_buffer.h>
+#include <sympl/core/sympl_object.h>
+#include <sympl/core/shared_ref.h>
+#include <sympl/io/script_reader.h>
+#include <sympl/script/script_object.h>
 
 sympl_nsstart
+
+class ScriptStatement;
 
 class SYMPL_API ScriptParser : public Object
 {
@@ -66,6 +66,12 @@ private:
 
     //! Builds the current object.
     void _BuildObject();
+
+    //! Build a statement with the current buffer.
+    void _BuildStatement(ScriptStatement*& stat);
+
+    //! Updates the object's value.
+    void _UpdateObjectValue();
 
     //! Attempts to update the scan mode.
     void _UpdateScanMode();

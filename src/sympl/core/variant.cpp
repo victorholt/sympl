@@ -23,7 +23,10 @@
  **********************************************************/
 #include "variant.h"
 #include "../script/script_object.h"
+#include "../script/script_statement.h"
 sympl_namespaces
+
+Variant Variant::Empty;
 
 Variant::Variant(ScriptObject* value) {
     Set(value);
@@ -46,6 +49,27 @@ Variant& Variant::operator =(ScriptObject* rhs) {
     return *this;
 }
 
+Variant::Variant(ScriptStatement* value) {
+    Set(value);
+}
+
+void Variant::Set(ScriptStatement* value) {
+    SetType(VariantType::ScriptStatement);
+    _Value.Ptr = value;
+}
+
+ScriptStatement* Variant::GetScriptStatement() {
+    if (_Type != VariantType::ScriptStatement) {
+        return nullptr;
+    }
+    return reinterpret_cast<ScriptStatement*>(_Value.Ptr);
+}
+
+Variant& Variant::operator =(ScriptStatement* rhs) {
+    Set(rhs);
+    return *this;
+}
+
 void Variant::Free() {
     // Check to see if we have a reference.
     if (IsNullObject(_Value.Ptr)) {
@@ -63,6 +87,13 @@ void Variant::Free() {
     if (_Type == VariantType::ScriptObject) {
         ScriptObject* sobj = GetScriptObject();
         free_ref(ScriptObject, sobj);
+        _Value.Ptr = nullptr;
+    }
+
+    // Free our script statement.
+    if (_Type == VariantType::ScriptObject) {
+        ScriptStatement* sobj = GetScriptStatement();
+        free_ref(ScriptStatement, sobj);
         _Value.Ptr = nullptr;
     }
 }

@@ -76,7 +76,7 @@
 #   define S_IWRITE _S_IWRITE
 #endif
 
-/* Execute permission */
+/* Evaluate permission */
 #if !defined(S_IEXEC)
 #   define S_IEXEC _S_IEXEC
 #endif
@@ -111,7 +111,7 @@
 #   define S_IWUSR S_IWRITE
 #endif
 
-/* Execute user permission */
+/* Evaluate user permission */
 #if !defined(S_IXUSR)
 #   define S_IXUSR 0
 #endif
@@ -126,7 +126,7 @@
 #   define S_IWGRP 0
 #endif
 
-/* Execute group permission */
+/* Evaluate group permission */
 #if !defined(S_IXGRP)
 #   define S_IXGRP 0
 #endif
@@ -141,7 +141,7 @@
 #   define S_IWOTH 0
 #endif
 
-/* Execute others permission */
+/* Evaluate others permission */
 #if !defined(S_IXOTH)
 #   define S_IXOTH 0
 #endif

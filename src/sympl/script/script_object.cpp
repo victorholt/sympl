@@ -22,6 +22,7 @@
  *
  **********************************************************/
 #include "script_object.h"
+#include "script_statement.h"
 #include "../core/string_buffer.h"
 
 #include <fmt/format.h>
@@ -55,7 +56,7 @@ void ScriptObject::_AddChild(ScriptObject* scriptObject)
     _Children.push_back(scriptObject);
 }
 
-bool ScriptObject::Execute(Variant*& result)
+bool ScriptObject::Evaluate(Variant *&result)
 {
     return false;
 }
@@ -78,6 +79,16 @@ void ScriptObject::_SetPath(const char* path)
 void ScriptObject::_SetType(ScriptObjectType type)
 {
     _Type = type;
+}
+
+void ScriptObject::SetValue(ScriptStatement*& value)
+{
+    _Value = value;
+}
+
+ScriptStatement* ScriptObject::GetValue()
+{
+    return _Value.Ptr();
 }
 
 std::string ScriptObject::Print()

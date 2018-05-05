@@ -21,9 +21,9 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "script_parser.h"
-#include "script_reader.h"
-#include "../script/sympl_vm.h"
+#include <sympl/io/script_parser.h>
+#include <sympl/script/sympl_vm.h>
+#include <sympl/script/script_statement.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -86,7 +86,10 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         if (currentChar == ';') {
             _ClearBuffers();
             bufferIndex = 0;
+
+            _UpdateObjectValue();
             _ScanMode = ParserScanMode::Type;
+
             continue;
         }
 
@@ -136,6 +139,24 @@ void ScriptParser::_BuildObject()
     }
 
     _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type);
+
+}
+
+void ScriptParser::_BuildStatement(ScriptStatement*& stat)
+{
+    int index = 0;
+    while (index < _CurrentValueBuffer->Length()) {
+
+    }
+}
+
+void ScriptParser::_UpdateObjectValue()
+{
+    // Determine how many variables are part of the statement.
+    ScriptStatement* stat = alloc_ref(ScriptStatement);
+    _CurrentObject->SetValue(stat);
+
+    _BuildStatement(stat);
 }
 
 void ScriptParser::_UpdateScanMode()

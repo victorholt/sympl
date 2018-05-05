@@ -29,11 +29,12 @@
 sympl_nsstart
 
 class ScriptObject;
+class ScriptStatement;
 
 /// Support types for the Variant.
 enum class VariantType : uint8_t
 {
-    None = 0,
+    Empty = 0,
     Bool,
     Short,
     UnsignedShort,
@@ -46,6 +47,7 @@ enum class VariantType : uint8_t
 
     StringBuffer,
     ScriptObject,
+    ScriptStatement,
 
     MaxVariantTypes
 };
@@ -76,7 +78,7 @@ private:
 public:
     //! Constructor.
     Variant()
-        : _Type(VariantType::None)
+        : _Type(VariantType::Empty)
     {}
 
     //! Constructor.
@@ -149,9 +151,13 @@ public:
     //! \param value
     Variant(ScriptObject* value);
 
+    //! Constructor.
+    //! \param value
+    Variant(ScriptStatement* value);
+
     //! Destructor.
     ~Variant() {
-        Free();
+//        Free();
     }
 
     //! Sets the type of the variant.
@@ -342,8 +348,16 @@ public:
     void Set(ScriptObject* value);
 
     //! Returns the script object.
-    //! \return StringBuffer
+    //! \return ScriptObject
     ScriptObject* GetScriptObject();
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(ScriptStatement* value);
+
+    //! Returns the script object.
+    //! \return ScriptStatement
+    ScriptStatement* GetScriptStatement();
 
     //! Returns the variant type.
     //! \return
@@ -446,8 +460,16 @@ public:
     //! \return
     Variant& operator =(ScriptObject* rhs);
 
+    //! Operator for assigning ScriptObject.
+    //! \param rhs
+    //! \return
+    Variant& operator =(ScriptStatement* rhs);
+
     //! Frees the pointer.
     void Free();
+
+    /// Empty script object.
+    static Variant Empty;
 };
 
 sympl_nsend

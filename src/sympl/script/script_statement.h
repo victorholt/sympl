@@ -22,22 +22,52 @@
  *
  **********************************************************/
 #pragma once
+
 #include "../core/sympl_pch.h"
 #include "../core/sympl_object.h"
-#include "../core/variant.h"
-#include "script_common.h"
+#include "../core/shared_ref.h"
+
+#include "../script/script_object.h"
+
 
 sympl_nsstart
 
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
+enum class StatementOperator {
+    Equals = 0,
+    Plus,
+    Minus,
+    Divide,
+    Multiply,
+    Mod
+};
+
+class SYMPL_API ScriptStatement : public Object
+{
+private:
+    /// Entry for the objects in the statement.
+    struct ObjectEntry {
+        StatementOperator Op;
+        SharedRef<ScriptObject> Value;
+    };
+
+    /// Script objects that make up the statement.
+    std::vector<ObjectEntry> _Entries;
+
+public:
+    //! Constructor.
+    ScriptStatement() {}
+
+    //! Destructor.
+    ~ScriptStatement() override {}
+
+    //! Adds a script object as part of the statement.
+    //! \param scriptObject
+    //! \param op
+    void Add(ScriptObject*& scriptObject, StatementOperator op = StatementOperator::Equals);
+
+    //! Evaluates the statement.
+    //! \return Variant
+    const Variant& Evaluate();
 };
 
 sympl_nsend
-
-

@@ -37,6 +37,9 @@ set (SYMPL_INCLUDES
 )
 set (SYMPL_SOURCES)
 
+# Setup our Sympl includes.
+include_directories(${SYMPL_INCLUDES})
+
 # Setup the build locations.
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/builds/debug)
@@ -54,6 +57,3 @@ include(src/sympl/CMakeLists.txt)
 
 # Include the compiler.
 include(src/compiler/CMakeLists.txt)
-
-# Setup our Sympl includes.
-include_directories(${SYMPL_INCLUDES})
