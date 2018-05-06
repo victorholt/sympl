@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "sympl_vm.h"
+#include <sympl/script/sympl_vm.h>
 
 #include <fmt/format.h>
 sympl_namespaces

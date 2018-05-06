@@ -21,9 +21,9 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "variant.h"
-#include "../script/script_object.h"
-#include "../script/script_statement.h"
+#include <sympl/core/variant.h>
+#include <sympl/script/script_object.h>
+#include <sympl/script/script_statement.h>
 sympl_namespaces
 
 Variant Variant::Empty;

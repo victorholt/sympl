@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "sympl_ref.h"
+#include <sympl/core/sympl_ref.h>
 sympl_namespaces
 
 bool Ref::Free()

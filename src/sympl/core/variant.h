@@ -23,8 +23,8 @@
  **********************************************************/
 #pragma once
 
-#include "sympl_pch.h"
-#include "string_buffer.h"
+#include <sympl/core/sympl_pch.h>
+#include <sympl/core/string_buffer.h>
 
 sympl_nsstart
 

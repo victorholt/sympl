@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "keyword_registry.h"
+#include <sympl/script/keywords/keyword_registry.h>
 sympl_namespaces
 
 KeywordRegistry::KeywordRegistry()

@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "mutex.h"
+#include <sympl/core/mutex.h>
 sympl_namespaces
 
 Mutex::Mutex()

@@ -21,8 +21,8 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "shared_ref.h"
-#include "sympl_object.h"
+#include <sympl/core/shared_ref.h>
+#include <sympl/core/sympl_object.h>
 sympl_namespaces
 
 //template<class T>

@@ -23,27 +23,25 @@
  **********************************************************/
 #pragma once
 
-#include "sympl_pch.h"
+#include <sympl/core/sympl_pch.h>
 
-#include "alloc.h"
-#include "sympl_ref.h"
-#include "shared_ref.h"
-#include "weak_ref.h"
-#include "sympl_object.h"
-#include "string_buffer.h"
-#include "variant.h"
-#include "thread.h"
-#include "mutex.h"
+#include <sympl/core/alloc.h>
+#include <sympl/core/sympl_ref.h>
+#include <sympl/core/shared_ref.h>
+#include <sympl/core/weak_ref.h>
+#include <sympl/core/sympl_object.h>
+#include <sympl/core/string_buffer.h>
+#include <sympl/core/variant.h>
+#include <sympl/core/thread.h>
+#include <sympl/core/mutex.h>
 
-#include "../util/profiler.h"
+#include <sympl/util/profiler.h>
 
-#include "../io/script_symbol.h"
-#include "../io/script_reader.h"
-#include "sympl/io/script_parser.h"
+#include <sympl/io/script_symbol.h>
+#include <sympl/io/script_reader.h>
+#include <sympl/io/script_parser.h>
 
-#include "../script/script_common.h"
-#include "../script/script_object.h"
-#include "../script/script_statement.h"
-
-#include "../script/sympl_vm.h"
-#include "../script/script_object.h"
+#include <sympl/script/script_common.h>
+#include <sympl/script/script_statement.h>
+#include <sympl/script/sympl_vm.h>
+#include <sympl/script/script_object.h>

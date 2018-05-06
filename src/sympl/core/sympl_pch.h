@@ -101,10 +101,10 @@
 
 #else
 #include <time.h>
-#include "../thirdparty/direntutil.h"
-#include "../thirdparty/getoptutil.h"
-#include "../thirdparty/timeutil.h"
-#include "../thirdparty/unistdutil.h"
+#include <sympl/thirdparty/direntutil.h>
+#include <sympl/thirdparty/getoptutil.h>
+#include <sympl/thirdparty/timeutil.h>
+#include <sympl/thirdparty/unistdutil.h>
 
 //#define IsSpaceChar(c, loc) std::isspace(static_cast<int>(c), loc)
 #define IsSpaceChar(c, loc) std::isspace(c, loc)
@@ -120,7 +120,7 @@
     #define GUID_LIBUUID
 #endif
 
-#include "../thirdparty/guid.h"
+#include <sympl/thirdparty/guid.h>
 
 #ifdef _WIN32
 #ifndef SYMPL_IMPORTS

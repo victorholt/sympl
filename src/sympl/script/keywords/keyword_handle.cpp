@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "keyword_handle.h"
+#include <sympl/script/keywords/keyword_handle.h>
 sympl_namespaces
 
 KeywordHandle::KeywordHandle(const char* name, KeywordType type)

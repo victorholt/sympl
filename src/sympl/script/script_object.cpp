@@ -21,9 +21,9 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "script_object.h"
-#include "script_statement.h"
-#include "../core/string_buffer.h"
+#include <sympl/script/script_object.h>
+#include <sympl/script/script_statement.h>
+#include <sympl/core/string_buffer.h>
 
 #include <fmt/format.h>
 sympl_namespaces

@@ -23,7 +23,7 @@
  **********************************************************/
 #pragma once
 
-#include "sympl_pch.h"
+#include <sympl/core/sympl_pch.h>
 
 sympl_nsstart
 

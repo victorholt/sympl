@@ -23,10 +23,9 @@
  **********************************************************/
 #pragma once
 
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
-
-#include "../core/alloc.h"
+#include <sympl/core/sympl_pch.h>
+#include <sympl/core/sympl_object.h>
+#include <sympl/core/alloc.h>
 
 sympl_nsstart
 

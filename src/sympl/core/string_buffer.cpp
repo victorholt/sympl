@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "string_buffer.h"
+#include <sympl/core/string_buffer.h>
 sympl_namespaces
 
 StringBuffer::StringBuffer(const char8 *str, size_t capacity)

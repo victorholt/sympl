@@ -21,8 +21,8 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "alloc.h"
-#include "sympl_ref.h"
+#include <sympl/core/alloc.h>
+#include <sympl/core/sympl_ref.h>
 sympl_namespaces
 
 Alloc* Alloc::_Instance = nullptr;

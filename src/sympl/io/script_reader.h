@@ -23,9 +23,9 @@
  **********************************************************/
 #pragma once
 
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
-#include "script_symbol.h"
+#include <sympl/core/sympl_pch.h>
+#include <sympl/core/sympl_object.h>
+#include <sympl/io/script_symbol.h>
 
 sympl_nsstart
 

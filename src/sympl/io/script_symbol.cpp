@@ -21,8 +21,8 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "script_symbol.h"
-#include "../core/string_buffer.h"
+#include <sympl/io/script_symbol.h>
+#include <sympl/core/string_buffer.h>
 sympl_namespaces
 
 ScriptSymbol::ScriptSymbol()

@@ -23,9 +23,9 @@
  **********************************************************/
 #pragma once
 
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
-#include "../core/mutex.h"
+#include <sympl/core/sympl_pch.h>
+#include <sympl/core/sympl_object.h>
+#include <sympl/core/mutex.h>
 
 sympl_nsstart
 

@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "thread.h"
+#include <sympl/core/thread.h>
 sympl_namespaces
 
 Thread::Thread()

@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "script_statement.h"
+#include <sympl/script/script_statement.h>
 sympl_namespaces
 
 void ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)

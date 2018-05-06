@@ -22,10 +22,10 @@
  *
  **********************************************************/
 #pragma once
-#include "../core/sympl_pch.h"
-#include "../core/sympl_object.h"
-#include "../core/variant.h"
-#include "script_common.h"
+#include <sympl/core/sympl_pch.h>
+#include <sympl/core/sympl_object.h>
+#include <sympl/core/variant.h>
+#include <sympl/script/script_common.h>
 
 sympl_nsstart
 

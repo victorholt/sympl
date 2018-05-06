@@ -21,8 +21,8 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "script_reader.h"
-#include "../core/string_buffer.h"
+#include <sympl/io/script_reader.h>
+#include <sympl/core/string_buffer.h>
 #include <fmt/format.h>
 sympl_namespaces
 

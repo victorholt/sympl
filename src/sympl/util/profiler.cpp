@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include "profiler.h"
+#include <sympl/util/profiler.h>
 sympl_namespaces
 
 Profiler* Profiler::_Instance = nullptr;
