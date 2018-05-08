@@ -1,23 +1,23 @@
 # Header and src files.
 file (GLOB SYMPL_FRAMEWORK_HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/core/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/io/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/util/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/script/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/script/keywords/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/script/methods/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/core/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/io/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/util/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/script/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/script/keywords/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/script/methods/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/thirdparty/*.h"
 )
 
 file (GLOB SYMPL_FRAMEWORK_SRC
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/core/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/io/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/util/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/script/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/script/keywords/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/script/methods/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/*.c"
+    "${SYMPL_SOURCE_DIR}/sympl/core/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/io/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/util/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/script/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/script/keywords/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/script/methods/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/thirdparty/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/thirdparty/*.c"
 )
 
 add_library(SymplLib

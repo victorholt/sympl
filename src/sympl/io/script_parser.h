@@ -29,10 +29,9 @@
 #include <sympl/core/shared_ref.h>
 #include <sympl/io/script_reader.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_statement.h>
 
 sympl_nsstart
-
-class ScriptStatement;
 
 class SYMPL_API ScriptParser : public Object
 {

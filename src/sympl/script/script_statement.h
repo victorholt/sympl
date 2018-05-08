@@ -29,7 +29,6 @@
 
 #include <sympl/script/script_object.h>
 
-
 sympl_nsstart
 
 enum class StatementOperator {

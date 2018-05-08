@@ -23,7 +23,6 @@
  **********************************************************/
 #include <sympl/io/script_parser.h>
 #include <sympl/script/sympl_vm.h>
-#include <sympl/script/script_statement.h>
 
 #include <fmt/format.h>
 sympl_namespaces
