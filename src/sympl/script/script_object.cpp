@@ -81,7 +81,7 @@ void ScriptObject::_SetType(ScriptObjectType type)
     _Type = type;
 }
 
-void ScriptObject::SetValue(ScriptStatement*& value)
+void ScriptObject::SetValue(ScriptStatement* value)
 {
     _Value = value;
 }

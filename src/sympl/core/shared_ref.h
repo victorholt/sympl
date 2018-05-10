@@ -125,25 +125,25 @@ public:
 
     //! Dereference access.
     const T *operator->() const {
-        assert(_Data != nullptr && RefCount() > 0 && "Attempted to access empty pointer");
+        assert(IsValid() && "Attempted to access empty pointer");
         return _Data;
     }
 
     //! Dereference object.
     const T &operator*() const {
-        assert(_Data != nullptr && RefCount() > 0 && "Attempted to access empty pointer");
+        assert(IsValid() && "Attempted to access empty pointer");
         return *_Data;
     }
 
     //! Dereference access.
     T *operator->() {
-        assert(_Data != nullptr && RefCount() > 0 && "Attempted to access empty pointer");
+        assert(IsValid() && "Attempted to access empty pointer");
         return _Data;
     }
 
     //! Dereference object.
     T &operator*() {
-        assert(_Data != nullptr && RefCount() > 0 && "Attempted to access empty pointer");
+        assert(IsValid() && "Attempted to access empty pointer");
         return *_Data;
     }
 };

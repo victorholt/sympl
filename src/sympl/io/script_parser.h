@@ -57,6 +57,9 @@ private:
     /// Current value string buffer.
     StringBuffer* _CurrentValueBuffer;
 
+    /// Buffer for the statements.
+    StringBuffer* _StatementBuffer;
+
     /// Determines what the parser is currently looking for.
     ParserScanMode _ScanMode = ParserScanMode::Type;
 
@@ -67,7 +70,7 @@ private:
     void _BuildObject();
 
     //! Build a statement with the current buffer.
-    void _BuildStatement(ScriptStatement*& stat);
+    void _BuildStatement(ScriptStatement* stat);
 
     //! Updates the object's value.
     void _UpdateObjectValue();

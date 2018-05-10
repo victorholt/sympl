@@ -117,7 +117,7 @@ public:
 
     //! Sets the value of the object.
     //! \param value
-    void SetValue(ScriptStatement*& value);
+    void SetValue(ScriptStatement* value);
 
     //! Script value variant.
     //! \return

@@ -85,11 +85,19 @@ int main()
 //        cout << obj->Print() << endl;
 //    }
 
+    // Create the compiler and print out the objects.
     auto compiler = alloc_ref(Sympl::ScriptParser);
+
+    sympl_profile_start("script_compiler");
     compiler->ParseString("var x = 1;");
+    sympl_profile_start("script_compiler");
+    sympl_profile_print("script_compiler");
+
     free_ref(Sympl::ScriptParser, compiler);
 
     cout << SymplVMInstance->PrintObjects() << endl;
+
+    // Free our VM.
     Sympl::SymplVM* vm = SymplVMInstance;
     free_ref(Sympl::SymplVM, vm);
 

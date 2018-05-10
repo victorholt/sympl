@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/io/script_parser.h>
 #include <sympl/script/sympl_vm.h>
+#include <sympl/core/sympl_number_helper.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -34,6 +35,9 @@ ScriptParser::ScriptParser()
 
     _CurrentValueBuffer = alloc_ref(StringBuffer);
     _CurrentValueBuffer->Resize(2000);
+
+    _StatementBuffer = alloc_ref(StringBuffer);
+    _StatementBuffer->Resize(256);
 
     _ClearBuffers();
 }
@@ -83,10 +87,10 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
         // Check if we're at the end of a statement and clear the buffers.
         if (currentChar == ';') {
+            _UpdateObjectValue();
+
             _ClearBuffers();
             bufferIndex = 0;
-
-            _UpdateObjectValue();
             _ScanMode = ParserScanMode::Type;
 
             continue;
@@ -109,7 +113,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         // End grabbing the line number.
 
         // Check if we need to skip.
-        if (!recording && currentChar == '#') {
+        if (currentChar == '#' && !recording && _ScanMode != ParserScanMode::Value) {
             bufferIndex = 0;
             _UpdateScanMode();
             continue;
@@ -141,21 +145,36 @@ void ScriptParser::_BuildObject()
 
 }
 
-void ScriptParser::_BuildStatement(ScriptStatement*& stat)
+void ScriptParser::_BuildStatement(ScriptStatement* stat)
 {
     int index = 0;
-    while (index < _CurrentValueBuffer->Length()) {
 
+    while (index < _CurrentValueBuffer->Length()) {
+        char currentChar = _CurrentValueBuffer->Get(index);
+        if (currentChar == '#') {
+            if (_StatementBuffer->Length() > 0) {
+                auto obj = SymplVMInstance->FindObject(fmt::format(".{0}", _StatementBuffer->CStr()).c_str());
+
+                /// This is an existing object that we should add to the statement.
+                if (!IsNullObject(obj)) {
+                    stat->Add(obj);
+                } else {
+                    /// Handle cases where this may be a string.
+
+                }
+            }
+        }
+        index++;
     }
 }
 
 void ScriptParser::_UpdateObjectValue()
 {
     // Determine how many variables are part of the statement.
-    ScriptStatement* stat = alloc_ref(ScriptStatement);
-    _CurrentObject->SetValue(stat);
+    SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+    _CurrentObject->SetValue(stat.Ptr());
 
-    _BuildStatement(stat);
+    _BuildStatement(stat.Ptr());
 }
 
 void ScriptParser::_UpdateScanMode()
@@ -166,10 +185,11 @@ void ScriptParser::_UpdateScanMode()
             break;
         case ParserScanMode::VarName:
             _ScanMode = ParserScanMode::Value;
-            break;
-        case ParserScanMode::Value:
             _BuildObject();
             break;
+        // case ParserScanMode::Value:
+        //     _BuildObject();
+        //     break;
     }
 }
 

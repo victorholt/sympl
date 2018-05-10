@@ -48,6 +48,9 @@ else ()
     set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/builds/release)
 endif ()
 
+# Setup our Sympl includes.
+include_directories(${SYMPL_INCLUDES})
+
 # Include the thirdparty libs.
 include(${PROJECT_SOURCE_DIR}/src/sympl/thirdparty/fmt/CMakeLists.txt)
 
@@ -59,6 +62,3 @@ include(${PROJECT_SOURCE_DIR}/src/compiler/CMakeLists.txt)
 
 # Print out the Sympl includes.
 message (STATUS "Sympl Framework Includes\n${SYMPL_INCLUDES}\n")
-
-# Setup our Sympl includes.
-include_directories(${SYMPL_INCLUDES})

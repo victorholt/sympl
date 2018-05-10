@@ -37,32 +37,51 @@ enum class StatementOperator {
     Minus,
     Divide,
     Multiply,
-    Mod
+    Mod,
+    GreaterThan,
+    LessThan,
+    GreaterEqualThan,
+    LessEqualThan
+};
+
+/// Entry for the objects in the statement.
+struct StatementObjectEntry {
+    StatementOperator Op;
+    SharedRef<ScriptObject> Value;
+    Variant ConstantValue;
+
+    // Next statement entry to resolve before we consider
+    // the current statement entry complete.
+    StatementObjectEntry* Next = nullptr;
 };
 
 class SYMPL_API ScriptStatement : public Object
 {
 private:
-    /// Entry for the objects in the statement.
-    struct ObjectEntry {
-        StatementOperator Op;
-        SharedRef<ScriptObject> Value;
-    };
-
     /// Script objects that make up the statement.
-    std::vector<ObjectEntry> _Entries;
+    std::vector<StatementObjectEntry*> _Entries;
 
 public:
     //! Constructor.
     ScriptStatement() {}
 
     //! Destructor.
-    ~ScriptStatement() override {}
+    ~ScriptStatement() override {
+        for (auto entryIt : _Entries) {
+            delete entryIt;
+        }
+        _Entries.clear();
+    }
 
     //! Adds a script object as part of the statement.
     //! \param scriptObject
     //! \param op
-    void Add(ScriptObject*& scriptObject, StatementOperator op = StatementOperator::Equals);
+    StatementObjectEntry* Add(ScriptObject*& scriptObject, StatementOperator op = StatementOperator::Equals);
+
+    //! Adds a constant value as part of the statement.
+    //! \param constantValue
+    //! \param op
+    StatementObjectEntry* Add(const Variant& constantValue, StatementOperator op = StatementOperator::Equals);
 
     //! Evaluates the statement.
     //! \return Variant

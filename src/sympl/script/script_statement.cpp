@@ -24,12 +24,24 @@
 #include <sympl/script/script_statement.h>
 sympl_namespaces
 
-void ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)
+StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)
 {
-    ObjectEntry entry;
-    entry.Op = op;
-    entry.Value = scriptObject;
+    auto entry = new StatementObjectEntry();
+    entry->Op = op;
+    entry->Value = scriptObject;
     _Entries.push_back(entry);
+
+    return entry;
+}
+
+StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, StatementOperator op = StatementOperator::Equals)
+{
+    auto entry = new StatementObjectEntry();
+    entry->Op = op;
+    entry->ConstantValue = constantValue;
+    _Entries.push_back(entry);
+
+    return entry;
 }
 
 const Variant& ScriptStatement::Evaluate()
@@ -38,8 +50,8 @@ const Variant& ScriptStatement::Evaluate()
 
     // Evaluate if we only have a single entry.
     if (_Entries.size() == 1) {
-        const ObjectEntry& entry = _Entries[0];
-        if (entry.Op == StatementOperator::Equals) {
+        auto entry = _Entries[0];
+        if (entry->Op == StatementOperator::Equals) {
 //            return entry.Value->GetValue();
         }
     }
