@@ -33,6 +33,10 @@ ScriptSymbol::ScriptSymbol()
     AddStdSymbol(SymbolType::Operator, "-", "-");
     AddStdSymbol(SymbolType::Operator, "/", "/");
     AddStdSymbol(SymbolType::Operator, "*", "*");
+    AddStdSymbol(SymbolType::Operator, ">", ">");
+    AddStdSymbol(SymbolType::Operator, "<", "<");
+    AddStdSymbol(SymbolType::Operator, ">=", ">=");
+    AddStdSymbol(SymbolType::Operator, "<=", "<=");
 
     AddStdSymbol(SymbolType::Identifier, "{", "{");
     AddStdSymbol(SymbolType::Identifier, "}", "}");
@@ -125,10 +129,20 @@ const bool ScriptSymbol::IsObject(const char input) const
 
 const bool ScriptSymbol::IsOperator(const char input) const
 {
+    return IsOperator(std::string(1, input));
+}
+
+const bool ScriptSymbol::IsOperator(const std::string& input) const
+{
     return IsType(SymbolType::Operator, input);
 }
 
 const bool ScriptSymbol::IsIdentifier(const char input) const
+{
+    return IsIdentifier(std::string(1, input));
+}
+
+const bool ScriptSymbol::IsIdentifier(const std::string& input) const
 {
     return IsType(SymbolType::Identifier, input);
 }

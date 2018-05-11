@@ -28,6 +28,7 @@
 #include <sympl/core/sympl_object.h>
 #include <sympl/core/shared_ref.h>
 #include <sympl/io/script_reader.h>
+#include <sympl/io/script_symbol.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_statement.h>
 
@@ -41,6 +42,9 @@ private:
         VarName,
         Value
     };
+
+    /// Symbol token checker.
+    ScriptSymbol _Symbol;
 
     /// Current object we're building.
     SharedRef<ScriptObject> _CurrentObject;
@@ -57,7 +61,7 @@ private:
     /// Current value string buffer.
     StringBuffer* _CurrentValueBuffer;
 
-    /// Buffer for the statements.
+    /// The statement buffer.
     StringBuffer* _StatementBuffer;
 
     /// Determines what the parser is currently looking for.
@@ -77,6 +81,10 @@ private:
 
     //! Attempts to update the scan mode.
     void _UpdateScanMode();
+
+    //! Converts a symbol to a statement operator.
+    //! \param symbol
+    StatementOperator _SymbolToOp(const std::string& symbol);
 
     //! Clears the buffers.
     void _ClearBuffers();

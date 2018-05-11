@@ -116,10 +116,20 @@ public:
     //! \return
     const bool IsOperator(const char input) const;
 
+    //! Returns whether or not the input is an operator type.
+    //! \param input
+    //! \return
+    const bool IsOperator(const std::string& input) const;
+
     //! Returns whether or not the input is an identifier.
     //! \param input
     //! \return
     const bool IsIdentifier(const char input) const;
+
+    //! Returns whether or not the input is an identifier.
+    //! \param input
+    //! \return
+    const bool IsIdentifier(const std::string& input) const;
 
     //! Returns whether or not the input is a keyword.
     //! \param input

@@ -26,6 +26,8 @@
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/sympl_object.h>
 
+#include <fmt/format.h>
+
 sympl_nsstart
 
 class NumberHelper
@@ -139,66 +141,27 @@ public:
         return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
     }
 
-    // Seeds the random number generator.
-    static void SeedRandom(unsigned seed)
+    static std::string NumberToString (long Number)
     {
-        if (seed == 0) {
-            struct timeval t1;
-            w_gettimeofday(&t1, NULL);
-            unsigned newSeed = t1.tv_usec * t1.tv_sec;
-            if (newSeed != NumberHelper::lastSeed_) {
-                NumberHelper::lastSeed_ = newSeed;
-                Urho3D::SetRandomSeed(newSeed);
-            }
-        } else {
-            Urho3D::SetRandomSeed(seed);
-        }
+        std::ostringstream ss;
+        ss << Number;
+        return ss.str();
     }
 
-    // Generate a random integer.
-    static int Random(bool randomSeed = false) {
-        if (randomSeed) {
-            SeedRandom(0);
-        }
-        return Urho3D::Rand();
-    }
-    // Generate a random integer between a and b.
-    static int Random(int a, int b, bool randomSeed = false) {
-//        return Random(randomSeed) % b + a;
-        if (randomSeed) {
-            SeedRandom(0);
-        }
-        return Urho3D::Random(a, b);
-    }
-    // Generate a random float number.
-    static float RandomFloat(bool randomSeed = false) {
-        if (randomSeed) {
-            SeedRandom(0);
-        }
-        return Urho3D::Random();
-    }
-    // Generate a random float number between a and b.
-    static float RandomFloat(float a, float b, bool randomSeed = false) {
-        if (randomSeed) {
-            SeedRandom(0);
-        }
-        return Urho3D::Random(a, b);
-    }
-
-    static void FloatToString(float num, String& output, int decimalPlaces = 2) {
-        output = fmt::format("{0:+f}", num).c_str();
-        if (!output.Contains('.')) {
-            output.Append(".");
+    static void FloatToString(float num, std::string& output, int decimalPlaces = 2) {
+        output = fmt::format("{0:+f}", num);
+        if (output.find(".") != std::string::npos) {
+            output.append(".");
             for (int i = 0; i < decimalPlaces; i++) {
-                output.Append("0");
+                output.append("0");
             }
         }
     }
 
     static const char* GetFloatToString(float num, int decimalPlaces = 2) {
-        String output = fmt::format("{0:+f}", num).c_str();
+        std::string output = fmt::format("{0:+f}", num).c_str();
         FloatToString(num, output, decimalPlaces);
-        return output.CString();
+        return output.c_str();
     }
 
     static unsigned lastSeed_;

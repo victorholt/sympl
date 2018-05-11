@@ -37,7 +37,7 @@ ScriptParser::ScriptParser()
     _CurrentValueBuffer->Resize(2000);
 
     _StatementBuffer = alloc_ref(StringBuffer);
-    _StatementBuffer->Resize(256);
+    _StatementBuffer->Resize(512);
 
     _ClearBuffers();
 }
@@ -46,6 +46,7 @@ ScriptParser::~ScriptParser()
 {
     free_ref(StringBuffer, _CurrentObjectBuffer);
     free_ref(StringBuffer, _CurrentValueBuffer);
+    free_ref(StringBuffer, _StatementBuffer);
 }
 
 void ScriptParser::ParseFile(const char* filePath)
@@ -87,6 +88,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
         // Check if we're at the end of a statement and clear the buffers.
         if (currentChar == ';') {
+            _CurrentValueBuffer->AppendByte(';');
             _UpdateObjectValue();
 
             _ClearBuffers();
@@ -147,24 +149,63 @@ void ScriptParser::_BuildObject()
 
 void ScriptParser::_BuildStatement(ScriptStatement* stat)
 {
+    StatementOperator currentOp = StatementOperator::Equals;
+    bool isString = false;
+    bool recording = false;
     int index = 0;
 
     while (index < _CurrentValueBuffer->Length()) {
         char currentChar = _CurrentValueBuffer->Get(index);
-        if (currentChar == '#') {
-            if (_StatementBuffer->Length() > 0) {
-                auto obj = SymplVMInstance->FindObject(fmt::format(".{0}", _StatementBuffer->CStr()).c_str());
+        index++;
 
-                /// This is an existing object that we should add to the statement.
-                if (!IsNullObject(obj)) {
-                    stat->Add(obj);
+        if (!recording && (currentChar == '#' || currentChar == ';')) {
+            std::string statementStr = _StatementBuffer->CStr();
+
+            if (_StatementBuffer->Length() > 0) {
+                // Check if we're starting a string.
+                if (currentChar == '"') {
+                    recording = true;
+                    isString = true;
+                    continue;
+                }
+
+                // Check if we have a current operator.
+                if (_Symbol.IsOperator(statementStr)) {
+                    // std::cout << "New Operator: " << statementStr << std::endl;
+                    currentOp = _SymbolToOp(statementStr);
+                    _StatementBuffer->Clear();
+                    continue;
+                }
+
+                // Check if we have an object.
+                if (!isString) {
+                    /// This is an existing object that we should add to the statement.
+                    auto obj = SymplVMInstance->FindObject(fmt::format(".{0}", _StatementBuffer->CStr()).c_str());
+                    if (!IsNullObject(obj) && !obj->IsEmpty()) {
+                        stat->Add(obj, currentOp);
+                    } else {
+                        stat->Add(_StatementBuffer->CStr(), currentOp);
+                    }
+
+                    // std::cout << "Adding new object: " << _StatementBuffer->CStr() << std::endl;
                 } else {
                     /// Handle cases where this may be a string.
-
+                    stat->Add(_StatementBuffer->CStr(), currentOp);
+                    // std::cout << "Adding new constant: " << _StatementBuffer->CStr() << std::endl;
                 }
             }
+
+            isString = false;
+            _StatementBuffer->Clear();
+        } else {
+            // Check if we need to start/stop recording a string.
+            if (currentChar == '"') {
+                recording = !recording;
+                continue;
+            }
+
+            _StatementBuffer->AppendByte(currentChar);
         }
-        index++;
     }
 }
 
@@ -179,11 +220,11 @@ void ScriptParser::_UpdateObjectValue()
 
 void ScriptParser::_UpdateScanMode()
 {
-    switch (_ScanMode) {
-        case ParserScanMode::Type:
+    switch ((int)_ScanMode) {
+        case (int)ParserScanMode::Type:
             _ScanMode = ParserScanMode::VarName;
             break;
-        case ParserScanMode::VarName:
+        case (int)ParserScanMode::VarName:
             _ScanMode = ParserScanMode::Value;
             _BuildObject();
             break;
@@ -191,6 +232,44 @@ void ScriptParser::_UpdateScanMode()
         //     _BuildObject();
         //     break;
     }
+}
+
+StatementOperator ScriptParser::_SymbolToOp(const std::string& symbol)
+{
+    // Ensure the symbol is an operator we can parse.
+    if (!_Symbol.IsOperator(symbol)) {
+        return StatementOperator::None;
+    }
+
+    if (symbol == "=") {
+        return StatementOperator::Equals;
+    }
+    if (symbol == "+") {
+        return StatementOperator::Add;
+    }
+    if (symbol == "-") {
+        return StatementOperator::Subtract;
+    }
+    if (symbol == "/") {
+        return StatementOperator::Divide;
+    }
+    if (symbol == "*") {
+        return StatementOperator::Multiply;
+    }
+    if (symbol == ">") {
+        return StatementOperator::GreaterThan;
+    }
+    if (symbol == "<") {
+        return StatementOperator::LessThan;
+    }
+    if (symbol == ">=") {
+        return StatementOperator::GreaterEqualThan;
+    }
+    if (symbol == "<=") {
+        return StatementOperator::LessEqualThan;
+    }
+
+    return StatementOperator::None;
 }
 
 void ScriptParser::_ClearBuffers()

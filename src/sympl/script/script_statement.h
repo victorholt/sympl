@@ -26,15 +26,17 @@
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/sympl_object.h>
 #include <sympl/core/shared_ref.h>
+#include <sympl/core/string_buffer.h>
 
 #include <sympl/script/script_object.h>
 
 sympl_nsstart
 
 enum class StatementOperator {
-    Equals = 0,
-    Plus,
-    Minus,
+    None = 0,
+    Equals,
+    Add,
+    Subtract,
     Divide,
     Multiply,
     Mod,
@@ -42,6 +44,15 @@ enum class StatementOperator {
     LessThan,
     GreaterEqualThan,
     LessEqualThan
+};
+
+enum class StatementType {
+    None = 0,
+    Object,
+    String,
+    Bool,
+    Integer,
+    Float
 };
 
 /// Entry for the objects in the statement.
@@ -61,16 +72,39 @@ private:
     /// Script objects that make up the statement.
     std::vector<StatementObjectEntry*> _Entries;
 
+    /// Representation of the statement as a string.
+    StringBuffer* _String;
+
+    /// Type of statement.
+    StatementType _Type;
+
+    //! Finds the type for a variant.
+    //! \param value
+    //! \return StatementType
+    StatementType _FindType(const Variant& value);
+
+    //! Applies the entry to the current value.
+    //! \param entry
+    //! \param value
+    void _Apply(StatementObjectEntry* entry, Variant& value);
+
 public:
     //! Constructor.
-    ScriptStatement() {}
+    ScriptStatement() {
+        _Type = StatementType::None;
+        _String = alloc_ref(StringBuffer);
+        _String->Resize(512);
+    }
 
     //! Destructor.
     ~ScriptStatement() override {
         for (auto entryIt : _Entries) {
+            entryIt->ConstantValue.Clear();
             delete entryIt;
         }
         _Entries.clear();
+
+        free_ref(StringBuffer, _String);
     }
 
     //! Adds a script object as part of the statement.
@@ -86,6 +120,26 @@ public:
     //! Evaluates the statement.
     //! \return Variant
     const Variant& Evaluate();
+
+    //! Returns evaluate value as a string.
+    //! \return string
+    std::string EvaluateAsString();
+
+    //! Returns the string.
+    //! \return StringBuffer
+    inline StringBuffer* GetString() const { return _String; }
+
+    //! Sets the type for the statement.
+    //! \param type
+    inline void SetType(StatementType type) { _Type = type; }
+
+    //! Returns the type for this statement.
+    //! \return StatementType
+    inline StatementType GetType() const { return _Type; }
+
+    //! Returns the type as a string
+    //! \return string
+    std::string GetTypeAsString() const;
 };
 
 sympl_nsend

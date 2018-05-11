@@ -54,6 +54,8 @@ Variant::Variant(ScriptStatement* value) {
 }
 
 void Variant::Set(ScriptStatement* value) {
+    value->AddRef();
+
     SetType(VariantType::ScriptStatement);
     _Value.Ptr = value;
 }
@@ -70,7 +72,26 @@ Variant& Variant::operator =(ScriptStatement* rhs) {
     return *this;
 }
 
-void Variant::Free() {
+void Variant::Set(const Variant& value)
+ {
+    _Type = value._Type;
+    _Value = value._Value;
+
+    // Increment the reference count so we don't run into
+    // a segment fault situation when passing the pointer
+    // around.
+    if (_Type == VariantType::StringBuffer) {
+        GetStringBuffer()->AddRef();
+    }
+    if (_Type == VariantType::ScriptObject) {
+        GetScriptObject()->AddRef();
+    }
+    if (_Type == VariantType::ScriptStatement) {
+        GetScriptStatement()->AddRef();
+    }
+}
+
+void Variant::Clear() {
     // Check to see if we have a reference.
     if (IsNullObject(_Value.Ptr)) {
         return;
@@ -91,7 +112,7 @@ void Variant::Free() {
     }
 
     // Free our script statement.
-    if (_Type == VariantType::ScriptObject) {
+    if (_Type == VariantType::ScriptStatement) {
         ScriptStatement* sobj = GetScriptStatement();
         free_ref(ScriptStatement, sobj);
         _Value.Ptr = nullptr;

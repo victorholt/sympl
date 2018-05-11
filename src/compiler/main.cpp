@@ -1,4 +1,5 @@
 #include <sympl/core/sympl.h>
+#include <fmt/format.h>
 using namespace std;
 sympl_namespaces
 
@@ -13,7 +14,7 @@ int main()
     auto buffer = str.GetStringBuffer();
     cout << buffer->Str() << endl;
     cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
-    str.Free();
+    str.Clear();
     // End string buffer test.
     sympl_profile_stop("string_buffer");
     sympl_profile_print("string_buffer");
@@ -90,12 +91,17 @@ int main()
 
     sympl_profile_start("script_compiler");
     compiler->ParseString("var x = 1;");
-    sympl_profile_start("script_compiler");
+    sympl_profile_stop("script_compiler");
     sympl_profile_print("script_compiler");
 
     free_ref(Sympl::ScriptParser, compiler);
 
     cout << SymplVMInstance->PrintObjects() << endl;
+
+    auto scriptObj = SymplVMInstance->FindObject(".x");
+    if (!IsNullObject(scriptObj)) {
+        cout << ".x value is " << scriptObj->GetValue()->EvaluateAsString() << fmt::format(" ({0}) ", scriptObj->GetValue()->GetTypeAsString()) << endl;
+    }
 
     // Free our VM.
     Sympl::SymplVM* vm = SymplVMInstance;

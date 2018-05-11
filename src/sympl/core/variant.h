@@ -24,6 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
+#include <sympl/core/sympl_object.h>
 #include <sympl/core/string_buffer.h>
 
 sympl_nsstart
@@ -35,7 +36,7 @@ class ScriptStatement;
 enum class VariantType : uint8_t
 {
     Empty = 0,
-    Bool,
+    // Bool,
     Short,
     UnsignedShort,
     Int,
@@ -55,7 +56,7 @@ enum class VariantType : uint8_t
 /// Container for our Variant value.
 struct VariantValue {
     union {
-        bool                BoolVal;
+        // bool                BoolVal;
         short               ShortVal;
         unsigned short      UnsignedShortVal;
         int                 IntVal;
@@ -66,6 +67,10 @@ struct VariantValue {
         double              DoubleVal;
         void*               Ptr;
     };
+
+    VariantValue() {
+        Ptr = nullptr;
+    }
 };
 
 class SYMPL_API Variant {
@@ -79,7 +84,9 @@ public:
     //! Constructor.
     Variant()
         : _Type(VariantType::Empty)
-    {}
+    {
+        _Value.Ptr = nullptr;
+    }
 
     //! Constructor.
     //! \param value
@@ -89,9 +96,9 @@ public:
 
     //! Constructor.
     //! \param value
-    Variant(bool value) {
-        Set(value);
-    }
+    // Variant(bool value) {
+    //     Set(value);
+    // }
 
     //! Constructor.
     //! \param value
@@ -143,6 +150,12 @@ public:
 
     //! Constructor.
     //! \param value
+    Variant(const char* value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
     Variant(StringBuffer* value) {
         Set(value);
     }
@@ -157,7 +170,7 @@ public:
 
     //! Destructor.
     ~Variant() {
-//        Free();
+       Clear();
     }
 
     //! Sets the type of the variant.
@@ -168,26 +181,23 @@ public:
 
     //! Sets the value for the variant.
     //! \param value
-    void Set(const Variant& value) {
-        _Type = value._Type;
-        _Value = value._Value;
-    }
+    void Set(const Variant& value);
 
     //! Sets the value for the variant.
     //! \param value
-    void Set(bool value) {
-        SetType(VariantType::Bool);
-        _Value.BoolVal = value;
-    }
+    // void Set(bool value) {
+    //     SetType(VariantType::Bool);
+    //     _Value.BoolVal = value;
+    // }
 
     //! Returns the variant value.
     //! \return bool
-    bool GetBool() {
-        if (_Type != VariantType::Bool) {
-            return false;
-        }
-        return _Value.BoolVal;
-    }
+    // bool GetBool() {
+    //     if (_Type != VariantType::Bool) {
+    //         return false;
+    //     }
+    //     return _Value.BoolVal;
+    // }
 
     //! Sets the value for the variant.
     //! \param value
@@ -320,6 +330,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(StringBuffer* value) {
+        value->AddRef();
+
         SetType(VariantType::StringBuffer);
         _Value.Ptr = value;
     }
@@ -327,9 +339,14 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(const char* value) {
-        if (_Type != VariantType::StringBuffer) {
-            return;
+        // if (_Type != VariantType::StringBuffer) {
+        //     return;
+        // }
+
+        if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
+            Set(alloc_ref(StringBuffer));
         }
+
         GetStringBuffer()->Clear();
         GetStringBuffer()->Append(value);
     }
@@ -378,10 +395,10 @@ public:
     //! Operator for assigning boolean.
     //! \param rhs
     //! \return
-    Variant& operator =(bool rhs) {
-        Set(rhs);
-        return *this;
-    }
+    // Variant& operator =(bool rhs) {
+    //     Set(rhs);
+    //     return *this;
+    // }
 
     //! Operator for assigning short.
     //! \param rhs
@@ -465,8 +482,8 @@ public:
     //! \return
     Variant& operator =(ScriptStatement* rhs);
 
-    //! Frees the pointer.
-    void Free();
+    //! Clears the pointer.
+    void Clear();
 
     /// Empty script object.
     static Variant Empty;
