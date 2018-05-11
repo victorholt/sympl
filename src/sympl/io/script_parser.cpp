@@ -171,7 +171,6 @@ void ScriptParser::_BuildStatement(ScriptStatement* stat)
 
                 // Check if we have a current operator.
                 if (_Symbol.IsOperator(statementStr)) {
-                    // std::cout << "New Operator: " << statementStr << std::endl;
                     currentOp = _SymbolToOp(statementStr);
                     _StatementBuffer->Clear();
                     continue;
@@ -184,14 +183,33 @@ void ScriptParser::_BuildStatement(ScriptStatement* stat)
                     if (!IsNullObject(obj) && !obj->IsEmpty()) {
                         stat->Add(obj, currentOp);
                     } else {
-                        stat->Add(_StatementBuffer->CStr(), currentOp);
-                    }
+                        const char* strVal = _StatementBuffer->CStr();
 
-                    // std::cout << "Adding new object: " << _StatementBuffer->CStr() << std::endl;
+                        // Handle boolean value.
+                        if (strcmp(strVal, "true") == 0 || strcmp(strVal, "false") == 0) {
+                            stat->SetType(StatementType::Bool);
+                            stat->Add(strcmp(strVal, "true") == 0 ? true : false, currentOp);
+                        } else {
+                            // Handle constant value.
+                            int intVal;
+                            float floatVal;
+
+                            if (NumberHelper::TryParseInt(strVal, &intVal)) {
+                                stat->SetType(StatementType::Integer);
+                                stat->Add(intVal, currentOp);
+                            } else if (NumberHelper::TryParseFloat(strVal, &floatVal)) {
+                                stat->SetType(StatementType::Float);
+                                stat->Add(floatVal, currentOp);
+                            } else {
+                                stat->SetType(StatementType::String);
+                                stat->Add(_StatementBuffer->CStr(), currentOp);
+                            }
+                        }
+                    }
                 } else {
-                    /// Handle cases where this may be a string.
+                    /// Handle case where this is a string.
+                    stat->SetType(StatementType::String);
                     stat->Add(_StatementBuffer->CStr(), currentOp);
-                    // std::cout << "Adding new constant: " << _StatementBuffer->CStr() << std::endl;
                 }
             }
 
@@ -222,9 +240,15 @@ void ScriptParser::_UpdateScanMode()
 {
     switch ((int)_ScanMode) {
         case (int)ParserScanMode::Type:
+            if (strlen(_CurrentIdentifier) == 0) {
+                return;
+            }
             _ScanMode = ParserScanMode::VarName;
             break;
         case (int)ParserScanMode::VarName:
+            if (_CurrentObjectBuffer->Length() == 0) {
+                return;
+            }
             _ScanMode = ParserScanMode::Value;
             _BuildObject();
             break;
@@ -276,6 +300,7 @@ void ScriptParser::_ClearBuffers()
 {
     _CurrentObjectBuffer->Clear();
     _CurrentValueBuffer->Clear();
+    _StatementBuffer->Clear();
     memset(_CurrentIdentifier, 0, 6);
     memset(_CurrentOperator, 0, 3);
 }

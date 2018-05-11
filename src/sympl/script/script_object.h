@@ -135,6 +135,10 @@ public:
     //! \return
     inline ScriptObjectType  GetType() const { return _Type; }
 
+    //! Returns the type as a string.
+    //! \return string
+    std::string GetTypeString() const;
+
     //! Returns the nest level.
     //! \return
     inline unsigned GetNestLevel() const { return _NestLevel; }

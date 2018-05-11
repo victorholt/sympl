@@ -59,7 +59,7 @@ StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, Stateme
     return entry;
 }
 
-const Variant& ScriptStatement::Evaluate()
+Variant ScriptStatement::Evaluate()
 {
     assert(_Entries.size() > 0 && "Unable to evaluate without a statement");
 
@@ -67,8 +67,8 @@ const Variant& ScriptStatement::Evaluate()
     if (_Entries.size() == 1) {
         auto entry = _Entries[0];
         if (entry->Op == StatementOperator::Equals) {
-        //    return (entry.Value->IsValid() ? entry.Value->Ptr() : entry.ConstantValue);
-            return entry->ConstantValue;
+           return (entry->Value.IsValid() ? entry->Value->GetValue()->Evaluate() : entry->ConstantValue);
+            // return entry->ConstantValue;
         }
     }
 
@@ -78,7 +78,7 @@ const Variant& ScriptStatement::Evaluate()
         _Apply(entryIt, value);
     }
 
-    return Variant::Empty;
+    return value;
 }
 
 std::string ScriptStatement::EvaluateAsString()
@@ -86,16 +86,16 @@ std::string ScriptStatement::EvaluateAsString()
     Variant value = Evaluate();
 
     if (_Type == StatementType::Bool) {
-        return (value.GetShort() > 0 ? "true" : "false");
+        return (value.GetBool() > 0 ? "true" : "false");
     }
     if (_Type == StatementType::String) {
         return value.GetStringBuffer()->CStr();
     }
     if (_Type == StatementType::Integer) {
-        return NumberHelper::NumberToString(value.GetLong());
+        return NumberHelper::NumberToString(value.GetInt());
     }
     if (_Type == StatementType::Float) {
-        return NumberHelper::GetFloatToString(value.GetFloat(), 11);
+        return NumberHelper::GetFloatToString(value.GetFloat(), 6);
     }
     if (_Type == StatementType::Object) {
         return "[Object]";
@@ -106,19 +106,14 @@ std::string ScriptStatement::EvaluateAsString()
 
 StatementType ScriptStatement::_FindType(const Variant& value)
 {
-    // if (value.GetType() == VariantType::Bool) {
-    //     return StatementType::Bool;
-    // }
-    if (value.GetType() == VariantType::Short ||
-        value.GetType() == VariantType::UnsignedShort ||
-        value.GetType() == VariantType::Int ||
-        value.GetType() == VariantType::UnsignedInt ||
-        value.GetType() == VariantType::Long ||
-        value.GetType() == VariantType::UnsignedLong) {
+    if (value.GetType() == VariantType::Bool) {
+        return StatementType::Bool;
+    }
+    if (value.GetType() == VariantType::Int ||
+        value.GetType() == VariantType::UnsignedInt) {
         return StatementType::Integer;
     }
-    if (value.GetType() == VariantType::Float ||
-        value.GetType() == VariantType::Double) {
+    if (value.GetType() == VariantType::Float) {
         return StatementType::Float;
     }
     if (value.GetType() == VariantType::StringBuffer) {
@@ -149,7 +144,7 @@ void ScriptStatement::_Apply(StatementObjectEntry* entry, Variant& value)
             if (_Type == StatementType::String) {
                 value.GetStringBuffer()->Append(evalValue.GetStringBuffer()->CStr());
             } else if (_Type == StatementType::Integer) {
-                value.Set(evalValue.GetLong() + value.GetLong());
+                value.Set(evalValue.GetInt() + value.GetInt());
             }
             break;
         case (int)StatementOperator::Subtract:

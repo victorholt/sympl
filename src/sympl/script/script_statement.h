@@ -119,7 +119,7 @@ public:
 
     //! Evaluates the statement.
     //! \return Variant
-    const Variant& Evaluate();
+    Variant Evaluate();
 
     //! Returns evaluate value as a string.
     //! \return string

@@ -148,18 +148,29 @@ public:
         return ss.str();
     }
 
-    static void FloatToString(float num, std::string& output, int decimalPlaces = 2) {
-        output = fmt::format("{0:+f}", num);
-        if (output.find(".") != std::string::npos) {
-            output.append(".");
-            for (int i = 0; i < decimalPlaces; i++) {
-                output.append("0");
+    static void FloatToString(float num, std::string& output, unsigned decimalPlaces = 2) {
+        std::string str = fmt::format("{0:f}", num);
+        bool        p = false;
+        unsigned    pi = 0;
+
+        for (int i = 0; i < str.length(); i++) {
+            if (!p && str[i] == '.') {
+                p = true;
+                output.append(1, '.');
+                continue;
             }
+            if (p && pi >= decimalPlaces) {
+                break;
+            } else if (p) {
+                pi++;
+            }
+
+            output.append(1, str[i]);
         }
     }
 
-    static const char* GetFloatToString(float num, int decimalPlaces = 2) {
-        std::string output = fmt::format("{0:+f}", num).c_str();
+    static const char* GetFloatToString(float num, unsigned decimalPlaces = 2) {
+        std::string output;// = fmt::format("{0:f}", num).c_str();
         FloatToString(num, output, decimalPlaces);
         return output.c_str();
     }

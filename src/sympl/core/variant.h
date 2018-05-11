@@ -36,15 +36,10 @@ class ScriptStatement;
 enum class VariantType : uint8_t
 {
     Empty = 0,
-    // Bool,
-    Short,
-    UnsignedShort,
+    Bool,
     Int,
     UnsignedInt,
-    Long,
-    UnsignedLong,
     Float,
-    Double,
 
     StringBuffer,
     ScriptObject,
@@ -56,15 +51,10 @@ enum class VariantType : uint8_t
 /// Container for our Variant value.
 struct VariantValue {
     union {
-        // bool                BoolVal;
-        short               ShortVal;
-        unsigned short      UnsignedShortVal;
-        int                 IntVal;
-        unsigned int        UnsignedIntVal;
-        long                LongVal;
-        unsigned long       UnsignedLongVal;
+        bool                BoolVal;
+        long                IntVal;
+        unsigned long       UnsignedIntVal;
         float               FloatVal;
-        double              DoubleVal;
         void*               Ptr;
     };
 
@@ -96,9 +86,9 @@ public:
 
     //! Constructor.
     //! \param value
-    // Variant(bool value) {
-    //     Set(value);
-    // }
+    Variant(bool value) {
+        Set(value);
+    }
 
     //! Constructor.
     //! \param value
@@ -185,62 +175,62 @@ public:
 
     //! Sets the value for the variant.
     //! \param value
-    // void Set(bool value) {
-    //     SetType(VariantType::Bool);
-    //     _Value.BoolVal = value;
-    // }
+    void Set(bool value) {
+        SetType(VariantType::Bool);
+        _Value.BoolVal = value;
+    }
 
     //! Returns the variant value.
     //! \return bool
-    // bool GetBool() {
-    //     if (_Type != VariantType::Bool) {
-    //         return false;
-    //     }
-    //     return _Value.BoolVal;
-    // }
+    bool GetBool() {
+        if (_Type != VariantType::Bool) {
+            return false;
+        }
+        return _Value.BoolVal;
+    }
 
     //! Sets the value for the variant.
     //! \param value
     void Set(short value) {
-        SetType(VariantType::Short);
-        _Value.ShortVal = value;
+        SetType(VariantType::Int);
+        _Value.IntVal = static_cast<long>(value);
     }
 
     //! Returns the variant value.
     //! \return short
-    short GetShort() {
-        if (_Type != VariantType::Short) {
-            return 0;
-        }
-        return _Value.ShortVal;
-    }
+    // short GetShort() {
+    //     if (_Type != VariantType::UnsignedShort) {
+    //         return 0;
+    //     }
+    //     return _Value.UnsignedShortVal;
+    // }
 
     //! Sets the value for the variant.
     //! \param value
     void Set(unsigned short value) {
-        SetType(VariantType::UnsignedShort);
-        _Value.UnsignedShortVal = value;
+        SetType(VariantType::UnsignedInt);
+        _Value.UnsignedIntVal = static_cast<unsigned long>(value);
     }
 
     //! Returns the variant value.
     //! \return unsigned short
-    unsigned short GetUnsignedShort() {
-        if (_Type != VariantType::UnsignedShort) {
-            return 0;
-        }
-        return _Value.UnsignedShortVal;
-    }
+    // unsigned short GetUnsignedShort() {
+    //     if (_Type != VariantType::UnsignedShort) {
+    //         return 0;
+    //     }
+    //     return _Value.UnsignedShortVal;
+    // }
 
     //! Sets the value for the variant.
     //! \param value
     void Set(int value) {
         SetType(VariantType::Int);
-        _Value.IntVal = value;
+        _Value.IntVal = static_cast<long>(value);
     }
 
     //! Returns the variant value.
     //! \return int
-    int GetInt() {
+    long GetInt() {
         if (_Type != VariantType::Int) {
             return 0;
         }
@@ -251,12 +241,12 @@ public:
     //! \param value
     void Set(unsigned int value) {
         SetType(VariantType::UnsignedInt);
-        _Value.UnsignedIntVal = value;
+        _Value.UnsignedIntVal = static_cast<unsigned long>(value);
     }
 
     //! Returns the variant value.
     //! \return int
-    int GetUnsignedInt() {
+    unsigned long GetUnsignedInt() {
         if (_Type != VariantType::UnsignedInt) {
             return 0;
         }
@@ -266,34 +256,34 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(long value) {
-        SetType(VariantType::Long);
-        _Value.LongVal = value;
+        SetType(VariantType::Int);
+        _Value.IntVal = static_cast<long>(value);
     }
 
     //! Returns the variant value.
     //! \return long
-    int GetLong() {
-        if (_Type != VariantType::Long) {
-            return 0;
-        }
-        return _Value.LongVal;
-    }
+    // int GetLong() {
+    //     if (_Type != VariantType::Long) {
+    //         return 0;
+    //     }
+    //     return _Value.LongVal;
+    // }
 
     //! Sets the value for the variant.
     //! \param value
     void Set(unsigned long value) {
-        SetType(VariantType::UnsignedLong);
-        _Value.UnsignedLongVal = value;
+        SetType(VariantType::UnsignedInt);
+        _Value.UnsignedIntVal = static_cast<unsigned long>(value);
     }
 
     //! Returns the variant value.
     //! \return unsigned long
-    int GetUnsignedLong() {
-        if (_Type != VariantType::UnsignedLong) {
-            return 0;
-        }
-        return _Value.UnsignedLongVal;
-    }
+    // int GetUnsignedLong() {
+    //     if (_Type != VariantType::UnsignedLong) {
+    //         return 0;
+    //     }
+    //     return _Value.UnsignedLongVal;
+    // }
 
     //! Sets the value for the variant.
     //! \param value
@@ -314,18 +304,18 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(double value) {
-        SetType(VariantType::Double);
-        _Value.DoubleVal = value;
+        SetType(VariantType::Float);
+        _Value.FloatVal = static_cast<float>(value);
     }
 
     //! Returns the variant value.
     //! \return double
-    double GetDouble() {
-        if (_Type != VariantType::Double) {
-            return 0;
-        }
-        return _Value.DoubleVal;
-    }
+    // double GetDouble() {
+    //     if (_Type != VariantType::Double) {
+    //         return 0;
+    //     }
+    //     return _Value.DoubleVal;
+    // }
 
     //! Sets the value for the variant.
     //! \param value
@@ -395,10 +385,10 @@ public:
     //! Operator for assigning boolean.
     //! \param rhs
     //! \return
-    // Variant& operator =(bool rhs) {
-    //     Set(rhs);
-    //     return *this;
-    // }
+    Variant& operator =(bool rhs) {
+        Set(rhs);
+        return *this;
+    }
 
     //! Operator for assigning short.
     //! \param rhs

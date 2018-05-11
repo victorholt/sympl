@@ -67,16 +67,16 @@ int main()
 //    }
 
     // Testing the script reader.
-//    sympl_profile_start("script_reader");
-//    auto scriptReader = alloc_ref(ScriptReader);
-//    if (!scriptReader->ReadFile("../../examples/scripts/hello.sympl")) {
-//        printf("Failed to read example script!\n");
-//    } else {
-//        cout << scriptReader->GetBuffer()->CStr() << endl;
-//    }
-//    free_ref(ScriptReader, scriptReader);
-//    sympl_profile_stop("script_reader");
-//    sympl_profile_print("script_reader");
+    // sympl_profile_start("script_reader");
+    // auto scriptReader = alloc_ref(ScriptReader);
+    // if (!scriptReader->ReadFile("../../examples/scripts/hello.sympl")) {
+    //     printf("Failed to read example script!\n");
+    // } else {
+    //     cout << scriptReader->GetBuffer()->CStr() << endl;
+    // }
+    // free_ref(ScriptReader, scriptReader);
+    // sympl_profile_stop("script_reader");
+    // sympl_profile_print("script_reader");
 
     // Test out the VM.
 //    Sympl::SymplVM* vm = SymplVMInstance;
@@ -90,7 +90,7 @@ int main()
     auto compiler = alloc_ref(Sympl::ScriptParser);
 
     sympl_profile_start("script_compiler");
-    compiler->ParseString("var x = 1;");
+    compiler->ParseString("var x = 1; var y = x + 3;");
     sympl_profile_stop("script_compiler");
     sympl_profile_print("script_compiler");
 
@@ -98,9 +98,9 @@ int main()
 
     cout << SymplVMInstance->PrintObjects() << endl;
 
-    auto scriptObj = SymplVMInstance->FindObject(".x");
+    auto scriptObj = SymplVMInstance->FindObject(".y");
     if (!IsNullObject(scriptObj)) {
-        cout << ".x value is " << scriptObj->GetValue()->EvaluateAsString() << fmt::format(" ({0}) ", scriptObj->GetValue()->GetTypeAsString()) << endl;
+        cout << ".y value is " << scriptObj->GetValue()->EvaluateAsString() << fmt::format(" ({0}) ", scriptObj->GetValue()->GetTypeAsString()) << endl;
     }
 
     // Free our VM.

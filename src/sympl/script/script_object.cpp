@@ -91,10 +91,32 @@ ScriptStatement* ScriptObject::GetValue()
     return _Value.Ptr();
 }
 
+std::string ScriptObject::GetTypeString() const
+{
+    if (_Type == ScriptObjectType::Object) {
+        return "object";
+    }
+    if (_Type == ScriptObjectType::Variable) {
+        return "var";
+    }
+    if (_Type == ScriptObjectType::Array) {
+        return "array";
+    }
+    if (_Type == ScriptObjectType::Method) {
+        return "method";
+    }
+    if (_Type == ScriptObjectType::Statement) {
+        return "statement";
+    }
+    if (_Type == ScriptObjectType::Empty) {
+        return "empty";
+    }
+}
+
 std::string ScriptObject::Print()
 {
     auto buffer = alloc_ref(StringBuffer);
-    buffer->Append(fmt::format("{0} ({1})", _Name, _Path).c_str());
+    buffer->Append(fmt::format("{0} ({1}) -> {2}", _Name, _Path, GetTypeString()).c_str());
     buffer->Append("\n");
 
     for (auto childIt : _Children) {
