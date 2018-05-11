@@ -28,6 +28,7 @@
 #include <sympl/core/shared_ref.h>
 #include <sympl/script/script_common.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_method.h>
 
 sympl_nsstart
 

@@ -68,7 +68,13 @@ ScriptObject* SymplVM::CreateObject(const char* name, ScriptObjectType type, Scr
         return searchObj;
     }
 
-    SharedRef<ScriptObject> scriptObject = alloc_ref(ScriptObject);
+    SharedRef<ScriptObject> scriptObject;
+
+    if (type == ScriptObjectType::Method) {
+        scriptObject = alloc_ref(ScriptMethod);
+    } else {
+        scriptObject = alloc_ref(ScriptObject);
+    }
     scriptObject->_Initialize(name, path.c_str(), parent);
     scriptObject->_SetType(type);
     _ObjectMap[scriptObject->GetPath()] = scriptObject;

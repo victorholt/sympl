@@ -49,7 +49,7 @@ protected:
 
     /// Children added to the object in the order they
     /// were added.
-    std::vector<SharedRef<ScriptObject>> _Children;
+    std::unordered_map<std::string, SharedRef<ScriptObject>> _Children;
 
     /// Name of the object.
     std::string _Name;
@@ -66,7 +66,7 @@ protected:
     //! Initializes the object.
     //! \param name
     //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr);
+    virtual void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr);
 
     //! Adds a child to the script object.
     //! \param obj
@@ -103,13 +103,17 @@ public:
     //! \return
     bool Evaluate(Variant *&result);
 
+    //! Finds a child based on the given path.
+    //! \
+    const SharedRef<ScriptObject>& FindChild(const char* path);
+
     //! Returns the parent object.
     //! \return ScriptObject
     const SharedRef<ScriptObject>& GetParent() const;
 
     //! Returns the child objects.
-    //! \return std::vector<ScriptObject*>
-    const std::vector<SharedRef<ScriptObject>>& GetChildren() const;
+    //! \return std::unordered_map<string, ScriptObject*>
+    const std::unordered_map<std::string, SharedRef<ScriptObject>>& GetChildren() const;
 
     //! Returns a string of the script object.
     //! \return

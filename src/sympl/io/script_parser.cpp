@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/io/script_parser.h>
 #include <sympl/script/sympl_vm.h>
+#include <sympl/script/script_method.h>
 #include <sympl/core/sympl_number_helper.h>
 
 #include <fmt/format.h>
@@ -30,6 +31,8 @@ sympl_namespaces
 
 ScriptParser::ScriptParser()
 {
+    _Reader = nullptr;
+
     _CurrentObjectBuffer = alloc_ref(StringBuffer);
     _CurrentObjectBuffer->Resize(256);
 
@@ -51,43 +54,47 @@ ScriptParser::~ScriptParser()
 
 void ScriptParser::ParseFile(const char* filePath)
 {
-    auto reader = alloc_ref(ScriptReader);
-    reader->ReadFile(filePath);
-    _ParseBuffer(reader);
-    free_ref(ScriptReader, reader);
+    _Reader = alloc_ref(ScriptReader);
+    _Reader->ReadFile(filePath);
+    _ParseBuffer(_Reader);
+    free_ref(ScriptReader, _Reader);
 }
 
 void ScriptParser::ParseString(const char* str)
 {
-    auto reader = alloc_ref(ScriptReader);
-    reader->ReadString(str);
-    _ParseBuffer(reader);
-    free_ref(ScriptReader, reader);
+    _Reader = alloc_ref(ScriptReader);
+    _Reader->ReadString(str);
+    _ParseBuffer(_Reader);
+    free_ref(ScriptReader, _Reader);
 }
 
 void ScriptParser::_ParseBuffer(ScriptReader* reader)
 {
-    size_t charLocation = 0;
     int nestLevel = 0;
     int currentLineNumber = 0;
     unsigned bufferIndex = 0;
     char currentChar = '\0';
     char previousChar = '\0';
     char nextChar = '\0';
-    bool recording = false;
     bool valueMode = false;
     bool inArray = false;
     bool grabbingLineNumber = false;
-    std::locale loc;
 
-    while (charLocation < reader->GetBuffer()->Length()) {
+    _RecordingString = false;
+    _CharLocation = 0;
+
+    while (_CharLocation < reader->GetBuffer()->Length()) {
         previousChar = currentChar;
-        currentChar = reader->GetBuffer()->Get(charLocation);
-        nextChar = reader->GetBuffer()->Get(charLocation + 1);
-        charLocation++;
+        currentChar = reader->GetBuffer()->Get(_CharLocation);
+        nextChar = reader->GetBuffer()->Get(_CharLocation + 1);
+        _CharLocation++;
 
         // Check if we're at the end of a statement and clear the buffers.
         if (currentChar == ';') {
+            // If we're attempting to find method arguments and we're
+            // ending too soon, error out!
+            assert(currentChar == ';' && (_ScanMode == ParserScanMode::VarName || _ScanMode == ParserScanMode::Value) && "Unabled to close statement without object name.");
+
             _CurrentValueBuffer->AppendByte(';');
             _UpdateObjectValue();
 
@@ -114,8 +121,26 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         }
         // End grabbing the line number.
 
+        // Attempt to close the current scope.
+        if (currentChar == '}' && !_RecordingString) {
+            _CloseScope();
+
+            bufferIndex = 0;
+            _ClearBuffers();
+            continue;
+        }
+
+        if (currentChar == '(' && !_RecordingString) {
+            bufferIndex = 0;
+            _UpdateScanMode();
+            continue;
+        }
+
         // Check if we need to skip.
-        if (currentChar == '#' && !recording && _ScanMode != ParserScanMode::Value) {
+        if (currentChar == '#' && !_RecordingString && (
+            _ScanMode != ParserScanMode::Value ||
+            _ScanMode != ParserScanMode::MethodArgs
+        )) {
             bufferIndex = 0;
             _UpdateScanMode();
             continue;
@@ -143,8 +168,11 @@ void ScriptParser::_BuildObject()
         type = ScriptObjectType::Method;
     }
 
-    _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type);
-
+    if (!_CurrentObject.IsValid() || !_CurrentObject->GetParent().IsValid()) {
+        _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type);
+    } else {
+        _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type, _CurrentObject->GetParent().Ptr());
+    }
 }
 
 void ScriptParser::_BuildStatement(ScriptStatement* stat)
@@ -227,6 +255,65 @@ void ScriptParser::_BuildStatement(ScriptStatement* stat)
     }
 }
 
+void ScriptParser::_BuildMethodArgs()
+{
+    bool argSearch = true;
+
+    // Keep track of the parent scope for the arguments.
+    auto scopeObject = _CurrentObject;
+    auto argsObject = to_method(scopeObject.Ptr())->GetArgsObject();
+
+    // Lambdas not supported yet...
+    memset(_CurrentIdentifier, 0, strlen(_CurrentIdentifier));
+    strcpy(_CurrentIdentifier, "var");
+
+    char currentChar = '\0';
+    char previousChar = '\0';
+    char nextChar = '\0';
+
+    _CurrentObjectBuffer->Clear();
+
+    while (_CharLocation < _Reader->GetBuffer()->Length()) {
+        previousChar = currentChar;
+        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
+        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
+        _CharLocation++;
+
+        // Skip spaces.
+        if (currentChar == '#') {
+            continue;
+        }
+
+        // Attempt to save an argument.
+        if (!_RecordingString && (currentChar == ',' || currentChar == ')')) {
+            // Check to see if we need to create an argument object.
+            if (_CurrentObjectBuffer->Length() > 0) {
+                _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), ScriptObjectType::Variable, argsObject.Ptr());
+                _CurrentObjectBuffer->Clear();
+            }
+
+            if (currentChar == ')') {
+                argSearch = false;
+            }
+            continue;
+        }
+
+        // Check if we need to exit out of the argument building.
+        if (!argSearch && currentChar == '{') {
+            _CurrentObject = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, scopeObject.Ptr());
+            return;
+        }
+
+        _CurrentObjectBuffer->AppendByte(currentChar);
+    }
+
+    // The while loop should quit before we reach this call.
+    assert("Invalid method parsing error!");
+
+    SharedRef<ScriptObject> argObj;
+    to_method(_CurrentObject.Ptr())->AddArg(argObj.Ptr());
+}
+
 void ScriptParser::_UpdateObjectValue()
 {
     // Determine how many variables are part of the statement.
@@ -249,13 +336,27 @@ void ScriptParser::_UpdateScanMode()
             if (_CurrentObjectBuffer->Length() == 0) {
                 return;
             }
-            _ScanMode = ParserScanMode::Value;
             _BuildObject();
+
+            if (_CurrentObject->GetType() == ScriptObjectType::Method) {
+                _ScanMode = ParserScanMode::MethodArgs;
+            } else {
+                _ScanMode = ParserScanMode::Value;
+            }
             break;
-        // case ParserScanMode::Value:
-        //     _BuildObject();
-        //     break;
+        case (int)ParserScanMode::MethodArgs:
+            _BuildMethodArgs();
+            _ScanMode = ParserScanMode::Type;
+            break;
     }
+}
+
+void ScriptParser::_CloseScope()
+{
+    if (_CurrentObject->GetParent().IsValid()) {
+        _CurrentObject = _CurrentObject->GetParent();
+    }
+    _ScanMode = ParserScanMode::Type;
 }
 
 StatementOperator ScriptParser::_SymbolToOp(const std::string& symbol)

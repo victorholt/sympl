@@ -6,5 +6,11 @@ package examples;
 var name = "" + "SymplProgrammer"; // Testing concatenation
 
 func main() {
-    print("Hello " + name + " /* comments don't work in strings */!");
+    var name = "LocalName";
+    print("Hello " + .name + ". I see your local name is " + name);
+
+    {
+        var name = "ScopeName";
+        print("You have a scope name as " + name + " and the upper scope name as " + .main.name + " and a global scope name as " + .name + ".");
+    }
 }

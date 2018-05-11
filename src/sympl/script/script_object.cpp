@@ -53,7 +53,7 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
 void ScriptObject::_AddChild(ScriptObject* scriptObject)
 {
     scriptObject->_SetNestLevel(_NestLevel + 1);
-    _Children.push_back(scriptObject);
+    _Children[scriptObject->GetPath()] = scriptObject;
 }
 
 bool ScriptObject::Evaluate(Variant *&result)
@@ -66,7 +66,7 @@ const SharedRef<ScriptObject>& ScriptObject::GetParent() const
     return _Parent;
 }
 
-const std::vector<SharedRef<ScriptObject>>& ScriptObject::GetChildren() const
+const std::unordered_map<std::string, SharedRef<ScriptObject>>& ScriptObject::GetChildren() const
 {
     return _Children;
 }
@@ -120,7 +120,7 @@ std::string ScriptObject::Print()
     buffer->Append("\n");
 
     for (auto childIt : _Children) {
-        _PrintChild(childIt.Ptr(), buffer);
+        _PrintChild(childIt.second.Ptr(), buffer);
     }
 
     std::string results = buffer->CStr();
@@ -138,6 +138,6 @@ void ScriptObject::_PrintChild(ScriptObject* childObj, StringBuffer*& buffer)
     buffer->Append("\n");
 
     for (auto childIt : childObj->GetChildren()) {
-        _PrintChild(childIt.Ptr(), buffer);
+        _PrintChild(childIt.second.Ptr(), buffer);
     }
 }

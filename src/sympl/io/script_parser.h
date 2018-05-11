@@ -34,13 +34,16 @@
 
 sympl_nsstart
 
+class ScriptReader;
+
 class SYMPL_API ScriptParser : public Object
 {
 private:
     enum class ParserScanMode {
         Type = 0,
         VarName,
-        Value
+        Value,
+        MethodArgs
     };
 
     /// Symbol token checker.
@@ -67,6 +70,15 @@ private:
     /// Determines what the parser is currently looking for.
     ParserScanMode _ScanMode = ParserScanMode::Type;
 
+    /// Flag for whether or not the parser is recording a string.
+    bool _RecordingString = false;
+
+    /// Current character location
+    size_t _CharLocation = 0;
+
+    /// Current script reader object.
+    ScriptReader* _Reader;
+
     //! Parses the current buffer.
     void _ParseBuffer(ScriptReader* reader);
 
@@ -76,11 +88,17 @@ private:
     //! Build a statement with the current buffer.
     void _BuildStatement(ScriptStatement* stat);
 
+    //! Build out the method arguments with the current buffer.
+    void _BuildMethodArgs();
+
     //! Updates the object's value.
     void _UpdateObjectValue();
 
     //! Attempts to update the scan mode.
     void _UpdateScanMode();
+
+    //! Closes the current scope.
+    void _CloseScope();
 
     //! Converts a symbol to a statement operator.
     //! \param symbol

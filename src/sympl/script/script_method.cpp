@@ -21,28 +21,31 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
-
-#include <sympl/core/sympl_pch.h>
-
-#include <sympl/core/alloc.h>
-#include <sympl/core/sympl_ref.h>
-#include <sympl/core/shared_ref.h>
-#include <sympl/core/weak_ref.h>
-#include <sympl/core/sympl_object.h>
-#include <sympl/core/string_buffer.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/thread.h>
-#include <sympl/core/mutex.h>
-
-#include <sympl/util/profiler.h>
-
-#include <sympl/io/script_symbol.h>
-#include <sympl/io/script_reader.h>
-#include <sympl/io/script_parser.h>
-
-#include <sympl/script/script_common.h>
-#include <sympl/script/script_statement.h>
-#include <sympl/script/sympl_vm.h>
-#include <sympl/script/script_object.h>
 #include <sympl/script/script_method.h>
+#include <sympl/script/script_statement.h>
+#include <sympl/core/string_buffer.h>
+#include <sympl/script/sympl_vm.h>
+
+#include <fmt/format.h>
+sympl_namespaces
+
+ScriptMethod::ScriptMethod()
+{
+
+}
+
+ScriptMethod::~ScriptMethod()
+{
+
+}
+
+void ScriptMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
+{
+    ScriptObject::_Initialize(name, path, parent);
+    _ArgsObject = SymplVMInstance->CreateObject("args", ScriptObjectType::Object, this);
+}
+
+void ScriptMethod::AddArg(ScriptObject* arg)
+{
+    std::cout << "Adding new arg" << std::endl;
+}

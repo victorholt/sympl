@@ -90,7 +90,7 @@ int main()
     auto compiler = alloc_ref(Sympl::ScriptParser);
 
     sympl_profile_start("script_compiler");
-    compiler->ParseString("var x = 1; var y = x + 3;");
+    compiler->ParseString("var x = 1; var y = x + 3; func foo(n) {  } ");
     sympl_profile_stop("script_compiler");
     sympl_profile_print("script_compiler");
 
@@ -98,10 +98,21 @@ int main()
 
     cout << SymplVMInstance->PrintObjects() << endl;
 
-    auto scriptObj = SymplVMInstance->FindObject(".y");
-    if (!IsNullObject(scriptObj)) {
-        cout << ".y value is " << scriptObj->GetValue()->EvaluateAsString() << fmt::format(" ({0}) ", scriptObj->GetValue()->GetTypeAsString()) << endl;
-    }
+    // auto yVar = SymplVMInstance->FindObject(".y");
+    // auto zVar = SymplVMInstance->FindObject(".z");
+    // auto argVar = SymplVMInstance->FindObject(".foo.args.n");
+
+    // if (!IsNullObject(yVar)) {
+    //     cout << ".y value is " << yVar->GetValue()->EvaluateAsString() << fmt::format(" ({0}) ", yVar->GetValue()->GetTypeAsString()) << endl;
+    // }
+
+    // if (!IsNullObject(zVar)) {
+    //     cout << ".z value is " << zVar->GetValue()->EvaluateAsString() << fmt::format(" ({0}) ", zVar->GetValue()->GetTypeAsString()) << endl;
+    // }
+
+    // if (!IsNullObject(argVar)) {
+    //     cout << ".foo.args.n is " << argVar->Print() << endl;
+    // }
 
     // Free our VM.
     Sympl::SymplVM* vm = SymplVMInstance;
