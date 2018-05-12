@@ -101,7 +101,7 @@ public:
     //! Evaluates and returns the results of the object.
     //! \param result
     //! \return
-    bool Evaluate(Variant *&result);
+    virtual bool Evaluate(Variant *&result);
 
     //! Finds a child based on the given path.
     //! \

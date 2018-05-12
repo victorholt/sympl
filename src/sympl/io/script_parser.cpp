@@ -33,6 +33,9 @@ ScriptParser::ScriptParser()
 {
     _Reader = nullptr;
 
+    _CurrentIdentifierBuffer = alloc_ref(StringBuffer);
+    _CurrentIdentifierBuffer->Resize(256);
+
     _CurrentObjectBuffer = alloc_ref(StringBuffer);
     _CurrentObjectBuffer->Resize(256);
 
@@ -47,6 +50,7 @@ ScriptParser::ScriptParser()
 
 ScriptParser::~ScriptParser()
 {
+    free_ref(StringBuffer, _CurrentIdentifierBuffer);
     free_ref(StringBuffer, _CurrentObjectBuffer);
     free_ref(StringBuffer, _CurrentValueBuffer);
     free_ref(StringBuffer, _StatementBuffer);
@@ -121,9 +125,22 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         }
         // End grabbing the line number.
 
+        // Attempt to open a new scope.
+        if (currentChar == '{' && !_RecordingString) {
+            _OpenScope();
+
+            bufferIndex = 0;
+            _ClearBuffers();
+            continue;
+        }
+
         // Attempt to close the current scope.
         if (currentChar == '}' && !_RecordingString) {
+            std::cout << fmt::format("Closing scope for = {0}", _CurrentObject->GetPath()) << std::endl;
+
             _CloseScope();
+
+            std::cout << fmt::format("Closing scope, new scope = {0}", _CurrentObject->GetPath()) << std::endl;
 
             bufferIndex = 0;
             _ClearBuffers();
@@ -137,18 +154,45 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         }
 
         // Check if we need to skip.
-        if (currentChar == '#' && !_RecordingString && (
-            _ScanMode != ParserScanMode::Value ||
+        if (currentChar == '#' && !_RecordingString) {
+            // If we're a 'return' statement, treat it as a variable
+            // so we can add the rest as a statement.
+            if (_CurrentIdentifierBuffer->Equals("return")) {
+                _CurrentIdentifierBuffer->Clear();
+                _CurrentIdentifierBuffer->Append("var");
+
+                // Switch over to varname
+                _ScanMode = ParserScanMode::VarName;
+                _CurrentObjectBuffer->Append("return");
+
+                bufferIndex = 0;
+                _UpdateScanMode();
+                continue;
+            }
+
+            if (_ScanMode == ParserScanMode::Type && _CurrentIdentifierBuffer->Length() == 0) {
+                continue;
+            }
+            if (_ScanMode == ParserScanMode::VarName && _CurrentObjectBuffer->Length() == 0) {
+                continue;
+            }
+            if (_ScanMode == ParserScanMode::Value && _CurrentValueBuffer->Length() == 0) {
+                continue;
+            }
+
+            // Update the scan mode.
+            if (_ScanMode != ParserScanMode::Value ||
             _ScanMode != ParserScanMode::MethodArgs
-        )) {
-            bufferIndex = 0;
-            _UpdateScanMode();
-            continue;
+            ) {
+                bufferIndex = 0;
+                _UpdateScanMode();
+                continue;
+            }
         }
 
         if (_ScanMode == ParserScanMode::Type) {
-            assert(bufferIndex < 6 && "Unknown identifier!");
-            _CurrentIdentifier[bufferIndex] = currentChar;
+            assert(bufferIndex < 256 && "Identifier name too long!");
+            _CurrentIdentifierBuffer->AppendByte(currentChar);
         } else if (_ScanMode == ParserScanMode::VarName) {
             assert(bufferIndex < 256 && "Object name too long!");
             _CurrentObjectBuffer->AppendByte(currentChar);
@@ -162,16 +206,20 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 void ScriptParser::_BuildObject()
 {
     ScriptObjectType type = ScriptObjectType::Object;
-    if (strcmp("var", _CurrentIdentifier) == 0) {
+    if (_CurrentIdentifierBuffer->Equals("var")) {
         type = ScriptObjectType::Variable;
-    } else if (strcmp("func", _CurrentIdentifier) == 0) {
+    } else if (_CurrentIdentifierBuffer->Equals("func")) {
         type = ScriptObjectType::Method;
     }
 
-    if (!_CurrentObject.IsValid() || !_CurrentObject->GetParent().IsValid()) {
+    // Ensure we aren't duplicating a variable.
+    assert(!_ObjectExists(_CurrentObjectBuffer->CStr()) && "Duplicate variable detected!");
+
+    // Create our object based on if we have a scope.
+    if (!_CurrentScopeObject.IsValid()) {
         _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type);
     } else {
-        _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type, _CurrentObject->GetParent().Ptr());
+        _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type, _CurrentScopeObject.Ptr());
     }
 }
 
@@ -184,9 +232,10 @@ void ScriptParser::_BuildStatement(ScriptStatement* stat)
 
     while (index < _CurrentValueBuffer->Length()) {
         char currentChar = _CurrentValueBuffer->Get(index);
+        char nextChar = _CurrentValueBuffer->Get(index + 1);
         index++;
 
-        if (!recording && (currentChar == '#' || currentChar == ';')) {
+        if (!recording && (currentChar == '#' || currentChar == ';' || currentChar == '(')) {
             std::string statementStr = _StatementBuffer->CStr();
 
             if (_StatementBuffer->Length() > 0) {
@@ -209,7 +258,8 @@ void ScriptParser::_BuildStatement(ScriptStatement* stat)
                     /// This is an existing object that we should add to the statement.
                     auto obj = SymplVMInstance->FindObject(fmt::format(".{0}", _StatementBuffer->CStr()).c_str());
                     if (!IsNullObject(obj) && !obj->IsEmpty()) {
-                        stat->Add(obj, currentOp);
+                        auto entry = stat->Add(obj, currentOp);
+
                     } else {
                         const char* strVal = _StatementBuffer->CStr();
 
@@ -257,21 +307,21 @@ void ScriptParser::_BuildStatement(ScriptStatement* stat)
 
 void ScriptParser::_BuildMethodArgs()
 {
-    bool argSearch = true;
-
     // Keep track of the parent scope for the arguments.
     auto scopeObject = _CurrentObject;
-    auto argsObject = to_method(scopeObject.Ptr())->GetArgsObject();
 
     // Lambdas not supported yet...
-    memset(_CurrentIdentifier, 0, strlen(_CurrentIdentifier));
-    strcpy(_CurrentIdentifier, "var");
+    _CurrentIdentifierBuffer->Clear();
+    _CurrentIdentifierBuffer->Append("var");
 
     char currentChar = '\0';
     char previousChar = '\0';
     char nextChar = '\0';
 
     _CurrentObjectBuffer->Clear();
+
+    // Open the scope for the arguments.
+    _OpenScope();
 
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
         previousChar = currentChar;
@@ -288,30 +338,21 @@ void ScriptParser::_BuildMethodArgs()
         if (!_RecordingString && (currentChar == ',' || currentChar == ')')) {
             // Check to see if we need to create an argument object.
             if (_CurrentObjectBuffer->Length() > 0) {
-                _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), ScriptObjectType::Variable, argsObject.Ptr());
+                SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), ScriptObjectType::Variable, _CurrentScopeObject.Ptr());
                 _CurrentObjectBuffer->Clear();
             }
 
             if (currentChar == ')') {
-                argSearch = false;
+                _CloseScope();
+                return;
             }
-            continue;
-        }
-
-        // Check if we need to exit out of the argument building.
-        if (!argSearch && currentChar == '{') {
-            _CurrentObject = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, scopeObject.Ptr());
-            return;
         }
 
         _CurrentObjectBuffer->AppendByte(currentChar);
     }
 
     // The while loop should quit before we reach this call.
-    assert("Invalid method parsing error!");
-
-    SharedRef<ScriptObject> argObj;
-    to_method(_CurrentObject.Ptr())->AddArg(argObj.Ptr());
+    assert(_CharLocation < _Reader->GetBuffer()->Length() && "Invalid method parsing error!");
 }
 
 void ScriptParser::_UpdateObjectValue()
@@ -327,7 +368,7 @@ void ScriptParser::_UpdateScanMode()
 {
     switch ((int)_ScanMode) {
         case (int)ParserScanMode::Type:
-            if (strlen(_CurrentIdentifier) == 0) {
+            if (_CurrentIdentifierBuffer->Length() == 0) {
                 return;
             }
             _ScanMode = ParserScanMode::VarName;
@@ -339,21 +380,33 @@ void ScriptParser::_UpdateScanMode()
             _BuildObject();
 
             if (_CurrentObject->GetType() == ScriptObjectType::Method) {
-                _ScanMode = ParserScanMode::MethodArgs;
+                _BuildMethodArgs();
+                _ScanMode = ParserScanMode::Type;
             } else {
                 _ScanMode = ParserScanMode::Value;
             }
             break;
-        case (int)ParserScanMode::MethodArgs:
-            _BuildMethodArgs();
-            _ScanMode = ParserScanMode::Type;
-            break;
+        // case (int)ParserScanMode::MethodArgs:
+        //     _BuildMethodArgs();
+        //     _ScanMode = ParserScanMode::Type;
+        //     break;
     }
+}
+
+void ScriptParser::_OpenScope()
+{
+    // Check if we need to exit out of the argument building.
+    auto scopeObject = _CurrentObject;
+    _CurrentScopeObject = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, scopeObject.Ptr());
+    _ScanMode = ParserScanMode::Type;
 }
 
 void ScriptParser::_CloseScope()
 {
-    if (_CurrentObject->GetParent().IsValid()) {
+    if (_CurrentScopeObject.IsValid()) {
+        _CurrentObject = _CurrentScopeObject->GetParent();
+        _CurrentScopeObject.Release();
+    } else {
         _CurrentObject = _CurrentObject->GetParent();
     }
     _ScanMode = ParserScanMode::Type;
@@ -397,11 +450,26 @@ StatementOperator ScriptParser::_SymbolToOp(const std::string& symbol)
     return StatementOperator::None;
 }
 
+bool ScriptParser::_ObjectExists(const char* objectName)
+{
+    if (!_CurrentScopeObject.IsValid()) {
+        auto foundObj = SymplVMInstance->FindObject(
+            fmt::format(".{0}", objectName)
+        );
+        return (!IsNullObject(foundObj) && !foundObj->IsEmpty());
+    }
+
+    auto foundObj = SymplVMInstance->FindObject(
+        fmt::format("{0}.{1}", _CurrentScopeObject.Ptr()->GetPath(), objectName)
+    );
+    return (!IsNullObject(foundObj) && !foundObj->IsEmpty());
+}
+
 void ScriptParser::_ClearBuffers()
 {
     _CurrentObjectBuffer->Clear();
     _CurrentValueBuffer->Clear();
     _StatementBuffer->Clear();
-    memset(_CurrentIdentifier, 0, 6);
+    _CurrentIdentifierBuffer->Clear();
     memset(_CurrentOperator, 0, 3);
 }

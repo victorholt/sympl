@@ -104,7 +104,7 @@ ScriptObject* SymplVM::FindObject(const std::string& path)
 std::string SymplVM::_BuildPath(const char* name, ScriptObject* parent)
 {
     if (!IsNullObject(parent)) {
-        return fmt::format(".{0}.{1}", parent->GetPath(), name);
+        return fmt::format("{0}.{1}", parent->GetPath(), name);
     }
     return fmt::format(".{0}", name);
 }
@@ -113,6 +113,10 @@ std::string SymplVM::PrintObjects()
 {
     auto buffer = alloc_ref(StringBuffer);
     for (auto entryIt : _ObjectMap) {
+        // Don't print out objects with parents.
+        if (entryIt.second->GetParent().IsValid()) {
+            continue;
+        }
         buffer->Append(entryIt.second->Print().c_str());
     }
 

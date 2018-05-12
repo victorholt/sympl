@@ -41,7 +41,14 @@ private:
     {
         if (IsNullObject(ptr)) {
             return;
+        } else if (ptr == _Data) {
+            return;
         }
+
+        // Release the current pointer reference.
+        Release();
+
+        // Set the new pointer reference.
         _Data = ptr;
         _AddRef();
     }
@@ -52,15 +59,6 @@ private:
         if (!IsNull()) {
             _Data->AddRef();
         }
-    }
-
-    //! Attempts to release the object.
-    void _Release()
-    {
-        if (IsNull()) {
-            return;
-        }
-        free_ref(T, _Data);
     }
 
 public:
@@ -81,7 +79,7 @@ public:
 
     //! Destructor.
     ~SharedRef() {
-        _Release();
+        Release();
     }
 
     //! Returns the data reference count.
@@ -106,6 +104,16 @@ public:
     //! Returns the pointer.
     //! \return
     T* Ptr() const { return _Data; }
+
+    //! Attempts to release the object.
+    void Release()
+    {
+        if (IsNull()) {
+            return;
+        }
+        free_ref(T, _Data);
+        _Data = nullptr;
+    }
 
     //! Operator for assigning long.
     //! \param rhs

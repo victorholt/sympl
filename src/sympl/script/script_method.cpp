@@ -39,13 +39,12 @@ ScriptMethod::~ScriptMethod()
 
 }
 
-void ScriptMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
+bool ScriptMethod::Evaluate(Variant *&result)
 {
-    ScriptObject::_Initialize(name, path, parent);
-    _ArgsObject = SymplVMInstance->CreateObject("args", ScriptObjectType::Object, this);
+
 }
 
 void ScriptMethod::AddArg(ScriptObject* arg)
 {
-    std::cout << "Adding new arg" << std::endl;
+    _Args.push_back(arg);
 }

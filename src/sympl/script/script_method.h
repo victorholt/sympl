@@ -35,20 +35,17 @@ protected:
     /// Variable paths for the arguments.
     std::vector<SharedRef<ScriptObject>> _Args;
 
-    /// Object which holds the arguments.
-    SharedRef<ScriptObject> _ArgsObject;
-
-    //! Initializes the object.
-    //! \param name
-    //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
-
 public:
     //! Constructor.
     ScriptMethod();
 
     //! Destructor.
     ~ScriptMethod() override;
+
+    //! Evaluates and returns the results of the object.
+    //! \param result
+    //! \return
+    bool Evaluate(Variant *&result) override;
 
     //! Adds an argument to the method.
     //! \param arg
@@ -72,12 +69,6 @@ public:
     //! Returns the number of arguments given to this method.
     inline unsigned GetNumArgs() const {
         return 0;
-    }
-
-    //! Returns the args script object.
-    //! \return SharedRef<ScriptObject>
-    inline SharedRef<ScriptObject>& GetArgsObject() {
-        return _ArgsObject;
     }
 };
 

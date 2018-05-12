@@ -92,6 +92,10 @@ public:
     //! \return size_t
     inline size_t Capacity() const { return _Capacity; }
 
+    //! Returns whether or not a string equals the buffer's string.
+    //! \return bool
+    inline bool Equals(const char* compare) { return (strcmp(CStr(), compare) == 0); }
+
     //! Returns the char at a given location.
     //! \param place
     //! \return

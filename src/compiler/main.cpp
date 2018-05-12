@@ -90,7 +90,7 @@ int main()
     auto compiler = alloc_ref(Sympl::ScriptParser);
 
     sympl_profile_start("script_compiler");
-    compiler->ParseString("var x = 1; var y = x + 3; func foo(n) {  } ");
+    compiler->ParseString("var x = 1; var y = x + 3; func foo(n) { var x = n; var y = 3; return x + y; } var z = foo(x + 1);");
     sympl_profile_stop("script_compiler");
     sympl_profile_print("script_compiler");
 

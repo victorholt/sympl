@@ -52,11 +52,14 @@ private:
     /// Current object we're building.
     SharedRef<ScriptObject> _CurrentObject;
 
-    /// Current identifier.
-    char _CurrentIdentifier[6];
+    /// Current scope object.
+    SharedRef<ScriptObject> _CurrentScopeObject;
 
     /// Current operator for the object.
     char _CurrentOperator[3];
+
+    /// Current identifier string buffer.
+    StringBuffer* _CurrentIdentifierBuffer;
 
     /// Current object string buffer.
     StringBuffer* _CurrentObjectBuffer;
@@ -67,6 +70,9 @@ private:
     /// The statement buffer.
     StringBuffer* _StatementBuffer;
 
+    /// Current script reader object.
+    ScriptReader* _Reader;
+
     /// Determines what the parser is currently looking for.
     ParserScanMode _ScanMode = ParserScanMode::Type;
 
@@ -75,9 +81,6 @@ private:
 
     /// Current character location
     size_t _CharLocation = 0;
-
-    /// Current script reader object.
-    ScriptReader* _Reader;
 
     //! Parses the current buffer.
     void _ParseBuffer(ScriptReader* reader);
@@ -97,12 +100,19 @@ private:
     //! Attempts to update the scan mode.
     void _UpdateScanMode();
 
+    //! Opens a new scope based on the current object.
+    void _OpenScope();
+
     //! Closes the current scope.
     void _CloseScope();
 
     //! Converts a symbol to a statement operator.
     //! \param symbol
     StatementOperator _SymbolToOp(const std::string& symbol);
+
+    //! Checks if an object exists based on the current scope.
+    //! \return bool
+    bool _ObjectExists(const char* objectName);
 
     //! Clears the buffers.
     void _ClearBuffers();
