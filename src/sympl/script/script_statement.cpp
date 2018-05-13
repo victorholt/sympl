@@ -25,6 +25,22 @@
 #include <sympl/core/sympl_number_helper.h>
 sympl_namespaces
 
+ScriptStatement::ScriptStatement() {
+    _Type = StatementType::None;
+    _String = alloc_ref(StringBuffer);
+    _String->Resize(512);
+}
+
+ScriptStatement::~ScriptStatement() {
+    for (auto entryIt : _Entries) {
+        entryIt->ConstantValue.Clear();
+        delete entryIt;
+    }
+    _Entries.clear();
+
+    free_ref(StringBuffer, _String);
+}
+
 StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)
 {
     auto entry = new StatementObjectEntry();
@@ -34,9 +50,9 @@ StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, Statemen
 
     // Set the type.
     if (_Type == StatementType::None) {
-        SetType(scriptObject->GetValue()->GetType());
+        SetType(_FindType(scriptObject->GetValue()));
     } else {
-        assert(scriptObject->GetValue()->GetType() == _Type && "Attempted to assign two different types in statement");
+        assert(_FindType(scriptObject->GetValue()) == _Type && "Attempted to assign two different types in statement");
     }
 
     return entry;
@@ -61,14 +77,17 @@ StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, Stateme
 
 Variant ScriptStatement::Evaluate()
 {
-    assert(_Entries.size() > 0 && "Unable to evaluate without a statement");
+    if (_Entries.size() == 0) {
+        return Variant::Empty;
+    }
+
+    // std::cout << fmt::format("Num Entries: {0}", _Entries.size()) << std::endl;
 
     // Evaluate if we only have a single entry.
     if (_Entries.size() == 1) {
         auto entry = _Entries[0];
         if (entry->Op == StatementOperator::Equals) {
-           return (entry->Value.IsValid() ? entry->Value->GetValue()->Evaluate() : entry->ConstantValue);
-            // return entry->ConstantValue;
+           return (entry->Value.IsValid() ? entry->Value->GetValue() : entry->ConstantValue);
         }
     }
 
@@ -104,6 +123,29 @@ std::string ScriptStatement::EvaluateAsString()
     return "";
 }
 
+ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
+{
+    ScriptStatement* stat = alloc_ref(ScriptStatement);
+    stat->SetType(_Type);
+    stat->_String = _String;
+
+    for (auto entryIt : _Entries) {
+        // Check if we need to find a matching object.
+        if (!entryIt->Value->IsEmpty()) {
+            auto clonedObj = scriptObject->TraverseFindChildByName(entryIt->Value->GetName().c_str());
+            assert(!clonedObj->IsEmpty() && "Unabled to process statement, invalid traversal!");
+
+            // std::cout << "STATEMENT CLONE ARG: " << clonedObj->GetPath() << std::endl;
+            stat->Add(clonedObj, entryIt->Op);
+        } else {
+            // std::cout << "STATEMENT CLONE ARG: " << entryIt->ConstantValue.AsString() << std::endl;
+            stat->Add(entryIt->ConstantValue, entryIt->Op);
+        }
+    }
+
+    return stat;
+}
+
 StatementType ScriptStatement::_FindType(const Variant& value)
 {
     if (value.GetType() == VariantType::Bool) {
@@ -127,7 +169,7 @@ void ScriptStatement::_Apply(StatementObjectEntry* entry, Variant& value)
 {
     Variant evalValue;
     if (entry->Value.IsValid()) {
-        evalValue = entry->Value->GetValue()->Evaluate();
+        evalValue = entry->Value->GetValue();
     } else {
         // We're dealing with a constant value.
         evalValue = entry->ConstantValue;
@@ -182,5 +224,8 @@ std::string ScriptStatement::GetTypeAsString() const
     }
     if (_Type == StatementType::Object) {
         return "object";
+    }
+    if (_Type == StatementType::Method) {
+        return "method";
     }
 }

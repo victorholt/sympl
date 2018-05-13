@@ -47,14 +47,20 @@ void SymplVM::Startup()
 
 void SymplVM::Shutdown()
 {
-    GC();
+    for (auto entryIt : _ObjectMap) {
+        auto scriptObject = entryIt.second;
+        if (scriptObject->GetParent().IsValid()) {
+            auto parent = scriptObject->GetParent().Ptr();
+            parent->RemoveChild(scriptObject->GetName().c_str());
+        }
+    }
     _ObjectMap.clear();
 }
 
 void SymplVM::GC()
 {
     for (auto entryIt : _ObjectMap) {
-        if (!entryIt.second.IsValid()) {
+        if (!entryIt.second.IsValid() || entryIt.second.RefCount() == 1) {
             _ObjectMap.erase(entryIt.first);
         }
     }
@@ -101,12 +107,32 @@ ScriptObject* SymplVM::FindObject(const std::string& path)
     return entryIt->second.Ptr();
 }
 
+ScriptObject* SymplVM::FindObject(ScriptObject* scopeObject, const std::string& objectName)
+{
+    if (!IsNullObject(scopeObject) && !scopeObject->IsEmpty()) {
+        return FindObject(fmt::format("{0}.{1}", scopeObject->GetPath(), objectName));
+    }
+
+    return FindObject(fmt::format(".{0}", objectName));
+}
+
 std::string SymplVM::_BuildPath(const char* name, ScriptObject* parent)
 {
     if (!IsNullObject(parent)) {
         return fmt::format("{0}.{1}", parent->GetPath(), name);
     }
     return fmt::format(".{0}", name);
+}
+
+void SymplVM::RemoveObject(const std::string& path)
+{
+    auto scriptObject = FindObject(path);
+
+    if (scriptObject->GetParent().IsValid()) {
+        auto parent = scriptObject->GetParent().Ptr();
+        parent->RemoveChild(scriptObject->GetName().c_str());
+    }
+    _ObjectMap.erase(scriptObject->GetPath());
 }
 
 std::string SymplVM::PrintObjects()

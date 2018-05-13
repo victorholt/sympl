@@ -194,7 +194,24 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
 
         // Check if we have a whitespace character.
         if (!IsSpaceChar(currentChar, loc) || recording) {
+            // Append the # before an operator.
+            if (!recording && !_ScriptSymbol->IsOperator(previousChar) &&
+                (_ScriptSymbol->IsOperator(previousChar) ||
+                _ScriptSymbol->IsIdentifier(previousChar)
+            )) {
+                if (_Buffer->Get(_Buffer->Length() - 1) != '#') {
+                    _Buffer->AppendByte('#');
+                }
+            }
             _Buffer->AppendByte(currentChar);
+
+            // Append the # after an operator.
+            if (!recording && !_ScriptSymbol->IsOperator(nextChar) &&
+                (_ScriptSymbol->IsOperator(nextChar) ||
+                _ScriptSymbol->IsIdentifier(nextChar)
+            )) {
+                _Buffer->AppendByte('#');
+            }
         }
 
         // Increase the line number we're on.
@@ -211,6 +228,17 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
                 _Buffer->AppendByte('#');
             }
         }
+
+        // if (!recording &&
+        //     (_ScriptSymbol->IsOperator(nextChar) ||
+        //     _ScriptSymbol->IsIdentifier(nextChar) ||
+        //     _ScriptSymbol->IsOperator(previousChar) ||
+        //     _ScriptSymbol->IsIdentifier(previousChar)
+        // )) {
+        //     if (_Buffer->Get(_Buffer->Length() - 1) != '#') {
+        //         _Buffer->AppendByte('#');
+        //     }
+        // }
 
         previousChar = currentChar;
     }

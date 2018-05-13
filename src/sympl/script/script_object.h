@@ -45,7 +45,7 @@ protected:
     static ScriptObject Empty;
 
     /// Value of the script object.
-    SharedRef<ScriptStatement> _Value;
+    Variant _Value;
 
     /// Children added to the object in the order they
     /// were added.
@@ -99,13 +99,39 @@ public:
     virtual ~ScriptObject();
 
     //! Evaluates and returns the results of the object.
-    //! \param result
+    //! \param args
     //! \return
-    virtual bool Evaluate(Variant *&result);
+    virtual Variant Evaluate(const std::vector<Variant>& args);
+
+    //! Evaluates and returns the results of the object.
+    //! \return
+    virtual Variant Evaluate();
+
+    //! Creates a clone of the object.
+    //! \return SharedRef<ScriptObject>
+    ScriptObject* Clone();
+
+    //! Creates a clone of the object.
+    //! \param parent
+    //! \param uniqueName
+    //! \return SharedRef<ScriptObject>
+    virtual ScriptObject* Clone(ScriptObject* parent, bool uniqueName);
 
     //! Finds a child based on the given path.
-    //! \
-    const SharedRef<ScriptObject>& FindChild(const char* path);
+    //! \param path
+    ScriptObject* FindChild(const char* path);
+
+    //! Finds a child based on the given path.
+    //! \param name
+    ScriptObject* FindChildByName(const char* name);
+
+    //! Traverses through parents in an attempt to find an object.
+    //! \param name
+    ScriptObject* TraverseFindChildByName(const char* name);
+
+    //! Remove a child object.
+    //! \param name.
+    void RemoveChild(const char* name);
 
     //! Returns the parent object.
     //! \return ScriptObject
@@ -121,11 +147,19 @@ public:
 
     //! Sets the value of the object.
     //! \param value
-    void SetValue(ScriptStatement* value);
+    virtual void SetValue(ScriptStatement* value);
+
+    //! Sets the value of the object.
+    //! \param value
+    inline void SetValue(const Variant& value) {
+        _Value = value;
+    }
 
     //! Script value variant.
-    //! \return
-    ScriptStatement* GetValue();
+    //! \return Variant
+    inline const Variant& GetValue() const {
+        return _Value;
+    }
 
     //! Returns the name of the object.
     //! \return
@@ -141,7 +175,7 @@ public:
 
     //! Returns the type as a string.
     //! \return string
-    std::string GetTypeString() const;
+    std::string GetTypeAsString() const;
 
     //! Returns the nest level.
     //! \return

@@ -5,13 +5,23 @@ sympl_namespaces
 
 int main()
 {
+    // Test generating a guid.
+    auto guid = xg::newGuid();
+    std::stringstream guidStream;
+    guidStream << guid;
+
     sympl_profile_start("string_buffer");
     // Testing out the string buffer.
     Variant str = alloc_ref(StringBuffer);
-    str.Set("Testing this string");
-    str.GetStringBuffer()->AppendByte('!');
+    str.Set("Generated Guid: ");
+    str.GetStringBuffer()->Append(guidStream.str().c_str());
+    str.GetStringBuffer()->AppendByte('.');
 
     auto buffer = str.GetStringBuffer();
+    buffer->Prepend("Hello there! ");
+    buffer->PrependByte(' ');
+    buffer->PrependByte('$');
+
     cout << buffer->Str() << endl;
     cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
     str.Clear();
@@ -90,7 +100,9 @@ int main()
     auto compiler = alloc_ref(Sympl::ScriptParser);
 
     sympl_profile_start("script_compiler");
-    compiler->ParseString("var x = 1; var y = x + 3; func foo(n) { var x = n; var y = 3; return x + y; } var z = foo(x + 1);");
+    // compiler->ParseString("var x = 1; var y = 1 + 3; func foo(n) : int { var x = n; var y = 3; return x + y; }");
+    // compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int {var x = 5; return x; } var z = foo(2);");
+    compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int { var x = n; return x; } var z = foo(12); ");
     sympl_profile_stop("script_compiler");
     sympl_profile_print("script_compiler");
 
@@ -98,17 +110,19 @@ int main()
 
     cout << SymplVMInstance->PrintObjects() << endl;
 
-    // auto yVar = SymplVMInstance->FindObject(".y");
-    // auto zVar = SymplVMInstance->FindObject(".z");
+    auto yVar = SymplVMInstance->FindObject(".y");
+    auto zVar = SymplVMInstance->FindObject(".z");
     // auto argVar = SymplVMInstance->FindObject(".foo.args.n");
 
-    // if (!IsNullObject(yVar)) {
-    //     cout << ".y value is " << yVar->GetValue()->EvaluateAsString() << fmt::format(" ({0}) ", yVar->GetValue()->GetTypeAsString()) << endl;
-    // }
+    if (!IsNullObject(yVar)) {
+        Variant value = yVar->GetValue();
+        cout << ".y value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    }
 
-    // if (!IsNullObject(zVar)) {
-    //     cout << ".z value is " << zVar->GetValue()->EvaluateAsString() << fmt::format(" ({0}) ", zVar->GetValue()->GetTypeAsString()) << endl;
-    // }
+    if (!IsNullObject(zVar)) {
+        Variant value = zVar->GetValue();
+        cout << ".z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    }
 
     // if (!IsNullObject(argVar)) {
     //     cout << ".foo.args.n is " << argVar->Print() << endl;

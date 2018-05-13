@@ -26,6 +26,7 @@
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/sympl_object.h>
 #include <sympl/core/shared_ref.h>
+#include <sympl/core/weak_ref.h>
 #include <sympl/core/string_buffer.h>
 
 #include <sympl/script/script_object.h>
@@ -49,6 +50,7 @@ enum class StatementOperator {
 enum class StatementType {
     None = 0,
     Object,
+    Method,
     String,
     Bool,
     Integer,
@@ -58,7 +60,7 @@ enum class StatementType {
 /// Entry for the objects in the statement.
 struct StatementObjectEntry {
     StatementOperator Op;
-    SharedRef<ScriptObject> Value;
+    WeakRef<ScriptObject> Value;
     Variant ConstantValue;
 
     // Next statement entry to resolve before we consider
@@ -90,22 +92,10 @@ private:
 
 public:
     //! Constructor.
-    ScriptStatement() {
-        _Type = StatementType::None;
-        _String = alloc_ref(StringBuffer);
-        _String->Resize(512);
-    }
+    ScriptStatement();
 
     //! Destructor.
-    ~ScriptStatement() override {
-        for (auto entryIt : _Entries) {
-            entryIt->ConstantValue.Clear();
-            delete entryIt;
-        }
-        _Entries.clear();
-
-        free_ref(StringBuffer, _String);
-    }
+    ~ScriptStatement() override;
 
     //! Adds a script object as part of the statement.
     //! \param scriptObject
@@ -124,6 +114,13 @@ public:
     //! Returns evaluate value as a string.
     //! \return string
     std::string EvaluateAsString();
+
+    //! Clones the statement based on the given script object.
+    //! Note that this is for objects that were cloned from a
+    //! similiar object so that the entries/values match.
+    //! \param scriptObject
+    //! \return ScriptStatement
+    ScriptStatement* Clone(ScriptObject* scriptObject);
 
     //! Returns the string.
     //! \return StringBuffer

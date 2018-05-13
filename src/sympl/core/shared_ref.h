@@ -86,6 +86,7 @@ public:
     //! \return
     unsigned RefCount() const
     {
+        if (IsNull()) return 0;
         return _Data->RefCount();
     }
 
@@ -115,7 +116,7 @@ public:
         _Data = nullptr;
     }
 
-    //! Operator for assigning long.
+    //! Operator for assigning pointer.
     //! \param rhs
     //! \return
     SharedRef<T>& operator =(T* rhs) {
@@ -123,12 +124,26 @@ public:
         return *this;
     }
 
-    //! Operator for assigning long.
+    //! Operator for assigning shared pointer.
     //! \param rhs
     //! \return
     SharedRef<T>& operator =(const SharedRef<T>& rhs) {
         _Set(rhs.Ptr());
         return *this;
+    }
+
+    //! Operator for testing equality.
+    //! \param rhs
+    //! \return
+    bool operator ==(T* rhs) {
+        return _Data == rhs;
+    }
+
+    //! Operator for testing equality.
+    //! \param rhs
+    //! \return
+    bool operator ==(const SharedRef<T>& rhs) {
+        return _Data == rhs.Ptr();
     }
 
     //! Dereference access.

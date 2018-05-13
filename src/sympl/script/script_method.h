@@ -25,15 +25,44 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/shared_ref.h>
+#include <sympl/core/weak_ref.h>
 #include <sympl/script/script_object.h>
 
 sympl_nsstart
+
+enum class MethodReturnType : uint8_t
+{
+    Object = 0,
+    String,
+    Int,
+    Float,
+    Bool
+};
+
+struct MethodCallStatement
+{
+    // TODO: Sharing the Variable reference seems to cause a mem leak...
+    WeakRef<ScriptObject> Variable;
+    SharedRef<ScriptStatement> Statement;
+};
 
 class SYMPL_API ScriptMethod : public ScriptObject
 {
 protected:
     /// Variable paths for the arguments.
-    std::vector<SharedRef<ScriptObject>> _Args;
+    std::vector<WeakRef<ScriptObject>> _Args;
+
+    /// Stored method call statements to execute.
+    std::vector<MethodCallStatement*> _CallStatements;
+
+    /// Reference to the scope object.
+    WeakRef<ScriptObject> _Scope;
+
+    /// Return type for the method.
+    MethodReturnType _ReturnType;
+
+    /// Process the call statements.
+    void _ProcessCallStatements();
 
 public:
     //! Constructor.
@@ -43,13 +72,32 @@ public:
     ~ScriptMethod() override;
 
     //! Evaluates and returns the results of the object.
-    //! \param result
+    //! \param args
     //! \return
-    bool Evaluate(Variant *&result) override;
+    Variant Evaluate(const std::vector<Variant>& args) override;
+
+    //! Evaluates and returns the results of the object.
+    //! \return
+    Variant Evaluate() override;
 
     //! Adds an argument to the method.
     //! \param arg
     void AddArg(ScriptObject* arg);
+
+    //! Adds a statement for the method to call.
+    //! \param variable
+    //! \param stat
+    void AddStatement(ScriptObject* variable, ScriptStatement* stat);
+
+    //! Creates a clone of the object.
+    //! \param parent
+    //! \param uniqueName
+    //! \return SharedRef<ScriptObject>
+    ScriptObject* Clone(ScriptObject* parent, bool uniqueName) override;
+
+    //! Returns the scope object.
+    //! \return ScriptObject
+    ScriptObject* GetScope();
 
     //! Returns the argument object.
     //! \param index
@@ -69,6 +117,18 @@ public:
     //! Returns the number of arguments given to this method.
     inline unsigned GetNumArgs() const {
         return 0;
+    }
+
+    //! Sets the return type.
+    //! \param type
+    inline void SetReturnType(MethodReturnType type) {
+        _ReturnType = type;
+    }
+
+    //! Returns the return type.
+    //! \return MethodReturnType
+    inline MethodReturnType GetReturnType() const {
+        return _ReturnType;
     }
 };
 

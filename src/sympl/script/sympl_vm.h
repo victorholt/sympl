@@ -91,6 +91,16 @@ public:
     //! \return ScriptObject
     ScriptObject* FindObject(const std::string& path);
 
+    //! Attempts to find an object with a given scope.
+    //! \param scopeObject
+    //! \param objectName
+    //! \return ScriptObject
+    ScriptObject* FindObject(ScriptObject* scopeObject, const std::string& objectName);
+
+    //! Remove object from the object map.
+    //! \param path.
+    void RemoveObject(const std::string& path);
+
     //! Returns a string representing objects in the vm.
     //! \return string
     std::string PrintObjects();

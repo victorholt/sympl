@@ -33,7 +33,7 @@ class WeakRef
 {
 private:
     /// Reference to the data.
-    T* _Data;
+    T* _Data = nullptr;
 
     //! Sets the data.
     //! \param ptr
@@ -55,11 +55,31 @@ public:
     ~WeakRef() {
     }
 
+    //! Returns the data reference count.
+    //! \return
+    unsigned RefCount() const
+    {
+        if (IsNull()) return 0;
+        return _Data->RefCount();
+    }
+
+    //! Returns whether or not the reference is valid.
+    //! \return bool
+    bool IsNull() const {
+        return IsNullObject(_Data);
+    }
+
+    //! Returns whether or not the reference is valid.
+    //! \return bool
+    const bool IsValid() const {
+        return !IsNull() && (RefCount() > 0);
+    }
+
     //! Returns the pointer.
     //! \return
     T* Ptr() const { return _Data; }
 
-    //! Operator for assigning long.
+    //! Operator for assigning pointer.
     //! \param rhs
     //! \return
     WeakRef<T>& operator =(T* rhs) {
@@ -67,35 +87,49 @@ public:
         return *this;
     }
 
-    //! Operator for assigning long.
+    //! Operator for assigning shared pointer.
     //! \param rhs
     //! \return
-    WeakRef<T>& operator =(const WeakRef<T> rhs) {
+    WeakRef<T>& operator =(const WeakRef<T>& rhs) {
         _Set(rhs.Ptr());
         return *this;
     }
 
+    //! Operator for testing equality.
+    //! \param rhs
+    //! \return
+    bool operator ==(T* rhs) {
+        return _Data == rhs;
+    }
+
+    //! Operator for testing equality.
+    //! \param rhs
+    //! \return
+    bool operator ==(const WeakRef<T>& rhs) {
+        return _Data == rhs.Ptr();
+    }
+
     //! Dereference access.
     const T *operator->() const {
-        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
-        return *_Data;
+        assert(IsValid() && "Attempted to access empty pointer");
+        return _Data;
     }
 
     //! Dereference object.
     const T &operator*() const {
-        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        assert(IsValid() && "Attempted to access empty pointer");
         return *_Data;
     }
 
     //! Dereference access.
     T *operator->() {
-        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
-        return *_Data;
+        assert(IsValid() && "Attempted to access empty pointer");
+        return _Data;
     }
 
     //! Dereference object.
     T &operator*() {
-        assert(_Data != nullptr && _Data->RefCount() > 0 && "Attempted to access empty pointer");
+        assert(IsValid() && "Attempted to access empty pointer");
         return *_Data;
     }
 };

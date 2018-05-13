@@ -24,6 +24,8 @@
 #include <sympl/core/variant.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_statement.h>
+
+#include <fmt/format.h>
 sympl_namespaces
 
 Variant Variant::Empty;
@@ -33,6 +35,9 @@ Variant::Variant(ScriptObject* value) {
 }
 
 void Variant::Set(ScriptObject* value) {
+    Clear();
+    value->AddRef();
+
     SetType(VariantType::ScriptObject);
     _Value.Ptr = value;
 }
@@ -54,6 +59,7 @@ Variant::Variant(ScriptStatement* value) {
 }
 
 void Variant::Set(ScriptStatement* value) {
+    Clear();
     value->AddRef();
 
     SetType(VariantType::ScriptStatement);
@@ -74,6 +80,8 @@ Variant& Variant::operator =(ScriptStatement* rhs) {
 
 void Variant::Set(const Variant& value)
  {
+     Clear();
+
     _Type = value._Type;
     _Value = value._Value;
 
@@ -117,4 +125,59 @@ void Variant::Clear() {
         free_ref(ScriptStatement, sobj);
         _Value.Ptr = nullptr;
     }
+}
+
+std::string Variant::AsString()
+{
+    std::string value;
+
+    switch ((int)_Type) {
+        case (int)VariantType::Empty:
+            break;
+        case (int)VariantType::Bool:
+            value = (GetBool() ? "true" : "false");
+            break;
+        case (int)VariantType::Int:
+        case (int)VariantType::UnsignedInt:
+            value = fmt::format("{0}", GetInt());
+            break;
+        case (int)VariantType::Float:
+            value = fmt::format("{0:f}", GetFloat());
+            break;
+        case (int)VariantType::StringBuffer:
+            value = GetStringBuffer()->CStr();
+            break;
+        case (int)VariantType::ScriptObject:
+            value = "[object]";
+            break;
+        case (int)VariantType::ScriptStatement:
+            value = "[statement]";
+            break;
+    }
+
+    return value;
+}
+
+std::string Variant::GetTypeAsString()
+{
+    switch ((int)_Type) {
+        case (int)VariantType::Empty:
+            return "empty";
+        case (int)VariantType::Bool:
+            return "bool";
+        case (int)VariantType::Int:
+            return "int";
+        case (int)VariantType::UnsignedInt:
+            return "unsigned int";
+        case (int)VariantType::Float:
+            return "float";
+        case (int)VariantType::StringBuffer:
+            return "string";
+        case (int)VariantType::ScriptObject:
+            return "object";
+        case (int)VariantType::ScriptStatement:
+            return "statement";
+    }
+
+    return "unknown";
 }

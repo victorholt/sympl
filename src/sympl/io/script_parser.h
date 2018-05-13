@@ -94,6 +94,12 @@ private:
     //! Build out the method arguments with the current buffer.
     void _BuildMethodArgs();
 
+    //! Builds a statemetn for a method argument.
+    void _BuildMethodArgStatements(ScriptStatement* stat);
+
+    //! Call a method and return a value.
+    void _CallMethod();
+
     //! Updates the object's value.
     void _UpdateObjectValue();
 

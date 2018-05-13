@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_statement.h>
+#include <sympl/script/sympl_vm.h>
 #include <sympl/core/string_buffer.h>
 
 #include <fmt/format.h>
@@ -56,9 +57,99 @@ void ScriptObject::_AddChild(ScriptObject* scriptObject)
     _Children[scriptObject->GetPath()] = scriptObject;
 }
 
-bool ScriptObject::Evaluate(Variant *&result)
+Variant ScriptObject::Evaluate(const std::vector<Variant>& args)
 {
-    return false;
+    return Variant::Empty;
+}
+
+Variant ScriptObject::Evaluate()
+{
+    return Variant::Empty;
+}
+
+ScriptObject* ScriptObject::Clone()
+{
+    return Clone(_Parent.Ptr(), true);
+}
+
+ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
+{
+    std::string name = _Name;
+
+    // Generate a random name for the object.
+    if (uniqueName) {
+        auto guid = xg::newGuid();
+        std::stringstream guidName;
+        guidName << guid;
+        name = guidName.str();
+    }
+
+    ScriptObject* clone = &ScriptObject::Empty;
+    if (!IsNullObject(parent) && !parent->IsEmpty()) {
+        clone = SymplVMInstance->CreateObject(name.c_str(), _Type, parent);
+    } else {
+        clone = SymplVMInstance->CreateObject(name.c_str(), _Type, _Parent.Ptr());
+    }
+    clone->SetValue(_Value);
+
+    // Clone the children!
+    for (auto entryIt : _Children) {
+        // Don't try to clone the clone!
+        if (entryIt.second == clone) {
+            continue;
+        }
+        clone->_AddChild(entryIt.second->Clone(clone, false));
+    }
+
+    return clone;
+}
+
+ScriptObject* ScriptObject::FindChild(const char* path)
+{
+    for (auto entryIt : _Children) {
+        if (strcmp(entryIt.first.c_str(), path) == 0) {
+            return entryIt.second.Ptr();
+        }
+    }
+    return &ScriptObject::Empty;
+}
+
+ScriptObject* ScriptObject::FindChildByName(const char* name)
+{
+    for (auto entryIt : _Children) {
+        if (strcmp(entryIt.second->GetName().c_str(), name) == 0) {
+            return entryIt.second.Ptr();
+        }
+    }
+    return &ScriptObject::Empty;
+}
+
+ScriptObject* ScriptObject::TraverseFindChildByName(const char* name)
+{
+    auto scriptObject = FindChildByName(name);
+    if (!scriptObject->IsEmpty()) {
+        return scriptObject;
+    }
+
+    // Attempt to find from the parent.
+    if (_Parent.IsValid()) {
+        scriptObject = _Parent->TraverseFindChildByName(name);
+        if (!scriptObject->IsEmpty()) {
+            return scriptObject;
+        }
+    }
+
+    // Find in the main scope.
+    return SymplVMInstance->FindObject(fmt::format(".{0}", name));
+}
+
+void ScriptObject::RemoveChild(const char* name)
+{
+    auto child = FindChildByName(name);
+    if (child->IsEmpty()) {
+        return;
+    }
+    _Children.erase(child->GetPath());
 }
 
 const SharedRef<ScriptObject>& ScriptObject::GetParent() const
@@ -83,15 +174,10 @@ void ScriptObject::_SetType(ScriptObjectType type)
 
 void ScriptObject::SetValue(ScriptStatement* value)
 {
-    _Value = value;
+    _Value = value->Evaluate();
 }
 
-ScriptStatement* ScriptObject::GetValue()
-{
-    return _Value.Ptr();
-}
-
-std::string ScriptObject::GetTypeString() const
+std::string ScriptObject::GetTypeAsString() const
 {
     if (_Type == ScriptObjectType::Object) {
         return "object";
@@ -116,7 +202,7 @@ std::string ScriptObject::GetTypeString() const
 std::string ScriptObject::Print()
 {
     auto buffer = alloc_ref(StringBuffer);
-    buffer->Append(fmt::format("{0} ({1}) -> {2}", _Name, _Path, GetTypeString()).c_str());
+    buffer->Append(fmt::format("{0} ({1}) -> {2}", _Name, _Path, GetTypeAsString()).c_str());
     buffer->Append("\n");
 
     for (auto childIt : _Children) {

@@ -320,6 +320,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(StringBuffer* value) {
+        Clear();
+
         value->AddRef();
 
         SetType(VariantType::StringBuffer);
@@ -329,9 +331,7 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(const char* value) {
-        // if (_Type != VariantType::StringBuffer) {
-        //     return;
-        // }
+        Clear();
 
         if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
             Set(alloc_ref(StringBuffer));
@@ -365,6 +365,14 @@ public:
     //! Returns the script object.
     //! \return ScriptStatement
     ScriptStatement* GetScriptStatement();
+
+    //! Returns the value as a string.
+    //! \return string
+    std::string AsString();
+
+    //! Returns the type as a string.
+    //! \return string
+    std::string GetTypeAsString();
 
     //! Returns the variant type.
     //! \return

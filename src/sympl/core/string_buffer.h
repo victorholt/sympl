@@ -61,6 +61,14 @@ public:
     //! Destructor.
     virtual ~StringBuffer();
 
+    //! Prepends a string to the current buffer.
+    //! \param str
+    void Prepend(const char8 *str);
+
+    //! Prepends a string to the current buffer.
+    //! \param str
+    void PrependByte(const char8 byte);
+
     //! Appends a string to the current buffer.
     //! \param str
     void Append(const char8 *str);

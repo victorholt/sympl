@@ -64,6 +64,35 @@ void StringBuffer::Init(const char8 *str, size_t capacity)
     _Capacity = capacity;
 }
 
+void StringBuffer::Prepend(const char8 *str)
+{
+    size_t strSize = strlen(str);
+    if (strSize == 0) {
+        return;
+    }
+
+    // Ensure we have enough capacity.
+    if ((_Length + strSize) >= _Capacity) {
+        Resize(_Length + strSize + SYMPL_STRING_BUFFER_CAPACITY);
+    }
+
+    memcpy(_Buffer + strlen(str), _Buffer, _Length);
+    memcpy(_Buffer, str, strlen(str));
+    _Length += strlen(str);
+}
+
+void StringBuffer::PrependByte(const char8 byte)
+{
+    // Ensure we have enough capacity.
+    if ((_Length + 2) >= _Capacity) {
+        Resize(_Length + 2 + SYMPL_STRING_BUFFER_CAPACITY);
+    }
+
+    memcpy(_Buffer + 1, _Buffer, _Length);
+    _Buffer[0] = static_cast<uchar8>(byte);
+    _Length += 1;
+}
+
 void StringBuffer::Append(const char8 *str)
 {
     size_t strSize = strlen(str);
@@ -117,6 +146,8 @@ void StringBuffer::Resize(size_t newCapacity)
 
 void StringBuffer::Clear()
 {
+    if (_Length == 0) return;
+
     _Length = 0;
     memset(_Buffer, 0, _Capacity);
 }
