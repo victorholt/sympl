@@ -25,13 +25,30 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/sympl_ref.h>
+#include <sympl/core/variant.h>
 
 sympl_nsstart
 
 class SYMPL_API Object : public Ref {
+
 protected:
+    /// Meta data for the object.
+    std::unordered_map<std::string, Variant> _Meta;
 
 public:
+
+    //! Sets meta data for the object.
+    //! \param key
+    //! \param value
+    void SetMeta(const std::string& key, const Variant& value);
+
+    //! Returns meta data for the object.
+    //! \return Variant
+    Variant GetMeta(const std::string& key);
+
+    //! Returns whether or not the meta key exists.
+    //! \return bool
+    bool HasMeta(const std::string& key);
 };
 
 sympl_nsend

@@ -279,7 +279,7 @@ void ScriptParser::_BuildStatement(ScriptStatement* stat)
             // Save the value as a statement.
             ScriptObject* obj;
             if (_CurrentScopeObject.IsValid()) {
-                obj = _CurrentScopeObject->TraverseFindChildByName(statementStr.c_str());
+                obj = _CurrentScopeObject->TraverseUpFindChildByName(statementStr.c_str());
             } else {
                 obj = SymplVMInstance->FindObject(fmt::format(".{0}", statementStr).c_str());
             }
@@ -493,6 +493,7 @@ void ScriptParser::_CallMethod()
 
             if (_ScanMode == ParserScanMode::Type) {
                 // Calling the method.
+                to_method(scriptObject)->Evaluate(args);
             } else if (_ScanMode == ParserScanMode::Value) {
                 // Assignment to another variable.
                 Variant value = to_method(scriptObject)->Evaluate(args);

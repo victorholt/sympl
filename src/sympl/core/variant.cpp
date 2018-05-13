@@ -22,6 +22,8 @@
  *
  **********************************************************/
 #include <sympl/core/variant.h>
+#include <sympl/core/sympl_object.h>
+#include <sympl/core/string_buffer.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_statement.h>
 
@@ -97,6 +99,33 @@ void Variant::Set(const Variant& value)
     if (_Type == VariantType::ScriptStatement) {
         GetScriptStatement()->AddRef();
     }
+}
+
+void Variant::Set(StringBuffer* value) {
+    Clear();
+
+    value->AddRef();
+
+    SetType(VariantType::StringBuffer);
+    _Value.Ptr = value;
+}
+
+void Variant::Set(const char* value) {
+    Clear();
+
+    if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
+        Set(alloc_ref(StringBuffer));
+    }
+
+    GetStringBuffer()->Clear();
+    GetStringBuffer()->Append(value);
+}
+
+StringBuffer* Variant::GetStringBuffer() {
+    if (_Type != VariantType::StringBuffer) {
+        return nullptr;
+    }
+    return reinterpret_cast<StringBuffer*>(_Value.Ptr);
 }
 
 void Variant::Clear() {

@@ -77,6 +77,9 @@ Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
         argIndex++;
     }
 
+    // Go through the arguments and build their statements.
+    to_method(clone)->_ProcessArgStatements();
+
     // Go through all of the call statements.
     to_method(clone)->_ProcessCallStatements();
 
@@ -99,6 +102,22 @@ Variant ScriptMethod::Evaluate()
     return Evaluate(args);
 }
 
+void ScriptMethod::_ProcessArgStatements()
+{
+    // String arguments will need to have statements
+    // to execute their value.
+    for (auto argIt : _Args) {
+        Variant value = argIt->GetValue();
+        if (value.GetType() == VariantType::StringBuffer) {
+            SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+
+            Variant argValue = argIt->GetValue();
+            stat->Build(argIt.Ptr(), argValue.GetStringBuffer());
+            argIt->SetValue(stat.Ptr()->Evaluate());
+        }
+    }
+}
+
 void ScriptMethod::_ProcessCallStatements()
 {
     for (auto entryIt : _CallStatements) {
@@ -108,6 +127,7 @@ void ScriptMethod::_ProcessCallStatements()
 
 void ScriptMethod::AddArg(ScriptObject* arg)
 {
+    arg->SetMeta("is_method_arg", true);
     _Args.push_back(arg);
 }
 
@@ -126,17 +146,17 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 
     // Add the arguments.
     for (auto entryIt : _Args) {
-        auto argObject = clone->FindChildByName(entryIt->GetName().c_str());
-        if (!IsNullObject(argObject) && !argObject->IsEmpty()) {
-            to_method(clone)->AddArg(argObject);
+        auto argObj = to_method(clone)->GetScope()->FindChildByName(entryIt->GetName().c_str());
+        if (!argObj->IsEmpty()) {
+            to_method(clone)->AddArg(argObj);
         }
     }
 
     // Add the statements.
     for (auto entryIt : _CallStatements) {
-        auto callObject = to_method(clone)->GetScope()->FindChildByName(entryIt->Variable->GetName().c_str());
-        if (!IsNullObject(callObject) && !callObject->IsEmpty()) {
-            to_method(clone)->AddStatement(callObject, entryIt->Statement->Clone(to_method(clone)->GetScope()));
+        auto callObj = to_method(clone)->GetScope()->FindChildByName(entryIt->Variable->GetName().c_str());
+        if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
+            to_method(clone)->AddStatement(callObj, entryIt->Statement->Clone(to_method(clone)->GetScope()));
         }
     }
 

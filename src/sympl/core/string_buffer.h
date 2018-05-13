@@ -106,6 +106,24 @@ public:
     //! \return bool
     inline bool Equals(const char* compare) { return (strcmp(CStr(), compare) == 0); }
 
+    //! Returns the last byte in the buffer.
+    //! \return char
+    inline char8 FirstByte() {
+        if (_Length == 0) {
+            return '\0';
+        }
+        return reinterpret_cast<char8*>(_Buffer)[0];
+    }
+
+    //! Returns the last byte in the buffer.
+    //! \return char
+    inline char8 LastByte() {
+        if (_Length == 0) {
+            return '\0';
+        }
+        return reinterpret_cast<char8*>(_Buffer)[_Length];
+    }
+
     //! Returns the char at a given location.
     //! \param place
     //! \return
@@ -114,6 +132,24 @@ public:
             return '\0';
         }
         return _Buffer[location];
+    }
+
+    //! Evaluates whether two string buffers are equal.
+    //! \return bool
+    bool operator == (StringBuffer* rhs) {
+        return Equals(rhs->CStr());
+    }
+
+    //! Evaluates whether two string buffers are equal.
+    //! \return bool
+    bool operator == (const std::string& rhs) {
+        return Equals(rhs.c_str());
+    }
+
+    //! Evaluates whether two string buffers are equal.
+    //! \return bool
+    bool operator == (const char8* rhs) {
+        return Equals(rhs);
     }
 };
 

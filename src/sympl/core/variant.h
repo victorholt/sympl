@@ -24,13 +24,12 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
-#include <sympl/core/string_buffer.h>
 
 sympl_nsstart
 
 class ScriptObject;
 class ScriptStatement;
+class StringBuffer;
 
 /// Support types for the Variant.
 enum class VariantType : uint8_t
@@ -319,36 +318,15 @@ public:
 
     //! Sets the value for the variant.
     //! \param value
-    void Set(StringBuffer* value) {
-        Clear();
-
-        value->AddRef();
-
-        SetType(VariantType::StringBuffer);
-        _Value.Ptr = value;
-    }
+    void Set(StringBuffer* value);
 
     //! Sets the value for the variant.
     //! \param value
-    void Set(const char* value) {
-        Clear();
-
-        if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
-            Set(alloc_ref(StringBuffer));
-        }
-
-        GetStringBuffer()->Clear();
-        GetStringBuffer()->Append(value);
-    }
+    void Set(const char* value);
 
     //! Returns the string buffer.
     //! \return StringBuffer
-    StringBuffer* GetStringBuffer() {
-        if (_Type != VariantType::StringBuffer) {
-            return nullptr;
-        }
-        return reinterpret_cast<StringBuffer*>(_Value.Ptr);
-    }
+    StringBuffer* GetStringBuffer();
 
     //! Sets the value for the variant.
     //! \param value

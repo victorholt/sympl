@@ -21,6 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
+#include <sympl/core/string_buffer.h>
 #include <sympl/script/sympl_vm.h>
 
 #include <fmt/format.h>

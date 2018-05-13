@@ -29,6 +29,8 @@
 #include <sympl/core/weak_ref.h>
 #include <sympl/core/string_buffer.h>
 
+#include <sympl/io/script_symbol.h>
+
 #include <sympl/script/script_object.h>
 
 sympl_nsstart
@@ -79,6 +81,9 @@ private:
     /// Representation of the statement as a string.
     SharedRef<StringBuffer> _String;
 
+    /// Symbol token checker.
+    ScriptSymbol _Symbol;
+
     /// Type of statement.
     StatementType _Type;
 
@@ -87,10 +92,17 @@ private:
     //! \return StatementType
     StatementType _FindType(const Variant& value);
 
+    //! Statement buffer for building out the statements.
+    StringBuffer* _StatementBuffer;
+
     //! Applies the entry to the current value.
     //! \param entry
     //! \param value
     void _Apply(StatementObjectEntry* entry, Variant& value);
+
+    //! Converts a symbol to a statement operator.
+    //! \param symbol
+    StatementOperator _SymbolToOp(const std::string& symbol);
 
 public:
     //! Constructor.
@@ -98,6 +110,11 @@ public:
 
     //! Destructor.
     ~ScriptStatement() override;
+
+    //! Builds the statement from a given string.
+    //! \param varObject
+    //! \param statementStr
+    void Build(ScriptObject* varObject, StringBuffer* statementStr);
 
     //! Adds a script object as part of the statement.
     //! \param scriptObject

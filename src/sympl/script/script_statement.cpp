@@ -22,6 +22,7 @@
  *
  **********************************************************/
 #include <sympl/script/script_statement.h>
+#include <sympl/script/sympl_vm.h>
 #include <sympl/core/sympl_number_helper.h>
 sympl_namespaces
 
@@ -29,6 +30,9 @@ ScriptStatement::ScriptStatement() {
     _Type = StatementType::None;
     _String = alloc_ref(StringBuffer);
     _String->Resize(512);
+
+    _StatementBuffer = alloc_ref(StringBuffer);
+    _StatementBuffer->Resize(2000);
 }
 
 ScriptStatement::~ScriptStatement() {
@@ -37,6 +41,116 @@ ScriptStatement::~ScriptStatement() {
         delete entryIt;
     }
     _Entries.clear();
+
+    free_ref(StringBuffer, _StatementBuffer);
+}
+
+void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
+{
+    assert(!IsNullObject(varObject) && !varObject->IsEmpty() && "Failed to evaluate statement on an unknown variable");
+
+    StatementOperator currentOp = StatementOperator::Equals;
+    bool recording = false;
+    bool isString = false;
+    int index = 0;
+
+    if (statementStr->LastByte() != ';') {
+        statementStr->AppendByte(';');
+    }
+
+    while (index < statementStr->Length()) {
+        char currentChar = statementStr->Get(index);
+        char nextChar = statementStr->Get(index + 1);
+        index++;
+
+        // Check if we need to record a string.
+        if (currentChar == '"') {
+            isString = true;
+            recording = !recording;
+            continue;
+        }
+
+        // Save our current character.
+        if (recording || (!recording && currentChar != '#' && currentChar != ';')) {
+            _StatementBuffer->AppendByte(currentChar);
+        }
+
+        // Check if we've reached a space and need to evaluate the statement.
+        if (!recording && (currentChar == '#' || currentChar == ';' || _Symbol.IsOperator(currentChar) || _Symbol.IsOperator(nextChar))) {
+            // Skip if we don't have anything to check.
+            if (_StatementBuffer->Length() == 0) {
+                continue;
+            }
+
+            std::string currentStr = _StatementBuffer->CStr();
+
+            // Check/save the operator.
+            if (_Symbol.IsOperator(currentStr)) {
+                currentOp = _SymbolToOp(currentStr);
+                _StatementBuffer->Clear();
+                continue;
+            }
+
+            // Save the value as a statement.
+            ScriptObject* obj = nullptr;
+
+            // Method arguments should not traverse within the scoop of the method
+            // to determine which variable to use in the statement.
+            if (varObject->HasMeta("is_method_arg") && varObject->GetMeta("is_method_arg").GetBool()) {
+                obj = varObject->GetParent()->GetParent()->TraverseUpFindChildByName(currentStr.c_str());
+            } else {
+                obj = varObject->TraverseUpFindChildByName(currentStr.c_str());
+            }
+
+            if (!IsNullObject(obj) && !obj->IsEmpty()) {
+                if (obj->GetType() == ScriptObjectType::Method) {
+                    auto retType = to_method(obj)->GetReturnType();
+                    switch ((int) retType) {
+                        case (int) MethodReturnType::Object:
+                            SetType(StatementType::Object);
+                            break;
+                        case (int) MethodReturnType::String:
+                            SetType(StatementType::String);
+                            break;
+                        case (int) MethodReturnType::Int:
+                            SetType(StatementType::Integer);
+                            break;
+                        case (int) MethodReturnType::Float:
+                            SetType(StatementType::Float);
+                            break;
+                        case (int) MethodReturnType::Bool:
+                            SetType(StatementType::Bool);
+                            break;
+                    }
+                }
+                auto entry = Add(obj, currentOp);
+            } else {
+                // Handle constant value.
+                const char* strVal = currentStr.c_str();
+
+                // Handle boolean value.
+                if (strcmp(strVal, "true") == 0 || strcmp(strVal, "false") == 0) {
+                    SetType(StatementType::Bool);
+                    Add(strcmp(strVal, "true") == 0 ? true : false, currentOp);
+                } else {
+                    int intVal;
+                    float floatVal;
+
+                    if (NumberHelper::TryParseInt(strVal, &intVal)) {
+                        SetType(StatementType::Integer);
+                        Add(intVal, currentOp);
+                    } else if (NumberHelper::TryParseFloat(strVal, &floatVal)) {
+                        SetType(StatementType::Float);
+                        Add(floatVal, currentOp);
+                    } else {
+                        SetType(StatementType::String);
+                        Add(currentStr.c_str(), currentOp);
+                    }
+                }
+            }
+            _StatementBuffer->Clear();
+        }
+    }
 }
 
 StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)
@@ -130,7 +244,7 @@ ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
     for (auto entryIt : _Entries) {
         // Check if we need to find a matching object.
         if (!entryIt->Value->IsEmpty()) {
-            auto clonedObj = scriptObject->TraverseFindChildByName(entryIt->Value->GetName().c_str());
+            auto clonedObj = scriptObject->TraverseUpFindChildByName(entryIt->Value->GetName().c_str());
             assert(!clonedObj->IsEmpty() && "Unabled to process statement, invalid traversal!");
 
             stat->Add(clonedObj, entryIt->Op);
@@ -224,4 +338,42 @@ std::string ScriptStatement::GetTypeAsString() const
     if (_Type == StatementType::Method) {
         return "method";
     }
+}
+
+StatementOperator ScriptStatement::_SymbolToOp(const std::string& symbol)
+{
+    // Ensure the symbol is an operator we can parse.
+    if (!_Symbol.IsOperator(symbol)) {
+        return StatementOperator::None;
+    }
+
+    if (symbol == "=") {
+        return StatementOperator::Equals;
+    }
+    if (symbol == "+") {
+        return StatementOperator::Add;
+    }
+    if (symbol == "-") {
+        return StatementOperator::Subtract;
+    }
+    if (symbol == "/") {
+        return StatementOperator::Divide;
+    }
+    if (symbol == "*") {
+        return StatementOperator::Multiply;
+    }
+    if (symbol == ">") {
+        return StatementOperator::GreaterThan;
+    }
+    if (symbol == "<") {
+        return StatementOperator::LessThan;
+    }
+    if (symbol == ">=") {
+        return StatementOperator::GreaterEqualThan;
+    }
+    if (symbol == "<=") {
+        return StatementOperator::LessEqualThan;
+    }
+
+    return StatementOperator::None;
 }

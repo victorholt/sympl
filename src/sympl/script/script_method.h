@@ -63,6 +63,9 @@ protected:
     /// Return type for the method.
     MethodReturnType _ReturnType;
 
+    /// Process the argument statements.
+    void _ProcessArgStatements();
+
     /// Process the call statements.
     void _ProcessCallStatements();
 

@@ -129,7 +129,7 @@ public:
 
     //! Traverses through parents in an attempt to find an object.
     //! \param name
-    ScriptObject* TraverseFindChildByName(const char* name);
+    ScriptObject* TraverseUpFindChildByName(const char* name);
 
     //! Remove a child object.
     //! \param name.
@@ -137,7 +137,7 @@ public:
 
     //! Returns the parent object.
     //! \return ScriptObject
-    const SharedRef<ScriptObject>& GetParent() const;
+    SharedRef<ScriptObject> GetParent() const;
 
     //! Returns the child objects.
     //! \return std::unordered_map<string, ScriptObject*>

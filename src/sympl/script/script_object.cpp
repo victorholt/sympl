@@ -124,7 +124,7 @@ ScriptObject* ScriptObject::FindChildByName(const char* name)
     return &ScriptObject::Empty;
 }
 
-ScriptObject* ScriptObject::TraverseFindChildByName(const char* name)
+ScriptObject* ScriptObject::TraverseUpFindChildByName(const char* name)
 {
     auto scriptObject = FindChildByName(name);
     if (!scriptObject->IsEmpty()) {
@@ -133,7 +133,7 @@ ScriptObject* ScriptObject::TraverseFindChildByName(const char* name)
 
     // Attempt to find from the parent.
     if (_Parent.IsValid()) {
-        scriptObject = _Parent->TraverseFindChildByName(name);
+        scriptObject = _Parent->TraverseUpFindChildByName(name);
         if (!scriptObject->IsEmpty()) {
             return scriptObject;
         }
@@ -152,7 +152,7 @@ void ScriptObject::RemoveChild(const char* name)
     _Children.erase(child->GetPath());
 }
 
-const SharedRef<ScriptObject>& ScriptObject::GetParent() const
+SharedRef<ScriptObject> ScriptObject::GetParent() const
 {
     return _Parent;
 }
