@@ -39,6 +39,8 @@ struct ProfileRecord
 
 class SYMPL_API Profiler : public Object
 {
+    SYMPL_OBJECT(Profiler, Object);
+
 private:
     /// Instance for the profiler.
     static Profiler* _Instance;

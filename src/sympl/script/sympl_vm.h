@@ -34,6 +34,8 @@ sympl_nsstart
 
 class SYMPL_API SymplVM : public Object
 {
+    SYMPL_OBJECT(SymplVM, Object);
+
 private:
     /// Instance for the profiler.
     static SymplVM* _Instance;

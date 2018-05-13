@@ -37,8 +37,6 @@ ScriptStatement::~ScriptStatement() {
         delete entryIt;
     }
     _Entries.clear();
-
-    free_ref(StringBuffer, _String);
 }
 
 StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)
@@ -135,10 +133,8 @@ ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
             auto clonedObj = scriptObject->TraverseFindChildByName(entryIt->Value->GetName().c_str());
             assert(!clonedObj->IsEmpty() && "Unabled to process statement, invalid traversal!");
 
-            // std::cout << "STATEMENT CLONE ARG: " << clonedObj->GetPath() << std::endl;
             stat->Add(clonedObj, entryIt->Op);
         } else {
-            // std::cout << "STATEMENT CLONE ARG: " << entryIt->ConstantValue.AsString() << std::endl;
             stat->Add(entryIt->ConstantValue, entryIt->Op);
         }
     }

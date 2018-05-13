@@ -32,6 +32,8 @@ sympl_nsstart
 
 class SYMPL_API StringBuffer : public Object
 {
+    SYMPL_OBJECT(StringBuffer, Object);
+
 private:
     /// Buffer for holding the string.
     uchar8      *_Buffer = nullptr;

@@ -48,6 +48,8 @@ struct MethodCallStatement
 
 class SYMPL_API ScriptMethod : public ScriptObject
 {
+    SYMPL_OBJECT(ScriptMethod, ScriptObject);
+
 protected:
     /// Variable paths for the arguments.
     std::vector<WeakRef<ScriptObject>> _Args;

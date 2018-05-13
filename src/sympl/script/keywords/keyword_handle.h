@@ -37,6 +37,8 @@ enum class KeywordType : uint8_t
 
 class SYMPL_API KeywordHandle : public Object
 {
+    SYMPL_OBJECT(KeywordHandle, Object);
+
 private:
     /// Keyword name.
     std::string _Name;

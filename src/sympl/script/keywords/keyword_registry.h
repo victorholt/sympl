@@ -33,6 +33,8 @@ sympl_nsstart
 
 class SYMPL_API KeywordRegistry : public Object
 {
+    SYMPL_OBJECT(KeywordRegistry, Object);
+
 private:
     /// List of keywords available.
     std::unordered_map<std::string, SharedRef<KeywordHandle> >_Keywords;

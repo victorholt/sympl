@@ -37,6 +37,8 @@ class ScriptStatement;
 
 class SYMPL_API ScriptObject : public Object
 {
+    SYMPL_OBJECT(ScriptObject, Object);
+
 protected:
     /// Parent reference for the object.
     SharedRef<ScriptObject> _Parent;

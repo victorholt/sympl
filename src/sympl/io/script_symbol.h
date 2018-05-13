@@ -56,6 +56,8 @@ struct SymbolMeta
 
 class SYMPL_API ScriptSymbol : public Object
 {
+    SYMPL_OBJECT(ScriptSymbol, Object);
+
 private:
     /// The map of standard symbols.
     std::unordered_map<std::string, SymbolMeta*> _StdSymbols;

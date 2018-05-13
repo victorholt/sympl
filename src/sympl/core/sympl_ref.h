@@ -28,6 +28,55 @@
 
 sympl_nsstart
 
+// Pattern from Urho3D.
+class SYMPL_API RefInfo {
+private:
+    /// Type name.
+    std::string _TypeName;
+
+    /// Base class type info.
+    const RefInfo* _BaseTypeInfo;
+
+public:
+    //! Constructor.
+    //! \param typeName
+    //! \param baseTypeInfo
+    RefInfo(const char* typeName, const RefInfo* baseTypeInfo);
+
+    //! Destructor.
+    ~RefInfo();
+
+    //! Check current type is type of specified type.
+    //! \param type
+    //! \return bool
+    bool IsTypeOf(std::string type) const;
+
+    //! Check current type is type of specified type.
+    //! \param typeInfo
+    //! \return bool
+    bool IsTypeOf(const RefInfo* typeInfo) const;
+
+    //! Check current type is type of specified class type.
+    //! \return bool
+    template<typename T>
+    inline bool IsTypeOf() const { return IsTypeOf(T::GetTypeInfoStatic()); }
+
+    /// Return type name.
+    inline const std::string& GetTypeName() const { return _TypeName;}
+
+    /// Return base type info.
+    inline const RefInfo* GetBaseTypeInfo() const { return _BaseTypeInfo; }
+};
+
+#define SYMPL_OBJECT(typeName, baseTypeName) \
+    public: \
+        using ClassName = typeName; \
+        using BaseClassName = baseTypeName; \
+        virtual const std::string& GetTypeName() const override { return GetTypeInfoStatic()->GetTypeName(); } \
+        virtual const Sympl::RefInfo* GetTypeInfo() const override { return GetTypeInfoStatic(); } \
+        static const std::string& GetTypeNameStatic() { return GetTypeInfoStatic()->GetTypeName(); } \
+        static const Sympl::RefInfo* GetTypeInfoStatic() { static const Sympl::RefInfo typeInfoStatic(#typeName, BaseClassName::GetTypeInfoStatic()); return &typeInfoStatic; } \
+
 class SYMPL_API Ref {
 protected:
     /// Reference to our data that has been allocated.
@@ -38,6 +87,9 @@ protected:
 
     /// Size of the memory.
     size_t _MemSize = 0;
+
+    /// Guid for the reference.
+    std::string _Guid;
 
     /// Allow Alloc access to our data storage.
     friend Alloc;
@@ -60,6 +112,18 @@ public:
 
     //! Attempts to free the reference object.
     virtual bool Free();
+
+    //! Return type name.
+    //! \return string
+    virtual const std::string& GetTypeName() const = 0;
+
+    //! Return type info.
+    //! \return RefInfo
+    virtual const RefInfo* GetTypeInfo() const = 0;
+
+    //! Return type info static.
+    //! \return RefInfo
+    static const RefInfo* GetTypeInfoStatic() { return nullptr; }
 };
 
 sympl_nsend

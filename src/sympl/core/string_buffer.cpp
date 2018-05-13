@@ -41,7 +41,7 @@ StringBuffer::StringBuffer()
 
 StringBuffer::~StringBuffer()
 {
-    free_data_array(uchar8, _Buffer);
+    delete [] _Buffer;
 }
 
 void StringBuffer::Init(const char8 *str, size_t capacity)
@@ -56,7 +56,7 @@ void StringBuffer::Init(const char8 *str, size_t capacity)
     size_t strCapacity = sizeof(uchar8) * confirmedCapacity;
 
     // Create/clean up our string.
-    _Buffer = alloc_data(uchar8, strCapacity);
+    _Buffer = new uchar8[strCapacity];
     memset(_Buffer, 0, strCapacity);
     memcpy(_Buffer, str, strlen(str) + 1);
 
@@ -124,22 +124,22 @@ void StringBuffer::Resize(size_t newCapacity)
 {
     // Check if we need to clear everything.
     if (newCapacity < _Capacity) {
-        free_data_array(uchar8, _Buffer);
+        delete [] _Buffer;
         _Capacity = newCapacity;
 
-        _Buffer = alloc_data(uchar8, _Capacity);
+        _Buffer = new uchar8[_Capacity];
         memset(_Buffer, 0, _Capacity);
         return;
     }
 
-    uchar8 *tmpStr = alloc_data(uchar8, newCapacity);
+    uchar8 *tmpStr = new uchar8[newCapacity];
     memset(tmpStr, 0, newCapacity);
 
     if (_Length > 0) {
         memcpy(tmpStr, _Buffer, _Length);
     }
 
-    free_data_array(uchar8, _Buffer);
+    delete [] _Buffer;
     _Buffer = tmpStr;
     _Capacity = newCapacity;
 }

@@ -31,6 +31,8 @@ sympl_nsstart
 typedef std::function<void()> SymplThreadCallback;
 
 class SYMPL_API Thread : public Object {
+    SYMPL_OBJECT(Thread, Object);
+
 protected:
     /// Reference to the system thread.
     std::thread _SystemThread;

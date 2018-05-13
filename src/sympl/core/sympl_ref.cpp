@@ -24,6 +24,45 @@
 #include <sympl/core/sympl_ref.h>
 sympl_namespaces
 
+RefInfo::RefInfo(const char* typeName, const RefInfo* baseTypeInfo)
+    :   _TypeName(typeName),
+        _BaseTypeInfo(baseTypeInfo)
+{
+
+}
+
+RefInfo::~RefInfo() = default;
+
+bool RefInfo::IsTypeOf(std::string type) const
+{
+    const RefInfo* current = this;
+
+    while (current)
+    {
+        if (current->GetTypeName() == type)
+            return true;
+
+        current = current->GetBaseTypeInfo();
+    }
+
+    return false;
+}
+
+bool RefInfo::IsTypeOf(const RefInfo* typeInfo) const
+{
+    const RefInfo* current = this;
+
+    while (current)
+    {
+        if (current == typeInfo)
+            return true;
+
+        current = current->GetBaseTypeInfo();
+    }
+
+    return false;
+}
+
 bool Ref::Free()
 {
     if (_RefCount > 0) {
@@ -31,4 +70,3 @@ bool Ref::Free()
     }
     return (_RefCount <= 0);
 }
-

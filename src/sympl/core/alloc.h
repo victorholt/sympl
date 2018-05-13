@@ -27,6 +27,9 @@
 
 sympl_nsstart
 
+// #define sympl_address_ref(ref) reinterpret_cast<unsigned**>(&ref)
+#define sympl_address_ref(ref) ref->_Guid
+
 class SYMPL_API Alloc {
 private:
     /// Alloc singleton instance.
@@ -36,7 +39,10 @@ private:
     size_t _MemAllocated = 0;
 
     /// Memory table for keeping track of the size allocated.
-    std::unordered_map<int*, size_t> _MemTable;
+    std::unordered_map<std::string, size_t> _MemTable;
+
+    /// Reference name table.
+    std::unordered_map<std::string, std::string> _RefTable;
 
     //! Constructor.
     Alloc() {}
@@ -79,8 +85,18 @@ public:
         ref->_MemSize = size;
         ref->_Data = malloc(size);
 
+        auto guid = xg::newGuid();
+        std::stringstream guidStream;
+        guidStream << guid;
+        ref->_Guid = guidStream.str();
+
         AddMemAllocated(sizeof(T) + ref->_MemSize);
-        _MemTable[reinterpret_cast<int*>(ref)] = sizeof(T) + ref->_MemSize;
+
+        auto entry = _MemTable.find(sympl_address_ref(ref));
+        assert(entry == _MemTable.end() && "Invalid allocation to memory address!");
+
+        _MemTable[sympl_address_ref(ref)] = sizeof(T) + ref->_MemSize;
+        _RefTable[sympl_address_ref(ref)] = ref->GetTypeName();
 
         return ref;
     }
@@ -93,59 +109,39 @@ public:
             return;
         }
 
-        auto entry = _MemTable.find(reinterpret_cast<int*>(ref));
+        auto entry = _MemTable.find(sympl_address_ref(ref));
         if (entry == _MemTable.end()) {
             return;
         }
 
+        // assert(entry != _MemTable.end() && "Invalid access to free memory!");
+
         size_t size = entry->second;
         RemoveMemAllocated(size);
-        _MemTable.erase(entry);
+        _MemTable.erase(sympl_address_ref(ref));
+        _RefTable.erase(sympl_address_ref(ref));
 
         free(ref->_Data);
         delete ref;
         ref = nullptr;
     }
 
-    //! Allocate memory to a sympl reference.
-    template<class T>
-    inline T* Malloc(size_t size)
-    {
-        T *ref = new T[size];
-
-        AddMemAllocated(size);
-        _MemTable[reinterpret_cast<int*>(ref)] = size;
-
-        return ref;
-    }
-
-    //! Free memory from a sympl reference.
-    template<class T>
-    inline void Free(T* data)
-    {
-        size_t size = _MemTable[reinterpret_cast<int*>(data)];
-        RemoveMemAllocated(size);
-
-        delete data;
-    }
-
-    //! Free memory from a sympl reference.
-    template<class T>
-    inline void FreeArray(T* data)
-    {
-        size_t size = _MemTable[reinterpret_cast<int*>(data)];
-        RemoveMemAllocated(size);
-
-        delete []data;
+    //! Returns a string of the references still in memory.
+    //! \return string
+    inline std::string PrintRefs() {
+        std::string memAddresses;
+        for (auto entryIt : _MemTable) {
+            memAddresses.append(entryIt.first);
+            memAddresses.append(" (");
+            memAddresses.append(_RefTable[entryIt.first]);
+            memAddresses.append(")\n");
+        }
+        return memAddresses;
     }
 };
 
 #define alloc_ref(clazz) Sympl::Alloc::GetInstance()->MallocRef<clazz>(sizeof(clazz))
 #define free_ref(type, ref) Sympl::Alloc::GetInstance()->FreeRef<type>(ref)
-
-#define alloc_data(type, size) static_cast<type*>(Sympl::Alloc::GetInstance()->Malloc<type>(size))
-#define free_data(type, data) Sympl::Alloc::GetInstance()->Free<type>(data)
-#define free_data_array(type, data) Sympl::Alloc::GetInstance()->FreeArray<type>(data)
 
 #define AllocInstance Sympl::Alloc::GetInstance()
 

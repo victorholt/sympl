@@ -102,7 +102,7 @@ int main()
     sympl_profile_start("script_compiler");
     // compiler->ParseString("var x = 1; var y = 1 + 3; func foo(n) : int { var x = n; var y = 3; return x + y; }");
     // compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int {var x = 5; return x; } var z = foo(2);");
-    compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int { var x = n; return x; } var z = foo(12); ");
+    compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int { var x = n; return x; } var z = foo(12 + 2) + foo(3); ");
     sympl_profile_stop("script_compiler");
     sympl_profile_print("script_compiler");
 
@@ -137,5 +137,6 @@ int main()
     free_ref(Sympl::Profiler, profiler);
 
     cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
+    cout << AllocInstance->PrintRefs() << endl;
     return 0;
 }

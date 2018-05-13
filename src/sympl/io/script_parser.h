@@ -38,6 +38,8 @@ class ScriptReader;
 
 class SYMPL_API ScriptParser : public Object
 {
+    SYMPL_OBJECT(ScriptParser, Object);
+
 private:
     enum class ParserScanMode {
         Type = 0,

@@ -70,12 +70,14 @@ struct StatementObjectEntry {
 
 class SYMPL_API ScriptStatement : public Object
 {
+    SYMPL_OBJECT(ScriptStatement, Object);
+
 private:
     /// Script objects that make up the statement.
     std::vector<StatementObjectEntry*> _Entries;
 
     /// Representation of the statement as a string.
-    StringBuffer* _String;
+    SharedRef<StringBuffer> _String;
 
     /// Type of statement.
     StatementType _Type;
@@ -124,7 +126,7 @@ public:
 
     //! Returns the string.
     //! \return StringBuffer
-    inline StringBuffer* GetString() const { return _String; }
+    inline StringBuffer* GetString() const { return _String.Ptr(); }
 
     //! Sets the type for the statement.
     //! \param type
