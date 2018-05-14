@@ -32,12 +32,14 @@
 
 sympl_nsstart
 
+class Interpreter;
+
 class SYMPL_API SymplVM : public Object
 {
     SYMPL_OBJECT(SymplVM, Object);
 
 private:
-    /// Instance for the profiler.
+    /// Instance for the vm.
     static SymplVM* _Instance;
 
     /// Map of all objects in the vm.
@@ -58,7 +60,7 @@ public:
     virtual ~SymplVM();
 
     //! Returns the instance.
-    //! \return Profiler
+    //! \return SymplVM
     static SymplVM* GetInstance() {
         if (IsNullObject(_Instance)) {
             _Instance = alloc_ref(SymplVM);
@@ -75,6 +77,16 @@ public:
 
     //! Attempts to garbage collect objects.
     void GC();
+
+    //! Loads a file into the vm.
+    //! \param filePath
+    //! \return Interpreter
+    Interpreter* LoadFile(const char* filePath);
+
+    //! Loads a string into the vm.
+    //! \param str
+    //! \return Interpreter
+    Interpreter* LoadString(const char* str);
 
     //! Creates a new script object.
     //! \param name

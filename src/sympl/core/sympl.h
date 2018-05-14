@@ -44,5 +44,6 @@
 #include <sympl/script/script_common.h>
 #include <sympl/script/script_statement.h>
 #include <sympl/script/sympl_vm.h>
+#include <sympl/script/interpreter.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_method.h>

@@ -23,6 +23,8 @@
  **********************************************************/
 #include <sympl/core/string_buffer.h>
 #include <sympl/script/sympl_vm.h>
+#include <sympl/script/interpreter.h>
+#include <sympl/io/script_reader.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -65,6 +67,30 @@ void SymplVM::GC()
             _ObjectMap.erase(entryIt.first);
         }
     }
+}
+
+Interpreter* SymplVM::LoadFile(const char* filePath)
+{
+    SharedRef<ScriptReader> reader = alloc_ref(ScriptReader);
+    reader->ReadFile(filePath);
+
+    auto interpret = alloc_ref(Interpreter);
+    interpret->_SetReader(reader.Ptr());
+    interpret->_Parse();
+
+    return interpret;
+}
+
+Interpreter* SymplVM::LoadString(const char* str)
+{
+    SharedRef<ScriptReader> reader = alloc_ref(ScriptReader);
+    reader->ReadString(str);
+
+    auto interpret = alloc_ref(Interpreter);
+    interpret->_SetReader(reader.Ptr());
+    interpret->_Parse();
+
+    return interpret;
 }
 
 ScriptObject* SymplVM::CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent)

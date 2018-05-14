@@ -56,26 +56,14 @@ ScriptParser::~ScriptParser()
     free_ref(StringBuffer, _StatementBuffer);
 }
 
-void ScriptParser::ParseFile(const char* filePath)
+void ScriptParser::Parse(Interpreter* interpreter)
 {
-    _Reader = alloc_ref(ScriptReader);
-    _Reader->ReadFile(filePath);
-    _ParseBuffer(_Reader);
-    free_ref(ScriptReader, _Reader);
-}
-
-void ScriptParser::ParseString(const char* str)
-{
-    _Reader = alloc_ref(ScriptReader);
-    _Reader->ReadString(str);
-    _ParseBuffer(_Reader);
-    // std::cout << _Reader->GetBuffer()->CStr() << std::endl;
-    free_ref(ScriptReader, _Reader);
+    _Interpreter = interpreter;
+    _ParseBuffer(_Interpreter->GetReader());
 }
 
 void ScriptParser::_ParseBuffer(ScriptReader* reader)
 {
-    int nestLevel = 0;
     int currentLineNumber = 0;
     unsigned bufferIndex = 0;
     char currentChar = '\0';
@@ -152,12 +140,10 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
                 _UpdateScanMode();
                 continue;
             } else if (_ScanMode == ParserScanMode::Type || _ScanMode == ParserScanMode::Value) {
-                _CallMethod();
+                //_CallMethod();
                 continue;
             }
         }
-
-        // std::cout << std::string(1, currentChar) << std::endl;
 
         if (currentChar == '#' && !_RecordingString) {
             // If we're a 'return' statement, treat it as a variable
@@ -227,110 +213,13 @@ void ScriptParser::_BuildObject()
     }
 
     // Ensure we aren't duplicating a variable.
-    // assert(!_ObjectExists(_CurrentObjectBuffer->CStr()) && "Duplicate variable detected!");
+    assert(!_ObjectExists(_CurrentObjectBuffer->CStr()) && "Duplicate variable detected!");
 
     // Create our object based on if we have a scope.
     if (!_CurrentScopeObject.IsValid()) {
         _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type);
     } else {
         _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type, _CurrentScopeObject.Ptr());
-    }
-}
-
-void ScriptParser::_BuildStatement(ScriptStatement* stat)
-{
-    StatementOperator currentOp = StatementOperator::Equals;
-    bool recording = false;
-    bool isString = false;
-    int index = 0;
-
-    while (index < _CurrentValueBuffer->Length()) {
-        char currentChar = _CurrentValueBuffer->Get(index);
-        index++;
-
-        // Check if we need to record a string.
-        if (currentChar == '"') {
-            isString = true;
-            recording = !recording;
-            continue;
-        }
-
-        // Save our current character.
-        if (recording || (!recording && currentChar != '#' && currentChar != ';')) {
-            _StatementBuffer->AppendByte(currentChar);
-        }
-
-        // Check if we've reached a space and need to evaluate the statement.
-        if (!recording && (currentChar == '#' || currentChar == ';')) {
-            // Skip if we don't have anything to check.
-            if (_StatementBuffer->Length() == 0) {
-                continue;
-            }
-
-            std::string statementStr = _StatementBuffer->CStr();
-
-            // Check/save the operator.
-            if (_Symbol.IsOperator(statementStr)) {
-                currentOp = _SymbolToOp(statementStr);
-                _StatementBuffer->Clear();
-                continue;
-            }
-
-            // Save the value as a statement.
-            ScriptObject* obj;
-            if (_CurrentScopeObject.IsValid()) {
-                obj = _CurrentScopeObject->TraverseUpFindChildByName(statementStr.c_str());
-            } else {
-                obj = SymplVMInstance->FindObject(fmt::format(".{0}", statementStr).c_str());
-            }
-            if (!IsNullObject(obj) && !obj->IsEmpty()) {
-                if (obj->GetType() == ScriptObjectType::Method) {
-                    auto retType = to_method(obj)->GetReturnType();
-                    switch ((int) retType) {
-                        case (int) MethodReturnType::Object:
-                            stat->SetType(StatementType::Object);
-                            break;
-                        case (int) MethodReturnType::String:
-                            stat->SetType(StatementType::String);
-                            break;
-                        case (int) MethodReturnType::Int:
-                            stat->SetType(StatementType::Integer);
-                            break;
-                        case (int) MethodReturnType::Float:
-                            stat->SetType(StatementType::Float);
-                            break;
-                        case (int) MethodReturnType::Bool:
-                            stat->SetType(StatementType::Bool);
-                            break;
-                    }
-                }
-                auto entry = stat->Add(obj, currentOp);
-            } else {
-                // Handle constant value.
-                const char* strVal = statementStr.c_str();
-
-                // Handle boolean value.
-                if (strcmp(strVal, "true") == 0 || strcmp(strVal, "false") == 0) {
-                    stat->SetType(StatementType::Bool);
-                    stat->Add(strcmp(strVal, "true") == 0 ? true : false, currentOp);
-                } else {
-                    int intVal;
-                    float floatVal;
-
-                    if (NumberHelper::TryParseInt(strVal, &intVal)) {
-                        stat->SetType(StatementType::Integer);
-                        stat->Add(intVal, currentOp);
-                    } else if (NumberHelper::TryParseFloat(strVal, &floatVal)) {
-                        stat->SetType(StatementType::Float);
-                        stat->Add(floatVal, currentOp);
-                    } else {
-                        stat->SetType(StatementType::String);
-                        stat->Add(statementStr.c_str(), currentOp);
-                    }
-                }
-            }
-            _StatementBuffer->Clear();
-        }
     }
 }
 
@@ -415,121 +304,25 @@ void ScriptParser::_BuildMethodArgs()
     assert(_CharLocation < _Reader->GetBuffer()->Length() && "Invalid method parsing error!");
 }
 
-void ScriptParser::_CallMethod()
-{
-    // Parse out the object value.
-    char currentChar = '\0';
-    char previousChar = '\0';
-    char nextChar = '\0';
-    bool recording = false;
-    int index = 0;
-
-    // Save args in the variant.
-    std::vector<Variant> args;
-
-    // Clean up any operators or spaces in the value buffer.
-    _StatementBuffer->Clear();
-    while (index < _CurrentValueBuffer->Length()) {
-        currentChar = _CurrentValueBuffer->Get(index);
-        index++;
-
-        if (currentChar == '#' || _Symbol.IsOperator(currentChar)) {
-            continue;
-        }
-
-        _StatementBuffer->AppendByte(currentChar);
-    }
-    _CurrentValueBuffer->Clear();
-
-    // Check if this is really a valid object.
-    auto scriptObject = SymplVMInstance->FindObject(_CurrentScopeObject.Ptr(), _StatementBuffer->CStr());
-    _StatementBuffer->Clear();
-
-    if (IsNullObject(scriptObject) || scriptObject->IsEmpty() || scriptObject->GetType() != ScriptObjectType::Method) {
-        return;
-    }
-
-    // Build out the arguments.
-    while (_CharLocation < _Reader->GetBuffer()->Length()) {
-        previousChar = currentChar;
-        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
-        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
-        _CharLocation++;
-
-        // Finished with the method so clean up and exit.
-        if (currentChar == ';') {
-            _ScanMode = ParserScanMode::Type;
-            _ClearBuffers();
-            return;
-        }
-
-        // Start of the arguments.
-        if (currentChar == '(') {
-            continue;
-        }
-
-        // End arguments and call the method.
-        if (currentChar == ')') {
-            // Check if we need to add an argument.
-            if (_StatementBuffer->Length() > 0) {
-                // Check to see if this is an object.
-                auto statementStr = _StatementBuffer->CStr();
-                auto scriptObject = SymplVMInstance->FindObject(_CurrentScopeObject.Ptr(), _StatementBuffer->CStr());
-                if (!scriptObject->IsEmpty()) {
-                    args.push_back(scriptObject->GetValue());
-                } else {
-                    int intVal;
-                    float floatVal;
-
-                    if (NumberHelper::TryParseInt(statementStr, &intVal)) {
-                        args.push_back(intVal);
-                    } else if (NumberHelper::TryParseFloat(statementStr, &floatVal)) {
-                        args.push_back(floatVal);
-                    } else {
-                        args.push_back(statementStr);
-                    }
-                }
-            }
-
-            if (_ScanMode == ParserScanMode::Type) {
-                // Calling the method.
-                to_method(scriptObject)->Evaluate(args);
-            } else if (_ScanMode == ParserScanMode::Value) {
-                // Assignment to another variable.
-                Variant value = to_method(scriptObject)->Evaluate(args);
-                _CurrentObject->SetValue(value);
-            }
-
-            _StatementBuffer->Clear();
-            continue;
-        }
-
-        if (recording || (!recording && currentChar != '#')) {
-            _StatementBuffer->AppendByte(currentChar);
-        }
-    }
-
-    // We failed to exit the while loop early!
-    assert(false && "Unclosed call to method!");
-}
-
 void ScriptParser::_UpdateObjectValue()
 {
     // Determine how many variables are part of the statement.
     SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
-    _BuildStatement(stat.Ptr());
+    // Add to the interpreter's command list.
 
-    _CurrentObject->SetValue(stat.Ptr());
+    // _BuildStatement(stat.Ptr());
+
+    // _CurrentObject->SetValue(stat.Ptr());
 
     // // Check to see if we're inside of a scope.
-    if (_CurrentScopeObject.IsValid()) {
-        auto parent = _CurrentScopeObject->GetParent();
-        if (parent->GetType() == ScriptObjectType::Method) {
-            to_method(parent.Ptr())->AddStatement(_CurrentObject.Ptr(), stat.Ptr());
-        }
-    } else {
-        stat.Release();
-    }
+    // if (_CurrentScopeObject.IsValid()) {
+    //     auto parent = _CurrentScopeObject->GetParent();
+    //     if (parent->GetType() == ScriptObjectType::Method) {
+    //         to_method(parent.Ptr())->AddStatement(_CurrentObject.Ptr(), stat.Ptr());
+    //     }
+    // } else {
+    //     stat.Release();
+    // }
 }
 
 void ScriptParser::_UpdateScanMode()
@@ -568,10 +361,6 @@ void ScriptParser::_UpdateScanMode()
                 _ScanMode = ParserScanMode::Value;
             }
             break;
-        // case (int)ParserScanMode::MethodArgs:
-        //     _BuildMethodArgs();
-        //     _ScanMode = ParserScanMode::Type;
-        //     break;
     }
 }
 

@@ -97,32 +97,43 @@ int main()
 //    }
 
     // Create the compiler and print out the objects.
-    auto compiler = alloc_ref(Sympl::ScriptParser);
+    // auto compiler = alloc_ref(Sympl::ScriptParser);
 
-    sympl_profile_start("script_compiler");
-    // compiler->ParseString("var x = 1; var y = 1 + 3; func foo(n) : int { var x = n; var y = 3; return x + y; }");
-    // compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int {var x = 5; return x; } var z = foo(2);");
-    compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int { var x = n; return x; } var z = foo(1 + 4 + x); ");
-    sympl_profile_stop("script_compiler");
-    sympl_profile_print("script_compiler");
+    // sympl_profile_start("script_compiler");
+    // compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int { var x = n; return x; } var z = foo(1 + x + foo(2));");
+    // sympl_profile_stop("script_compiler");
+    // sympl_profile_print("script_compiler");
 
-    free_ref(Sympl::ScriptParser, compiler);
+    // free_ref(Sympl::ScriptParser, compiler);
+
+    sympl_profile_start("script_interpreter");
+    SharedRef<Interpreter> program = SymplVMInstance->LoadString("var x = 1;");
+    sympl_profile_stop("script_interpreter");
+    sympl_profile_print("script_interpreter");
+
+    program.Release();
 
     cout << SymplVMInstance->PrintObjects() << endl;
 
-    auto yVar = SymplVMInstance->FindObject(".y");
-    auto zVar = SymplVMInstance->FindObject(".z");
+    auto xVar = SymplVMInstance->FindObject(".x");
+    // auto yVar = SymplVMInstance->FindObject(".y");
+    // auto zVar = SymplVMInstance->FindObject(".z");
     // auto argVar = SymplVMInstance->FindObject(".foo.args.n");
 
-    if (!IsNullObject(yVar)) {
-        Variant value = yVar->GetValue();
-        cout << ".y value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    if (!xVar->IsEmpty()) {
+        Variant value = xVar->GetValue();
+        cout << ".x value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
     }
 
-    if (!IsNullObject(zVar)) {
-        Variant value = zVar->GetValue();
-        cout << ".z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
-    }
+    // if (!IsNullObject(yVar)) {
+    //     Variant value = yVar->GetValue();
+    //     cout << ".y value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    // }
+
+    // if (!IsNullObject(zVar)) {
+    //     Variant value = zVar->GetValue();
+    //     cout << ".z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    // }
 
     // if (!IsNullObject(argVar)) {
     //     cout << ".foo.args.n is " << argVar->Print() << endl;

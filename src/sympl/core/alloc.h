@@ -105,16 +105,16 @@ public:
     template<class T>
     inline void FreeRef(T*& ref)
     {
-        if (!ref->Free()) {
-            return;
-        }
-
         auto entry = _MemTable.find(sympl_address_ref(ref));
+//        assert(entry != _MemTable.end() && "Invalid access to free memory!");
+
         if (entry == _MemTable.end()) {
             return;
         }
 
-        // assert(entry != _MemTable.end() && "Invalid access to free memory!");
+        if (!ref->Free()) {
+            return;
+        }
 
         size_t size = entry->second;
         RemoveMemAllocated(size);

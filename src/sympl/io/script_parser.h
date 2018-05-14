@@ -31,6 +31,7 @@
 #include <sympl/io/script_symbol.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_statement.h>
+#include <sympl/script/interpreter.h>
 
 sympl_nsstart
 
@@ -50,6 +51,9 @@ private:
 
     /// Symbol token checker.
     ScriptSymbol _Symbol;
+
+    /// Reference to the interpreter.
+    SharedRef<Interpreter> _Interpreter;
 
     /// Current object we're building.
     SharedRef<ScriptObject> _CurrentObject;
@@ -90,9 +94,6 @@ private:
     //! Builds the current object.
     void _BuildObject();
 
-    //! Build a statement with the current buffer.
-    void _BuildStatement(ScriptStatement* stat);
-
     //! Build out the method arguments with the current buffer.
     void _BuildMethodArgs();
 
@@ -100,7 +101,7 @@ private:
     void _BuildMethodArgStatements(ScriptStatement* stat);
 
     //! Call a method and return a value.
-    void _CallMethod();
+    // void _CallMethod();
 
     //! Updates the object's value.
     void _UpdateObjectValue();
@@ -132,13 +133,9 @@ public:
     //! Destructor.
     ~ScriptParser() override;
 
-    //! Handles parsing a file.
-    //! \param filePath
-    void ParseFile(const char* filePath);
-
-    //! Handles parsing a string.
-    //! \param str
-    void ParseString(const char* str);
+    //! Handles parsing.
+    //! \param interpreter
+    void Parse(Interpreter* interpreter);
 };
 
 sympl_nsend
