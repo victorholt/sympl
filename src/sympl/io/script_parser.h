@@ -85,6 +85,9 @@ private:
     /// Flag for whether or not the parser is recording a string.
     bool _RecordingString = false;
 
+    /// Current line we're parsing.
+    size_t _CurrentLine = 0;
+
     /// Current character location
     size_t _CharLocation = 0;
 

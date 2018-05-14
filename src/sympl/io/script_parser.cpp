@@ -64,7 +64,7 @@ void ScriptParser::Parse(Interpreter* interpreter)
 
 void ScriptParser::_ParseBuffer(ScriptReader* reader)
 {
-    int currentLineNumber = 0;
+    int _CurrentLine = 0;
     unsigned bufferIndex = 0;
     char currentChar = '\0';
     char previousChar = '\0';
@@ -106,7 +106,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         }
         if (grabbingLineNumber) {
             if (previousChar == '|') {
-                currentLineNumber = static_cast<int>(currentChar);
+                _CurrentLine = static_cast<int>(currentChar);
             }
             if (currentChar == ']') {
                 grabbingLineNumber = false;
