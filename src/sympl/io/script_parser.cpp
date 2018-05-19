@@ -25,6 +25,7 @@
 #include <sympl/script/sympl_vm.h>
 #include <sympl/script/script_method.h>
 #include <sympl/core/sympl_number_helper.h>
+#include <sympl/script/interpreter.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -41,11 +42,6 @@ ScriptParser::ScriptParser()
 
     _CurrentValueBuffer = alloc_ref(StringBuffer);
     _CurrentValueBuffer->Resize(2000);
-
-    _StatementBuffer = alloc_ref(StringBuffer);
-    _StatementBuffer->Resize(512);
-
-    _ClearBuffers();
 }
 
 ScriptParser::~ScriptParser()
@@ -53,11 +49,14 @@ ScriptParser::~ScriptParser()
     free_ref(StringBuffer, _CurrentIdentifierBuffer);
     free_ref(StringBuffer, _CurrentObjectBuffer);
     free_ref(StringBuffer, _CurrentValueBuffer);
-    free_ref(StringBuffer, _StatementBuffer);
 }
 
 void ScriptParser::Parse(Interpreter* interpreter)
 {
+    assert(!IsNullObject(interpreter) && "Invalid interpreter given during parse!");
+
+    _ClearBuffers();
+
     _Interpreter = interpreter;
     _ParseBuffer(_Interpreter->GetReader());
 }
@@ -73,13 +72,20 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
     bool inArray = false;
     bool grabbingLineNumber = false;
 
+    _Reader = reader;
     _RecordingString = false;
     _CharLocation = 0;
 
-    while (_CharLocation < reader->GetBuffer()->Length()) {
+    // Ensure we can end on a ; delimeter.
+    if (_Reader->GetBuffer()->LastByte() != ';') {
+        _Reader->GetBuffer()->AppendByte(';');
+    }
+
+    // Go through the buffer and parse out the script.
+    while (_CharLocation < _Reader->GetBuffer()->Length() - 1) {
         previousChar = currentChar;
-        currentChar = reader->GetBuffer()->Get(_CharLocation);
-        nextChar = reader->GetBuffer()->Get(_CharLocation + 1);
+        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
+        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
         _CharLocation++;
 
         // Check if we're at the end of a statement and clear the buffers.
@@ -116,7 +122,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         // End grabbing the line number.
 
         // Attempt to open a new scope.
-        if (currentChar == '{' && !_RecordingString) {
+        if (!_RecordingString && currentChar == '{') {
             _OpenScope();
 
             bufferIndex = 0;
@@ -125,7 +131,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         }
 
         // Attempt to close the current scope.
-        if (currentChar == '}' && !_RecordingString) {
+        if (!_RecordingString && currentChar == '}') {
             _CloseScope();
 
             bufferIndex = 0;
@@ -133,19 +139,20 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
             continue;
         }
 
-        if (currentChar == '(' && !_RecordingString) {
+        if (!_RecordingString && currentChar == '(') {
             // Discovering a new method definition.
             if (_ScanMode == ParserScanMode::VarName) {
                 bufferIndex = 0;
                 _UpdateScanMode();
                 continue;
-            } else if (_ScanMode == ParserScanMode::Type || _ScanMode == ParserScanMode::Value) {
-                //_CallMethod();
-                continue;
             }
+            // else if (_ScanMode == ParserScanMode::Type || _ScanMode == ParserScanMode::Value) {
+            //     _BuildCallMethod();
+            //     continue;
+            // }
         }
 
-        if (currentChar == '#' && !_RecordingString) {
+        if (!_RecordingString && currentChar == '#') {
             // If we're a 'return' statement, treat it as a variable
             // so we can add the rest as a statement.
             if (_CurrentIdentifierBuffer->Equals("return")) {
@@ -161,6 +168,8 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
                 continue;
             }
 
+            // Continue to the next iteration if we don't have any inputs based on the parser
+            // scan mode.
             if (_ScanMode == ParserScanMode::Type && _CurrentIdentifierBuffer->Length() == 0) {
                 continue;
             }
@@ -205,17 +214,24 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
 void ScriptParser::_BuildObject()
 {
+    // Determine our variable type based on the identifier value.
+    // Classes are essential data objects that hold variables
+    // and functions, thus, we'll never have a statement for them
+    // and they should reset the scanner and update the scope.
     ScriptObjectType type = ScriptObjectType::Object;
     if (_CurrentIdentifierBuffer->Equals("var")) {
         type = ScriptObjectType::Variable;
     } else if (_CurrentIdentifierBuffer->Equals("func")) {
         type = ScriptObjectType::Method;
+    } else if (_CurrentIdentifierBuffer->Equals("class")) {
+        type = ScriptObjectType::Object;
     }
 
     // Ensure we aren't duplicating a variable.
-    assert(!_ObjectExists(_CurrentObjectBuffer->CStr()) && "Duplicate variable detected!");
+    // assert(!_ObjectExists(_CurrentObjectBuffer->CStr()) && "Duplicate variable detected!");
 
-    // Create our object based on if we have a scope.
+    // Create our object based on if we have a scope. If no scope
+    // is present we will not have a parent.
     if (!_CurrentScopeObject.IsValid()) {
         _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type);
     } else {
@@ -250,6 +266,11 @@ void ScriptParser::_BuildMethodArgs()
             continue;
         }
 
+        // Ensure we aren't about to open up a scope.
+        if (currentChar == '{') {
+            return;
+        }
+
         // Attempt to save an argument.
         if (!searchReturnType && !_RecordingString && (currentChar == ',' || currentChar == ')')) {
             // Check to see if we need to create an argument object.
@@ -262,11 +283,6 @@ void ScriptParser::_BuildMethodArgs()
             if (currentChar == ')') {
                 _CloseScope();
                 continue;
-            }
-
-            // Ensure we aren't about to open up a scope.
-            if (currentChar == '{') {
-                return;
             }
         }
 
@@ -308,21 +324,23 @@ void ScriptParser::_UpdateObjectValue()
 {
     // Determine how many variables are part of the statement.
     SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+    stat->SetString(_CurrentValueBuffer);
+
     // Add to the interpreter's command list.
 
     // _BuildStatement(stat.Ptr());
 
     // _CurrentObject->SetValue(stat.Ptr());
 
-    // // Check to see if we're inside of a scope.
-    // if (_CurrentScopeObject.IsValid()) {
-    //     auto parent = _CurrentScopeObject->GetParent();
-    //     if (parent->GetType() == ScriptObjectType::Method) {
-    //         to_method(parent.Ptr())->AddStatement(_CurrentObject.Ptr(), stat.Ptr());
-    //     }
-    // } else {
-    //     stat.Release();
-    // }
+    // Check to see if we're inside of a scope.
+    if (_CurrentScopeObject.IsValid()) {
+        auto parent = _CurrentScopeObject->GetParent();
+        if (parent->GetType() == ScriptObjectType::Method) {
+            to_method(parent.Ptr())->AddStatement(_CurrentObject.Ptr(), stat.Ptr());
+        }
+    } else {
+        _Interpreter->AddCommand(_CurrentObject.Ptr(), stat.Ptr());
+    }
 }
 
 void ScriptParser::_UpdateScanMode()
@@ -440,7 +458,6 @@ void ScriptParser::_ClearBuffers()
 {
     _CurrentObjectBuffer->Clear();
     _CurrentValueBuffer->Clear();
-    _StatementBuffer->Clear();
     _CurrentIdentifierBuffer->Clear();
     memset(_CurrentOperator, 0, 3);
 }

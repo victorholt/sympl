@@ -33,6 +33,7 @@
 sympl_nsstart
 
 class SymplVM;
+class ScriptParser;
 
 struct InterpretCommandEntry
 {
@@ -47,6 +48,9 @@ class SYMPL_API Interpreter : public Object
 private:
     /// Command list for the program.
     std::vector<InterpretCommandEntry> _CommandList;
+
+    /// Reference to the script parser.
+    SharedRef<ScriptParser> _Parser;
 
     /// Reference to the script reader.
     SharedRef<ScriptReader> _Reader;
@@ -64,6 +68,15 @@ public:
 
     //! Destructor.
     ~Interpreter() override;
+
+    //! Attempts to run the program.
+    //! \return bool
+    bool Run();
+
+    //! Adds a command to the interpreter.
+    //! \param objectRef
+    //! \param statement
+    void AddCommand(ScriptObject* objectRef, ScriptStatement* statement);
 
     //! Returns the script reader.
     inline ScriptReader* GetReader() const {

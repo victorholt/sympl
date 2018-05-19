@@ -107,33 +107,34 @@ int main()
     // free_ref(Sympl::ScriptParser, compiler);
 
     sympl_profile_start("script_interpreter");
-    SharedRef<Interpreter> program = SymplVMInstance->LoadString("var x = 1;");
+    SharedRef<Interpreter> program = SymplVMInstance->LoadString("var x = 1; var y = 2; func foo(n) : int { var x = n; return x; } var z = foo(15 + foo(2) + 3) + foo(6); z = 3;");
     sympl_profile_stop("script_interpreter");
     sympl_profile_print("script_interpreter");
 
+    program->Run();
     program.Release();
 
     cout << SymplVMInstance->PrintObjects() << endl;
 
-    auto xVar = SymplVMInstance->FindObject(".x");
+    // auto xVar = SymplVMInstance->FindObject(".x");
     // auto yVar = SymplVMInstance->FindObject(".y");
-    // auto zVar = SymplVMInstance->FindObject(".z");
+    auto zVar = SymplVMInstance->FindObject(".z");
     // auto argVar = SymplVMInstance->FindObject(".foo.args.n");
 
-    if (!xVar->IsEmpty()) {
-        Variant value = xVar->GetValue();
-        cout << ".x value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
-    }
+    // if (!xVar->IsEmpty()) {
+    //     Variant value = xVar->GetValue();
+    //     cout << ".x value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    // }
 
     // if (!IsNullObject(yVar)) {
     //     Variant value = yVar->GetValue();
     //     cout << ".y value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
     // }
 
-    // if (!IsNullObject(zVar)) {
-    //     Variant value = zVar->GetValue();
-    //     cout << ".z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
-    // }
+    if (!IsNullObject(zVar)) {
+        Variant value = zVar->GetValue();
+        cout << ".z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    }
 
     // if (!IsNullObject(argVar)) {
     //     cout << ".foo.args.n is " << argVar->Print() << endl;

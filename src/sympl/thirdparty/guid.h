@@ -19,6 +19,8 @@ THE SOFTWARE.
 */
 #pragma once
 
+#include <sympl/core/sympl_pch.h>
+
 #ifdef GUID_ANDROID
 #include <thread>
 #include <jni.h>

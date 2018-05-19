@@ -121,6 +121,7 @@ void ScriptMethod::_ProcessArgStatements()
 void ScriptMethod::_ProcessCallStatements()
 {
     for (auto entryIt : _CallStatements) {
+        entryIt->Statement->Build(entryIt->Variable.Ptr());
         entryIt->Variable->SetValue(entryIt->Statement->Evaluate());
     }
 }

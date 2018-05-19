@@ -31,11 +31,11 @@
 #include <sympl/io/script_symbol.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_statement.h>
-#include <sympl/script/interpreter.h>
 
 sympl_nsstart
 
 class ScriptReader;
+class Interpreter;
 
 class SYMPL_API ScriptParser : public Object
 {
@@ -53,7 +53,7 @@ private:
     ScriptSymbol _Symbol;
 
     /// Reference to the interpreter.
-    SharedRef<Interpreter> _Interpreter;
+    Interpreter* _Interpreter;
 
     /// Current object we're building.
     SharedRef<ScriptObject> _CurrentObject;
@@ -72,9 +72,6 @@ private:
 
     /// Current value string buffer.
     StringBuffer* _CurrentValueBuffer;
-
-    /// The statement buffer.
-    StringBuffer* _StatementBuffer;
 
     /// Current script reader object.
     ScriptReader* _Reader;
@@ -99,12 +96,6 @@ private:
 
     //! Build out the method arguments with the current buffer.
     void _BuildMethodArgs();
-
-    //! Builds a statemetn for a method argument.
-    void _BuildMethodArgStatements(ScriptStatement* stat);
-
-    //! Call a method and return a value.
-    // void _CallMethod();
 
     //! Updates the object's value.
     void _UpdateObjectValue();

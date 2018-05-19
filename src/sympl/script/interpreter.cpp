@@ -37,7 +37,24 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter()
 {
+    _CommandList.clear();
+}
 
+bool Interpreter::Run()
+{
+    for (auto entry : _CommandList) {
+        entry.Statement->Build(entry.ObjectRef.Ptr());
+        entry.ObjectRef->SetValue(entry.Statement->Evaluate());
+    }
+    return true;
+}
+
+void Interpreter::AddCommand(ScriptObject* objectRef, ScriptStatement* statement)
+{
+    InterpretCommandEntry entry;
+    entry.ObjectRef = objectRef;
+    entry.Statement = statement;
+    _CommandList.push_back(entry);
 }
 
 void Interpreter::_SetReader(ScriptReader* reader)
@@ -47,6 +64,8 @@ void Interpreter::_SetReader(ScriptReader* reader)
 
 void Interpreter::_Parse()
 {
-    SharedRef<ScriptParser> parser = alloc_ref(ScriptParser);
-    parser->Parse(this);
+    if (!_Parser.IsValid()) {
+        _Parser = alloc_ref(ScriptParser);
+    }
+    _Parser->Parse(this);
 }

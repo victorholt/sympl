@@ -24,9 +24,26 @@ add_library(SymplLib
     ${SYMPL_FRAMEWORK_HEADERS} ${SYMPL_FRAMEWORK_SRC}
 )
 
+list (APPEND SymplAppleLibs "")
+if (APPLE)
+    if (IOS OR TVOS)
+        list (APPEND SymplAppleLibs
+                "-framework Foundation"
+                "-framework QuartzCore"
+        )
+    else ()
+        list (APPEND SymplAppleLibs
+                "-framework CoreFoundation"
+                "-framework SystemConfiguration"
+                "-framework CoreServices"
+        )
+    endif ()
+endif ()
+
 target_link_libraries(
     SymplLib
     fmtLib
+    ${SymplAppleLibs}
 )
 
 # Include our src files.

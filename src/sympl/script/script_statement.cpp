@@ -29,7 +29,7 @@ sympl_namespaces
 ScriptStatement::ScriptStatement() {
     _Type = StatementType::None;
     _String = alloc_ref(StringBuffer);
-    _String->Resize(512);
+    _String->Resize(2000);
 
     _StatementBuffer = alloc_ref(StringBuffer);
     _StatementBuffer->Resize(2000);
@@ -49,19 +49,23 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
 {
     assert(!IsNullObject(varObject) && !varObject->IsEmpty() && "Failed to evaluate statement on an unknown variable");
 
+    if (IsNullObject(statementStr)) {
+        statementStr = _String.Ptr();
+    }
+
     StatementOperator currentOp = StatementOperator::Equals;
     bool recording = false;
     bool isString = false;
-    int index = 0;
+    _CurrentCharLocation = 0;
 
     if (statementStr->LastByte() != ';') {
         statementStr->AppendByte(';');
     }
 
-    while (index < statementStr->Length()) {
-        char currentChar = statementStr->Get(index);
-        char nextChar = statementStr->Get(index + 1);
-        index++;
+    while (_CurrentCharLocation < statementStr->Length()) {
+        char currentChar = statementStr->Get(_CurrentCharLocation);
+        char nextChar = statementStr->Get(_CurrentCharLocation + 1);
+        _CurrentCharLocation++;
 
         // Check if we need to record a string.
         if (currentChar == '"') {
@@ -71,8 +75,15 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
         }
 
         // Save our current character.
-        if (recording || (!recording && currentChar != '#' && currentChar != ';')) {
+        if (recording || (!recording && currentChar != '#' && currentChar != ';' && currentChar != '(' && currentChar != '{')) {
             _StatementBuffer->AppendByte(currentChar);
+        }
+
+        // Determine if we're calling a method and attempt to resolve it.
+        // Build a statement from the string within the parameters
+        if (!recording && currentChar == '(') {
+            _ResolveMethod(varObject, statementStr, currentOp);
+            continue;
         }
 
         // Check if we've reached a space and need to evaluate the statement.
@@ -125,28 +136,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                 }
                 auto entry = Add(obj, currentOp);
             } else {
-                // Handle constant value.
-                const char* strVal = currentStr.c_str();
-
-                // Handle boolean value.
-                if (strcmp(strVal, "true") == 0 || strcmp(strVal, "false") == 0) {
-                    SetType(StatementType::Bool);
-                    Add(strcmp(strVal, "true") == 0 ? true : false, currentOp);
-                } else {
-                    int intVal;
-                    float floatVal;
-
-                    if (NumberHelper::TryParseInt(strVal, &intVal)) {
-                        SetType(StatementType::Integer);
-                        Add(intVal, currentOp);
-                    } else if (NumberHelper::TryParseFloat(strVal, &floatVal)) {
-                        SetType(StatementType::Float);
-                        Add(floatVal, currentOp);
-                    } else {
-                        SetType(StatementType::String);
-                        Add(currentStr.c_str(), currentOp);
-                    }
-                }
+                _AddValueAndOperation(currentStr, currentOp);
             }
             _StatementBuffer->Clear();
         }
@@ -273,6 +263,152 @@ StatementType ScriptStatement::_FindType(const Variant& value)
     }
 
     return StatementType::Object;
+}
+
+void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
+{
+    // Parse out the object value.
+    char currentChar = '\0';
+    char previousChar = '\0';
+    char nextChar = '\0';
+    bool recording = false;
+
+    // While moving through the statement if we come across
+    // a method within the method we need to mark it as a new
+    // scope level.
+    unsigned scopeLevel = 0;
+
+    // Save args in the variant.
+    std::vector<Variant> args;
+
+    // Check if this is really a valid object.
+    auto scriptObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+    _StatementBuffer->Clear();
+
+    if (IsNullObject(scriptObject) || scriptObject->IsEmpty() || scriptObject->GetType() != ScriptObjectType::Method) {
+        return;
+    }
+
+    // Build out the argument statements.
+    while (_CurrentCharLocation < statementStr->Length()) {
+        previousChar = currentChar;
+        currentChar = statementStr->Get(_CurrentCharLocation);
+        nextChar = statementStr->Get(_CurrentCharLocation + 1);
+        _CurrentCharLocation++;
+
+        // Increase our scope level as we're attempting
+        // to call another method.
+        if (currentChar == '(') {
+            scopeLevel++;
+        }
+
+        // Build and evaluate the statement.
+        if (currentChar == ',' || (currentChar == ')' && scopeLevel == 0)) {
+            // Create the statement and set the string.
+            SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+            stat->SetString(_StatementBuffer);
+
+            // Build the statement.
+            stat->Build(scriptObject);
+            args.push_back(stat->Evaluate());
+
+            _StatementBuffer->Clear();
+
+            // We've completed building out the arguments.
+            if (currentChar == ')') {
+                Variant value = to_method(scriptObject)->Evaluate(args);
+                Add(value, op);
+
+                return;
+            }
+        }
+
+        // Decrease our scope level as we exit a method call.
+        if (currentChar == ')') {
+            scopeLevel--;
+        }
+
+        _StatementBuffer->AppendByte(currentChar);
+    }
+
+    /*
+
+    // Build out the arguments.
+    while (_CurrentCharLocation < statementStr->Length()) {
+        previousChar = currentChar;
+        currentChar = statementStr->Get(_CurrentCharLocation);
+        nextChar = statementStr->Get(_CurrentCharLocation + 1);
+        _CurrentCharLocation++;
+
+        // Check if we need to start recording a string.
+        if (currentChar == '"') {
+            recording = !recording;
+            continue;
+        }
+
+        // End arguments and call the method.
+        if (!recording && currentChar == ')') {
+            // Check if we need to add an argument.
+            if (_StatementBuffer->Length() > 0) {
+                // Check to see if this is an object.
+                auto valueStr = _StatementBuffer->CStr();
+                auto scriptObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+                if (!scriptObject->IsEmpty()) {
+                    args.push_back(scriptObject->GetValue());
+                } else {
+                    int intVal;
+                    float floatVal;
+
+                    if (NumberHelper::TryParseInt(valueStr, &intVal)) {
+                        args.push_back(intVal);
+                    } else if (NumberHelper::TryParseFloat(valueStr, &floatVal)) {
+                        args.push_back(floatVal);
+                    } else {
+                        args.push_back(valueStr);
+                    }
+                }
+            }
+
+            Variant value = to_method(scriptObject)->Evaluate(args);
+            Add(value, op);
+
+            _StatementBuffer->Clear();
+            return;
+        }
+
+        if (recording || (!recording && currentChar != '#')) {
+            _StatementBuffer->AppendByte(currentChar);
+        }
+    }*/
+
+    // We failed to exit the while loop early!
+    assert(false && "Unclosed call to method!");
+}
+
+void ScriptStatement::_AddValueAndOperation(const std::string& value, StatementOperator op)
+{
+    // Handle constant value.
+    const char* strVal = value.c_str();
+
+    // Handle boolean value.
+    if (strcmp(strVal, "true") == 0 || strcmp(strVal, "false") == 0) {
+        SetType(StatementType::Bool);
+        Add(strcmp(strVal, "true") == 0 ? true : false, op);
+    } else {
+        int intVal;
+        float floatVal;
+
+        if (NumberHelper::TryParseInt(strVal, &intVal)) {
+            SetType(StatementType::Integer);
+            Add(intVal, op);
+        } else if (NumberHelper::TryParseFloat(strVal, &floatVal)) {
+            SetType(StatementType::Float);
+            Add(floatVal, op);
+        } else {
+            SetType(StatementType::String);
+            Add(strVal, op);
+        }
+    }
 }
 
 void ScriptStatement::_Apply(StatementObjectEntry* entry, Variant& value)

@@ -32,7 +32,6 @@ void Object::SetMeta(const std::string& key, const Variant& value)
 Variant Object::GetMeta(const std::string& key)
 {
     auto entry = _Meta.find(key);
-    assert(entry != _Meta.end() && "Meta does not exists!");
 
     if (entry == _Meta.end()) {
         return Variant::Empty;

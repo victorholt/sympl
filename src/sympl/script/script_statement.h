@@ -87,6 +87,9 @@ private:
     /// Type of statement.
     StatementType _Type;
 
+    /// The current character location of the statement we're building.
+    unsigned _CurrentCharLocation = 0;
+
     //! Finds the type for a variant.
     //! \param value
     //! \return StatementType
@@ -94,6 +97,14 @@ private:
 
     //! Statement buffer for building out the statements.
     StringBuffer* _StatementBuffer;
+
+    //! Resolves a method in a given statement to a value.
+    void _ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op);
+
+    //! Add a value operation to the statement.
+    //! \param value
+    //! \param op
+    void _AddValueAndOperation(const std::string& value, StatementOperator op);
 
     //! Applies the entry to the current value.
     //! \param entry
@@ -114,7 +125,8 @@ public:
     //! Builds the statement from a given string.
     //! \param varObject
     //! \param statementStr
-    void Build(ScriptObject* varObject, StringBuffer* statementStr);
+    void Build(ScriptObject* varObject, StringBuffer* statementStr = nullptr);
+
 
     //! Adds a script object as part of the statement.
     //! \param scriptObject
@@ -140,6 +152,13 @@ public:
     //! \param scriptObject
     //! \return ScriptStatement
     ScriptStatement* Clone(ScriptObject* scriptObject);
+
+    //! Sets the string the statement should evaluate.
+    //! \param StringBuffer
+    inline void SetString(StringBuffer* buffer) {
+        _String->Clear();
+        _String->Append(buffer->CStr());
+    }
 
     //! Returns the string.
     //! \return StringBuffer
