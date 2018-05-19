@@ -61,53 +61,9 @@ int main()
     free_ref(Thread, thread2);
     // End thread testing.
 
-    // Shared pointers.
-//    {
-//        SharedRef<StringBuffer> sstr1 = alloc_ref(StringBuffer);
-//        sstr1->Append("SharedRef String");
-//        cout << "Shared str ref count: " << sstr1->RefCount() << endl;
-//
-//        SharedRef<StringBuffer> sstr2 = sstr1;
-//        cout << "Shared str ref count: " << sstr1->RefCount() << endl;
-//
-//        if (sstr1.IsValid()) {
-//            cout << "Shared str value: " << sstr1->Str() << endl;
-//        }
-//        cout << "Shared str ref count: " << sstr1->RefCount() << endl;
-//    }
-
-    // Testing the script reader.
-    // sympl_profile_start("script_reader");
-    // auto scriptReader = alloc_ref(ScriptReader);
-    // if (!scriptReader->ReadFile("../../examples/scripts/hello.sympl")) {
-    //     printf("Failed to read example script!\n");
-    // } else {
-    //     cout << scriptReader->GetBuffer()->CStr() << endl;
-    // }
-    // free_ref(ScriptReader, scriptReader);
-    // sympl_profile_stop("script_reader");
-    // sympl_profile_print("script_reader");
-
-    // Test out the VM.
-//    Sympl::SymplVM* vm = SymplVMInstance;
-//    {
-//        auto obj = vm->CreateObject("MyObject");
-//        auto obj2 = vm->CreateObject("MyObject2", obj);
-//        cout << obj->Print() << endl;
-//    }
-
-    // Create the compiler and print out the objects.
-    // auto compiler = alloc_ref(Sympl::ScriptParser);
-
-    // sympl_profile_start("script_compiler");
-    // compiler->ParseString("var x = 1; var y = x + 3; func foo(n) : int { var x = n; return x; } var z = foo(1 + x + foo(2));");
-    // sympl_profile_stop("script_compiler");
-    // sympl_profile_print("script_compiler");
-
-    // free_ref(Sympl::ScriptParser, compiler);
-
     sympl_profile_start("script_interpreter");
-    SharedRef<Interpreter> program = SymplVMInstance->LoadString("var x = 1; var y = 2; func foo(n) : int { var x = n; return x; } var z = foo(15 + foo(2) + 3) + foo(6); z = 3;");
+    // SharedRef<Interpreter> program = SymplVMInstance->LoadString("var x = 1; var y = 2; func foo(n) : int { var x = n; return x; } var z = foo(15 + foo(2) + 3) + foo(6); z = 3;");
+    SharedRef<Interpreter> program = SymplVMInstance->LoadString("var x = 1; var z = 3; func foo1(n) : int { return n; } func foo2() : int { return foo1(12 + foo1(12)); } z = foo2(); ");
     sympl_profile_stop("script_interpreter");
     sympl_profile_print("script_interpreter");
 

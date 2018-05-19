@@ -331,56 +331,6 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
         _StatementBuffer->AppendByte(currentChar);
     }
 
-    /*
-
-    // Build out the arguments.
-    while (_CurrentCharLocation < statementStr->Length()) {
-        previousChar = currentChar;
-        currentChar = statementStr->Get(_CurrentCharLocation);
-        nextChar = statementStr->Get(_CurrentCharLocation + 1);
-        _CurrentCharLocation++;
-
-        // Check if we need to start recording a string.
-        if (currentChar == '"') {
-            recording = !recording;
-            continue;
-        }
-
-        // End arguments and call the method.
-        if (!recording && currentChar == ')') {
-            // Check if we need to add an argument.
-            if (_StatementBuffer->Length() > 0) {
-                // Check to see if this is an object.
-                auto valueStr = _StatementBuffer->CStr();
-                auto scriptObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
-                if (!scriptObject->IsEmpty()) {
-                    args.push_back(scriptObject->GetValue());
-                } else {
-                    int intVal;
-                    float floatVal;
-
-                    if (NumberHelper::TryParseInt(valueStr, &intVal)) {
-                        args.push_back(intVal);
-                    } else if (NumberHelper::TryParseFloat(valueStr, &floatVal)) {
-                        args.push_back(floatVal);
-                    } else {
-                        args.push_back(valueStr);
-                    }
-                }
-            }
-
-            Variant value = to_method(scriptObject)->Evaluate(args);
-            Add(value, op);
-
-            _StatementBuffer->Clear();
-            return;
-        }
-
-        if (recording || (!recording && currentChar != '#')) {
-            _StatementBuffer->AppendByte(currentChar);
-        }
-    }*/
-
     // We failed to exit the while loop early!
     assert(false && "Unclosed call to method!");
 }
