@@ -60,3 +60,18 @@ Variant IfMethod::Evaluate(const std::vector<Variant>& args)
         _ProcessCallStatements();
     }
 }
+
+ScriptObject* IfMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
+{
+    ScriptObject* clone = alloc_ref(IfMethod);
+    clone->SetName(name);
+
+    if (!IsNullObject(parent) && !parent->IsEmpty()) {
+        clone->SetParent(parent);
+    } else {
+        clone->SetParent(_Parent.Ptr());
+    }
+
+    SymplVMInstance->AddObject(clone);
+    return clone;
+}

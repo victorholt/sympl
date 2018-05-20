@@ -74,22 +74,16 @@ ScriptObject* ScriptObject::Clone()
 
 ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
 {
-    std::string name = _Name;
-
     // Generate a random name for the object.
+    std::string name = _Name;
     if (uniqueName) {
         auto guid = xg::newGuid();
         std::stringstream guidName;
         guidName << guid;
-        name = guidName.str();
+        name = fmt::format("{0}:{1}", _Name, guidName.str());
     }
 
-    ScriptObject* clone = &ScriptObject::Empty;
-    if (!IsNullObject(parent) && !parent->IsEmpty()) {
-        clone = SymplVMInstance->CreateObject(name.c_str(), _Type, parent);
-    } else {
-        clone = SymplVMInstance->CreateObject(name.c_str(), _Type, _Parent.Ptr());
-    }
+    ScriptObject* clone = _OnCloneCreateObject(name, parent);
     clone->SetValue(_Value);
 
     // Clone the children!
@@ -101,6 +95,17 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
         clone->_AddChild(entryIt.second->Clone(clone, false));
     }
 
+    return clone;
+}
+
+ScriptObject* ScriptObject::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
+{
+    ScriptObject* clone = &ScriptObject::Empty;
+    if (!IsNullObject(parent) && !parent->IsEmpty()) {
+        clone = SymplVMInstance->CreateObject(name.c_str(), _Type, parent);
+    } else {
+        clone = SymplVMInstance->CreateObject(name.c_str(), _Type, _Parent.Ptr());
+    }
     return clone;
 }
 

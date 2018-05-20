@@ -93,6 +93,16 @@ void StringBuffer::PrependByte(const char8 byte)
     _Length += 1;
 }
 
+void StringBuffer::Append(StringBuffer *str)
+{
+    Append(str->CStr());
+}
+
+void StringBuffer::Append(const std::string str)
+{
+    Append(str.c_str());
+}
+
 void StringBuffer::Append(const char8 *str)
 {
     size_t strSize = strlen(str);

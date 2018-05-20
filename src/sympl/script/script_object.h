@@ -71,6 +71,11 @@ protected:
     //! \param obj
     void _AddChild(ScriptObject* scriptObject);
 
+    //! Handles cloning the object and adding it to the VM.
+    //! \param name
+    //! \param parent
+    virtual ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent);
+
     //! Sets the path for the script object.
     //! \param Path
     void _SetPath(const char* path);
@@ -132,6 +137,12 @@ public:
     //! \param name.
     void RemoveChild(const char* name);
 
+    //! Sets the parent for the object.
+    //! \param parent
+    inline void SetParent(ScriptObject* parent) {
+        _Parent = parent;
+    }
+
     //! Returns the parent object.
     //! \return ScriptObject
     SharedRef<ScriptObject> GetParent() const;
@@ -159,6 +170,10 @@ public:
     inline const Variant& GetValue() const {
         return _Value;
     }
+
+    //! Sets the name for the object.
+    //! \param name
+    inline void SetName(const std::string& name) { _Name = name; }
 
     //! Returns the name of the object.
     //! \return

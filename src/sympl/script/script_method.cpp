@@ -181,6 +181,7 @@ void ScriptMethod::AddStatement(ScriptObject* variable, ScriptStatement* stat)
 ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 {
     auto clone = ScriptObject::Clone(parent, uniqueName);
+    to_method(clone)->SetImmediate(_IsImmediate);
 
     // Add the arguments.
     for (auto entryIt : _Args) {

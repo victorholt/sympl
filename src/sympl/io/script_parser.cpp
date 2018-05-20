@@ -240,6 +240,14 @@ void ScriptParser::_BuildObject()
     ScriptObject* existingObject;
     if (_TryFindObject(_CurrentObjectBuffer->CStr(), existingObject)) {
         _CurrentObject = existingObject;
+
+        // If this object exists as an immediate method we should clone the original.
+        if (_CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
+            _CurrentObject = _CurrentObject->Clone(_CurrentScopeObject.Ptr(), true);
+            _CurrentObjectBuffer->Clear();
+            _CurrentObjectBuffer->Append(_CurrentObject->GetName());
+        }
+
         return;
     }
 

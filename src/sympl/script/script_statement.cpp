@@ -114,7 +114,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
             }
 
             if (!IsNullObject(obj) && !obj->IsEmpty()) {
-                if (obj->GetType() == ScriptObjectType::Method) {
+                if (obj->GetType() == ScriptObjectType::Method && !to_method(obj)->IsImmediate()) {
                     auto retType = to_method(obj)->GetReturnType();
                     switch ((int) retType) {
                         case (int) MethodReturnType::Object:

@@ -73,6 +73,14 @@ public:
 
     //! Appends a string to the current buffer.
     //! \param str
+    void Append(StringBuffer *str);
+
+    //! Appends a string to the current buffer.
+    //! \param str
+    void Append(const std::string str);
+
+    //! Appends a string to the current buffer.
+    //! \param str
     void Append(const char8 *str);
 
     //! Appends a string to the current buffer.
