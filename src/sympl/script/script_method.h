@@ -27,6 +27,7 @@
 #include <sympl/core/shared_ref.h>
 #include <sympl/core/weak_ref.h>
 #include <sympl/script/script_object.h>
+#include <sympl/core/string_buffer.h>
 
 sympl_nsstart
 
@@ -63,6 +64,9 @@ protected:
 
     /// Return type for the method.
     MethodReturnType _ReturnType;
+
+    /// Arguments given to the method as a string.
+    SharedRef<StringBuffer> _ArgString;
 
     /// Flag to determine whether this is an immediate method.
     /// Immediate methods are called the moment they are defined (if, while, etc).
@@ -159,6 +163,25 @@ public:
     //! \return bool
     inline bool IsImmediate() const {
         return _IsImmediate;
+    }
+
+    //! Sets the arguments string.
+    //! \param argString
+    inline void SetArgString(StringBuffer* argString) {
+        SetArgString(argString->CStr());
+    }
+
+    //! Sets the arguments string.
+    //! \param argString
+    inline void SetArgString(const char* argString) {
+        _ArgString->Clear();
+        _ArgString->Append(argString);
+    }
+
+    //! Returns the argument string.
+    //! \return string
+    inline StringBuffer* GetArgString() const {
+        return _ArgString.Ptr();
     }
 };
 

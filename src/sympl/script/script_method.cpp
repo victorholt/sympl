@@ -33,6 +33,8 @@ ScriptMethod::ScriptMethod()
 {
     _Type = ScriptObjectType::Method;
     _ReturnType = MethodReturnType::Object;
+    _ArgString = alloc_ref(StringBuffer);
+    _ArgString->Resize(512);
 }
 
 ScriptMethod::~ScriptMethod()

@@ -48,8 +48,6 @@ bool Interpreter::Run()
             entry.ObjectRef->SetValue(entry.Statement->Evaluate());
         } else {
             entry.Statement->Build(entry.ObjectRef.Ptr());
-            // std::cout << "IF = " << entry.Statement->GetString()->CStr() << std::endl;
-            // entry.ObjectRef->Evaluate();
         }
     }
     return true;

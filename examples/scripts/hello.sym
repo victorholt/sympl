@@ -7,6 +7,8 @@ func add(a, b) : int {
     return a + b;
 }
 
-var z = add(1, 1);
+var z = add(1, 2);
 
-if (z > 2);
+if (z > 2) {
+    z = 11;
+}

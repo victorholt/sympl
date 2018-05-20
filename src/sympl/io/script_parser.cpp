@@ -123,6 +123,11 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
         // Attempt to open a new scope.
         if (!_RecordingString && currentChar == '{') {
+            // Set the argument string if this is a method.
+            if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method) {
+                to_method(_CurrentObject.Ptr())->SetArgString(_CurrentValueBuffer);
+            }
+
             _OpenScope();
 
             bufferIndex = 0;
@@ -133,6 +138,13 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         // Attempt to close the current scope.
         if (!_RecordingString && currentChar == '}') {
             _CloseScope();
+
+            // Check if this is an immediate method.
+            if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
+                SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+                stat->SetString(to_method(_CurrentObject.Ptr())->GetArgString());
+                _Interpreter->AddCommand(_CurrentObject.Ptr(), stat.Ptr());
+            }
 
             bufferIndex = 0;
             _ClearBuffers();
@@ -468,9 +480,7 @@ bool ScriptParser::_TryFindObject(const char* objectName, ScriptObject*& output)
         return (!IsNullObject(output) && !output->IsEmpty());
     }
 
-    output = SymplVMInstance->FindObject(
-        fmt::format("{0}.{1}", _CurrentScopeObject.Ptr()->GetPath(), objectName)
-    );
+    output = _CurrentScopeObject->TraverseUpFindChildByName(objectName);
 
     return (!IsNullObject(output) && !output->IsEmpty());
 }

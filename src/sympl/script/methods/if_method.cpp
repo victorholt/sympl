@@ -54,5 +54,9 @@ Variant IfMethod::Evaluate(const std::vector<Variant>& args)
     _ProcessArgStatements();
 
     Variant value = _Args[0]->GetValue();
-    std::cout << "VALUE OF THE IF = " << value.AsString()  << std::endl;
+
+    // Process the statements.
+    if (value.GetType() == VariantType::Bool && value.GetBool()) {
+        _ProcessCallStatements();
+    }
 }
