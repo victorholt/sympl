@@ -61,21 +61,7 @@ Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
     assert((!to_method(clone)->GetScope()->IsEmpty()) && "Method has an empty scope object!");
 
     // Update the arguments.
-    int argIndex = 0;
-    for (auto argIt : _Args) {
-        // Ensure we have args.
-        if (argIndex >= args.size()) {
-            break;
-        }
-
-        Variant argValue = args[argIndex];
-        auto argObj = to_method(clone)->GetScope()->FindChildByName(argIt->GetName().c_str());
-        assert(!argObj->IsEmpty() && "Invalid argument given for method");
-
-        argObj->SetValue(args[argIndex]);
-
-        argIndex++;
-    }
+    to_method(clone)->_CopyArgs(args);
 
     // Go through the arguments and build their statements.
     to_method(clone)->_ProcessArgStatements();
@@ -84,10 +70,18 @@ Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
     to_method(clone)->_ProcessCallStatements();
 
     // Check if we have a return variable.
-    auto retObject = to_method(clone)->GetScope()->FindChildByName("return");
-    if (!retObject->IsEmpty()) {
-        Variant value = retObject->GetValue();
-        retValue = retObject->GetValue();
+    if (_ReturnType != MethodReturnType::Void) {
+        auto retObject = to_method(clone)->GetScope()->FindChildByName("return");
+        if (!retObject->IsEmpty()) {
+            Variant value = retObject->GetValue();
+
+            // Ensure that the value type matches the return type.
+            if (!_CheckReturnType(value)) {
+                assert(false && "Method return type does not match assignment!");
+            }
+
+            retValue = retObject->GetValue();
+        }
     }
 
     // Clean up our clone.
@@ -100,6 +94,25 @@ Variant ScriptMethod::Evaluate()
 {
     std::vector<Variant> args;
     return Evaluate(args);
+}
+
+void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
+{
+    int argIndex = 0;
+    for (auto argIt : _Args) {
+        // Ensure we have args.
+        if (argIndex >= args.size()) {
+            break;
+        }
+
+        Variant argValue = args[argIndex];
+        auto argObj = GetScope()->FindChildByName(argIt->GetName().c_str());
+        assert(!argObj->IsEmpty() && "Invalid argument given for method");
+
+        argObj->SetValue(args[argIndex]);
+
+        argIndex++;
+    }
 }
 
 void ScriptMethod::_ProcessArgStatements()
@@ -124,6 +137,28 @@ void ScriptMethod::_ProcessCallStatements()
         entryIt->Statement->Build(entryIt->Variable.Ptr());
         entryIt->Variable->SetValue(entryIt->Statement->Evaluate());
     }
+}
+
+bool ScriptMethod::_CheckReturnType(const Variant& value)
+{
+    Variant v = value;
+    VariantType type = value.GetType();
+    if (type == VariantType::Int && (_ReturnType != MethodReturnType::Int && _ReturnType != MethodReturnType::String)) {
+        return false;
+    }
+    if (type == VariantType::Float && (_ReturnType != MethodReturnType::Float && _ReturnType != MethodReturnType::String)) {
+        return false;
+    }
+    if (type == VariantType::StringBuffer && (_ReturnType != MethodReturnType::String)) {
+        return false;
+    }
+    if (type == VariantType::Bool && (_ReturnType != MethodReturnType::Bool && _ReturnType != MethodReturnType::String)) {
+        return false;
+    }
+    if (type == VariantType::ScriptObject && (_ReturnType != MethodReturnType::Object && _ReturnType != MethodReturnType::String)) {
+        return false;
+    }
+    return true;
 }
 
 void ScriptMethod::AddArg(ScriptObject* arg)

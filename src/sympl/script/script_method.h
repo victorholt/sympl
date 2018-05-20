@@ -36,7 +36,8 @@ enum class MethodReturnType : uint8_t
     String,
     Int,
     Float,
-    Bool
+    Bool,
+    Void
 };
 
 struct MethodCallStatement
@@ -63,11 +64,23 @@ protected:
     /// Return type for the method.
     MethodReturnType _ReturnType;
 
-    /// Process the argument statements.
-    void _ProcessArgStatements();
+    /// Flag to determine whether this is an immediate method.
+    /// Immediate methods are called the moment they are defined (if, while, etc).
+    bool _IsImmediate = false;
 
-    /// Process the call statements.
-    void _ProcessCallStatements();
+    //! Copy over argument values from a list of arguments.
+    //! \param args
+    virtual void _CopyArgs(const std::vector<Variant>& args);
+
+    //! Process the argument statements.
+    virtual void _ProcessArgStatements();
+
+    //! Process the call statements.
+    virtual void _ProcessCallStatements();
+
+    //! Checks the return type based on the given variant value.
+    //! \param value
+    bool _CheckReturnType(const Variant& value);
 
 public:
     //! Constructor.
@@ -134,6 +147,18 @@ public:
     //! \return MethodReturnType
     inline MethodReturnType GetReturnType() const {
         return _ReturnType;
+    }
+
+    //! Sets whether or not the method is immediate.
+    //! \param immediate.
+    inline void SetImmediate(bool immediate) {
+        _IsImmediate = immediate;
+    }
+
+    //! Returns whether or not the method is immediate.
+    //! \return bool
+    inline bool IsImmediate() const {
+        return _IsImmediate;
     }
 };
 

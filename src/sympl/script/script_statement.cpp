@@ -168,10 +168,11 @@ StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, Stateme
     _Entries.push_back(entry);
 
     // Set the type.
+    auto type = _FindType(constantValue);
     if (_Type == StatementType::None) {
-        SetType(_FindType(constantValue));
+        SetType(type);
     } else {
-        assert(_FindType(constantValue) == _Type && "Attempted to assign two different types in statement");
+        assert((type == _Type) && "Attempted to assign two different types in statement");
     }
 
     return entry;
@@ -251,8 +252,7 @@ StatementType ScriptStatement::_FindType(const Variant& value)
     if (value.GetType() == VariantType::Bool) {
         return StatementType::Bool;
     }
-    if (value.GetType() == VariantType::Int ||
-        value.GetType() == VariantType::UnsignedInt) {
+    if (value.GetType() == VariantType::Int) {
         return StatementType::Integer;
     }
     if (value.GetType() == VariantType::Float) {
@@ -282,7 +282,10 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
     std::vector<Variant> args;
 
     // Check if this is really a valid object.
-    auto scriptObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+    ScriptObject* scriptObject = varObject;
+    if (varObject->GetType() != ScriptObjectType::Method) {
+        scriptObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+    }
     _StatementBuffer->Clear();
 
     if (IsNullObject(scriptObject) || scriptObject->IsEmpty() || scriptObject->GetType() != ScriptObjectType::Method) {
@@ -328,7 +331,9 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
             scopeLevel--;
         }
 
-        _StatementBuffer->AppendByte(currentChar);
+        if (currentChar != ',') {
+            _StatementBuffer->AppendByte(currentChar);
+        }
     }
 
     // We failed to exit the while loop early!
@@ -382,24 +387,62 @@ void ScriptStatement::_Apply(StatementObjectEntry* entry, Variant& value)
             if (_Type == StatementType::String) {
                 value.GetStringBuffer()->Append(evalValue.GetStringBuffer()->CStr());
             } else if (_Type == StatementType::Integer) {
-                value.Set(evalValue.GetInt() + value.GetInt());
+                value.Set(value.GetInt() + evalValue.GetInt());
             }
             break;
         case (int)StatementOperator::Subtract:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() - evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() - evalValue.GetFloat());
+            }
             break;
         case (int)StatementOperator::Divide:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() / evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() / evalValue.GetFloat());
+            }
             break;
         case (int)StatementOperator::Multiply:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() * evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() * evalValue.GetFloat());
+            }
             break;
         case (int)StatementOperator::Mod:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() % evalValue.GetInt());
+            }
             break;
         case (int)StatementOperator::GreaterThan:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() > evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() > evalValue.GetFloat());
+            }
             break;
         case (int)StatementOperator::LessThan:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() < evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() < evalValue.GetFloat());
+            }
             break;
         case (int)StatementOperator::GreaterEqualThan:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() >= evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() >= evalValue.GetFloat());
+            }
             break;
         case (int)StatementOperator::LessEqualThan:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() <= evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() <= evalValue.GetFloat());
+            }
             break;
     }
 }

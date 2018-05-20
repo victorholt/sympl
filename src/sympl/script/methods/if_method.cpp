@@ -21,57 +21,38 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include <sympl/script/interpreter.h>
 #include <sympl/script/sympl_vm.h>
-#include <sympl/script/script_method.h>
-#include <sympl/io/script_parser.h>
-#include <sympl/core/sympl_number_helper.h>
-
-#include <fmt/format.h>
+#include <sympl/script/methods/if_method.h>
 sympl_namespaces
 
-Interpreter::Interpreter()
+IfMethod::IfMethod()
+{
+    _Name = "if";
+
+    // This method will be called immediately when the Interpreter calls it.
+    _IsImmediate = true;
+}
+
+IfMethod::~IfMethod()
 {
 
 }
 
-Interpreter::~Interpreter()
+void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
 {
-    _CommandList.clear();
+    ScriptObject::_Initialize(name, path, parent);
+
+    // Create the scope and the argument that the 'if' call takes.
+    auto scope = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, this);
+    auto arg = SymplVMInstance->CreateObject("__arg__", ScriptObjectType::Object, scope);
+    AddArg(arg);
 }
 
-bool Interpreter::Run()
+Variant IfMethod::Evaluate(const std::vector<Variant>& args)
 {
-    for (auto entry : _CommandList) {
-        if (entry.ObjectRef->GetType() != ScriptObjectType::Method) {
-            entry.Statement->Build(entry.ObjectRef.Ptr());
-            entry.ObjectRef->SetValue(entry.Statement->Evaluate());
-        } else {
-            entry.Statement->Build(entry.ObjectRef.Ptr());
-            // std::cout << "IF = " << entry.Statement->GetString()->CStr() << std::endl;
-            // entry.ObjectRef->Evaluate();
-        }
-    }
-    return true;
-}
+    _CopyArgs(args);
+    _ProcessArgStatements();
 
-void Interpreter::AddCommand(ScriptObject* objectRef, ScriptStatement* statement)
-{
-    InterpretCommandEntry entry;
-    entry.ObjectRef = objectRef;
-    entry.Statement = statement;
-    _CommandList.push_back(entry);
-}
-
-void Interpreter::_SetReader(ScriptReader* reader)
-{
-    _Reader = reader;
-}
-
-void Interpreter::_Parse()
-{
-    if (!_Parser.IsValid()) {
-        _Parser = alloc_ref(ScriptParser);
-    }
-    _Parser->Parse(this);
+    Variant value = _Args[0]->GetValue();
+    std::cout << "VALUE OF THE IF = " << value.AsString()  << std::endl;
 }

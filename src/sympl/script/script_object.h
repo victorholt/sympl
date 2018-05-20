@@ -43,9 +43,6 @@ protected:
     /// Parent reference for the object.
     SharedRef<ScriptObject> _Parent;
 
-    /// Empty script object.
-    static ScriptObject Empty;
-
     /// Value of the script object.
     Variant _Value;
 
@@ -186,6 +183,9 @@ public:
     //! Whether or not this is an empty object.
     //! \return
     inline bool IsEmpty() const { return _Type == ScriptObjectType::Empty; }
+
+    /// Empty script object.
+    static ScriptObject Empty;
 
     /// Ensure the VM can access the private methods.
     friend class SymplVM;

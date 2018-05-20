@@ -269,6 +269,7 @@ void ScriptParser::_BuildMethodArgs()
 
         // Ensure we aren't about to open up a scope.
         if (currentChar == '{') {
+            _CurrentObjectBuffer->Clear();
             return;
         }
 
@@ -304,6 +305,8 @@ void ScriptParser::_BuildMethodArgs()
                 to_method(_CurrentObject.Ptr())->SetReturnType(MethodReturnType::Float);
             } else if (_CurrentObjectBuffer->Equals("bool")) {
                 to_method(_CurrentObject.Ptr())->SetReturnType(MethodReturnType::Bool);
+            } else if (_CurrentObjectBuffer->Equals("void")) {
+                to_method(_CurrentObject.Ptr())->SetReturnType(MethodReturnType::Void);
             } else {
                 assert(false && "Unknown method return type!");
             }
@@ -312,7 +315,7 @@ void ScriptParser::_BuildMethodArgs()
         }
 
         // During 'searchReturnType' we don't want to append the '#' character.
-        if (currentChar != '#') {
+        if (currentChar != '#' && currentChar != ',') {
             _CurrentObjectBuffer->AppendByte(currentChar);
         }
     }

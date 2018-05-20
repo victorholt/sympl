@@ -21,57 +21,33 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include <sympl/script/interpreter.h>
-#include <sympl/script/sympl_vm.h>
+#pragma once
+
 #include <sympl/script/script_method.h>
-#include <sympl/io/script_parser.h>
-#include <sympl/core/sympl_number_helper.h>
 
-#include <fmt/format.h>
-sympl_namespaces
+sympl_nsstart
 
-Interpreter::Interpreter()
+class SYMPL_API IfMethod : public ScriptMethod
 {
+    SYMPL_OBJECT(IfMethod, ScriptObject);
 
-}
+protected:
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
 
-Interpreter::~Interpreter()
-{
-    _CommandList.clear();
-}
+public:
+    //! Constructor.
+    IfMethod();
 
-bool Interpreter::Run()
-{
-    for (auto entry : _CommandList) {
-        if (entry.ObjectRef->GetType() != ScriptObjectType::Method) {
-            entry.Statement->Build(entry.ObjectRef.Ptr());
-            entry.ObjectRef->SetValue(entry.Statement->Evaluate());
-        } else {
-            entry.Statement->Build(entry.ObjectRef.Ptr());
-            // std::cout << "IF = " << entry.Statement->GetString()->CStr() << std::endl;
-            // entry.ObjectRef->Evaluate();
-        }
-    }
-    return true;
-}
+    //! Destructor.
+    ~IfMethod() override;
 
-void Interpreter::AddCommand(ScriptObject* objectRef, ScriptStatement* statement)
-{
-    InterpretCommandEntry entry;
-    entry.ObjectRef = objectRef;
-    entry.Statement = statement;
-    _CommandList.push_back(entry);
-}
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(const std::vector<Variant>& args) override;
+};
 
-void Interpreter::_SetReader(ScriptReader* reader)
-{
-    _Reader = reader;
-}
-
-void Interpreter::_Parse()
-{
-    if (!_Parser.IsValid()) {
-        _Parser = alloc_ref(ScriptParser);
-    }
-    _Parser->Parse(this);
-}
+sympl_nsend

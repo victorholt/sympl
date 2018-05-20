@@ -62,8 +62,7 @@ int main()
     // End thread testing.
 
     sympl_profile_start("script_interpreter");
-    // SharedRef<Interpreter> program = SymplVMInstance->LoadString("var x = 1; var y = 2; func foo(n) : int { var x = n; return x; } var z = foo(15 + foo(2) + 3) + foo(6); z = 3;");
-    SharedRef<Interpreter> program = SymplVMInstance->LoadString("var x = 1; var z = 3; func foo1(n) : int { return n; } func foo2() : int { return foo1(12 + foo1(12)); } z = foo2(); ");
+    SharedRef<Interpreter> program = SymplVMInstance->LoadFile("../../examples/scripts/hello.sym");
     sympl_profile_stop("script_interpreter");
     sympl_profile_print("script_interpreter");
 

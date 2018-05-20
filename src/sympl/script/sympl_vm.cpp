@@ -24,6 +24,7 @@
 #include <sympl/core/string_buffer.h>
 #include <sympl/script/sympl_vm.h>
 #include <sympl/script/interpreter.h>
+#include <sympl/script/methods/method_registry.h>
 #include <sympl/io/script_reader.h>
 
 #include <fmt/format.h>
@@ -45,7 +46,8 @@ SymplVM::~SymplVM()
 
 void SymplVM::Startup()
 {
-
+    _MethodRegistry = alloc_ref(MethodRegistry);
+    _MethodRegistry->_Initialize();
 }
 
 void SymplVM::Shutdown()
@@ -124,6 +126,27 @@ ScriptObject* SymplVM::CreateObject(const char* name, ScriptObject* parent)
     return CreateObject(name, ScriptObjectType::Object, parent);
 }
 
+bool SymplVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
+{
+    // Generate a path for the object.
+    // Ensure the object does not already
+    // exist in the VM!
+    std::string path = _BuildPath(scriptObject->GetName().c_str(), parent);
+    auto* searchObj = FindObject(path);
+    if (!searchObj->IsEmpty()) {
+        return (searchObj == scriptObject);
+    }
+
+    scriptObject->_Initialize(scriptObject->GetName().c_str(), path.c_str(), parent);
+    _ObjectMap[scriptObject->GetPath()] = scriptObject;
+
+    if (!IsNullObject(parent)) {
+        parent->_AddChild(scriptObject);
+    }
+
+    return true;
+}
+
 ScriptObject* SymplVM::FindObject(const std::string& path)
 {
     auto entryIt = _ObjectMap.find(path);
@@ -160,6 +183,11 @@ void SymplVM::RemoveObject(const std::string& path)
         parent->RemoveChild(scriptObject->GetName().c_str());
     }
     _ObjectMap.erase(scriptObject->GetPath());
+}
+
+MethodRegistry* SymplVM::GetMethodRegistry()
+{
+    return _MethodRegistry.Ptr();
 }
 
 std::string SymplVM::PrintObjects()

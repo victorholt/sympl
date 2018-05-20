@@ -167,7 +167,6 @@ std::string Variant::AsString()
             value = (GetBool() ? "true" : "false");
             break;
         case (int)VariantType::Int:
-        case (int)VariantType::UnsignedInt:
             value = fmt::format("{0}", GetInt());
             break;
         case (int)VariantType::Float:
@@ -196,8 +195,6 @@ std::string Variant::GetTypeAsString()
             return "bool";
         case (int)VariantType::Int:
             return "int";
-        case (int)VariantType::UnsignedInt:
-            return "unsigned int";
         case (int)VariantType::Float:
             return "float";
         case (int)VariantType::StringBuffer:

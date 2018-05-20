@@ -37,7 +37,6 @@ enum class VariantType : uint8_t
     Empty = 0,
     Bool,
     Int,
-    UnsignedInt,
     Float,
 
     StringBuffer,
@@ -51,8 +50,7 @@ enum class VariantType : uint8_t
 struct VariantValue {
     union {
         bool                BoolVal;
-        long                IntVal;
-        unsigned long       UnsignedIntVal;
+        long long           IntVal;
         float               FloatVal;
         void*               Ptr;
     };
@@ -192,7 +190,7 @@ public:
     //! \param value
     void Set(short value) {
         SetType(VariantType::Int);
-        _Value.IntVal = static_cast<long>(value);
+        _Value.IntVal = static_cast<long long>(value);
     }
 
     //! Returns the variant value.
@@ -207,8 +205,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(unsigned short value) {
-        SetType(VariantType::UnsignedInt);
-        _Value.UnsignedIntVal = static_cast<unsigned long>(value);
+        SetType(VariantType::Int);
+        _Value.IntVal = static_cast<long long>(value);
     }
 
     //! Returns the variant value.
@@ -224,7 +222,14 @@ public:
     //! \param value
     void Set(int value) {
         SetType(VariantType::Int);
-        _Value.IntVal = static_cast<long>(value);
+        _Value.IntVal = static_cast<long long>(value);
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(unsigned int value) {
+        SetType(VariantType::Int);
+        _Value.IntVal = static_cast<long long>(value);
     }
 
     //! Returns the variant value.
@@ -238,25 +243,9 @@ public:
 
     //! Sets the value for the variant.
     //! \param value
-    void Set(unsigned int value) {
-        SetType(VariantType::UnsignedInt);
-        _Value.UnsignedIntVal = static_cast<unsigned long>(value);
-    }
-
-    //! Returns the variant value.
-    //! \return int
-    unsigned long GetUnsignedInt() {
-        if (_Type != VariantType::UnsignedInt) {
-            return 0;
-        }
-        return _Value.UnsignedIntVal;
-    }
-
-    //! Sets the value for the variant.
-    //! \param value
     void Set(long value) {
         SetType(VariantType::Int);
-        _Value.IntVal = static_cast<long>(value);
+        _Value.IntVal = static_cast<long long>(value);
     }
 
     //! Returns the variant value.
@@ -271,8 +260,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(unsigned long value) {
-        SetType(VariantType::UnsignedInt);
-        _Value.UnsignedIntVal = static_cast<unsigned long>(value);
+        SetType(VariantType::Int);
+        _Value.IntVal = static_cast<long long>(value);
     }
 
     //! Returns the variant value.

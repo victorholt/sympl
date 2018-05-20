@@ -33,6 +33,7 @@
 sympl_nsstart
 
 class Interpreter;
+class MethodRegistry;
 
 class SYMPL_API SymplVM : public Object
 {
@@ -41,6 +42,9 @@ class SYMPL_API SymplVM : public Object
 private:
     /// Instance for the vm.
     static SymplVM* _Instance;
+
+    /// Reference to the method registry.
+    SharedRef<MethodRegistry> _MethodRegistry;
 
     /// Map of all objects in the vm.
     std::unordered_map<std::string, SharedRef<ScriptObject>> _ObjectMap;
@@ -100,6 +104,12 @@ public:
     //! \return
     ScriptObject* CreateObject(const char* name, ScriptObject* parent = nullptr);
 
+    //! Adds an object to the VM.
+    //! \param scriptObject
+    //! \param parent
+    //! \return bool
+    bool AddObject(ScriptObject* scriptObject, ScriptObject* parent = nullptr);
+
     //! Attempts to find an object.
     //! \param path
     //! \return ScriptObject
@@ -114,6 +124,10 @@ public:
     //! Remove object from the object map.
     //! \param path.
     void RemoveObject(const std::string& path);
+
+    //! Returns the method registry.
+    //! \return SharedPtr<MethodRegistry>
+    MethodRegistry* GetMethodRegistry();
 
     //! Returns a string representing objects in the vm.
     //! \return string

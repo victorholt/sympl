@@ -21,37 +21,45 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
+#include <sympl/script/methods/method_registry.h>
+#include <sympl/script/methods/if_method.h>
 
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
-#include <sympl/core/shared_ref.h>
+#include <sympl/script/sympl_vm.h>
+sympl_namespaces
 
-sympl_nsstart
-
-enum class KeywordType : uint8_t
+MethodRegistry::MethodRegistry()
 {
-    System = 0,
-    Custom
-};
 
-class SYMPL_API KeywordHandle : public Object
+}
+
+MethodRegistry::~MethodRegistry()
 {
-    SYMPL_OBJECT(KeywordHandle, Object);
+    _Methods.clear();
+}
 
-private:
-    /// Keyword name.
-    std::string _Name;
+void MethodRegistry::_Initialize()
+{
+    auto ifMethod = alloc_ref(IfMethod);
+    SymplVMInstance->AddObject(ifMethod);
+    AddMethod(ifMethod);
+}
 
-    /// Keyword type.
-    KeywordType _Type;
+void MethodRegistry::AddMethod(ScriptObject* method)
+{
+    _Methods[method->GetName()] = to_method(method);
+}
 
-public:
-    //! Constructor.
-    KeywordHandle(const char* name, KeywordType type);
+ScriptObject* MethodRegistry::FindMethod(const char* name)
+{
+    auto methodIt = _Methods.find(name);
+    if (methodIt != _Methods.end()) {
+        return methodIt->second.Ptr();
+    }
+    return &ScriptObject::Empty;
+}
 
-    //! Destructor.
-    virtual ~KeywordHandle();
-};
-
-sympl_nsend
+bool MethodRegistry::TryFindMethod(const char* name, ScriptObject*& method)
+{
+    method = FindMethod(name);
+    return (!method->IsEmpty());
+}
