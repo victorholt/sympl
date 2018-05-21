@@ -83,12 +83,15 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
         // Build a statement from the string within the parameters
         if (!recording && currentChar == '(') {
             // Determine if the current statement buffer is an existing method.
-            auto existingMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
-
-            if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                _ResolveMethod(varObject, statementStr, currentOp);
+            if (varObject->GetType() == ScriptObjectType::Method) {
+                _StatementBuffer->Append(_ResolveMethod(varObject, statementStr, currentOp).AsString());
             } else {
-                _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
+                auto existingObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+                if (!existingObject->IsEmpty() && existingObject->GetType() == ScriptObjectType::Method) {
+                    _StatementBuffer->Append(_ResolveMethod(existingObject, statementStr, currentOp).AsString());
+                } else {
+                    _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
+                }
             }
             continue;
         }
@@ -197,8 +200,6 @@ Variant ScriptStatement::Evaluate()
         return Variant::Empty;
     }
 
-    // std::cout << fmt::format("Num Entries: {0}", _Entries.size()) << std::endl;
-
     // Evaluate if we only have a single entry.
     if (_Entries.size() == 1) {
         auto entry = _Entries[0];
@@ -294,7 +295,7 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
     Variant retValue;
 
     // Saved our current statement and then clear the buffer.
-    auto savedStatementStr = _StatementBuffer->CStr();
+    std::string savedStatementStr = _StatementBuffer->CStr();
     _StatementBuffer->Clear();
 
     // Build out the argument statements.
@@ -304,27 +305,25 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
         nextChar = statementStr->Get(_CurrentCharLocation + 1);
         _CurrentCharLocation++;
 
+        if (currentChar == '"') {
+            _StatementBuffer->Append("@@STRING:");
+            recording = !recording;
+        }
+
         // Resolve another contained value.
-        if (currentChar == '(') {
+        if (!recording && currentChar == '(') {
             // Determine if the current statement buffer is an existing method.
-            // auto existingMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
-            // if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-            //     _ResolveMethod(varObject, statementStr, op);
-            // } else {
-            //     _ResolveParenth(varObject, statementStr, op);
-            // }
-
-            // auto savedStatementStr = _StatementBuffer->CStr();
-            // auto parenthValue = _ResolveParenth(varObject, statementStr, op).AsString();
-            // _StatementBuffer->Append(savedStatementStr);
-            // _StatementBuffer->Append(parenthValue);
-
-            _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, op).AsString());
+            auto existingMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+            if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                _StatementBuffer->Append(_ResolveMethod(existingMethod, statementStr, op).AsString());
+            } else {
+                _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, op).AsString());
+            }
             continue;
         }
 
         // Check if we're dealing with a double operator for concatenating comparisons.
-        if (_Symbol.IsOperator(currentChar) && _Symbol.IsOperator(nextChar)) {
+        if (!recording && _Symbol.IsOperator(currentChar) && _Symbol.IsOperator(nextChar)) {
             bool isConcatOperator = false;
 
             if ((currentChar == '&' && nextChar == '&') || (currentChar == '|' && nextChar == '|')) {
@@ -360,7 +359,7 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
         }
 
         // Build and evaluate the statement.
-        if (currentChar == ')') {
+        if (!recording && currentChar == ')') {
             // Check if we already have an argument value.
             if (retValue.IsEmpty()) {
                 retValue = GetEvalFromStatementBuffer(varObject);
@@ -374,6 +373,8 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
                 }
             }
 
+            _StatementBuffer->Replace("@@STRING:", "");
+
             // Restore the statement buffer.
             _StatementBuffer->Clear();
             _StatementBuffer->Append(savedStatementStr);
@@ -382,16 +383,14 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
             return retValue;
         }
 
-        if (currentChar != ',') {
-            _StatementBuffer->AppendByte(currentChar);
-        }
+        _StatementBuffer->AppendByte(currentChar);
     }
 
     // We failed to exit the while loop early!
     assert(false && "Unclosed parenthesis in statement found!");
 }
 
-void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
+Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
 {
     // Parse out the object value.
     char currentChar = '\0';
@@ -399,18 +398,9 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
     char nextChar = '\0';
     bool recording = false;
 
-    // Assuming an evaluation is false, we can skip to the next arg.
-    bool failedANDConcat = false;
-    bool failedORConcat = false;
-
     // Current/last concatenating condition.
     std::string currentConcatConditionStr = "";
     std::string lastConcatConditionStr = "";
-
-    // While moving through the statement if we come across
-    // a method within the method we need to mark it as a new
-    // scope level.
-    unsigned scopeLevel = 0;
 
     // Save args in the variant.
     std::vector<Variant> args;
@@ -423,11 +413,17 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
     if (varObject->GetType() != ScriptObjectType::Method) {
         scriptObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
     }
-    _StatementBuffer->Clear();
 
     if (IsNullObject(scriptObject) || scriptObject->IsEmpty() || scriptObject->GetType() != ScriptObjectType::Method) {
-        return;
+        return Variant::Empty;
     }
+
+    // Remove the name of the method so it's not part of the statement value.
+    _StatementBuffer->Replace(scriptObject->GetName().c_str(), "");
+
+    // Saved our current statement and then clear the buffer.
+    std::string savedStatementStr = _StatementBuffer->CStr();
+    _StatementBuffer->Clear();
 
     // Build out the argument statements.
     while (_CurrentCharLocation < statementStr->Length()) {
@@ -436,14 +432,24 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
         nextChar = statementStr->Get(_CurrentCharLocation + 1);
         _CurrentCharLocation++;
 
-        // Increase our scope level as we're attempting
-        // to call another method.
-        if (currentChar == '(') {
-            scopeLevel++;
+        if (currentChar == '"') {
+            _StatementBuffer->Append("@@STRING:");
+            recording = !recording;
+        }
+
+        if (!recording && currentChar == '(') {
+            // Determine if the current statement buffer is an existing method.
+            auto existingMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+            if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                _StatementBuffer->Append(_ResolveMethod(existingMethod, statementStr, op).AsString());
+            } else {
+                _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, op).AsString());
+            }
+            continue;
         }
 
         // Check if we're dealing with a double operator for concatenating comparisons.
-        if (_Symbol.IsOperator(currentChar) && _Symbol.IsOperator(nextChar)) {
+        if (!recording && _Symbol.IsOperator(currentChar) && _Symbol.IsOperator(nextChar)) {
             bool isConcatOperator = false;
 
             if ((currentChar == '&' && nextChar == '&') || (currentChar == '|' && nextChar == '|')) {
@@ -479,7 +485,7 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
         }
 
         // Build and evaluate the statement.
-        if (currentChar == ',' || (currentChar == ')' && scopeLevel == 0)) {
+        if (!recording && currentChar == ',' || (currentChar == ')')) {
             // Check if we already have an argument value.
             if (argValue.IsEmpty()) {
                 argValue = GetEvalFromStatementBuffer(scriptObject);
@@ -503,18 +509,14 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
 
             // We've completed building out the arguments.
             if (currentChar == ')') {
-                Variant value = to_method(scriptObject)->Evaluate(args);
-                Add(value, op);
-                return;
+                // Restore the statement buffer.
+                _StatementBuffer->Clear();
+                _StatementBuffer->Append(savedStatementStr);
+                return to_method(scriptObject)->Evaluate(args);
             }
         }
 
-        // Decrease our scope level as we exit a method call.
-        if (currentChar == ')') {
-            scopeLevel--;
-        }
-
-        if (currentChar != ',') {
+        if (recording || (!recording && currentChar != ',')) {
             _StatementBuffer->AppendByte(currentChar);
         }
     }

@@ -154,6 +154,67 @@ void StringBuffer::Resize(size_t newCapacity)
     _Capacity = newCapacity;
 }
 
+void StringBuffer::Replace(const char8 *search, const char8 *replaceWith)
+{
+    long long capacity = _Capacity;
+    size_t strLen = strlen(search);
+    if (strLen > _Length) {
+        return;
+    }
+
+    char8* findBuffer = new char8[strLen + 1];
+    memset(findBuffer, 0, strLen + 1);
+
+    char8* tmpStr = new char8[capacity];
+    memset(tmpStr, 0, capacity);
+
+    long long tmpBufferIndex = 0;
+    long long currentFindBufferIndex = strLen;
+
+    for (size_t i = 0; i < _Length; i++) {
+        tmpStr[tmpBufferIndex++] = Get(i);
+
+        // Ensure we've copied over enough character to check the sequence.
+        if (i < (strLen - 1)) {
+            findBuffer[i] = Get(i);
+            continue;
+        }
+
+        // Shift the characters to the right.
+        for (size_t j = 0; j < strLen - 1; j++) {
+            findBuffer[j] = Get((i - (strLen - 1)) + j);
+        }
+        findBuffer[strLen - 1] = Get(i);
+
+        // Compare the current sequence of strings.
+        if (strcmp(findBuffer, search) == 0) {
+            size_t replaceIndex = (tmpBufferIndex - strLen);
+            tmpBufferIndex = replaceIndex + strlen(replaceWith);
+
+            // Check if we need to resize the buffer.
+            if ((capacity - tmpBufferIndex) < 0) {
+                capacity += (tmpBufferIndex * 2) + (capacity * 2);
+
+                char8* newBuffer = new char8[capacity];
+                memset(newBuffer, 0, capacity);
+                memcpy(newBuffer, tmpStr, strlen(tmpStr) + 1);
+
+                delete [] tmpStr;
+                tmpStr = newBuffer;
+            }
+
+            memset(tmpStr + replaceIndex, 0, capacity - replaceIndex);
+            memcpy(tmpStr + replaceIndex, replaceWith, strlen(replaceWith));
+        }
+    }
+
+    Clear();
+    Append(tmpStr);
+
+    delete [] tmpStr;
+    delete [] findBuffer;
+}
+
 void StringBuffer::Clear()
 {
     if (_Length == 0) return;

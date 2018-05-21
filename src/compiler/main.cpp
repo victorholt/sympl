@@ -69,11 +69,11 @@ int main()
     program->Run();
     program.Release();
 
-    cout << SymplVMInstance->PrintObjects() << endl;
+    // cout << SymplVMInstance->PrintObjects() << endl;
 
     // auto xVar = SymplVMInstance->FindObject(".x");
     // auto yVar = SymplVMInstance->FindObject(".y");
-    auto zVar = SymplVMInstance->FindObject(".z");
+    // auto zVar = SymplVMInstance->FindObject(".z");
     // auto argVar = SymplVMInstance->FindObject(".foo.args.n");
 
     // if (!xVar->IsEmpty()) {
@@ -86,10 +86,10 @@ int main()
     //     cout << ".y value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
     // }
 
-    if (!IsNullObject(zVar)) {
-        Variant value = zVar->GetValue();
-        cout << ".z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
-    }
+    // if (!IsNullObject(zVar)) {
+    //     Variant value = zVar->GetValue();
+    //     cout << ".z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    // }
 
     // if (!IsNullObject(argVar)) {
     //     cout << ".foo.args.n is " << argVar->Print() << endl;

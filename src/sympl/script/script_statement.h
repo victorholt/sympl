@@ -111,7 +111,7 @@ private:
     //! \param varObject
     //! \param statementStr
     //! \param op
-    void _ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op);
+    Variant _ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op);
 
     //! Returns an evaluation from the current statement buffer.
     //! \param scriptObject

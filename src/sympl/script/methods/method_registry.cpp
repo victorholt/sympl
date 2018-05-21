@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/methods/method_registry.h>
 #include <sympl/script/methods/if_method.h>
+#include <sympl/script/methods/print_method.h>
 
 #include <sympl/script/sympl_vm.h>
 sympl_namespaces
@@ -39,9 +40,15 @@ MethodRegistry::~MethodRegistry()
 
 void MethodRegistry::_Initialize()
 {
+    // Add the if method.
     auto ifMethod = alloc_ref(IfMethod);
     SymplVMInstance->AddObject(ifMethod);
     AddMethod(ifMethod);
+
+    // Add the print method.
+    auto printMethod = alloc_ref(PrintMethod);
+    SymplVMInstance->AddObject(printMethod);
+    AddMethod(printMethod);
 }
 
 void MethodRegistry::AddMethod(ScriptObject* method)

@@ -1,16 +1,38 @@
 // Example of a hello world program that will run
 // in a console environment.
 
-var z = ((8 + 2) - 7);
-
 func add(a, b) : int {
     return a + b;
 }
 
-/*
-var z = add(1, 3);
+var z = (add(1, 1) + (8 - 1) +  7) == 16; // Should return true.
 
-if (z != 2 && x == 2 || z > 2 && x == 1) {
-    z = add(12, 12);
+if (z) {
+    // Print out the 'z' value
+    print(z);
 }
-*/
+
+// Testing strings.
+var str1 = "Michael";
+var str2 = "Victor";
+if (str1 != str2) {
+    print("These are not equal strings!");
+
+    if (str1 == str1) {
+        print("These strings are equal however!");
+    }
+}
+
+//func fib(n) : int {
+//    if (n < 5) {
+//        n = n + 1;
+//        return fib(n);
+//    }
+//    return n + 1;
+//}
+
+//var x = fib(1);
+//print(x);
+
+
+// EOF;

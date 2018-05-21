@@ -77,12 +77,16 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
     _CharLocation = 0;
 
     // Ensure we can end on a ; delimeter.
-    if (_Reader->GetBuffer()->LastByte() != ';') {
-        _Reader->GetBuffer()->AppendByte(';');
-    }
+    //if (_Reader->GetBuffer()->LastByte() != ';') {
+    //    _Reader->GetBuffer()->AppendByte(';');
+    //}
+
+    // Add an EOF var at the end. Dirty hack to figure out
+    // that we're really at the end.
+    _Reader->GetBuffer()->Append("#var#____EOF____#;");
 
     // Go through the buffer and parse out the script.
-    while (_CharLocation < _Reader->GetBuffer()->Length() - 1) {
+    while (_CharLocation < _Reader->GetBuffer()->Length()) {
         previousChar = currentChar;
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
         nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
@@ -140,10 +144,21 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
             _CloseScope();
 
             // Check if this is an immediate method.
-            if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
-                SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
-                stat->SetString(to_method(_CurrentObject.Ptr())->GetArgString());
-                _Interpreter->AddCommand(_CurrentObject.Ptr(), stat.Ptr());
+            if (!_CurrentScopeObject.IsValid()) {
+                if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
+                    SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+                    stat->SetString(to_method(_CurrentObject.Ptr())->GetArgString());
+                    _Interpreter->AddCommand(_CurrentObject.Ptr(), stat.Ptr());
+                }
+            } else {
+                if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
+                    auto parent = _CurrentScopeObject->GetParent();
+                    if (parent->GetType() == ScriptObjectType::Method) {
+                        SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+                        stat->SetString(to_method(_CurrentObject.Ptr())->GetArgString());
+                        to_method(parent.Ptr())->AddStatement(_CurrentObject.Ptr(), stat.Ptr());
+                    }
+                }
             }
 
             bufferIndex = 0;
@@ -153,7 +168,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
         if (!_RecordingString && currentChar == '(') {
             // Discovering a new method definition.
-            if (_ScanMode == ParserScanMode::VarName) {
+            if (_ScanMode == ParserScanMode::Type || _ScanMode == ParserScanMode::VarName) {
                 bufferIndex = 0;
                 _UpdateScanMode();
                 continue;
@@ -346,13 +361,28 @@ void ScriptParser::_BuildMethodArgs()
 
 void ScriptParser::_UpdateObjectValue()
 {
-    // Determine how many variables are part of the statement.
+    // Create our statement.
     SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
-    stat->SetString(_CurrentValueBuffer);
 
     // Add to the interpreter's command list.
 
-     // Check to see if we're inside of a scope.
+    // Check if this is an immediate method.
+    if (!_CurrentScopeObject.IsValid()) {
+        if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
+            // We're setting the value buffer as this was a build-in method.
+            _CurrentValueBuffer->PrependByte('(');
+            stat->SetString(_CurrentValueBuffer);
+            _Interpreter->AddCommand(_CurrentObject.Ptr(), stat.Ptr());
+            return;
+        }
+    } else if (_CurrentScopeObject.IsValid()) {
+        if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
+            _CurrentValueBuffer->PrependByte('(');
+        }
+    }
+
+    // Check to see if we're inside of a scope.
+    stat->SetString(_CurrentValueBuffer);
     if (_CurrentScopeObject.IsValid()) {
         auto parent = _CurrentScopeObject->GetParent();
         if (parent->GetType() == ScriptObjectType::Method) {
@@ -395,6 +425,7 @@ void ScriptParser::_UpdateScanMode()
 
                 _BuildObject();
                 _ScanMode = ParserScanMode::Value;
+
                 return;
             }
 
@@ -420,7 +451,12 @@ void ScriptParser::_OpenScope()
 {
     // Check if we need to exit out of the argument building.
     auto scopeObject = _CurrentObject;
-    _CurrentScopeObject = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, scopeObject.Ptr());
+
+    _CurrentScopeObject = _CurrentObject->FindChildByName(".");
+    if (_CurrentScopeObject->IsEmpty()) {
+        _CurrentScopeObject = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, scopeObject.Ptr());
+    }
+
     _ScanMode = ParserScanMode::Type;
 }
 
@@ -432,6 +468,12 @@ void ScriptParser::_CloseScope()
     } else {
         _CurrentObject = _CurrentObject->GetParent();
     }
+
+    // Set the new scope.
+    if (_CurrentObject->GetParent().IsValid()) {
+        _CurrentScopeObject = _CurrentObject->GetParent();
+    }
+
     _ScanMode = ParserScanMode::Type;
 }
 

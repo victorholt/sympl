@@ -22,24 +22,26 @@
  *
  **********************************************************/
 #include <sympl/script/sympl_vm.h>
-#include <sympl/script/methods/if_method.h>
+#include <sympl/script/methods/print_method.h>
+
+#include <fmt/format.h>
 sympl_namespaces
 
-IfMethod::IfMethod()
+PrintMethod::PrintMethod()
 {
-    _Name = "if";
+    _Name = "print";
 
     // This method will be cloned and called immediately
     // when the Interpreter processes it.
     _IsImmediate = true;
 }
 
-IfMethod::~IfMethod()
+PrintMethod::~PrintMethod()
 {
 
 }
 
-void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
+void PrintMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
 {
     ScriptObject::_Initialize(name, path, parent);
 
@@ -49,22 +51,28 @@ void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* par
     AddArg(arg);
 }
 
-Variant IfMethod::Evaluate(const std::vector<Variant>& args)
+Variant PrintMethod::Evaluate(const std::vector<Variant>& args)
 {
     _CopyArgs(args);
     _ProcessArgStatements();
 
     Variant value = _Args[0]->GetValue();
 
-    // Process the statements.
-    if (value.GetType() == VariantType::Bool && value.GetBool()) {
-        _ProcessCallStatements();
+    // Remove the string token.
+    if (value.GetType() == VariantType::StringBuffer) {
+        value.GetStringBuffer()->Replace("@@STRING:", "");
+    }
+
+    if (value.GetType() == VariantType::ScriptObject) {
+        std::cout << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << std::endl;
+    } else {
+        std::cout << value.AsString() << std::endl;
     }
 }
 
-ScriptObject* IfMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
+ScriptObject* PrintMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
 {
-    ScriptObject* clone = alloc_ref(IfMethod);
+    ScriptObject* clone = alloc_ref(PrintMethod);
     clone->SetName(name);
     SymplVMInstance->AddObject(clone, parent);
     return clone;

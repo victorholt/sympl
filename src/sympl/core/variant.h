@@ -173,6 +173,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(bool value) {
+        Clear();
+
         SetType(VariantType::Bool);
         _Value.BoolVal = value;
     }
@@ -189,6 +191,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(short value) {
+        Clear();
+
         SetType(VariantType::Int);
         _Value.IntVal = static_cast<long long>(value);
     }
@@ -205,6 +209,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(unsigned short value) {
+        Clear();
+
         SetType(VariantType::Int);
         _Value.IntVal = static_cast<long long>(value);
     }
@@ -221,6 +227,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(int value) {
+        Clear();
+
         SetType(VariantType::Int);
         _Value.IntVal = static_cast<long long>(value);
     }
@@ -228,6 +236,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(unsigned int value) {
+        Clear();
+
         SetType(VariantType::Int);
         _Value.IntVal = static_cast<long long>(value);
     }
@@ -244,6 +254,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(long value) {
+        Clear();
+
         SetType(VariantType::Int);
         _Value.IntVal = static_cast<long long>(value);
     }
@@ -260,6 +272,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(unsigned long value) {
+        Clear();
+
         SetType(VariantType::Int);
         _Value.IntVal = static_cast<long long>(value);
     }
@@ -276,6 +290,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(float value) {
+        Clear();
+
         SetType(VariantType::Float);
         _Value.FloatVal = value;
     }
@@ -292,6 +308,8 @@ public:
     //! Sets the value for the variant.
     //! \param value
     void Set(double value) {
+        Clear();
+
         SetType(VariantType::Float);
         _Value.FloatVal = static_cast<float>(value);
     }

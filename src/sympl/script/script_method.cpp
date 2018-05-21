@@ -128,7 +128,9 @@ void ScriptMethod::_ProcessArgStatements()
 
             Variant argValue = argIt->GetValue();
             stat->Build(argIt.Ptr(), argValue.GetStringBuffer());
-            argIt->SetValue(stat.Ptr()->Evaluate());
+
+            argValue = stat.Ptr()->Evaluate();
+            argIt->SetValue(argValue);
         }
     }
 }

@@ -91,6 +91,11 @@ public:
     //! \param newCapacity
     void Resize(size_t newCapacity);
 
+    //! Replaces occurances in the string.
+    //! \param search
+    //! \param replaceWith
+    void Replace(const char8 *search, const char8 *replaceWith);
+
     //! Clears out the string buffer.
     void Clear();
 
@@ -133,7 +138,7 @@ public:
         if (_Length == 0) {
             return '\0';
         }
-        return reinterpret_cast<char8*>(_Buffer)[_Length];
+        return reinterpret_cast<char8*>(_Buffer)[_Length - 1];
     }
 
     //! Returns the char at a given location.

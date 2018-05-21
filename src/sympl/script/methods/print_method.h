@@ -21,51 +21,38 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include <sympl/script/sympl_vm.h>
-#include <sympl/script/methods/if_method.h>
-sympl_namespaces
+#pragma once
 
-IfMethod::IfMethod()
+#include <sympl/script/script_method.h>
+
+sympl_nsstart
+
+class SYMPL_API PrintMethod : public ScriptMethod
 {
-    _Name = "if";
+    SYMPL_OBJECT(PrintMethod, ScriptObject);
 
-    // This method will be cloned and called immediately
-    // when the Interpreter processes it.
-    _IsImmediate = true;
-}
+protected:
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
 
-IfMethod::~IfMethod()
-{
+    //! Handles cloning the object and adding it to the VM.
+    //! \param name
+    //! \param parent
+    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
 
-}
+public:
+    //! Constructor.
+    PrintMethod();
 
-void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
-{
-    ScriptObject::_Initialize(name, path, parent);
+    //! Destructor.
+    ~PrintMethod() override;
 
-    // Create the scope and the argument that the 'if' call takes.
-    auto scope = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, this);
-    auto arg = SymplVMInstance->CreateObject("__arg__", ScriptObjectType::Object, scope);
-    AddArg(arg);
-}
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(const std::vector<Variant>& args) override;
+};
 
-Variant IfMethod::Evaluate(const std::vector<Variant>& args)
-{
-    _CopyArgs(args);
-    _ProcessArgStatements();
-
-    Variant value = _Args[0]->GetValue();
-
-    // Process the statements.
-    if (value.GetType() == VariantType::Bool && value.GetBool()) {
-        _ProcessCallStatements();
-    }
-}
-
-ScriptObject* IfMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
-{
-    ScriptObject* clone = alloc_ref(IfMethod);
-    clone->SetName(name);
-    SymplVMInstance->AddObject(clone, parent);
-    return clone;
-}
+sympl_nsend
