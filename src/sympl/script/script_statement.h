@@ -43,6 +43,8 @@ enum class StatementOperator {
     Divide,
     Multiply,
     Mod,
+    IsEqual2,
+    NotIsEqual2,
     GreaterThan,
     LessThan,
     GreaterEqualThan,
@@ -98,13 +100,33 @@ private:
     //! Statement buffer for building out the statements.
     StringBuffer* _StatementBuffer;
 
+    //! Resolves statements within a parenthesis and returns a value.
+    //! \param varObject
+    //! \param statementStr
+    //! \param op
+    //! \return Variant
+    Variant _ResolveParenth(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op);
+
     //! Resolves a method in a given statement to a value.
+    //! \param varObject
+    //! \param statementStr
+    //! \param op
     void _ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op);
+
+    //! Returns an evaluation from the current statement buffer.
+    //! \param scriptObject
+    //! \return Variant
+    Variant GetEvalFromStatementBuffer(ScriptObject* scriptObject);
 
     //! Add a value operation to the statement.
     //! \param value
     //! \param op
     void _AddValueAndOperation(const std::string& value, StatementOperator op);
+
+    //! Determines if the current statement buffer is true.
+    //! \param scriptObject
+    //! \return bool
+    bool IsStatementBufferTrue(ScriptObject* scriptObject);
 
     //! Applies the entry to the current value.
     //! \param entry

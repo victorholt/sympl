@@ -342,8 +342,12 @@ public:
     std::string GetTypeAsString();
 
     //! Returns the variant type.
-    //! \return
+    //! \return VariantType
     inline VariantType GetType() const { return _Type; }
+
+    //! Returns whether or not the variant is empty.
+    //! \return bool
+    inline bool IsEmpty() const { return _Type == VariantType::Empty; }
 
     //////////////////////////////////////////////////////////
     // Operator Overlading

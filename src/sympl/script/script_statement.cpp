@@ -82,7 +82,14 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
         // Determine if we're calling a method and attempt to resolve it.
         // Build a statement from the string within the parameters
         if (!recording && currentChar == '(') {
-            _ResolveMethod(varObject, statementStr, currentOp);
+            // Determine if the current statement buffer is an existing method.
+            auto existingMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+
+            if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                _ResolveMethod(varObject, statementStr, currentOp);
+            } else {
+                _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
+            }
             continue;
         }
 
@@ -97,6 +104,12 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
 
             // Check/save the operator.
             if (_Symbol.IsOperator(currentStr)) {
+                // Check if we're a double operator.
+                if (_Symbol.IsOperator(nextChar)) {
+                    currentStr.append(1, nextChar);
+                    _CurrentCharLocation++;
+                }
+
                 currentOp = _SymbolToOp(currentStr);
                 _StatementBuffer->Clear();
                 continue;
@@ -265,6 +278,119 @@ StatementType ScriptStatement::_FindType(const Variant& value)
     return StatementType::Object;
 }
 
+Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
+{
+    // Parse out the object value.
+    char currentChar = '\0';
+    char previousChar = '\0';
+    char nextChar = '\0';
+    bool recording = false;
+
+    // Current/last concatenating condition.
+    std::string currentConcatConditionStr = "";
+    std::string lastConcatConditionStr = "";
+
+    // Current return value.
+    Variant retValue;
+
+    // Saved our current statement and then clear the buffer.
+    auto savedStatementStr = _StatementBuffer->CStr();
+    _StatementBuffer->Clear();
+
+    // Build out the argument statements.
+    while (_CurrentCharLocation < statementStr->Length()) {
+        previousChar = currentChar;
+        currentChar = statementStr->Get(_CurrentCharLocation);
+        nextChar = statementStr->Get(_CurrentCharLocation + 1);
+        _CurrentCharLocation++;
+
+        // Resolve another contained value.
+        if (currentChar == '(') {
+            // Determine if the current statement buffer is an existing method.
+            // auto existingMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+            // if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+            //     _ResolveMethod(varObject, statementStr, op);
+            // } else {
+            //     _ResolveParenth(varObject, statementStr, op);
+            // }
+
+            // auto savedStatementStr = _StatementBuffer->CStr();
+            // auto parenthValue = _ResolveParenth(varObject, statementStr, op).AsString();
+            // _StatementBuffer->Append(savedStatementStr);
+            // _StatementBuffer->Append(parenthValue);
+
+            _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, op).AsString());
+            continue;
+        }
+
+        // Check if we're dealing with a double operator for concatenating comparisons.
+        if (_Symbol.IsOperator(currentChar) && _Symbol.IsOperator(nextChar)) {
+            bool isConcatOperator = false;
+
+            if ((currentChar == '&' && nextChar == '&') || (currentChar == '|' && nextChar == '|')) {
+                isConcatOperator = true;
+                currentConcatConditionStr.clear();
+                currentConcatConditionStr.append(1, currentChar);
+                currentConcatConditionStr.append(1, nextChar);
+
+                // If this is the first time encountering the concat condition,
+                // then evaluate the current argument and move on to the next
+                // iteration.
+                if (lastConcatConditionStr.size() == 0) {
+                    retValue = IsStatementBufferTrue(varObject);
+                    lastConcatConditionStr = currentConcatConditionStr;
+                    continue;
+                }
+            }
+
+            // Check if we need to ensure that the entire statement is true.
+            if (isConcatOperator) {
+                if (lastConcatConditionStr == "&&" && retValue.GetBool()) {
+                    retValue = IsStatementBufferTrue(varObject);
+                    if (!retValue.GetBool()) {
+                        retValue = false;
+                    }
+                } else if (lastConcatConditionStr == "||" && !retValue.GetBool()) {
+                    retValue = IsStatementBufferTrue(varObject);
+                }
+                lastConcatConditionStr = currentConcatConditionStr;
+                _CurrentCharLocation++;
+                continue;
+            }
+        }
+
+        // Build and evaluate the statement.
+        if (currentChar == ')') {
+            // Check if we already have an argument value.
+            if (retValue.IsEmpty()) {
+                retValue = GetEvalFromStatementBuffer(varObject);
+            } else if (currentConcatConditionStr == "&&") {
+                if (retValue.GetType() != VariantType::Bool || retValue.GetBool()) {
+                    retValue = GetEvalFromStatementBuffer(varObject);
+                }
+            } else if (currentConcatConditionStr == "||") {
+                if (retValue.GetType() != VariantType::Bool || !retValue.GetBool()) {
+                    retValue = GetEvalFromStatementBuffer(varObject);
+                }
+            }
+
+            // Restore the statement buffer.
+            _StatementBuffer->Clear();
+            _StatementBuffer->Append(savedStatementStr);
+
+            // Return our value.
+            return retValue;
+        }
+
+        if (currentChar != ',') {
+            _StatementBuffer->AppendByte(currentChar);
+        }
+    }
+
+    // We failed to exit the while loop early!
+    assert(false && "Unclosed parenthesis in statement found!");
+}
+
 void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
 {
     // Parse out the object value.
@@ -273,6 +399,14 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
     char nextChar = '\0';
     bool recording = false;
 
+    // Assuming an evaluation is false, we can skip to the next arg.
+    bool failedANDConcat = false;
+    bool failedORConcat = false;
+
+    // Current/last concatenating condition.
+    std::string currentConcatConditionStr = "";
+    std::string lastConcatConditionStr = "";
+
     // While moving through the statement if we come across
     // a method within the method we need to mark it as a new
     // scope level.
@@ -280,6 +414,9 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
 
     // Save args in the variant.
     std::vector<Variant> args;
+
+    // Current argument value.
+    Variant argValue;
 
     // Check if this is really a valid object.
     ScriptObject* scriptObject = varObject;
@@ -305,23 +442,69 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
             scopeLevel++;
         }
 
+        // Check if we're dealing with a double operator for concatenating comparisons.
+        if (_Symbol.IsOperator(currentChar) && _Symbol.IsOperator(nextChar)) {
+            bool isConcatOperator = false;
+
+            if ((currentChar == '&' && nextChar == '&') || (currentChar == '|' && nextChar == '|')) {
+                isConcatOperator = true;
+                currentConcatConditionStr.clear();
+                currentConcatConditionStr.append(1, currentChar);
+                currentConcatConditionStr.append(1, nextChar);
+
+                // If this is the first time encountering the concat condition,
+                // then evaluate the current argument and move on to the next
+                // iteration.
+                if (lastConcatConditionStr.size() == 0) {
+                    argValue = IsStatementBufferTrue(scriptObject);
+                    lastConcatConditionStr = currentConcatConditionStr;
+                    continue;
+                }
+            }
+
+            // Check if we need to ensure that the entire statement is true.
+            if (isConcatOperator) {
+                if (lastConcatConditionStr == "&&" && argValue.GetBool()) {
+                    argValue = IsStatementBufferTrue(scriptObject);
+                    if (!argValue.GetBool()) {
+                        argValue = false;
+                    }
+                } else if (lastConcatConditionStr == "||" && !argValue.GetBool()) {
+                    argValue = IsStatementBufferTrue(scriptObject);
+                }
+                lastConcatConditionStr = currentConcatConditionStr;
+                _CurrentCharLocation++;
+                continue;
+            }
+        }
+
         // Build and evaluate the statement.
         if (currentChar == ',' || (currentChar == ')' && scopeLevel == 0)) {
-            // Create the statement and set the string.
-            SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
-            stat->SetString(_StatementBuffer);
+            // Check if we already have an argument value.
+            if (argValue.IsEmpty()) {
+                argValue = GetEvalFromStatementBuffer(scriptObject);
+                args.push_back(argValue);
+            } else if (currentConcatConditionStr == "&&") {
+                if (argValue.GetType() != VariantType::Bool || argValue.GetBool()) {
+                    argValue = GetEvalFromStatementBuffer(scriptObject);
+                }
+                args.push_back(argValue);
+            } else if (currentConcatConditionStr == "||") {
+                if (argValue.GetType() != VariantType::Bool || !argValue.GetBool()) {
+                    argValue = GetEvalFromStatementBuffer(scriptObject);
+                }
+                args.push_back(argValue);
+            }
 
-            // Build the statement.
-            stat->Build(scriptObject);
-            args.push_back(stat->Evaluate());
-
+            argValue = Variant::Empty;
+            currentConcatConditionStr = "";
+            lastConcatConditionStr = "";
             _StatementBuffer->Clear();
 
             // We've completed building out the arguments.
             if (currentChar == ')') {
                 Variant value = to_method(scriptObject)->Evaluate(args);
                 Add(value, op);
-
                 return;
             }
         }
@@ -338,6 +521,18 @@ void ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* stat
 
     // We failed to exit the while loop early!
     assert(false && "Unclosed call to method!");
+}
+
+Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)
+{
+    // Create the statement and set the string.
+    SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+    stat->SetString(_StatementBuffer);
+    _StatementBuffer->Clear();
+
+    // Build the statement.
+    stat->Build(scriptObject);
+    return stat->Evaluate();
 }
 
 void ScriptStatement::_AddValueAndOperation(const std::string& value, StatementOperator op)
@@ -364,6 +559,23 @@ void ScriptStatement::_AddValueAndOperation(const std::string& value, StatementO
             Add(strVal, op);
         }
     }
+}
+
+bool ScriptStatement::IsStatementBufferTrue(ScriptObject* scriptObject)
+{
+    Variant evalValue = GetEvalFromStatementBuffer(scriptObject);
+    if (evalValue.GetType() == VariantType::Int && evalValue.GetInt() != 0) {
+        return true;
+    } else if (evalValue.GetType() == VariantType::Float && evalValue.GetFloat() != 0.0f) {
+        return true;
+    } else if (evalValue.GetType() == VariantType::StringBuffer && evalValue.GetStringBuffer()->Length() > 0) {
+        return true;
+    } else if (evalValue.GetType() == VariantType::Bool && evalValue.GetBool()) {
+        return true;
+    } else if (evalValue.GetType() == VariantType::ScriptObject && !evalValue.GetScriptObject()->IsEmpty()) {
+        return true;
+    }
+    return false;
 }
 
 void ScriptStatement::_Apply(StatementObjectEntry* entry, Variant& value)
@@ -444,6 +656,24 @@ void ScriptStatement::_Apply(StatementObjectEntry* entry, Variant& value)
                 value.Set(value.GetFloat() <= evalValue.GetFloat());
             }
             break;
+        case (int)StatementOperator::IsEqual2:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() == evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() == evalValue.GetFloat());
+            } else if (_Type == StatementType::String) {
+                value.Set(value.GetStringBuffer()->Equals(evalValue.GetStringBuffer()));
+            }
+            break;
+        case (int)StatementOperator::NotIsEqual2:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() != evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() != evalValue.GetFloat());
+            } else if (_Type == StatementType::String) {
+                value.Set(!value.GetStringBuffer()->Equals(evalValue.GetStringBuffer()));
+            }
+            break;
     }
 }
 
@@ -502,6 +732,12 @@ StatementOperator ScriptStatement::_SymbolToOp(const std::string& symbol)
     }
     if (symbol == "<=") {
         return StatementOperator::LessEqualThan;
+    }
+    if (symbol == "==") {
+        return StatementOperator::IsEqual2;
+    }
+    if (symbol == "!=") {
+        return StatementOperator::NotIsEqual2;
     }
 
     return StatementOperator::None;
