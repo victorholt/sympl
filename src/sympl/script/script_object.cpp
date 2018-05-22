@@ -38,6 +38,8 @@ ScriptObject::ScriptObject()
     _Path = "";
     _Parent = nullptr;
     _Type = ScriptObjectType::Empty;
+    _Context = alloc_ref(ScriptContext);
+    _Context->SetOwner(this);
 }
 
 ScriptObject::~ScriptObject()
@@ -89,12 +91,17 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     ScriptObject* clone = _OnCloneCreateObject(name, parent);
     clone->SetValue(_Value);
 
+    auto context = (IsNullObject(parent) || parent->IsEmpty()) ? GetContext() : parent->GetContext();
+    clone->GetContext()->SetCaller(context->GetCaller());
+    clone->GetContext()->SetCurrentScope(context->GetCurrentScope());
+
     // Clone the children!
     for (auto entryIt : _Children) {
         // Don't try to clone the clone!
         if (entryIt.second == clone) {
             continue;
         }
+
         clone->_AddChild(entryIt.second->Clone(clone, false));
     }
 

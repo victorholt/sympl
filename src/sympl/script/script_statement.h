@@ -32,6 +32,7 @@
 #include <sympl/io/script_symbol.h>
 
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_context.h>
 
 sympl_nsstart
 
@@ -82,6 +83,9 @@ private:
 
     /// Representation of the statement as a string.
     SharedRef<StringBuffer> _String;
+
+    /// Reference to the script context.
+    WeakRef<ScriptContext> _ScriptContext;
 
     /// Symbol token checker.
     ScriptSymbol _Symbol;
@@ -193,6 +197,10 @@ public:
     //! Returns the type for this statement.
     //! \return StatementType
     inline StatementType GetType() const { return _Type; }
+
+    //! Sets the script context.
+    //! \param context
+    inline void SetScriptContext(ScriptContext* context) { _ScriptContext = context; }
 
     //! Returns the type as a string
     //! \return string

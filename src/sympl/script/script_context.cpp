@@ -22,14 +22,47 @@
  *
  **********************************************************/
 #include <sympl/script/script_context.h>
+#include <sympl/script/script_object.h>
 sympl_namespaces
 
 ScriptContext::ScriptContext()
 {
-
+    _Owner = &ScriptObject::Empty;
+    _CurrentScope = &ScriptObject::Empty;
+    _Caller = &ScriptObject::Empty;
 }
 
 ScriptContext::~ScriptContext()
 {
 
+}
+
+void ScriptContext::SetOwner(ScriptObject* owner)
+{
+    _Owner = owner;
+}
+
+ScriptObject* ScriptContext::GetOwner() const
+{
+    return _Owner.Ptr();
+}
+
+void ScriptContext::SetCurrentScope(ScriptObject* scopeObject)
+{
+    _CurrentScope = scopeObject;
+}
+
+ScriptObject* ScriptContext::GetCurrentScope() const
+{
+    return _CurrentScope.Ptr();
+}
+
+void ScriptContext::SetCaller(ScriptObject* caller)
+{
+    _Caller = caller;
+}
+
+ScriptObject* ScriptContext::GetCaller() const
+{
+    return _Caller.Ptr();
 }

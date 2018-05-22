@@ -48,15 +48,20 @@ ScriptMethod::~ScriptMethod()
 
 Variant ScriptMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
 {
-    // if (!caller->IsEmpty()) {
-    //     std::cout << GetName() << " CALLED BY " << caller->GetName() << std::endl;
-    // }
+    if (!IsNullObject(caller) && !caller->IsEmpty()) {
+        std::cout << GetName() << " CALLED BY " << caller->GetName() << std::endl;
+    }
     // for (auto entryIt : _CallStatements) {
     //     entryIt->Variable->SetValue(entryIt->Statement.Ptr());
     // }
 
+    SetCaller(caller);
+    _CopyArgs(args);
+    _ProcessArgStatements();
+    _ProcessCallStatements();
+
     // Clone the method to avoid reference issues.
-    auto clone = Clone(this, true);
+    /*auto clone = Clone(this, true);
     clone->SetCaller(caller);
 
     assert((!clone->IsEmpty()) && "Unable to evaluate method!");
@@ -76,7 +81,7 @@ Variant ScriptMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* c
     _Value = to_method(clone)->GetReturnValue();
 
     // Clean up our clone.
-    SymplVMInstance->RemoveObject(clone->GetPath());
+    SymplVMInstance->RemoveObject(clone->GetPath());*/
 
     return _Value;
 }
@@ -97,13 +102,14 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
         }
 
         Variant argValue = args[argIndex];
-        auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str());
-        assert(!argObj->IsEmpty() && "Invalid argument given for method");
 
-        // if (!_IsImmediate && _Caller.IsValid()) {
-        //     auto v = _Caller->TraverseUpFindChildByName(argIt->GetName().c_str())->GetValue();
-        //     std::cout << "COPY ARG: " << argIt->GetPath() << " = " << v.AsString() << std::endl;
-        // }
+        if (!to_method(GetScopeParent())->IsImmediate()) {
+            std::cout << "COPY ARG " << argIt->GetName() << " FROM SCOPE: " << GetScope()->GetPath() << std::endl;
+        }
+
+        auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str());
+        if (argObj->IsEmpty()) continue;
+        // assert(!argObj->IsEmpty() && "Invalid argument given for method");
 
         argObj->SetValue(args[argIndex]);
 
@@ -146,6 +152,7 @@ void ScriptMethod::_ProcessCallStatements()
             return;
         }
 
+        entryIt->Statement->SetScriptContext(GetContext());
         entryIt->Statement->Build(entryIt->Variable.Ptr());
 
         _Value = entryIt->Statement->Evaluate();
@@ -213,8 +220,10 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 
     // Add the statements.
     for (auto entryIt : _CallStatements) {
-        auto callObj = to_method(clone)->GetScope()->FindChildByName(entryIt->Variable->GetName().c_str());
+        auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str());
         if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
+            // auto stmt = alloc_ref(ScriptStatement);
+            // stmt->SetString(entryIt->Statement->GetString());
             to_method(clone)->AddStatement(callObj, entryIt->Statement->Clone(to_method(clone)->GetScope()));
         }
     }

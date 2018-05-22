@@ -29,6 +29,7 @@
 #include <sympl/core/shared_ref.h>
 #include <sympl/core/weak_ref.h>
 #include <sympl/script/script_common.h>
+#include <sympl/script/script_context.h>
 
 sympl_nsstart
 
@@ -43,6 +44,9 @@ class SYMPL_API ScriptObject : public Object
 protected:
     /// Parent reference for the object.
     SharedRef<ScriptObject> _Parent;
+
+    /// Reference to the script context.
+    SharedRef<ScriptContext> _Context;
 
     /// Reference to the object that called this object.
     WeakRef<ScriptObject> _Caller;
@@ -191,6 +195,12 @@ public:
     //! \return ScriptObject
     inline ScriptObject* GetCaller() {
         return (_Caller.IsValid() ? _Caller.Ptr() : &ScriptObject::Empty);
+    }
+
+    //! Returns the context for the object.
+    //! \return ScriptContext
+    inline ScriptContext* GetContext() const {
+        return _Context.Ptr();
     }
 
     //! Sets the name for the object.

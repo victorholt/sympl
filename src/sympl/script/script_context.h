@@ -24,15 +24,25 @@
 #pragma once
 
 #include <sympl/core/sympl_object.h>
+#include <sympl/core/weak_ref.h>
 
 sympl_nsstart
+
+class ScriptObject;
 
 class SYMPL_API ScriptContext : public Object
 {
     SYMPL_OBJECT(ScriptContext, Object);
 
 protected:
+    /// Owner of the context.
+    WeakRef<ScriptObject> _Owner;
 
+    /// Reference to the current scope of the context.
+    WeakRef<ScriptObject> _CurrentScope;
+
+    /// Reference to the caller.
+    WeakRef<ScriptObject> _Caller;
 
 public:
     //! Constructor.
@@ -40,6 +50,30 @@ public:
 
     //! Destructor.
     ~ScriptContext() override;
+
+    //! Sets the owner of the context.
+    //! \param owner
+    void SetOwner(ScriptObject* owner);
+
+    //! Returns the owner of the context.
+    //! \returns ScriptObject
+    ScriptObject* GetOwner() const;
+
+    //! Sets the current scope object.
+    //! \param scopeObject
+    void SetCurrentScope(ScriptObject* scopeObject);
+
+    //! Returns the current scope object.
+    //! \return ScriptObject
+    ScriptObject* GetCurrentScope() const;
+
+    //! Sets the current caller object.
+    //! \param scopeObject
+    void SetCaller(ScriptObject* caller);
+
+    //! Returns the current caller object.
+    //! \return ScriptObject
+    ScriptObject* GetCaller() const;
 };
 
 sympl_nsend
