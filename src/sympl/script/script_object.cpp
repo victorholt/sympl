@@ -22,6 +22,7 @@
  *
  **********************************************************/
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_method.h>
 #include <sympl/script/script_statement.h>
 #include <sympl/script/sympl_vm.h>
 #include <sympl/core/string_buffer.h>
@@ -57,13 +58,15 @@ void ScriptObject::_AddChild(ScriptObject* scriptObject)
     _Children[scriptObject->GetPath()] = scriptObject;
 }
 
-Variant ScriptObject::Evaluate(const std::vector<Variant>& args)
+Variant ScriptObject::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
 {
+    SetCaller(caller);
     return Variant::Empty;
 }
 
-Variant ScriptObject::Evaluate()
+Variant ScriptObject::Evaluate(ScriptObject* caller)
 {
+    SetCaller(caller);
     return Variant::Empty;
 }
 
@@ -146,6 +149,22 @@ ScriptObject* ScriptObject::TraverseUpFindChildByName(const char* name)
 
     // Find in the main scope.
     return SymplVMInstance->FindObject(fmt::format(".{0}", name));
+}
+
+ScriptObject* ScriptObject::FindCalledByMethod()
+{
+    // Traverse up to find a non-immediate method.
+    /// Find the parent method and signal an exit.
+    auto parent = GetParent();
+
+    while (parent.IsValid()) {
+        if (parent->GetType() == ScriptObjectType::Method && !to_method(parent.Ptr())->IsImmediate()) {
+            return parent.Ptr();
+        }
+        parent = parent->GetParent();
+    }
+
+    return &ScriptObject::Empty;
 }
 
 void ScriptObject::RemoveChild(const char* name)

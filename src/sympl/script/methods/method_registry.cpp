@@ -49,6 +49,10 @@ void MethodRegistry::_Initialize()
     auto printMethod = alloc_ref(PrintMethod);
     SymplVMInstance->AddObject(printMethod);
     AddMethod(printMethod);
+
+    auto printLineMethod = alloc_ref(PrintLineMethod);
+    SymplVMInstance->AddObject(printLineMethod);
+    AddMethod(printLineMethod);
 }
 
 void MethodRegistry::AddMethod(ScriptObject* method)

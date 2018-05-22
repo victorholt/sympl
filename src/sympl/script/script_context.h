@@ -23,37 +23,23 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/script/script_method.h>
+#include <sympl/core/sympl_object.h>
 
 sympl_nsstart
 
-class SYMPL_API IfMethod : public ScriptMethod
+class SYMPL_API ScriptContext : public Object
 {
-    SYMPL_OBJECT(IfMethod, ScriptObject);
+    SYMPL_OBJECT(ScriptContext, Object);
 
 protected:
-    //! Initializes the object.
-    //! \param name
-    //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
 
-    //! Handles cloning the object and adding it to the VM.
-    //! \param name
-    //! \param parent
-    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
 
 public:
     //! Constructor.
-    IfMethod();
+    ScriptContext();
 
     //! Destructor.
-    ~IfMethod() override;
-
-    //! Evaluates and returns the results of the object.
-    //! \param args
-    //! \param caller
-    //! \return
-    Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr) override;
+    ~ScriptContext() override;
 };
 
 sympl_nsend

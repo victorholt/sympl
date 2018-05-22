@@ -441,9 +441,9 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
             // Determine if the current statement buffer is an existing method.
             auto existingMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
             if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                _StatementBuffer->Append(_ResolveMethod(existingMethod, statementStr, op).AsString());
+                _StatementBuffer->Append(_ResolveMethod(scriptObject, statementStr, op).AsString());
             } else {
-                _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, op).AsString());
+                _StatementBuffer->Append(_ResolveParenth(scriptObject, statementStr, op).AsString());
             }
             continue;
         }
@@ -512,7 +512,14 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
                 // Restore the statement buffer.
                 _StatementBuffer->Clear();
                 _StatementBuffer->Append(savedStatementStr);
-                return to_method(scriptObject)->Evaluate(args);
+
+                // Try to find the caller method.
+                // auto caller = varObject;
+                // if (varObject->GetType() != ScriptObjectType::Method || to_method(varObject)->IsImmediate()) {
+                //     caller = scriptObject->FindCalledByMethod();
+                // }
+                // std::cout << "RM: " << varObject->GetName() << std::endl;
+                return to_method(scriptObject)->Evaluate(args, varObject);
             }
         }
 

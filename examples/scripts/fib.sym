@@ -1,0 +1,14 @@
+// Simple fibonacci method.
+
+var r = 0;
+func fib(n) : int {
+    var r = 1 + 1;
+    printl(r);
+    //if (n < 1) {
+    //    return fib(n + 1);
+    //}
+    return n;
+}
+
+var x = fib(0);
+//printl(r);

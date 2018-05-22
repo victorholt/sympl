@@ -21,39 +21,15 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
+#include <sympl/script/script_context.h>
+sympl_namespaces
 
-#include <sympl/script/script_method.h>
-
-sympl_nsstart
-
-class SYMPL_API IfMethod : public ScriptMethod
+ScriptContext::ScriptContext()
 {
-    SYMPL_OBJECT(IfMethod, ScriptObject);
 
-protected:
-    //! Initializes the object.
-    //! \param name
-    //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
+}
 
-    //! Handles cloning the object and adding it to the VM.
-    //! \param name
-    //! \param parent
-    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
+ScriptContext::~ScriptContext()
+{
 
-public:
-    //! Constructor.
-    IfMethod();
-
-    //! Destructor.
-    ~IfMethod() override;
-
-    //! Evaluates and returns the results of the object.
-    //! \param args
-    //! \param caller
-    //! \return
-    Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr) override;
-};
-
-sympl_nsend
+}

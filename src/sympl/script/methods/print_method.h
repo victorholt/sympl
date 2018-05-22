@@ -51,8 +51,38 @@ public:
 
     //! Evaluates and returns the results of the object.
     //! \param args
+    //! \param caller
     //! \return
-    Variant Evaluate(const std::vector<Variant>& args) override;
+    Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr) override;
+};
+
+class SYMPL_API PrintLineMethod : public ScriptMethod
+{
+    SYMPL_OBJECT(PrintLineMethod, ScriptObject);
+
+protected:
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
+
+    //! Handles cloning the object and adding it to the VM.
+    //! \param name
+    //! \param parent
+    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
+
+public:
+    //! Constructor.
+    PrintLineMethod();
+
+    //! Destructor.
+    ~PrintLineMethod() override;
+
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \param caller
+    //! \return
+    Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr) override;
 };
 
 sympl_nsend

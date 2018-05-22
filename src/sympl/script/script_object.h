@@ -27,6 +27,7 @@
 #include <sympl/core/sympl_object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/shared_ref.h>
+#include <sympl/core/weak_ref.h>
 #include <sympl/script/script_common.h>
 
 sympl_nsstart
@@ -42,6 +43,9 @@ class SYMPL_API ScriptObject : public Object
 protected:
     /// Parent reference for the object.
     SharedRef<ScriptObject> _Parent;
+
+    /// Reference to the object that called this object.
+    WeakRef<ScriptObject> _Caller;
 
     /// Value of the script object.
     Variant _Value;
@@ -104,12 +108,14 @@ public:
 
     //! Evaluates and returns the results of the object.
     //! \param args
+    //! \param caller
     //! \return
-    virtual Variant Evaluate(const std::vector<Variant>& args);
+    virtual Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr);
 
     //! Evaluates and returns the results of the object.
+    //! \param caller
     //! \return
-    virtual Variant Evaluate();
+    virtual Variant Evaluate(ScriptObject* caller = nullptr);
 
     //! Creates a clone of the object.
     //! \return SharedRef<ScriptObject>
@@ -132,6 +138,10 @@ public:
     //! Traverses through parents in an attempt to find an object.
     //! \param name
     ScriptObject* TraverseUpFindChildByName(const char* name);
+
+    //! Attempts to find the method that called this object.
+    //! \return ScriptObject
+    ScriptObject* FindCalledByMethod();
 
     //! Remove a child object.
     //! \param name.
@@ -169,6 +179,18 @@ public:
     //! \return Variant
     inline const Variant& GetValue() const {
         return _Value;
+    }
+
+    //! Sets the caller.
+    //! \param caller
+    inline void SetCaller(ScriptObject* caller) {
+        _Caller = caller;
+    }
+
+    //! Returns the caller.
+    //! \return ScriptObject
+    inline ScriptObject* GetCaller() {
+        return (_Caller.IsValid() ? _Caller.Ptr() : &ScriptObject::Empty);
     }
 
     //! Sets the name for the object.

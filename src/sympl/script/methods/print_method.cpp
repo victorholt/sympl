@@ -34,6 +34,12 @@ PrintMethod::PrintMethod()
     // This method will be cloned and called immediately
     // when the Interpreter processes it.
     _IsImmediate = true;
+
+    // This method does not return anything.
+    _ReturnType = MethodReturnType::Void;
+
+    // Skip type checking this method.
+    _IgnoreReturnTypeCheck = true;
 }
 
 PrintMethod::~PrintMethod()
@@ -51,8 +57,11 @@ void PrintMethod::_Initialize(const char* name, const char* path, ScriptObject* 
     AddArg(arg);
 }
 
-Variant PrintMethod::Evaluate(const std::vector<Variant>& args)
+Variant PrintMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
 {
+
+
+    SetCaller(caller);
     _CopyArgs(args);
     _ProcessArgStatements();
 
@@ -60,7 +69,71 @@ Variant PrintMethod::Evaluate(const std::vector<Variant>& args)
 
     // Remove the string token.
     if (value.GetType() == VariantType::StringBuffer) {
-        value.GetStringBuffer()->Replace("@@STRING:", "");
+        value.GetStringBuffer()->Replace(SYMPL_STRING_TOKEN, "");
+    }
+
+    if (value.GetType() == VariantType::ScriptObject) {
+        std::cout << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString());
+    } else {
+        std::cout << value.AsString();
+    }
+
+    return Variant::Empty;
+}
+
+ScriptObject* PrintMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
+{
+    ScriptObject* clone = alloc_ref(PrintMethod);
+    clone->SetName(name);
+    SymplVMInstance->AddObject(clone, parent);
+    return clone;
+}
+
+///////////////////////////////////////////////////////////////////
+// PRINT LINE
+///////////////////////////////////////////////////////////////////
+
+PrintLineMethod::PrintLineMethod()
+{
+    _Name = "printl";
+
+    // This method will be cloned and called immediately
+    // when the Interpreter processes it.
+    _IsImmediate = true;
+
+    // This method does not return anything.
+    _ReturnType = MethodReturnType::Void;
+
+    // Skip type checking this method.
+    _IgnoreReturnTypeCheck = true;
+}
+
+PrintLineMethod::~PrintLineMethod()
+{
+
+}
+
+void PrintLineMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
+{
+    ScriptObject::_Initialize(name, path, parent);
+
+    // Create the scope and the argument that the 'if' call takes.
+    auto scope = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, this);
+    auto arg = SymplVMInstance->CreateObject("__arg__", ScriptObjectType::Object, scope);
+    AddArg(arg);
+}
+
+Variant PrintLineMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
+{
+    SetCaller(caller);
+    _CopyArgs(args);
+    _ProcessArgStatements();
+
+    Variant value = _Args[0]->GetValue();
+
+    // Remove the string token.
+    if (value.GetType() == VariantType::StringBuffer) {
+        value.GetStringBuffer()->Replace(SYMPL_STRING_TOKEN, "");
     }
 
     if (value.GetType() == VariantType::ScriptObject) {
@@ -68,11 +141,13 @@ Variant PrintMethod::Evaluate(const std::vector<Variant>& args)
     } else {
         std::cout << value.AsString() << std::endl;
     }
+
+    return Variant::Empty;
 }
 
-ScriptObject* PrintMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
+ScriptObject* PrintLineMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
 {
-    ScriptObject* clone = alloc_ref(PrintMethod);
+    ScriptObject* clone = alloc_ref(PrintLineMethod);
     clone->SetName(name);
     SymplVMInstance->AddObject(clone, parent);
     return clone;

@@ -46,17 +46,18 @@ ScriptMethod::~ScriptMethod()
     _Args.clear();
 }
 
-Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
+Variant ScriptMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
 {
-    for (auto entryIt : _CallStatements) {
-        entryIt->Variable->SetValue(entryIt->Statement.Ptr());
-    }
-
-    // Our return value.
-    Variant retValue;
+    // if (!caller->IsEmpty()) {
+    //     std::cout << GetName() << " CALLED BY " << caller->GetName() << std::endl;
+    // }
+    // for (auto entryIt : _CallStatements) {
+    //     entryIt->Variable->SetValue(entryIt->Statement.Ptr());
+    // }
 
     // Clone the method to avoid reference issues.
     auto clone = Clone(this, true);
+    clone->SetCaller(caller);
 
     assert((!clone->IsEmpty()) && "Unable to evaluate method!");
     assert((clone->GetType() == ScriptObjectType::Method) && "Invalid object called as a method!");
@@ -72,30 +73,18 @@ Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
     to_method(clone)->_ProcessCallStatements();
 
     // Check if we have a return variable.
-    if (_ReturnType != MethodReturnType::Void) {
-        auto retObject = to_method(clone)->GetScope()->FindChildByName("return");
-        if (!retObject->IsEmpty()) {
-            Variant value = retObject->GetValue();
-
-            // Ensure that the value type matches the return type.
-            if (!_CheckReturnType(value)) {
-                assert(false && "Method return type does not match assignment!");
-            }
-
-            retValue = retObject->GetValue();
-        }
-    }
+    _Value = to_method(clone)->GetReturnValue();
 
     // Clean up our clone.
     SymplVMInstance->RemoveObject(clone->GetPath());
 
-    return retValue;
+    return _Value;
 }
 
-Variant ScriptMethod::Evaluate()
+Variant ScriptMethod::Evaluate(ScriptObject* caller)
 {
     std::vector<Variant> args;
-    return Evaluate(args);
+    return Evaluate(args, caller);
 }
 
 void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
@@ -108,8 +97,13 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
         }
 
         Variant argValue = args[argIndex];
-        auto argObj = GetScope()->FindChildByName(argIt->GetName().c_str());
+        auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str());
         assert(!argObj->IsEmpty() && "Invalid argument given for method");
+
+        // if (!_IsImmediate && _Caller.IsValid()) {
+        //     auto v = _Caller->TraverseUpFindChildByName(argIt->GetName().c_str())->GetValue();
+        //     std::cout << "COPY ARG: " << argIt->GetPath() << " = " << v.AsString() << std::endl;
+        // }
 
         argObj->SetValue(args[argIndex]);
 
@@ -119,6 +113,11 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 
 void ScriptMethod::_ProcessArgStatements()
 {
+    // Check if we need to exit out.
+    if (_SignalExit) {
+        return;
+    }
+
     // String arguments will need to have statements
     // to execute their value.
     for (auto argIt : _Args) {
@@ -137,9 +136,26 @@ void ScriptMethod::_ProcessArgStatements()
 
 void ScriptMethod::_ProcessCallStatements()
 {
+    // Check if we need to exit out.
+    if (_SignalExit) {
+        return;
+    }
+
     for (auto entryIt : _CallStatements) {
+        if (_SignalExit) {
+            return;
+        }
+
         entryIt->Statement->Build(entryIt->Variable.Ptr());
-        entryIt->Variable->SetValue(entryIt->Statement->Evaluate());
+
+        _Value = entryIt->Statement->Evaluate();
+        entryIt->Variable->SetValue(_Value);
+
+        // Check if we're attempting to return out of the method.
+        if (entryIt->Variable->GetName() == "return") {
+            Exit();
+            return;
+        }
     }
 }
 
@@ -184,6 +200,8 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 {
     auto clone = ScriptObject::Clone(parent, uniqueName);
     to_method(clone)->SetImmediate(_IsImmediate);
+    to_method(clone)->SetReturnType(_ReturnType);
+    to_method(clone)->SetIgnoreReturnTypeCheck(_IgnoreReturnTypeCheck);
 
     // Add the arguments.
     for (auto entryIt : _Args) {
@@ -210,4 +228,32 @@ ScriptObject* ScriptMethod::GetScope()
         _Scope = FindChildByName(".");
     }
     return _Scope.Ptr();
+}
+
+ScriptObject* ScriptMethod::GetScopeParent()
+{
+    auto scope = GetScope();
+    auto parent = scope->GetParent();
+    return (parent.IsValid() ? parent.Ptr() : &ScriptObject::Empty);
+}
+
+void ScriptMethod::Exit() {
+    if (_SignalExit) return;
+    _SignalExit = true;
+
+    /// Find the parent method and signal an exit.
+    auto parent = GetScopeParent();
+
+    while (!parent->IsEmpty()) {
+        if (!parent->GetParent().IsValid()) {
+            return;
+        }
+
+        parent = parent->GetParent().Ptr();
+        if (parent->GetType() == ScriptObjectType::Method) {
+            to_method(parent)->SetReturnValue(_Value);
+            to_method(parent)->SetSignalExit(true);
+            return;
+        }
+    }
 }

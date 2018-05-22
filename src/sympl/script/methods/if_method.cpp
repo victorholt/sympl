@@ -29,9 +29,15 @@ IfMethod::IfMethod()
 {
     _Name = "if";
 
+    // This method does not return anything.
+    _ReturnType = MethodReturnType::Void;
+
     // This method will be cloned and called immediately
     // when the Interpreter processes it.
     _IsImmediate = true;
+
+    // Skip type checking this method.
+    _IgnoreReturnTypeCheck = true;
 }
 
 IfMethod::~IfMethod()
@@ -49,8 +55,9 @@ void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* par
     AddArg(arg);
 }
 
-Variant IfMethod::Evaluate(const std::vector<Variant>& args)
+Variant IfMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
 {
+    SetCaller(caller);
     _CopyArgs(args);
     _ProcessArgStatements();
 
@@ -60,6 +67,8 @@ Variant IfMethod::Evaluate(const std::vector<Variant>& args)
     if (value.GetType() == VariantType::Bool && value.GetBool()) {
         _ProcessCallStatements();
     }
+
+    return _Value;
 }
 
 ScriptObject* IfMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
