@@ -115,7 +115,7 @@ ScriptObject* SymplVM::CreateObject(const char* name, ScriptObjectType type, Scr
     _ObjectMap[scriptObject->GetPath()] = scriptObject;
 
     if (!IsNullObject(parent)) {
-        parent->_AddChild(scriptObject.Ptr());
+        parent->AddChild(scriptObject.Ptr());
     }
 
     return scriptObject.Ptr();
@@ -141,7 +141,7 @@ bool SymplVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
     _ObjectMap[scriptObject->GetPath()] = scriptObject;
 
     if (!IsNullObject(parent)) {
-        parent->_AddChild(scriptObject);
+        parent->AddChild(scriptObject);
     }
 
     return true;

@@ -93,7 +93,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                     _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
                 }
             }
-            _StatementBuffer->Clear();
+            // _StatementBuffer->Clear();
             continue;
         }
 
@@ -122,49 +122,50 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
             // Save the value as a statement.
             ScriptObject* obj = nullptr;
 
-            // Update the object's context.
-            // auto caller = &ScriptObject::Empty;
-            // if (varObject->GetType() != ScriptObjectType::Method || to_method(varObject)->IsImmediate()) {
-            //         caller = varObject->FindCalledByMethod();
-            //         varObject->GetContext()->SetCaller(caller);
-            // }
-            // auto currentScope = (varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : &ScriptObject::Empty);
-            // varObject->GetContext()->SetCurrentScope(currentScope);
-
-            // Method arguments should not traverse within the scoop of the method
-            // to determine which variable to use in the statement.
-            // if (varObject->HasMeta("is_method_arg") && varObject->GetMeta("is_method_arg").GetBool()) {
-            //     obj = varObject->GetParent()->GetParent()->TraverseUpFindChildByName(currentStr.c_str());
-            // } else {
-                // std::cout << "LOOKING FOR " << varObject->GetName() << " IN SCOPE " << currentScope->GetPath() << std::endl;
-            //     obj = varObject->TraverseUpFindChildByName(currentStr.c_str());
-            // }
             obj = varObject->TraverseUpFindChildByName(currentStr.c_str());
-            std::cout << "LOOKING FOR VAR: " << currentStr << " IN " << varObject->GetContext()->GetCaller()->GetPath()  << std::endl;
-
-            if (!IsNullObject(obj) && !obj->IsEmpty()) {
-                if (obj->GetType() == ScriptObjectType::Method && !to_method(obj)->IsImmediate()) {
-                    auto retType = to_method(obj)->GetReturnType();
-                    switch ((int) retType) {
-                        case (int) MethodReturnType::Object:
-                            SetType(StatementType::Object);
-                            break;
-                        case (int) MethodReturnType::String:
-                            SetType(StatementType::String);
-                            break;
-                        case (int) MethodReturnType::Int:
-                            SetType(StatementType::Integer);
-                            break;
-                        case (int) MethodReturnType::Float:
-                            SetType(StatementType::Float);
-                            break;
-                        case (int) MethodReturnType::Bool:
-                            SetType(StatementType::Bool);
-                            break;
+            if (obj->IsEmpty() && _ScriptContext.IsValid()) {
+                // Start with the last entry and work up.
+                auto entries = _ScriptContext->GetEntries();
+                for (size_t i = entries.size() - 1; i <= 0; i--) {
+                    obj = entries[i].CurrentScope->TraverseUpFindChildByName(currentStr.c_str());
+                    // obj = to_method(entries[i].Caller.Ptr())->GetScope()->TraverseUpFindChildByName(currentStr.c_str());
+                    if (!obj->IsEmpty() && !obj->GetValue().IsEmpty()) {
+                        break;
                     }
                 }
-                auto entry = Add(obj, currentOp);
+                std::cout << "LOOKING FOR VAR: " << currentStr << " IN " << obj->GetPath() << " -- VALUE = " << obj->GetValue().AsString() << " (VO): " << varObject->GetPath() << std::endl;
+            }// else {
+                // std::cout << "CONSTANT LOOKING FOR VAR: " << currentStr << " IN " << varObject->GetPath()  << std::endl;
+            // }
+
+            if (!IsNullObject(obj) && !obj->IsEmpty()) {
+                auto retType = to_method(obj)->GetReturnType();
+                if (retType != MethodReturnType::Void) {
+                    if (obj->GetType() == ScriptObjectType::Method && !to_method(obj)->IsImmediate()) {
+                        switch ((int) retType) {
+                            case (int) MethodReturnType::Object:
+                                SetType(StatementType::Object);
+                                break;
+                            case (int) MethodReturnType::String:
+                                SetType(StatementType::String);
+                                break;
+                            case (int) MethodReturnType::Int:
+                                SetType(StatementType::Integer);
+                                break;
+                            case (int) MethodReturnType::Float:
+                                SetType(StatementType::Float);
+                                break;
+                            case (int) MethodReturnType::Bool:
+                                SetType(StatementType::Bool);
+                                break;
+                        }
+                    }
+                    auto entry = Add(obj, currentOp);
+                }
+
+                // std::cout << "STMT: " << statementStr->CStr() << " WITH VALUE = " << obj->GetValue().AsString() << std::endl;
             } else {
+                // std::cout << "C STMT: " << statementStr->CStr() << " WITH VALUE = " << currentStr << std::endl;
                 _AddValueAndOperation(currentStr, currentOp);
             }
             _StatementBuffer->Clear();
@@ -256,6 +257,7 @@ std::string ScriptStatement::EvaluateAsString()
 ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
 {
     ScriptStatement* stat = alloc_ref(ScriptStatement);
+    stat->SetScriptContext(_ScriptContext.Ptr());
     stat->SetType(_Type);
     stat->_String = _String;
 
@@ -431,55 +433,26 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
         return Variant::Empty;
     }
 
-    // Update the object's context.
-    // auto caller = _ScriptContext->GetCaller();
-    // auto currentScope = _ScriptContext->GetCurrentScope();
-    // if (caller->IsEmpty()) {
-    //     caller = varObject;
-    // }
-    // scriptObject->GetContext()->SetCaller(caller);
-    // if (varObject->GetType() != ScriptObjectType::Method || to_method(varObject)->IsImmediate()) {
-    //         caller = varObject->FindCalledByMethod();
-    //         scriptObject->GetContext()->SetCaller(caller);
-    // }
-    // auto currentScope = (varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : &ScriptObject::Empty);
-
-    // Clone our method.
-    // if (_ScriptContext.IsValid()) {
-        // std::cout << "STMT CALLER: " << varObject->GetPath() << std::endl;
-    // }
-    // if (!currentScope->IsEmpty()) {
-        // std::cout << "M CLONED FROM SCOPE: " << currentScope->GetPath() << std::endl;
-        // scriptObject = scriptObject->Clone(currentScope, true);
-    // } else if (!caller->IsEmpty()) {
-        // std::cout << "M CLONED FROM CALLER: " << caller->GetPath() << std::endl;
-        // scriptObject = scriptObject->Clone(caller, true);
-    // } else {
-        // std::cout << "M CLONED FROM OBJECT: " << varObject->GetPath() << std::endl;
-    // if (_ScriptContext.IsValid()) {
-        // scriptObject = scriptObject->Clone(_ScriptContext->GetCaller(), true);
-    // } else {
-    // }
-
     // Immediate methods don't get cloned since they're already unique.
     ScriptObject* scriptObject = orgMethod;
+    scriptObject = orgMethod->Clone(nullptr, true);
 
-    // if (!to_method(orgMethod)->IsImmediate()) {
-        scriptObject = orgMethod->Clone(nullptr, true);
-        ScriptObject* scriptOwner = to_method(scriptObject)->GetScope();
+    // Update the context.
+    if (!_ScriptContext.IsValid()) {
+        _ScriptContext = alloc_ref(ScriptContext);
 
-        if (_ScriptContext.IsValid()) {
-            scriptOwner = to_method(_ScriptContext->GetOwner())->GetScope();
-            scriptObject->GetContext()->SetCaller(orgMethod);
-            scriptObject->GetContext()->SetCurrentScope(scriptOwner);
-        } else {
-            scriptObject->GetContext()->SetCaller(orgMethod);
-            scriptObject->GetContext()->SetCurrentScope(scriptOwner);
-        }
-    // }
+        ScriptContextCallEntry callEntry;
+        callEntry.Owner = orgMethod;
+        callEntry.Caller = scriptObject;
+        callEntry.CurrentScope = to_method(scriptObject)->GetScope();
+
+        _ScriptContext->AddEntry(callEntry);
+    }
+
+    scriptObject->SetContext(_ScriptContext.Ptr());
 
     // Remove the name of the method so it's not part of the statement value.
-    _StatementBuffer->Replace(scriptObject->GetName().c_str(), "");
+    _StatementBuffer->Replace(orgMethod->GetName().c_str(), "");
 
     // Saved our current statement and then clear the buffer.
     std::string savedStatementStr = _StatementBuffer->CStr();
@@ -573,21 +546,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
                 _StatementBuffer->Clear();
                 _StatementBuffer->Append(savedStatementStr);
 
-                // if (_ScriptContext.IsValid()) {
-                //     std::cout << "RM: " << scriptObject->GetName() << " IN SCOPE: " << _ScriptContext->GetCurrentScope()->GetName() << " FROM CALLER: " << _ScriptContext->GetCaller()->GetName() << std::endl;
-                // }
-                // for (auto ag : args) {
-                    // std::cout << "SENDING ARG: " << ag.AsString() << ", ";
-                // }
-                // std::cout << std::endl;
-                Variant retValue = to_method(scriptObject)->Evaluate(args, varObject);
-
-                // Don't delete if we're an immediate method.
-                // if (!to_method(scriptObject)->IsImmediate()) {
-                    SymplVMInstance->RemoveObject(scriptObject->GetPath().c_str());
-                // }
-
-                return retValue;
+                return to_method(scriptObject)->Evaluate(args);
             }
         }
 
@@ -604,6 +563,7 @@ Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)
 {
     // Create the statement and set the string.
     SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
+    stat->SetScriptContext(_ScriptContext.Ptr());
     stat->SetString(_StatementBuffer);
     _StatementBuffer->Clear();
 
@@ -773,6 +733,9 @@ std::string ScriptStatement::GetTypeAsString() const
     }
     if (_Type == StatementType::Method) {
         return "method";
+    }
+    if (_Type == StatementType::Void) {
+        return "void";
     }
 }
 

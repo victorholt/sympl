@@ -57,9 +57,8 @@ void PrintMethod::_Initialize(const char* name, const char* path, ScriptObject* 
     AddArg(arg);
 }
 
-Variant PrintMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
+Variant PrintMethod::Evaluate(const std::vector<Variant>& args)
 {
-    SetCaller(caller);
     _CopyArgs(args);
     _ProcessArgStatements();
 
@@ -121,9 +120,8 @@ void PrintLineMethod::_Initialize(const char* name, const char* path, ScriptObje
     AddArg(arg);
 }
 
-Variant PrintLineMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
+Variant PrintLineMethod::Evaluate(const std::vector<Variant>& args)
 {
-    SetCaller(caller);
     _CopyArgs(args);
     _ProcessArgStatements();
 

@@ -27,9 +27,7 @@ sympl_namespaces
 
 ScriptContext::ScriptContext()
 {
-    _Owner = &ScriptObject::Empty;
-    _CurrentScope = &ScriptObject::Empty;
-    _Caller = &ScriptObject::Empty;
+    _Exit = false;
 }
 
 ScriptContext::~ScriptContext()
@@ -37,32 +35,12 @@ ScriptContext::~ScriptContext()
 
 }
 
-void ScriptContext::SetOwner(ScriptObject* owner)
+void ScriptContext::AddEntry(const ScriptContextCallEntry& entry)
 {
-    _Owner = (!IsNullObject(owner) && !owner->IsEmpty() ? owner : &ScriptObject::Empty);
+    _Entries.push_back(entry);
 }
 
-ScriptObject* ScriptContext::GetOwner() const
+const std::vector<ScriptContextCallEntry>& ScriptContext::GetEntries() const
 {
-    return (_Owner.IsValid() ? _Owner.Ptr() : &ScriptObject::Empty);
-}
-
-void ScriptContext::SetCurrentScope(ScriptObject* scopeObject)
-{
-    _CurrentScope = (!IsNullObject(scopeObject) && !scopeObject->IsEmpty() ? scopeObject : &ScriptObject::Empty);
-}
-
-ScriptObject* ScriptContext::GetCurrentScope() const
-{
-    return (_CurrentScope.IsValid() ? _CurrentScope.Ptr() : &ScriptObject::Empty);
-}
-
-void ScriptContext::SetCaller(ScriptObject* caller)
-{
-    _Caller = (!IsNullObject(caller) && !caller->IsEmpty() ? caller : &ScriptObject::Empty);
-}
-
-ScriptObject* ScriptContext::GetCaller() const
-{
-    return (_Caller.IsValid() ? _Caller.Ptr() : &ScriptObject::Empty);
+    return _Entries;
 }

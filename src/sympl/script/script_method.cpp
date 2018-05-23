@@ -46,54 +46,27 @@ ScriptMethod::~ScriptMethod()
     _Args.clear();
 }
 
-Variant ScriptMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
+Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
 {
-    // if (!IsNullObject(caller) && !caller->IsEmpty()) {
-    //     std::cout << GetName() << " CALLED BY " << caller->GetName() << std::endl;
-    // }
-    // for (auto entryIt : _CallStatements) {
-    //     entryIt->Variable->SetValue(entryIt->Statement.Ptr());
-    // }
-
-    SetCaller(caller);
     _CopyArgs(args);
     _ProcessArgStatements();
     _ProcessCallStatements();
 
-    // Clone the method to avoid reference issues.
-    /*auto clone = Clone(this, true);
-    clone->SetCaller(caller);
-
-    assert((!clone->IsEmpty()) && "Unable to evaluate method!");
-    assert((clone->GetType() == ScriptObjectType::Method) && "Invalid object called as a method!");
-    assert((!to_method(clone)->GetScope()->IsEmpty()) && "Method has an empty scope object!");
-
-    // Update the arguments.
-    to_method(clone)->_CopyArgs(args);
-
-    // Go through the arguments and build their statements.
-    to_method(clone)->_ProcessArgStatements();
-
-    // Go through all of the call statements.
-    to_method(clone)->_ProcessCallStatements();
-
-    // Check if we have a return variable.
-    _Value = to_method(clone)->GetReturnValue();
-
-    // Clean up our clone.
-    SymplVMInstance->RemoveObject(clone->GetPath());*/
-
     return _Value;
 }
 
-Variant ScriptMethod::Evaluate(ScriptObject* caller)
+Variant ScriptMethod::Evaluate()
 {
     std::vector<Variant> args;
-    return Evaluate(args, caller);
+    return Evaluate(args);
 }
 
 void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 {
+    if (_Exit) {
+        return;
+    }
+
     int argIndex = 0;
     for (auto argIt : _Args) {
         // Ensure we have args.
@@ -104,7 +77,7 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
         Variant argValue = args[argIndex];
 
         // if (!to_method(GetScopeParent())->IsImmediate()) {
-            // std::cout << "COPY ARG " << argIt->GetName() << "(" << argValue.AsString() << ")" << " FROM SCOPE: " << GetPath() << std::endl;
+            // std::cout << "COPY ARG " << argIt->GetName() << "(" << argValue.AsString() << ")" << " FROM SCOPE: " << GetScope()->GetPath() << std::endl;
             // std::cout << "COPY ARG " << argIt->GetName() << "(" << argValue.AsString() << ")" << " FROM SCOPE: " << FindCalledByMethod()->GetPath() << std::endl;
         // }
 
@@ -121,7 +94,7 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 void ScriptMethod::_ProcessArgStatements()
 {
     // Check if we need to exit out.
-    if (_SignalExit) {
+    if (_Exit) {
         return;
     }
 
@@ -144,12 +117,13 @@ void ScriptMethod::_ProcessArgStatements()
 void ScriptMethod::_ProcessCallStatements()
 {
     // Check if we need to exit out.
-    if (_SignalExit) {
+    if (_Exit) {
+        _Value = GetContext()->GetReturnValue();
         return;
     }
 
     for (auto entryIt : _CallStatements) {
-        if (_SignalExit) {
+        if (_Exit) {
             return;
         }
 
@@ -162,6 +136,7 @@ void ScriptMethod::_ProcessCallStatements()
 
         // Check if we're attempting to return out of the method.
         if (entryIt->Variable->GetName() == "return") {
+            GetContext()->SetReturnValue(_Value);
             Exit();
             return;
         }
@@ -249,22 +224,7 @@ ScriptObject* ScriptMethod::GetScopeParent()
 }
 
 void ScriptMethod::Exit() {
-    if (_SignalExit) return;
-    _SignalExit = true;
-
-    /// Find the parent method and signal an exit.
-    auto parent = GetScopeParent();
-
-    while (!parent->IsEmpty()) {
-        if (!parent->GetParent().IsValid()) {
-            return;
-        }
-
-        parent = parent->GetParent().Ptr();
-        if (parent->GetType() == ScriptObjectType::Method) {
-            to_method(parent)->SetReturnValue(_Value);
-            to_method(parent)->SetSignalExit(true);
-            return;
-        }
-    }
+    // if (GetContext()->GetExit()) return;
+    // GetContext()->SetExit(true);
+    _Exit = true;
 }

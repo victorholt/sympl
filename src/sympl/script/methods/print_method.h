@@ -51,9 +51,8 @@ public:
 
     //! Evaluates and returns the results of the object.
     //! \param args
-    //! \param caller
     //! \return
-    Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr) override;
+    Variant Evaluate(const std::vector<Variant>& args) override;
 };
 
 class SYMPL_API PrintLineMethod : public ScriptMethod
@@ -80,9 +79,8 @@ public:
 
     //! Evaluates and returns the results of the object.
     //! \param args
-    //! \param caller
     //! \return
-    Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr) override;
+    Variant Evaluate(const std::vector<Variant>& args) override;
 };
 
 sympl_nsend

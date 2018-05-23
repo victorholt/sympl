@@ -55,9 +55,8 @@ void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* par
     AddArg(arg);
 }
 
-Variant IfMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
+Variant IfMethod::Evaluate(const std::vector<Variant>& args)
 {
-    SetCaller(caller);
     _CopyArgs(args);
     _ProcessArgStatements();
 

@@ -38,8 +38,6 @@ ScriptObject::ScriptObject()
     _Path = "";
     _Parent = nullptr;
     _Type = ScriptObjectType::Empty;
-    _Context = alloc_ref(ScriptContext);
-    _Context->SetOwner(&ScriptObject::Empty);
 }
 
 ScriptObject::~ScriptObject()
@@ -52,24 +50,22 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
     _Name = name;
     _Path = path;
     _Parent = parent;
-    _Context->SetOwner(this);
 }
 
-void ScriptObject::_AddChild(ScriptObject* scriptObject)
+void ScriptObject::AddChild(ScriptObject* scriptObject)
 {
+    scriptObject->SetContext(_Context.Ptr());
     scriptObject->_SetNestLevel(_NestLevel + 1);
     _Children[scriptObject->GetPath()] = scriptObject;
 }
 
-Variant ScriptObject::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
+Variant ScriptObject::Evaluate(const std::vector<Variant>& args)
 {
-    SetCaller(caller);
     return Variant::Empty;
 }
 
-Variant ScriptObject::Evaluate(ScriptObject* caller)
+Variant ScriptObject::Evaluate()
 {
-    SetCaller(caller);
     return Variant::Empty;
 }
 
@@ -92,9 +88,9 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     ScriptObject* clone = _OnCloneCreateObject(name, parent);
     clone->SetValue(_Value);
 
-    // auto context = (IsNullObject(parent) || parent->IsEmpty()) ? GetContext() : parent->GetContext();
-    clone->GetContext()->SetCaller(_Context->GetCaller());
-    clone->GetContext()->SetCurrentScope(_Context->GetCurrentScope());
+    if (_Context.IsValid()) {
+        clone->SetContext(_Context.Ptr());
+    }
 
     // Clone the children!
     for (auto entryIt : _Children) {
@@ -103,7 +99,7 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
             continue;
         }
 
-        clone->_AddChild(entryIt.second->Clone(clone, false));
+        clone->AddChild(entryIt.second->Clone(clone, false));
     }
 
     return clone;

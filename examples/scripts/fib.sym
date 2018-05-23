@@ -2,11 +2,11 @@
 
 func fib(n) : int {
     printl(n);
-    if (n < 2) {
+    if (n < 1) {
         return fib(n + 1);
     }
     return n;
 }
 
-var n = fib(0);
-//printl(r);
+var x = fib(0);
+printl(x);

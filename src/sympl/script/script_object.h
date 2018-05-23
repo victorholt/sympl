@@ -48,9 +48,6 @@ protected:
     /// Reference to the script context.
     SharedRef<ScriptContext> _Context;
 
-    /// Reference to the object that called this object.
-    WeakRef<ScriptObject> _Caller;
-
     /// Value of the script object.
     Variant _Value;
 
@@ -74,10 +71,6 @@ protected:
     //! \param name
     //! \param path
     virtual void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr);
-
-    //! Adds a child to the script object.
-    //! \param obj
-    void _AddChild(ScriptObject* scriptObject);
 
     //! Handles cloning the object and adding it to the VM.
     //! \param name
@@ -112,14 +105,16 @@ public:
 
     //! Evaluates and returns the results of the object.
     //! \param args
-    //! \param caller
     //! \return
-    virtual Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr);
+    virtual Variant Evaluate(const std::vector<Variant>& args);
 
     //! Evaluates and returns the results of the object.
-    //! \param caller
     //! \return
-    virtual Variant Evaluate(ScriptObject* caller = nullptr);
+    virtual Variant Evaluate();
+
+    //! Adds a child to the script object.
+    //! \param obj
+    void AddChild(ScriptObject* scriptObject);
 
     //! Creates a clone of the object.
     //! \return SharedRef<ScriptObject>
@@ -181,20 +176,14 @@ public:
 
     //! Script value variant.
     //! \return Variant
-    inline const Variant& GetValue() const {
+    inline Variant GetValue() const {
         return _Value;
     }
 
-    //! Sets the caller.
-    //! \param caller
-    inline void SetCaller(ScriptObject* caller) {
-        _Caller = caller;
-    }
-
-    //! Returns the caller.
-    //! \return ScriptObject
-    inline ScriptObject* GetCaller() {
-        return (_Caller.IsValid() ? _Caller.Ptr() : &ScriptObject::Empty);
+    //! Sets the context.
+    //! \param context
+    inline void SetContext(ScriptContext* context) {
+        _Context = context;
     }
 
     //! Returns the context for the object.

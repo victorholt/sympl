@@ -24,25 +24,38 @@
 #pragma once
 
 #include <sympl/core/sympl_object.h>
+#include <sympl/core/shared_ref.h>
 #include <sympl/core/weak_ref.h>
 
 sympl_nsstart
 
 class ScriptObject;
 
+struct ScriptContextCallEntry
+{
+    /// Owner of the context.
+    SharedRef<ScriptObject> Owner;
+
+    /// Reference to the current scope of the context.
+    SharedRef<ScriptObject> CurrentScope;
+
+    /// Reference to the caller.
+    SharedRef<ScriptObject> Caller;
+};
+
 class SYMPL_API ScriptContext : public Object
 {
     SYMPL_OBJECT(ScriptContext, Object);
 
 protected:
-    /// Owner of the context.
-    WeakRef<ScriptObject> _Owner;
+    /// Call list of entries in the scope.
+    std::vector<ScriptContextCallEntry> _Entries;
 
-    /// Reference to the current scope of the context.
-    WeakRef<ScriptObject> _CurrentScope;
+    /// Current return value.
+    Variant _RetValue;
 
-    /// Reference to the caller.
-    WeakRef<ScriptObject> _Caller;
+    /// Flag to signal an exit.
+    bool _Exit = false;
 
 public:
     //! Constructor.
@@ -51,29 +64,29 @@ public:
     //! Destructor.
     ~ScriptContext() override;
 
-    //! Sets the owner of the context.
-    //! \param owner
-    void SetOwner(ScriptObject* owner);
+    //! Adds a new entry to the list.
+    //! \param entry
+    void AddEntry(const ScriptContextCallEntry& entry);
 
-    //! Returns the owner of the context.
-    //! \returns ScriptObject
-    ScriptObject* GetOwner() const;
+    //! Returns all entries in the list.
+    //! \return std::vector<ScriptContextCallEntry>
+    const std::vector<ScriptContextCallEntry>& GetEntries() const;
 
-    //! Sets the current scope object.
-    //! \param scopeObject
-    void SetCurrentScope(ScriptObject* scopeObject);
+    //! Sets the return value.
+    //! \param value
+    inline void SetReturnValue(const Variant& value) { _RetValue = value; }
 
-    //! Returns the current scope object.
-    //! \return ScriptObject
-    ScriptObject* GetCurrentScope() const;
+    //! Returns the return value.
+    //! \return Variant
+    inline Variant GetReturnValue() const { return _RetValue; }
 
-    //! Sets the current caller object.
-    //! \param scopeObject
-    void SetCaller(ScriptObject* caller);
+    //! Sets the exit flag.
+    //! \param exit
+    inline void SetExit(bool exit) { _Exit = exit; }
 
-    //! Returns the current caller object.
-    //! \return ScriptObject
-    ScriptObject* GetCaller() const;
+    //! Returns the exit flag.
+    //! \return bool
+    inline bool GetExit() const { return _Exit; }
 };
 
 sympl_nsend

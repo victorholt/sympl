@@ -75,9 +75,8 @@ protected:
     /// Flag to ignore the return type check.
     bool _IgnoreReturnTypeCheck = false;
 
-    /// Flag to exit out of this method. This is typically called
-    /// when a return statement is hit.
-    bool _SignalExit = false;
+    /// Flag to exit the method.
+    bool _Exit = false;
 
     //! Copy over argument values from a list of arguments.
     //! \param args
@@ -102,14 +101,12 @@ public:
 
     //! Evaluates and returns the results of the object.
     //! \param args
-    //! \param caller
     //! \return
-    Variant Evaluate(const std::vector<Variant>& args, ScriptObject* caller = nullptr) override;
+    Variant Evaluate(const std::vector<Variant>& args) override;
 
     //! Evaluates and returns the results of the object.
-    //! \param caller
     //! \return
-    Variant Evaluate(ScriptObject* caller = nullptr) override;
+    Variant Evaluate() override;
 
     //! Adds an argument to the method.
     //! \param arg
@@ -200,18 +197,6 @@ public:
         return _ArgString.Ptr();
     }
 
-    //! Sets the return value.
-    //! \param value
-    inline void SetReturnValue(const Variant& value) {
-        _Value = value;
-    }
-
-    //! Returns the return value.
-    //! \return Variant
-    inline const Variant& GetReturnValue() const {
-        return _Value;
-    }
-
     //! Sets the ignore return type check flag.
     //! \param ignore
     inline void SetIgnoreReturnTypeCheck(bool ignore) {
@@ -222,18 +207,6 @@ public:
     //! \return bool
     inline bool GetIgnoreReturnTypeCheck() const {
         return _IgnoreReturnTypeCheck;
-    }
-
-    //! Sets the signal exit flag.
-    //! \param exit
-    inline void SetSignalExit(bool exit) {
-        _SignalExit = exit;
-    }
-
-    //! Returns the signal exit flag.
-    //! \return bool
-    inline bool GetSignalExit() const {
-        return _SignalExit;
     }
 };
 

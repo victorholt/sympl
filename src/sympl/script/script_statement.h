@@ -59,7 +59,8 @@ enum class StatementType {
     String,
     Bool,
     Integer,
-    Float
+    Float,
+    Void
 };
 
 /// Entry for the objects in the statement.
@@ -85,7 +86,7 @@ private:
     SharedRef<StringBuffer> _String;
 
     /// Reference to the script context.
-    WeakRef<ScriptContext> _ScriptContext;
+    SharedRef<ScriptContext> _ScriptContext;
 
     /// Symbol token checker.
     ScriptSymbol _Symbol;
