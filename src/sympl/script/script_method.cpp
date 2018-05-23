@@ -63,9 +63,9 @@ Variant ScriptMethod::Evaluate()
 
 void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 {
-    if (_Exit) {
-        return;
-    }
+    // if (_Exit) {
+        // return;
+    // }
 
     int argIndex = 0;
     for (auto argIt : _Args) {
@@ -94,9 +94,9 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 void ScriptMethod::_ProcessArgStatements()
 {
     // Check if we need to exit out.
-    if (_Exit) {
-        return;
-    }
+    // if (_Exit) {
+        // return;
+    // }
 
     // String arguments will need to have statements
     // to execute their value.
@@ -117,13 +117,13 @@ void ScriptMethod::_ProcessArgStatements()
 void ScriptMethod::_ProcessCallStatements()
 {
     // Check if we need to exit out.
-    if (_Exit) {
-        _Value = GetContext()->GetReturnValue();
-        return;
-    }
+    // if (_Exit) {
+        // _Value = GetContext()->GetReturnValue();
+        // return;
+    // }
 
     for (auto entryIt : _CallStatements) {
-        if (_Exit) {
+        if (GetContext()->GetExit()) {
             return;
         }
 
@@ -224,7 +224,7 @@ ScriptObject* ScriptMethod::GetScopeParent()
 }
 
 void ScriptMethod::Exit() {
-    // if (GetContext()->GetExit()) return;
-    // GetContext()->SetExit(true);
-    _Exit = true;
+    if (GetContext()->GetExit()) return;
+    GetContext()->SetExit(true);
+    // _Exit = true;
 }

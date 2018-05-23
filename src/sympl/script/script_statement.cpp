@@ -133,7 +133,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                         break;
                     }
                 }
-                std::cout << "LOOKING FOR VAR: " << currentStr << " IN " << obj->GetPath() << " -- VALUE = " << obj->GetValue().AsString() << " (VO): " << varObject->GetPath() << std::endl;
+                // std::cout << "LOOKING FOR VAR: " << currentStr << " IN " << obj->GetPath() << " -- VALUE = " << obj->GetValue().AsString() << " (VO): " << varObject->GetPath() << std::endl;
             }// else {
                 // std::cout << "CONSTANT LOOKING FOR VAR: " << currentStr << " IN " << varObject->GetPath()  << std::endl;
             // }
@@ -165,7 +165,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
 
                 // std::cout << "STMT: " << statementStr->CStr() << " WITH VALUE = " << obj->GetValue().AsString() << std::endl;
             } else {
-                // std::cout << "C STMT: " << statementStr->CStr() << " WITH VALUE = " << currentStr << std::endl;
+                //  std::cout << "C STMT: " << statementStr->CStr() << " WITH VALUE = " << currentStr << std::endl;
                 _AddValueAndOperation(currentStr, currentOp);
             }
             _StatementBuffer->Clear();
