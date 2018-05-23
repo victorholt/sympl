@@ -58,6 +58,9 @@ protected:
     /// Name of the object.
     std::string _Name;
 
+    /// Clean non-unique namel
+    std::string _CleanName;
+
     /// Reference namespace path.
     std::string _Path;
 
@@ -197,8 +200,16 @@ public:
     inline void SetName(const std::string& name) { _Name = name; }
 
     //! Returns the name of the object.
-    //! \return
+    //! \return string
     inline const std::string& GetName() const { return _Name; }
+
+    //! Sets the clean name for the object.
+    //! \param name
+    inline void SetCleanName(const std::string& name) { _CleanName = name; }
+
+    //! Returns the clean name of the object.
+    //! \return string
+    inline const std::string& GetCleanName() const { return _CleanName; }
 
     //! Returns the path of the object.
     //! \return

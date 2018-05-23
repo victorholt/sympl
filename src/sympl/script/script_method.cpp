@@ -63,10 +63,6 @@ Variant ScriptMethod::Evaluate()
 
 void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 {
-    // if (_Exit) {
-        // return;
-    // }
-
     int argIndex = 0;
     for (auto argIt : _Args) {
         // Ensure we have args.
@@ -76,13 +72,7 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 
         Variant argValue = args[argIndex];
 
-        // if (!to_method(GetScopeParent())->IsImmediate()) {
-            // std::cout << "COPY ARG " << argIt->GetName() << "(" << argValue.AsString() << ")" << " FROM SCOPE: " << GetScope()->GetPath() << std::endl;
-            // std::cout << "COPY ARG " << argIt->GetName() << "(" << argValue.AsString() << ")" << " FROM SCOPE: " << FindCalledByMethod()->GetPath() << std::endl;
-        // }
-
         auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str());
-        // if (argObj->IsEmpty()) continue;
         assert(!argObj->IsEmpty() && "Invalid argument given for method");
 
         argObj->SetValue(args[argIndex]);
@@ -93,11 +83,6 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 
 void ScriptMethod::_ProcessArgStatements()
 {
-    // Check if we need to exit out.
-    // if (_Exit) {
-        // return;
-    // }
-
     // String arguments will need to have statements
     // to execute their value.
     for (auto argIt : _Args) {
@@ -116,14 +101,8 @@ void ScriptMethod::_ProcessArgStatements()
 
 void ScriptMethod::_ProcessCallStatements()
 {
-    // Check if we need to exit out.
-    // if (_Exit) {
-        // _Value = GetContext()->GetReturnValue();
-        // return;
-    // }
-
     for (auto entryIt : _CallStatements) {
-        if (GetContext()->GetExit()) {
+        if (_Exit) {
             return;
         }
 
@@ -224,7 +203,14 @@ ScriptObject* ScriptMethod::GetScopeParent()
 }
 
 void ScriptMethod::Exit() {
-    if (GetContext()->GetExit()) return;
-    GetContext()->SetExit(true);
-    // _Exit = true;
+    _Exit = true;
+
+    if (!_Context.IsValid()) {
+        return;
+    }
+
+    // GetContext()->SetExit(true);
+    for (auto entryIt : GetContext()->GetEntries()) {
+        to_method(entryIt.Caller.Ptr())->SetExit(true);
+    }
 }

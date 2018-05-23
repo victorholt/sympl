@@ -134,6 +134,10 @@ public:
     //! Sets the signal exit flag.
     void Exit();
 
+    //! Sets the exit flag.
+    //! \param exit
+    inline void SetExit(bool exit) { _Exit = exit; }
+
     //! Returns the argument object.
     //! \param index
     //! \return SharedRef<ScriptObject>

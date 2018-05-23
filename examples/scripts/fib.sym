@@ -8,14 +8,10 @@ func add(a, b) : int {
 func fib(n) : int {
     printl(n);
     if (n < 1) {
-        // works
-        return 5;
+        return add(1, add(3, 2));
 
         // doesn't work...
-        // return add(1, add(3, 2));
-
-        // doesn't work...
-        //fib(n + 1);
+        // return fib(n + 1);
     }
     return n;
 }

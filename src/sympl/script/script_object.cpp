@@ -48,6 +48,7 @@ ScriptObject::~ScriptObject()
 void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject* parent)
 {
     _Name = name;
+    _CleanName = name;
     _Path = path;
     _Parent = parent;
 }
@@ -86,6 +87,8 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     }
 
     ScriptObject* clone = _OnCloneCreateObject(name, parent);
+    clone->SetCleanName(_Name);
+
     clone->SetValue(_Value);
 
     if (_Context.IsValid()) {

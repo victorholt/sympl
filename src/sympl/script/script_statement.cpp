@@ -93,6 +93,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                     _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
                 }
             }
+            // std::cout << "() STMT: " << _StatementBuffer->CStr() << std::endl;
             // _StatementBuffer->Clear();
             continue;
         }
@@ -135,7 +136,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                 }
                 // std::cout << "LOOKING FOR VAR: " << currentStr << " IN " << obj->GetPath() << " -- VALUE = " << obj->GetValue().AsString() << " (VO): " << varObject->GetPath() << std::endl;
             }// else {
-                // std::cout << "CONSTANT LOOKING FOR VAR: " << currentStr << " IN " << varObject->GetPath()  << std::endl;
+                //  std::cout << "CONSTANT LOOKING FOR VAR: " << currentStr << " IN " << varObject->GetPath()  << std::endl;
             // }
 
             if (!IsNullObject(obj) && !obj->IsEmpty()) {
@@ -160,10 +161,10 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                                 break;
                         }
                     }
+
+                    // std::cout << "STMT: " << statementStr->CStr() << " WITH VALUE = " << obj->GetValue().AsString() << std::endl;
                     auto entry = Add(obj, currentOp);
                 }
-
-                // std::cout << "STMT: " << statementStr->CStr() << " WITH VALUE = " << obj->GetValue().AsString() << std::endl;
             } else {
                 //  std::cout << "C STMT: " << statementStr->CStr() << " WITH VALUE = " << currentStr << std::endl;
                 _AddValueAndOperation(currentStr, currentOp);
@@ -398,7 +399,9 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
             return retValue;
         }
 
-        _StatementBuffer->AppendByte(currentChar);
+        if (recording || (!recording && currentChar != '#')) {
+            _StatementBuffer->AppendByte(currentChar);
+        }
     }
 
     // We failed to exit the while loop early!
@@ -449,10 +452,11 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
         _ScriptContext->AddEntry(callEntry);
     }
 
+    // scriptObject->SetMeta("caller", varObject);
     scriptObject->SetContext(_ScriptContext.Ptr());
 
     // Remove the name of the method so it's not part of the statement value.
-    _StatementBuffer->Replace(orgMethod->GetName().c_str(), "");
+    _StatementBuffer->Replace(orgMethod->GetCleanName().c_str(), "");
 
     // Saved our current statement and then clear the buffer.
     std::string savedStatementStr = _StatementBuffer->CStr();
@@ -538,19 +542,20 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
             argValue = Variant::Empty;
             currentConcatConditionStr = "";
             lastConcatConditionStr = "";
+
             _StatementBuffer->Clear();
+            _StatementBuffer->Replace(SYMPL_STRING_TOKEN, "");
 
             // We've completed building out the arguments.
             if (currentChar == ')') {
                 // Restore the statement buffer.
-                _StatementBuffer->Clear();
                 _StatementBuffer->Append(savedStatementStr);
-
-                return to_method(scriptObject)->Evaluate(args);
+                to_method(scriptObject)->Evaluate(args);
+                return _ScriptContext->GetReturnValue();
             }
         }
 
-        if (recording || (!recording && currentChar != ',')) {
+        if (recording || (!recording && currentChar != ',' && currentChar != '#')) {
             _StatementBuffer->AppendByte(currentChar);
         }
     }
