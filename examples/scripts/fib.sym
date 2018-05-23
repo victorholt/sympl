@@ -1,12 +1,13 @@
 // Simple fibonacci method.
+// ** BROKEN CURRENTLY **
 
-func fib(n) : int {
-    printl(n);
-    if (n < 1) {
-        return fib(n + 1);
-    }
-    return n;
-}
+//func fib(n) : int {
+//    printl(n);
+//    if (n < 1) {
+//        return fib(n + 1);
+//    }
+//    return n;
+//}
 
-var x = fib(0);
-printl(x);
+//var x = fib(0);
+//printl(x);
