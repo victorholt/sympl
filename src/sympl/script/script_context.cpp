@@ -39,30 +39,30 @@ ScriptContext::~ScriptContext()
 
 void ScriptContext::SetOwner(ScriptObject* owner)
 {
-    _Owner = owner;
+    _Owner = (!IsNullObject(owner) && !owner->IsEmpty() ? owner : &ScriptObject::Empty);
 }
 
 ScriptObject* ScriptContext::GetOwner() const
 {
-    return _Owner.Ptr();
+    return (_Owner.IsValid() ? _Owner.Ptr() : &ScriptObject::Empty);
 }
 
 void ScriptContext::SetCurrentScope(ScriptObject* scopeObject)
 {
-    _CurrentScope = scopeObject;
+    _CurrentScope = (!IsNullObject(scopeObject) && !scopeObject->IsEmpty() ? scopeObject : &ScriptObject::Empty);
 }
 
 ScriptObject* ScriptContext::GetCurrentScope() const
 {
-    return _CurrentScope.Ptr();
+    return (_CurrentScope.IsValid() ? _CurrentScope.Ptr() : &ScriptObject::Empty);
 }
 
 void ScriptContext::SetCaller(ScriptObject* caller)
 {
-    _Caller = caller;
+    _Caller = (!IsNullObject(caller) && !caller->IsEmpty() ? caller : &ScriptObject::Empty);
 }
 
 ScriptObject* ScriptContext::GetCaller() const
 {
-    return _Caller.Ptr();
+    return (_Caller.IsValid() ? _Caller.Ptr() : &ScriptObject::Empty);
 }

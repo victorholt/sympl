@@ -39,7 +39,7 @@ ScriptObject::ScriptObject()
     _Parent = nullptr;
     _Type = ScriptObjectType::Empty;
     _Context = alloc_ref(ScriptContext);
-    _Context->SetOwner(this);
+    _Context->SetOwner(&ScriptObject::Empty);
 }
 
 ScriptObject::~ScriptObject()
@@ -52,6 +52,7 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
     _Name = name;
     _Path = path;
     _Parent = parent;
+    _Context->SetOwner(this);
 }
 
 void ScriptObject::_AddChild(ScriptObject* scriptObject)
@@ -91,9 +92,9 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     ScriptObject* clone = _OnCloneCreateObject(name, parent);
     clone->SetValue(_Value);
 
-    auto context = (IsNullObject(parent) || parent->IsEmpty()) ? GetContext() : parent->GetContext();
-    clone->GetContext()->SetCaller(context->GetCaller());
-    clone->GetContext()->SetCurrentScope(context->GetCurrentScope());
+    // auto context = (IsNullObject(parent) || parent->IsEmpty()) ? GetContext() : parent->GetContext();
+    clone->GetContext()->SetCaller(_Context->GetCaller());
+    clone->GetContext()->SetCurrentScope(_Context->GetCurrentScope());
 
     // Clone the children!
     for (auto entryIt : _Children) {

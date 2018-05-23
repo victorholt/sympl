@@ -48,9 +48,9 @@ ScriptMethod::~ScriptMethod()
 
 Variant ScriptMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
 {
-    if (!IsNullObject(caller) && !caller->IsEmpty()) {
-        std::cout << GetName() << " CALLED BY " << caller->GetName() << std::endl;
-    }
+    // if (!IsNullObject(caller) && !caller->IsEmpty()) {
+    //     std::cout << GetName() << " CALLED BY " << caller->GetName() << std::endl;
+    // }
     // for (auto entryIt : _CallStatements) {
     //     entryIt->Variable->SetValue(entryIt->Statement.Ptr());
     // }
@@ -103,13 +103,14 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 
         Variant argValue = args[argIndex];
 
-        if (!to_method(GetScopeParent())->IsImmediate()) {
-            std::cout << "COPY ARG " << argIt->GetName() << " FROM SCOPE: " << GetScope()->GetPath() << std::endl;
-        }
+        // if (!to_method(GetScopeParent())->IsImmediate()) {
+            // std::cout << "COPY ARG " << argIt->GetName() << "(" << argValue.AsString() << ")" << " FROM SCOPE: " << GetPath() << std::endl;
+            // std::cout << "COPY ARG " << argIt->GetName() << "(" << argValue.AsString() << ")" << " FROM SCOPE: " << FindCalledByMethod()->GetPath() << std::endl;
+        // }
 
         auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str());
-        if (argObj->IsEmpty()) continue;
-        // assert(!argObj->IsEmpty() && "Invalid argument given for method");
+        // if (argObj->IsEmpty()) continue;
+        assert(!argObj->IsEmpty() && "Invalid argument given for method");
 
         argObj->SetValue(args[argIndex]);
 
@@ -152,6 +153,7 @@ void ScriptMethod::_ProcessCallStatements()
             return;
         }
 
+        // std::cout << entryIt->Variable->GetName() << " PROCESS CALL FROM: " << GetContext()->GetCurrentScope()->GetPath() << std::endl;
         entryIt->Statement->SetScriptContext(GetContext());
         entryIt->Statement->Build(entryIt->Variable.Ptr());
 

@@ -93,6 +93,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                     _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
                 }
             }
+            _StatementBuffer->Clear();
             continue;
         }
 
@@ -122,13 +123,13 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
             ScriptObject* obj = nullptr;
 
             // Update the object's context.
-            auto caller = &ScriptObject::Empty;
-            if (varObject->GetType() != ScriptObjectType::Method || to_method(varObject)->IsImmediate()) {
-                    caller = varObject->FindCalledByMethod();
-                    varObject->GetContext()->SetCaller(caller);
-            }
-            auto currentScope = (varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : &ScriptObject::Empty);
-            varObject->GetContext()->SetCurrentScope(currentScope);
+            // auto caller = &ScriptObject::Empty;
+            // if (varObject->GetType() != ScriptObjectType::Method || to_method(varObject)->IsImmediate()) {
+            //         caller = varObject->FindCalledByMethod();
+            //         varObject->GetContext()->SetCaller(caller);
+            // }
+            // auto currentScope = (varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : &ScriptObject::Empty);
+            // varObject->GetContext()->SetCurrentScope(currentScope);
 
             // Method arguments should not traverse within the scoop of the method
             // to determine which variable to use in the statement.
@@ -138,7 +139,8 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                 // std::cout << "LOOKING FOR " << varObject->GetName() << " IN SCOPE " << currentScope->GetPath() << std::endl;
             //     obj = varObject->TraverseUpFindChildByName(currentStr.c_str());
             // }
-            obj = currentScope->IsEmpty() ? varObject->TraverseUpFindChildByName(currentStr.c_str()) : currentScope->TraverseUpFindChildByName(currentStr.c_str());
+            obj = varObject->TraverseUpFindChildByName(currentStr.c_str());
+            std::cout << "LOOKING FOR VAR: " << currentStr << " IN " << varObject->GetContext()->GetCaller()->GetPath()  << std::endl;
 
             if (!IsNullObject(obj) && !obj->IsEmpty()) {
                 if (obj->GetType() == ScriptObjectType::Method && !to_method(obj)->IsImmediate()) {
@@ -420,18 +422,18 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
     Variant argValue;
 
     // Check if this is really a valid object.
-    ScriptObject* scriptObject = varObject;
+    ScriptObject* orgMethod = varObject;
     if (varObject->GetType() != ScriptObjectType::Method) {
-        scriptObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+        orgMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
     }
 
-    if (IsNullObject(scriptObject) || scriptObject->IsEmpty() || scriptObject->GetType() != ScriptObjectType::Method) {
+    if (IsNullObject(orgMethod) || orgMethod->IsEmpty() || orgMethod->GetType() != ScriptObjectType::Method) {
         return Variant::Empty;
     }
 
     // Update the object's context.
-    auto caller = varObject->GetContext()->GetCaller();
-    auto currentScope = varObject->GetContext()->GetCurrentScope();
+    // auto caller = _ScriptContext->GetCaller();
+    // auto currentScope = _ScriptContext->GetCurrentScope();
     // if (caller->IsEmpty()) {
     //     caller = varObject;
     // }
@@ -444,7 +446,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
 
     // Clone our method.
     // if (_ScriptContext.IsValid()) {
-        // std::cout << "STMT CALLER: " << _ScriptContext->GetOwner()->GetPath() << std::endl;
+        // std::cout << "STMT CALLER: " << varObject->GetPath() << std::endl;
     // }
     // if (!currentScope->IsEmpty()) {
         // std::cout << "M CLONED FROM SCOPE: " << currentScope->GetPath() << std::endl;
@@ -454,13 +456,27 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
         // scriptObject = scriptObject->Clone(caller, true);
     // } else {
         // std::cout << "M CLONED FROM OBJECT: " << varObject->GetPath() << std::endl;
-    if (_ScriptContext.IsValid()) {
-        scriptObject = scriptObject->Clone(_ScriptContext->GetOwner(), true);
-    } else {
-        scriptObject = scriptObject->Clone(scriptObject, true);
-    }
-    scriptObject->GetContext()->SetCaller(caller);
-    scriptObject->GetContext()->SetCurrentScope(currentScope);
+    // if (_ScriptContext.IsValid()) {
+        // scriptObject = scriptObject->Clone(_ScriptContext->GetCaller(), true);
+    // } else {
+    // }
+
+    // Immediate methods don't get cloned since they're already unique.
+    ScriptObject* scriptObject = orgMethod;
+
+    // if (!to_method(orgMethod)->IsImmediate()) {
+        scriptObject = orgMethod->Clone(nullptr, true);
+        ScriptObject* scriptOwner = to_method(scriptObject)->GetScope();
+
+        if (_ScriptContext.IsValid()) {
+            scriptOwner = to_method(_ScriptContext->GetOwner())->GetScope();
+            scriptObject->GetContext()->SetCaller(orgMethod);
+            scriptObject->GetContext()->SetCurrentScope(scriptOwner);
+        } else {
+            scriptObject->GetContext()->SetCaller(orgMethod);
+            scriptObject->GetContext()->SetCurrentScope(scriptOwner);
+        }
+    // }
 
     // Remove the name of the method so it's not part of the statement value.
     _StatementBuffer->Replace(scriptObject->GetName().c_str(), "");
@@ -557,9 +573,19 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
                 _StatementBuffer->Clear();
                 _StatementBuffer->Append(savedStatementStr);
 
-                // std::cout << "RM: " << varObject->GetName() << " IN SCOPE: " << currentScope->GetName() << " FROM CALLER: " << caller->GetName() << std::endl;
-                Variant retValue = to_method(scriptObject)->Evaluate(args, _ScriptContext->GetOwner());
-                SymplVMInstance->RemoveObject(scriptObject->GetPath().c_str());
+                // if (_ScriptContext.IsValid()) {
+                //     std::cout << "RM: " << scriptObject->GetName() << " IN SCOPE: " << _ScriptContext->GetCurrentScope()->GetName() << " FROM CALLER: " << _ScriptContext->GetCaller()->GetName() << std::endl;
+                // }
+                // for (auto ag : args) {
+                    // std::cout << "SENDING ARG: " << ag.AsString() << ", ";
+                // }
+                // std::cout << std::endl;
+                Variant retValue = to_method(scriptObject)->Evaluate(args, varObject);
+
+                // Don't delete if we're an immediate method.
+                // if (!to_method(scriptObject)->IsImmediate()) {
+                    SymplVMInstance->RemoveObject(scriptObject->GetPath().c_str());
+                // }
 
                 return retValue;
             }

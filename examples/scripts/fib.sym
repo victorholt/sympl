@@ -2,7 +2,7 @@
 
 func fib(n) : int {
     printl(n);
-    if (n < 1) {
+    if (n < 2) {
         return fib(n + 1);
     }
     return n;

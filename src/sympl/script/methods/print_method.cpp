@@ -59,8 +59,6 @@ void PrintMethod::_Initialize(const char* name, const char* path, ScriptObject* 
 
 Variant PrintMethod::Evaluate(const std::vector<Variant>& args, ScriptObject* caller)
 {
-
-
     SetCaller(caller);
     _CopyArgs(args);
     _ProcessArgStatements();
