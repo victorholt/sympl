@@ -37,15 +37,6 @@ ScriptMethod::ScriptMethod()
     _ArgString->Resize(512);
 }
 
-ScriptMethod::~ScriptMethod()
-{
-    for (auto entryIt : _CallStatements) {
-        delete entryIt;
-    }
-    _CallStatements.clear();
-    _Args.clear();
-}
-
 Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
 {
     _CopyArgs(args);
@@ -107,7 +98,6 @@ void ScriptMethod::_ProcessCallStatements()
         }
 
         // std::cout << entryIt->Variable->GetName() << " PROCESS CALL FROM: " << GetContext()->GetCurrentScope()->GetPath() << std::endl;
-        entryIt->Statement->SetScriptContext(GetContext());
         entryIt->Statement->Build(entryIt->Variable.Ptr());
 
         _Value = entryIt->Statement->Evaluate();
@@ -179,7 +169,6 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
         auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str());
         if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
             // auto stmt = alloc_ref(ScriptStatement);
-            // stmt->SetString(entryIt->Statement->GetString());
             to_method(clone)->AddStatement(callObj, entryIt->Statement->Clone(to_method(clone)->GetScope()));
         }
     }
@@ -204,13 +193,23 @@ ScriptObject* ScriptMethod::GetScopeParent()
 
 void ScriptMethod::Exit() {
     _Exit = true;
+}
 
-    if (!_Context.IsValid()) {
-        return;
-    }
+void ScriptMethod::Release()
+{
+    _Scope.Release();
+    _ArgString.Release();
+    _Value.Clear();
 
-    // GetContext()->SetExit(true);
-    for (auto entryIt : GetContext()->GetEntries()) {
-        to_method(entryIt.Caller.Ptr())->SetExit(true);
+    for (auto entryIt : _CallStatements) {
+        delete entryIt;
     }
+    _CallStatements.clear();
+
+    for (auto arg : _Args) {
+        arg.Release();
+    }
+    _Args.clear();
+
+    ScriptObject::Release();
 }

@@ -42,11 +42,6 @@ PrintMethod::PrintMethod()
     _IgnoreReturnTypeCheck = true;
 }
 
-PrintMethod::~PrintMethod()
-{
-
-}
-
 void PrintMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
 {
     ScriptObject::_Initialize(name, path, parent);
@@ -103,11 +98,6 @@ PrintLineMethod::PrintLineMethod()
 
     // Skip type checking this method.
     _IgnoreReturnTypeCheck = true;
-}
-
-PrintLineMethod::~PrintLineMethod()
-{
-
 }
 
 void PrintLineMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)

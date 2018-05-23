@@ -40,11 +40,6 @@ IfMethod::IfMethod()
     _IgnoreReturnTypeCheck = true;
 }
 
-IfMethod::~IfMethod()
-{
-
-}
-
 void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
 {
     ScriptObject::_Initialize(name, path, parent);

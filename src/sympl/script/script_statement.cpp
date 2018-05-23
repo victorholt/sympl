@@ -93,8 +93,6 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                     _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
                 }
             }
-            // std::cout << "() STMT: " << _StatementBuffer->CStr() << std::endl;
-            // _StatementBuffer->Clear();
             continue;
         }
 
@@ -121,23 +119,9 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
             }
 
             // Save the value as a statement.
-            ScriptObject* obj = nullptr;
+            ScriptObject* obj = &ScriptObject::Empty;
 
             obj = varObject->TraverseUpFindChildByName(currentStr.c_str());
-            if (obj->IsEmpty() && _ScriptContext.IsValid()) {
-                // Start with the last entry and work up.
-                auto entries = _ScriptContext->GetEntries();
-                for (size_t i = entries.size() - 1; i <= 0; i--) {
-                    obj = entries[i].CurrentScope->TraverseUpFindChildByName(currentStr.c_str());
-                    // obj = to_method(entries[i].Caller.Ptr())->GetScope()->TraverseUpFindChildByName(currentStr.c_str());
-                    if (!obj->IsEmpty() && !obj->GetValue().IsEmpty()) {
-                        break;
-                    }
-                }
-                // std::cout << "LOOKING FOR VAR: " << currentStr << " IN " << obj->GetPath() << " -- VALUE = " << obj->GetValue().AsString() << " (VO): " << varObject->GetPath() << std::endl;
-            }// else {
-                //  std::cout << "CONSTANT LOOKING FOR VAR: " << currentStr << " IN " << varObject->GetPath()  << std::endl;
-            // }
 
             if (!IsNullObject(obj) && !obj->IsEmpty()) {
                 auto retType = to_method(obj)->GetReturnType();
@@ -258,7 +242,6 @@ std::string ScriptStatement::EvaluateAsString()
 ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
 {
     ScriptStatement* stat = alloc_ref(ScriptStatement);
-    stat->SetScriptContext(_ScriptContext.Ptr());
     stat->SetType(_Type);
     stat->_String = _String;
 
@@ -297,6 +280,7 @@ StatementType ScriptStatement::_FindType(const Variant& value)
 
 Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
 {
+    /*
     // Parse out the object value.
     char currentChar = '\0';
     char previousChar = '\0';
@@ -406,10 +390,13 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
 
     // We failed to exit the while loop early!
     assert(false && "Unclosed parenthesis in statement found!");
+    */
+   return Variant::Empty;
 }
 
 Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
 {
+    /*
     // Parse out the object value.
     char currentChar = '\0';
     char previousChar = '\0';
@@ -448,6 +435,9 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
         callEntry.Owner = orgMethod;
         callEntry.Caller = scriptObject;
         callEntry.CurrentScope = to_method(scriptObject)->GetScope();
+
+        // Set meta for quick search.
+        callEntry.CurrentScope->SetMeta("scope_entry_index", _ScriptContext->GetEntries().size());
 
         _ScriptContext->AddEntry(callEntry);
     }
@@ -562,13 +552,14 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
 
     // We failed to exit the while loop early!
     assert(false && "Unclosed call to method!");
+    */
+   return Variant::Empty;
 }
 
 Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)
 {
     // Create the statement and set the string.
     SharedRef<ScriptStatement> stat = alloc_ref(ScriptStatement);
-    stat->SetScriptContext(_ScriptContext.Ptr());
     stat->SetString(_StatementBuffer);
     _StatementBuffer->Clear();
 

@@ -149,6 +149,9 @@ public:
     //! \param name.
     void RemoveChild(const char* name);
 
+    //! Releases the object.
+    void Release() override;
+
     //! Sets the parent for the object.
     //! \param parent
     inline void SetParent(ScriptObject* parent) {

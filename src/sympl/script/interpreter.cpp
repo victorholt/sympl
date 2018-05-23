@@ -35,11 +35,6 @@ Interpreter::Interpreter()
 
 }
 
-Interpreter::~Interpreter()
-{
-    _CommandList.clear();
-}
-
 bool Interpreter::Run()
 {
     for (auto entry : _CommandList) {
@@ -72,4 +67,13 @@ void Interpreter::_Parse()
         _Parser = alloc_ref(ScriptParser);
     }
     _Parser->Parse(this);
+}
+
+void Interpreter::Release()
+{
+    for (auto entryIt : _CommandList) {
+        entryIt.ObjectRef.Release();
+        entryIt.Statement.Release();
+    }
+    _CommandList.clear();
 }

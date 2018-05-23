@@ -31,25 +31,25 @@ sympl_nsstart
 
 class ScriptObject;
 
-struct ScriptContextCallEntry
-{
-    /// Owner of the context.
-    SharedRef<ScriptObject> Owner;
-
-    /// Reference to the current scope of the context.
-    SharedRef<ScriptObject> CurrentScope;
-
-    /// Reference to the caller.
-    SharedRef<ScriptObject> Caller;
-};
-
 class SYMPL_API ScriptContext : public Object
 {
     SYMPL_OBJECT(ScriptContext, Object);
 
 protected:
-    /// Call list of entries in the scope.
-    std::vector<ScriptContextCallEntry> _Entries;
+    /// Owner of the context.
+    WeakRef<ScriptObject> _Owner;
+
+    /// Reference to the current scope of the context.
+    WeakRef<ScriptObject> _CurrentScope;
+
+    /// Reference to the caller.
+    WeakRef<ScriptObject> _Caller;
+
+    /// Reference to the previous context.
+    WeakRef<ScriptContext> _PreviousContext;
+
+    /// Reference to the next context.
+    WeakRef<ScriptContext> _NextContext;
 
     /// Current return value.
     Variant _RetValue;
@@ -64,13 +64,49 @@ public:
     //! Destructor.
     ~ScriptContext() override;
 
-    //! Adds a new entry to the list.
-    //! \param entry
-    void AddEntry(const ScriptContextCallEntry& entry);
+    //! Finds an object within the scope.
+    //! \return ScriptObject
+    ScriptObject* FindObject(const char* name);
 
-    //! Returns all entries in the list.
-    //! \return std::vector<ScriptContextCallEntry>
-    const std::vector<ScriptContextCallEntry>& GetEntries() const;
+    //! Sets the owner script object.
+    //! \param owner
+    void SetOwner(ScriptObject* owner);
+
+    //! Returns the owner script object.
+    //! \return ScriptObject
+    ScriptObject* GetOwner() const;
+
+    //! Sets the current scope script object.
+    //! \param scope
+    void SetCurrentScope(ScriptObject* scope);
+
+    //! Returns the current scope script object.
+    //! \return ScriptObject
+    ScriptObject* GetCurrentScope() const;
+
+    //! Sets the caller script object.
+    //! \param caller
+    void SetCaller(ScriptObject* caller);
+
+    //! Returns the caller script object.
+    //! \return ScriptObject
+    ScriptObject* GetCaller() const;
+
+    //! Sets the previous context.
+    //! \param context
+    inline void SetPreviousContext(ScriptContext* context) { _PreviousContext = context; }
+
+    //! Returns the previous context.
+    //! \return ScriptContext
+    inline ScriptContext* GetPreviousContext() const { return _PreviousContext.Ptr(); }
+
+    //! Sets the next context.
+    //! \param context
+    inline void SetNextContext(ScriptContext* context) { _NextContext = context; }
+
+    //! Returns the next context.
+    //! \return ScriptContext
+    inline ScriptContext* GetNextContext() const { return _NextContext.Ptr(); }
 
     //! Sets the return value.
     //! \param value
@@ -87,6 +123,13 @@ public:
     //! Returns the exit flag.
     //! \return bool
     inline bool GetExit() const { return _Exit; }
+
+    //! Check for empty of this context.
+    //! \return bool
+    inline bool IsEmpty() const { return !_Owner.IsValid(); }
+
+    /// Empty script context.
+    static ScriptContext Empty;
 };
 
 sympl_nsend

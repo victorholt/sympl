@@ -44,7 +44,7 @@ enum class MethodReturnType : uint8_t
 struct MethodCallStatement
 {
     // TODO: Sharing the Variable reference seems to cause a mem leak...
-    WeakRef<ScriptObject> Variable;
+    SharedRef<ScriptObject> Variable;
     SharedRef<ScriptStatement> Statement;
 };
 
@@ -54,13 +54,13 @@ class SYMPL_API ScriptMethod : public ScriptObject
 
 protected:
     /// Variable paths for the arguments.
-    std::vector<WeakRef<ScriptObject>> _Args;
+    std::vector<SharedRef<ScriptObject>> _Args;
 
     /// Stored method call statements to execute.
     std::vector<MethodCallStatement*> _CallStatements;
 
     /// Reference to the scope object.
-    WeakRef<ScriptObject> _Scope;
+    SharedRef<ScriptObject> _Scope;
 
     /// Return type for the method.
     MethodReturnType _ReturnType;
@@ -96,9 +96,6 @@ public:
     //! Constructor.
     ScriptMethod();
 
-    //! Destructor.
-    ~ScriptMethod() override;
-
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
@@ -133,6 +130,9 @@ public:
 
     //! Sets the signal exit flag.
     void Exit();
+
+    //! Releases the object.
+    void Release() override;
 
     //! Sets the exit flag.
     //! \param exit

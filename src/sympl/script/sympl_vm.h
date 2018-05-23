@@ -34,6 +34,7 @@ sympl_nsstart
 
 class Interpreter;
 class MethodRegistry;
+class ScriptContext;
 
 class SYMPL_API SymplVM : public Object
 {
@@ -46,7 +47,7 @@ private:
     /// Reference to the method registry.
     SharedRef<MethodRegistry> _MethodRegistry;
 
-    /// Map of all objects in the vm.
+    /// Map of all objects (guid, object) in the vm.
     std::unordered_map<std::string, SharedRef<ScriptObject>> _ObjectMap;
 
     //! Builds a path for an object.
@@ -113,13 +114,13 @@ public:
     //! Attempts to find an object.
     //! \param path
     //! \return ScriptObject
-    ScriptObject* FindObject(const std::string& path);
+    ScriptObject* FindObjectByPath(const std::string& path);
 
     //! Attempts to find an object with a given scope.
     //! \param scopeObject
     //! \param objectName
     //! \return ScriptObject
-    ScriptObject* FindObject(ScriptObject* scopeObject, const std::string& objectName);
+    ScriptObject* FindObjectByScope(ScriptObject* scopeObject, const std::string& objectName);
 
     //! Remove object from the object map.
     //! \param path.

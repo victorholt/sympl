@@ -36,6 +36,8 @@ protected:
     std::unordered_map<std::string, Variant> _Meta;
 
 public:
+    //! Releases the object.
+    virtual void Release() {}
 
     //! Sets meta data for the object.
     //! \param key

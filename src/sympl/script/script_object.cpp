@@ -38,11 +38,12 @@ ScriptObject::ScriptObject()
     _Path = "";
     _Parent = nullptr;
     _Type = ScriptObjectType::Empty;
+    // _Context = alloc_ref(ScriptContext);
 }
 
 ScriptObject::~ScriptObject()
 {
-    _Children.clear();
+    Release();
 }
 
 void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject* parent)
@@ -55,9 +56,8 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
 
 void ScriptObject::AddChild(ScriptObject* scriptObject)
 {
-    scriptObject->SetContext(_Context.Ptr());
     scriptObject->_SetNestLevel(_NestLevel + 1);
-    _Children[scriptObject->GetPath()] = scriptObject;
+    _Children[scriptObject->Guid()] = scriptObject;
 }
 
 Variant ScriptObject::Evaluate(const std::vector<Variant>& args)
@@ -90,10 +90,6 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     clone->SetCleanName(_Name);
 
     clone->SetValue(_Value);
-
-    if (_Context.IsValid()) {
-        clone->SetContext(_Context.Ptr());
-    }
 
     // Clone the children!
     for (auto entryIt : _Children) {
@@ -181,6 +177,14 @@ void ScriptObject::RemoveChild(const char* name)
         return;
     }
     _Children.erase(child->GetPath());
+}
+
+void ScriptObject::Release()
+{
+    for (auto childIt : _Children) {
+        childIt.second->Release();
+    }
+    _Children.clear();
 }
 
 SharedRef<ScriptObject> ScriptObject::GetParent() const

@@ -1,20 +1,22 @@
 // Simple fibonacci method.
 // ** BROKEN CURRENTLY **
 
-func add(a, b) : int {
-    return a + b;
-}
+//func add(a, b) : int {
+//    return a + b;
+//}
 
-func fib(n) : int {
-    printl(n);
-    if (n < 1) {
-        return add(1, add(3, 2));
+//func fib(n) : int {
+//    printl(n);
+//    if (n < 2) {
+//        return add(n, add(3, n));
 
         // doesn't work...
-        // return fib(n + 1);
-    }
-    return n;
-}
+        //return fib(n + 1);
+//    }
+//    return n;
+//}
 
-var x = fib(0);
+//var x = fib(3);
+
+var x = 1;
 printl(x);

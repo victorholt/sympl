@@ -66,9 +66,6 @@ public:
     //! Constructor.
     Interpreter();
 
-    //! Destructor.
-    ~Interpreter() override;
-
     //! Attempts to run the program.
     //! \return bool
     bool Run();
@@ -77,6 +74,9 @@ public:
     //! \param objectRef
     //! \param statement
     void AddCommand(ScriptObject* objectRef, ScriptStatement* statement);
+
+    //! Releases the object.
+    void Release() override;
 
     //! Returns the script reader.
     inline ScriptReader* GetReader() const {

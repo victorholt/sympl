@@ -46,9 +46,6 @@ public:
     //! Constructor.
     IfMethod();
 
-    //! Destructor.
-    ~IfMethod() override;
-
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return

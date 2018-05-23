@@ -103,6 +103,9 @@ public:
     virtual ~Ref() {
     }
 
+    //! Returns the guid for the object.
+    inline const std::string& Guid() const { return _Guid; }
+
     //! Adds to the reference count.
     inline void AddRef() { _RefCount++; }
 

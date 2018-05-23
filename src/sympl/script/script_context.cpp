@@ -23,7 +23,13 @@
  **********************************************************/
 #include <sympl/script/script_context.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_method.h>
+#include <sympl/script/sympl_vm.h>
+
+#include <fmt/format.h>
 sympl_namespaces
+
+ScriptContext ScriptContext::Empty;
 
 ScriptContext::ScriptContext()
 {
@@ -32,15 +38,52 @@ ScriptContext::ScriptContext()
 
 ScriptContext::~ScriptContext()
 {
-
+    _RetValue.Clear();
 }
 
-void ScriptContext::AddEntry(const ScriptContextCallEntry& entry)
+ScriptObject* ScriptContext::FindObject(const char* name)
 {
-    _Entries.push_back(entry);
+    if (!_CurrentScope.IsValid()) {
+        return SymplVMInstance->FindObject(fmt::format(".{0}", name));
+    }
+
+    auto obj = _CurrentScope->TraverseUpFindChildByName(name);
+    if (obj->IsEmpty()) {
+        if (_PreviousContext.IsValid()) {
+            return _PreviousContext->FindObject(name);
+        }
+        return &ScriptObject::Empty;
+    }
+
+    return obj;
 }
 
-const std::vector<ScriptContextCallEntry>& ScriptContext::GetEntries() const
+void ScriptContext::SetOwner(ScriptObject* owner)
 {
-    return _Entries;
+    _Owner = owner;
+}
+
+ScriptObject* ScriptContext::GetOwner() const
+{
+    return (_Owner.IsValid() ? _Owner.Ptr() : &ScriptObject::Empty);
+}
+
+void ScriptContext::SetCurrentScope(ScriptObject* scope)
+{
+    _CurrentScope = scope;
+}
+
+ScriptObject* ScriptContext::GetCurrentScope() const
+{
+    return (_CurrentScope.IsValid() ? _CurrentScope.Ptr() : &ScriptObject::Empty);
+}
+
+void ScriptContext::SetCaller(ScriptObject* caller)
+{
+    _Caller = caller;
+}
+
+ScriptObject* ScriptContext::GetCaller() const
+{
+    return (_Caller.IsValid() ? _Caller.Ptr() : &ScriptObject::Empty);
 }

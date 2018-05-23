@@ -71,28 +71,28 @@ int main()
 
     // cout << SymplVMInstance->PrintObjects() << endl;
 
-    // auto xVar = SymplVMInstance->FindObject(".x");
-    // auto yVar = SymplVMInstance->FindObject(".y");
-    // auto zVar = SymplVMInstance->FindObject(".z");
-    // auto argVar = SymplVMInstance->FindObject(".foo.args.n");
+    // auto xVar = SymplVMInstance->FindObjectByPath("x");
+    // auto yVar = SymplVMInstance->FindObjectByPath("y");
+    // auto zVar = SymplVMInstance->FindObjectByPath("z");
+    // auto argVar = SymplVMInstance->FindObjectByPath("foo.args.n");
 
     // if (!xVar->IsEmpty()) {
     //     Variant value = xVar->GetValue();
-    //     cout << ".x value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    //     cout << "x value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
     // }
 
     // if (!IsNullObject(yVar)) {
     //     Variant value = yVar->GetValue();
-    //     cout << ".y value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    //     cout << "y value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
     // }
 
     // if (!IsNullObject(zVar)) {
     //     Variant value = zVar->GetValue();
-    //     cout << ".z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
+    //     cout << "z value is " << value.AsString() << fmt::format(" ({0}) ", value.GetTypeAsString()) << endl;
     // }
 
     // if (!IsNullObject(argVar)) {
-    //     cout << ".foo.args.n is " << argVar->Print() << endl;
+    //     cout << "foo.args.n is " << argVar->Print() << endl;
     // }
 
     // Free our VM.
@@ -104,6 +104,6 @@ int main()
     free_ref(Sympl::Profiler, profiler);
 
     cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
-    // cout << AllocInstance->PrintRefs() << endl;
+    cout << AllocInstance->PrintRefs() << endl;
     return 0;
 }

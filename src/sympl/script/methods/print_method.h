@@ -46,9 +46,6 @@ public:
     //! Constructor.
     PrintMethod();
 
-    //! Destructor.
-    ~PrintMethod() override;
-
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
@@ -73,9 +70,6 @@ protected:
 public:
     //! Constructor.
     PrintLineMethod();
-
-    //! Destructor.
-    ~PrintLineMethod() override;
 
     //! Evaluates and returns the results of the object.
     //! \param args
