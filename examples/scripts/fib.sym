@@ -1,9 +1,10 @@
 // Simple fibonacci method.
 // ** BROKEN CURRENTLY **
 
-//func add(a, b) : int {
-//    return a + b;
-//}
+func add(a, b) : int {
+    printl(a);
+    return a + b;
+}
 
 //func fib(n) : int {
 //    printl(n);
@@ -18,5 +19,5 @@
 
 //var x = fib(3);
 
-var x = 1;
+var x = add(2, 3);
 printl(x);

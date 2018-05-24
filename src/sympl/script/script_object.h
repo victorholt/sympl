@@ -129,17 +129,15 @@ public:
     //! \return SharedRef<ScriptObject>
     virtual ScriptObject* Clone(ScriptObject* parent, bool uniqueName);
 
-    //! Finds a child based on the given path.
-    //! \param path
-    ScriptObject* FindChild(const char* path);
-
-    //! Finds a child based on the given path.
+    //! Finds a child based on the given name.
     //! \param name
-    ScriptObject* FindChildByName(const char* name);
+    //! \param useCleanName
+    ScriptObject* FindChildByName(const char* name, bool useCleanName = true);
 
     //! Traverses through parents in an attempt to find an object.
     //! \param name
-    ScriptObject* TraverseUpFindChildByName(const char* name);
+    //! \param useCleanName
+    ScriptObject* TraverseUpFindChildByName(const char* name, bool useCleanName = true);
 
     //! Attempts to find the method that called this object.
     //! \return ScriptObject

@@ -30,6 +30,7 @@
 sympl_nsstart
 
 #define SYMPL_STRING_TOKEN "@__STRING__@"
+#define SYMPL_SCOPE_NAME "__scope__"
 
 enum class ScriptObjectType : uint8_t {
     Empty = 0,

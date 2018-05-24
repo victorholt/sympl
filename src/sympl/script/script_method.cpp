@@ -37,6 +37,14 @@ ScriptMethod::ScriptMethod()
     _ArgString->Resize(512);
 }
 
+void ScriptMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
+{
+    ScriptObject::_Initialize(name, path, parent);
+
+    // Create the scope.
+    _Scope = SymplVMInstance->CreateObject(SYMPL_SCOPE_NAME, ScriptObjectType::Object, this);
+}
+
 Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
 {
     _CopyArgs(args);
@@ -63,10 +71,13 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 
         Variant argValue = args[argIndex];
 
-        auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str());
+        // std::cout << "LOOKING FOR ARG: " << argIt->GetName() << " with value " << argValue.AsString() << std::endl;
+
+        auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str(), false);
         assert(!argObj->IsEmpty() && "Invalid argument given for method");
 
-        argObj->SetValue(args[argIndex]);
+        // std::cout << "COPY ARG VALUE: " << argObj->GetPath() << " = " << argValue.AsString() << std::endl;
+        argObj->SetValue(argValue);
 
         argIndex++;
     }
@@ -105,6 +116,7 @@ void ScriptMethod::_ProcessCallStatements()
 
         // Check if we're attempting to return out of the method.
         if (entryIt->Variable->GetName() == "return") {
+            std::cout << " RETURNING VALUE: " << _Value.AsString() << std::endl;
             GetContext()->SetReturnValue(_Value);
             Exit();
             return;
@@ -156,9 +168,17 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
     to_method(clone)->SetReturnType(_ReturnType);
     to_method(clone)->SetIgnoreReturnTypeCheck(_IgnoreReturnTypeCheck);
 
+    // Ensure everything in the scope has been cloned!
+    for (auto entryIt : GetScope()->GetChildren()) {
+        auto child = to_method(clone)->GetScope()->FindChildByName(entryIt.second->GetName().c_str(), false);
+        if (child->IsEmpty()) {
+            entryIt.second->Clone(to_method(clone)->GetScope(), false);
+        }
+    }
+
     // Add the arguments.
     for (auto entryIt : _Args) {
-        auto argObj = to_method(clone)->GetScope()->FindChildByName(entryIt->GetName().c_str());
+        auto argObj = to_method(clone)->GetScope()->FindChildByName(entryIt->GetName().c_str(), false);
         if (!argObj->IsEmpty()) {
             to_method(clone)->AddArg(argObj);
         }
@@ -166,9 +186,8 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 
     // Add the statements.
     for (auto entryIt : _CallStatements) {
-        auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str());
+        auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str(), false);
         if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
-            // auto stmt = alloc_ref(ScriptStatement);
             to_method(clone)->AddStatement(callObj, entryIt->Statement->Clone(to_method(clone)->GetScope()));
         }
     }
@@ -178,9 +197,6 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 
 ScriptObject* ScriptMethod::GetScope()
 {
-    if (!_Scope.IsValid()) {
-        _Scope = FindChildByName(".");
-    }
     return _Scope.Ptr();
 }
 
@@ -197,19 +213,18 @@ void ScriptMethod::Exit() {
 
 void ScriptMethod::Release()
 {
-    _Scope.Release();
-    _ArgString.Release();
     _Value.Clear();
 
     for (auto entryIt : _CallStatements) {
         delete entryIt;
     }
     _CallStatements.clear();
-
-    for (auto arg : _Args) {
-        arg.Release();
-    }
     _Args.clear();
+
+    for (auto childIt : _Children) {
+        childIt.second->Release();
+    }
+    _Children.clear();
 
     ScriptObject::Release();
 }

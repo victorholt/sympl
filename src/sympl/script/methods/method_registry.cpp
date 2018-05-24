@@ -57,14 +57,17 @@ void MethodRegistry::_Initialize()
 
 void MethodRegistry::AddMethod(ScriptObject* method)
 {
-    _Methods[method->GetName()] = to_method(method);
+    assert(method->GetType() == ScriptObjectType::Method && "Attempted to register an invalid method!");
+
+    _Methods[method->Guid()] = to_method(method);
 }
 
 ScriptObject* MethodRegistry::FindMethod(const char* name)
 {
-    auto methodIt = _Methods.find(name);
-    if (methodIt != _Methods.end()) {
-        return methodIt->second.Ptr();
+    for (auto method : _Methods) {
+        if (method.second->GetName() == name) {
+            return method.second.Ptr();
+        }
     }
     return &ScriptObject::Empty;
 }

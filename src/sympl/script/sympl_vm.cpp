@@ -53,6 +53,8 @@ void SymplVM::Startup()
 
 void SymplVM::Shutdown()
 {
+    _MethodRegistry.Release();
+
     for (auto entryIt : _ObjectMap) {
         entryIt.second->Release();
     }
@@ -96,11 +98,10 @@ ScriptObject* SymplVM::CreateObject(const char* name, ScriptObjectType type, Scr
 {
     std::string path = _BuildPath(name, parent);
     auto* searchObj = FindObjectByPath(path);
-    if (!searchObj->IsEmpty()) {
-        return searchObj;
-    }
 
-    ScriptObject* scriptObject = &ScriptObject::Empty;
+    assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
+
+    ScriptObject* scriptObject = nullptr;
 
     if (type == ScriptObjectType::Method) {
         scriptObject = alloc_ref(ScriptMethod);
@@ -110,10 +111,10 @@ ScriptObject* SymplVM::CreateObject(const char* name, ScriptObjectType type, Scr
     scriptObject->_Initialize(name, path.c_str(), parent);
     scriptObject->_SetType(type);
 
-    if (IsNullObject(parent) || parent->IsEmpty()) {
-        _ObjectMap[scriptObject->Guid()] = scriptObject;
-    } else {
+    if (!IsNullObject(parent) && !parent->IsEmpty()) {
         parent->AddChild(scriptObject);
+    } else {
+        _ObjectMap[scriptObject->Guid()] = scriptObject;
     }
 
     return scriptObject;
@@ -130,17 +131,17 @@ bool SymplVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
     // Ensure the object does not already
     // exist in the VM!
     std::string path = _BuildPath(scriptObject->GetName().c_str(), parent);
-    auto* searchObj = FindObjectByPath(path);
+    auto searchObj = FindObjectByPath(path);
     if (!searchObj->IsEmpty()) {
-        return (searchObj == scriptObject);
+        assert (false && "Attempted to create duplicate object in the VM");
     }
 
     scriptObject->_Initialize(scriptObject->GetName().c_str(), path.c_str(), parent);
 
-    if (IsNullObject(parent) || parent->IsEmpty()) {
-        _ObjectMap[scriptObject->Guid()] = scriptObject;
-    } else {
+    if (!IsNullObject(parent) && !parent->IsEmpty()) {
         parent->AddChild(scriptObject);
+    } else {
+        _ObjectMap[scriptObject->Guid()] = scriptObject;
     }
 
     return true;
@@ -151,47 +152,73 @@ ScriptObject* SymplVM::FindObjectByPath(const std::string& path)
     std::string delimiter = ".";
 
     size_t pos = 0;
+    std::string parseStr = path;
     std::string token;
     std::string currentPath;
 
     auto currentObject = &ScriptObject::Empty;
-    while ((pos = s.find(delimiter)) != std::string::npos) {
-        token = s.substr(0, pos);
-        s.erase(0, pos + delimiter.length());
+    auto resultObject = &ScriptObject::Empty;
 
-        // Search through the object map and the children.
-        if (currentObject->IsEmpty()) {
-            currentPath.append(token);
-            for (auto entryIt : _ObjectMap) {
-                if (entryIt.second->GetPath() == currentPath) {
-                    currentObject = entryIt.second;
-                    break;
-                }
+    if ((pos = parseStr.find(delimiter)) == std::string::npos) {
+        for (auto entryIt : _ObjectMap) {
+            if (entryIt.second->GetPath() == path) {
+                resultObject = entryIt.second.Ptr();
+                break;
             }
-        } else {
-            // Search the children.
-            currentPath.append(".");
-            currentPath.append(token);
+        }
+    } else {
+        while ((pos = parseStr.find(delimiter)) != std::string::npos) {
+            token = parseStr.substr(0, pos);
+            parseStr.erase(0, pos + delimiter.length());
 
+            // Search through the object map and the children.
+            if (currentObject->IsEmpty()) {
+                currentPath.append(token);
+                for (auto entryIt : _ObjectMap) {
+                    if (entryIt.second->GetPath() == currentPath) {
+                        currentObject = entryIt.second.Ptr();
+                        break;
+                    }
+                }
+                if (currentObject->IsEmpty()) break;
+            } else {
+                // Search the children.
+                currentPath.append(".");
+                currentPath.append(token);
+
+                for (auto entryIt : currentObject->GetChildren()) {
+                    if (entryIt.second->GetPath() == currentPath) {
+                        currentObject = entryIt.second.Ptr();
+                        break;
+                    }
+                }
+                if (currentObject->IsEmpty()) break;
+            }
+        }
+
+        // Handle the last part of the path.
+        if (!currentObject->IsEmpty()) {
+            currentPath.append(parseStr);
             for (auto entryIt : currentObject->GetChildren()) {
                 if (entryIt.second->GetPath() == currentPath) {
-                    currentObject = entryIt.second;
+                    resultObject = entryIt.second.Ptr();
                     break;
                 }
             }
         }
     }
 
-    return currentObject;
+    //std::cout << "FOUND PATH (" << path << ") OBJ: " << currentObject->GetPath() << std::endl;
+    return resultObject;
 }
 
 ScriptObject* SymplVM::FindObjectByScope(ScriptObject* scopeObject, const std::string& objectName)
 {
     if (!IsNullObject(scopeObject) && !scopeObject->IsEmpty()) {
-        return FindObject(fmt::format("{0}.{1}", scopeObject->GetPath(), objectName));
+        return FindObjectByPath(fmt::format("{0}.{1}", scopeObject->GetPath(), objectName));
     }
 
-    return FindObject(fmt::format("{0}", objectName));
+    return FindObjectByPath(fmt::format("{0}", objectName));
 }
 
 std::string SymplVM::_BuildPath(const char* name, ScriptObject* parent)
@@ -202,7 +229,7 @@ std::string SymplVM::_BuildPath(const char* name, ScriptObject* parent)
     return fmt::format("{0}", name);
 }
 
-void SymplVM::RemoveObject(const std::string& guid)
+void SymplVM::RemoveObject(const std::string& path)
 {
     auto scriptObject = FindObjectByPath(path);
 

@@ -29,7 +29,7 @@ sympl_nsstart
 
 class SYMPL_API IfMethod : public ScriptMethod
 {
-    SYMPL_OBJECT(IfMethod, ScriptObject);
+    SYMPL_OBJECT(IfMethod, ScriptMethod);
 
 protected:
     //! Initializes the object.

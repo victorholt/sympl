@@ -54,13 +54,13 @@ class SYMPL_API ScriptMethod : public ScriptObject
 
 protected:
     /// Variable paths for the arguments.
-    std::vector<SharedRef<ScriptObject>> _Args;
+    std::vector<WeakRef<ScriptObject>> _Args;
 
     /// Stored method call statements to execute.
     std::vector<MethodCallStatement*> _CallStatements;
 
     /// Reference to the scope object.
-    SharedRef<ScriptObject> _Scope;
+    WeakRef<ScriptObject> _Scope;
 
     /// Return type for the method.
     MethodReturnType _ReturnType;
@@ -95,6 +95,11 @@ protected:
 public:
     //! Constructor.
     ScriptMethod();
+
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
 
     //! Evaluates and returns the results of the object.
     //! \param args

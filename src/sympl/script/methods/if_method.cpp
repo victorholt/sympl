@@ -42,11 +42,10 @@ IfMethod::IfMethod()
 
 void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
 {
-    ScriptObject::_Initialize(name, path, parent);
+    ScriptMethod::_Initialize(name, path, parent);
 
-    // Create the scope and the argument that the 'if' call takes.
-    auto scope = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, this);
-    auto arg = SymplVMInstance->CreateObject("__arg__", ScriptObjectType::Object, scope);
+    // Create the argument that the 'if' call takes.
+    auto arg = SymplVMInstance->CreateObject("__arg__", ScriptObjectType::Object, GetScope());
     AddArg(arg);
 }
 

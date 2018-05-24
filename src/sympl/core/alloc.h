@@ -106,7 +106,7 @@ public:
     inline void FreeRef(T*& ref)
     {
         auto entry = _MemTable.find(sympl_address_ref(ref));
-//        assert(entry != _MemTable.end() && "Invalid access to free memory!");
+    //    assert(entry != _MemTable.end() && "Invalid access to free memory!");
 
         if (entry == _MemTable.end()) {
             return;

@@ -25,7 +25,7 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/sympl_object.h>
-#include <sympl/core/shared_ref.h>
+#include <sympl/core/weak_ref.h>
 
 #include <sympl/script/script_method.h>
 

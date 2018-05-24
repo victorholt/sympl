@@ -38,12 +38,11 @@ ScriptObject::ScriptObject()
     _Path = "";
     _Parent = nullptr;
     _Type = ScriptObjectType::Empty;
-    // _Context = alloc_ref(ScriptContext);
+    _Context = &ScriptContext::Empty;
 }
 
 ScriptObject::~ScriptObject()
 {
-    Release();
 }
 
 void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject* parent)
@@ -98,7 +97,11 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
             continue;
         }
 
-        clone->AddChild(entryIt.second->Clone(clone, false));
+        // Check if the clone already has the child.
+        auto child = clone->FindChildByName(entryIt.second->GetName().c_str(), false);
+        if (child->IsEmpty()) {
+            entryIt.second->Clone(clone, false);
+        }
     }
 
     return clone;
@@ -107,37 +110,29 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
 ScriptObject* ScriptObject::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
 {
     ScriptObject* clone = &ScriptObject::Empty;
-    if (!IsNullObject(parent) && !parent->IsEmpty()) {
-        clone = SymplVMInstance->CreateObject(name.c_str(), _Type, parent);
-    } else {
-        clone = SymplVMInstance->CreateObject(name.c_str(), _Type, _Parent.Ptr());
-    }
+    clone = SymplVMInstance->CreateObject(name.c_str(), _Type, parent);
     return clone;
 }
 
-ScriptObject* ScriptObject::FindChild(const char* path)
+ScriptObject* ScriptObject::FindChildByName(const char* name, bool useCleanName)
 {
     for (auto entryIt : _Children) {
-        if (strcmp(entryIt.first.c_str(), path) == 0) {
-            return entryIt.second.Ptr();
+        if (useCleanName) {
+            if (strcmp(entryIt.second->GetCleanName().c_str(), name) == 0) {
+                return entryIt.second.Ptr();
+            }
+        } else {
+            if (strcmp(entryIt.second->GetName().c_str(), name) == 0) {
+                return entryIt.second.Ptr();
+            }
         }
     }
     return &ScriptObject::Empty;
 }
 
-ScriptObject* ScriptObject::FindChildByName(const char* name)
+ScriptObject* ScriptObject::TraverseUpFindChildByName(const char* name, bool useCleanName)
 {
-    for (auto entryIt : _Children) {
-        if (strcmp(entryIt.second->GetName().c_str(), name) == 0) {
-            return entryIt.second.Ptr();
-        }
-    }
-    return &ScriptObject::Empty;
-}
-
-ScriptObject* ScriptObject::TraverseUpFindChildByName(const char* name)
-{
-    auto scriptObject = FindChildByName(name);
+    auto scriptObject = FindChildByName(name, useCleanName);
     if (!scriptObject->IsEmpty()) {
         return scriptObject;
     }
@@ -151,7 +146,7 @@ ScriptObject* ScriptObject::TraverseUpFindChildByName(const char* name)
     }
 
     // Find in the main scope.
-    return SymplVMInstance->FindObject(fmt::format(".{0}", name));
+    return SymplVMInstance->FindObjectByPath(fmt::format("{0}", name));
 }
 
 ScriptObject* ScriptObject::FindCalledByMethod()

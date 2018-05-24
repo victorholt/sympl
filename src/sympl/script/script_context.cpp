@@ -44,10 +44,10 @@ ScriptContext::~ScriptContext()
 ScriptObject* ScriptContext::FindObject(const char* name)
 {
     if (!_CurrentScope.IsValid()) {
-        return SymplVMInstance->FindObject(fmt::format(".{0}", name));
+        return SymplVMInstance->FindObjectByPath(fmt::format("{0}", name));
     }
 
-    auto obj = _CurrentScope->TraverseUpFindChildByName(name);
+    auto obj = _CurrentScope->TraverseUpFindChildByName(name, false);
     if (obj->IsEmpty()) {
         if (_PreviousContext.IsValid()) {
             return _PreviousContext->FindObject(name);

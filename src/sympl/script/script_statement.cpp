@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/script_statement.h>
 #include <sympl/script/sympl_vm.h>
+#include <sympl/script/methods/method_registry.h>
 #include <sympl/core/sympl_number_helper.h>
 sympl_namespaces
 
@@ -83,15 +84,11 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
         // Build a statement from the string within the parameters
         if (!recording && currentChar == '(') {
             // Determine if the current statement buffer is an existing method.
-            if (varObject->GetType() == ScriptObjectType::Method) {
-                _StatementBuffer->Append(_ResolveMethod(varObject, statementStr, currentOp).AsString());
+            auto existingMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
+            if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                _StatementBuffer->Append(_ResolveMethod(existingMethod, statementStr, currentOp).AsString());
             } else {
-                auto existingObject = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
-                if (!existingObject->IsEmpty() && existingObject->GetType() == ScriptObjectType::Method) {
-                    _StatementBuffer->Append(_ResolveMethod(existingObject, statementStr, currentOp).AsString());
-                } else {
-                    _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
-                }
+                _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
             }
             continue;
         }
@@ -120,8 +117,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
 
             // Save the value as a statement.
             ScriptObject* obj = &ScriptObject::Empty;
-
-            obj = varObject->TraverseUpFindChildByName(currentStr.c_str());
+            obj = varObject->GetContext()->FindObject(currentStr.c_str());
 
             if (!IsNullObject(obj) && !obj->IsEmpty()) {
                 auto retType = to_method(obj)->GetReturnType();
@@ -248,10 +244,10 @@ ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
     for (auto entryIt : _Entries) {
         // Check if we need to find a matching object.
         if (!entryIt->Value->IsEmpty()) {
-            auto clonedObj = scriptObject->TraverseUpFindChildByName(entryIt->Value->GetName().c_str());
+            auto clonedObj = scriptObject->GetContext()->FindObject(entryIt->Value->GetName().c_str());
             assert(!clonedObj->IsEmpty() && "Unabled to process statement, invalid traversal!");
 
-            stat->Add(clonedObj->Clone(scriptObject, true), entryIt->Op);
+            stat->Add(clonedObj->Clone(scriptObject, false), entryIt->Op);
         } else {
             stat->Add(entryIt->ConstantValue, entryIt->Op);
         }
@@ -280,7 +276,6 @@ StatementType ScriptStatement::_FindType(const Variant& value)
 
 Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
 {
-    /*
     // Parse out the object value.
     char currentChar = '\0';
     char previousChar = '\0';
@@ -313,7 +308,7 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
         // Resolve another contained value.
         if (!recording && currentChar == '(') {
             // Determine if the current statement buffer is an existing method.
-            auto existingMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+            auto existingMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
             if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
                 _StatementBuffer->Append(_ResolveMethod(existingMethod, statementStr, op).AsString());
             } else {
@@ -373,7 +368,7 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
                 }
             }
 
-            _StatementBuffer->Replace(SYMPL_STRING_TOKEN, "");
+            // _StatementBuffer->Replace(SYMPL_STRING_TOKEN, "");
 
             // Restore the statement buffer.
             _StatementBuffer->Clear();
@@ -390,13 +385,10 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
 
     // We failed to exit the while loop early!
     assert(false && "Unclosed parenthesis in statement found!");
-    */
-   return Variant::Empty;
 }
 
 Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
 {
-    /*
     // Parse out the object value.
     char currentChar = '\0';
     char previousChar = '\0';
@@ -413,37 +405,36 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
     // Current argument value.
     Variant argValue;
 
-    // Check if this is really a valid object.
+    // Check if this is really a valid method object.
     ScriptObject* orgMethod = varObject;
     if (varObject->GetType() != ScriptObjectType::Method) {
-        orgMethod = varObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+        orgMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
     }
 
     if (IsNullObject(orgMethod) || orgMethod->IsEmpty() || orgMethod->GetType() != ScriptObjectType::Method) {
         return Variant::Empty;
     }
 
+    // std::cout << "RM: " << _StatementBuffer->CStr() << std::endl;
+
     // Immediate methods don't get cloned since they're already unique.
     ScriptObject* scriptObject = orgMethod;
-    scriptObject = orgMethod->Clone(nullptr, true);
+    ScriptContext* context = alloc_ref(ScriptContext);
 
-    // Update the context.
-    if (!_ScriptContext.IsValid()) {
-        _ScriptContext = alloc_ref(ScriptContext);
+    if (varObject->GetContext()->IsEmpty()) {
+        scriptObject = orgMethod->Clone(nullptr, true);
+    } else {
+        scriptObject = orgMethod->Clone(varObject->GetContext()->GetCurrentScope(), true);
 
-        ScriptContextCallEntry callEntry;
-        callEntry.Owner = orgMethod;
-        callEntry.Caller = scriptObject;
-        callEntry.CurrentScope = to_method(scriptObject)->GetScope();
-
-        // Set meta for quick search.
-        callEntry.CurrentScope->SetMeta("scope_entry_index", _ScriptContext->GetEntries().size());
-
-        _ScriptContext->AddEntry(callEntry);
+        varObject->GetContext()->SetNextContext(context);
+        context->SetPreviousContext(varObject->GetContext());
     }
 
-    // scriptObject->SetMeta("caller", varObject);
-    scriptObject->SetContext(_ScriptContext.Ptr());
+    // Update our context.
+    context->SetCaller(varObject);
+    context->SetOwner(scriptObject);
+    context->SetCurrentScope(to_method(scriptObject)->GetScope());
+    scriptObject->SetContext(context);
 
     // Remove the name of the method so it's not part of the statement value.
     _StatementBuffer->Replace(orgMethod->GetCleanName().c_str(), "");
@@ -466,7 +457,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
 
         if (!recording && currentChar == '(') {
             // Determine if the current statement buffer is an existing method.
-            auto existingMethod = scriptObject->TraverseUpFindChildByName(_StatementBuffer->CStr());
+            auto existingMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
             if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
                 _StatementBuffer->Append(_ResolveMethod(scriptObject, statementStr, op).AsString());
             } else {
@@ -534,14 +525,13 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
             lastConcatConditionStr = "";
 
             _StatementBuffer->Clear();
-            _StatementBuffer->Replace(SYMPL_STRING_TOKEN, "");
+            // _StatementBuffer->Replace(SYMPL_STRING_TOKEN, "");
 
             // We've completed building out the arguments.
             if (currentChar == ')') {
                 // Restore the statement buffer.
                 _StatementBuffer->Append(savedStatementStr);
-                to_method(scriptObject)->Evaluate(args);
-                return _ScriptContext->GetReturnValue();
+                return to_method(scriptObject)->Evaluate(args);
             }
         }
 
@@ -552,8 +542,6 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
 
     // We failed to exit the while loop early!
     assert(false && "Unclosed call to method!");
-    */
-   return Variant::Empty;
 }
 
 Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)

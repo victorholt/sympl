@@ -26,6 +26,7 @@
 #include <sympl/script/script_method.h>
 #include <sympl/core/sympl_number_helper.h>
 #include <sympl/script/interpreter.h>
+#include <sympl/script/methods/method_registry.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -273,6 +274,10 @@ void ScriptParser::_BuildObject()
     } else {
         _CurrentObject = SymplVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type, _CurrentScopeObject.Ptr());
     }
+
+    if (type == ScriptObjectType::Method) {
+        SymplVMInstance->GetMethodRegistry()->AddMethod(_CurrentObject.Ptr());
+    }
 }
 
 void ScriptParser::_BuildMethodArgs()
@@ -349,11 +354,12 @@ void ScriptParser::_BuildMethodArgs()
             return;
         }
 
-        // During 'searchReturnType' we don't want to append the '#' character.
         if (currentChar != '#' && currentChar != ',') {
             _CurrentObjectBuffer->AppendByte(currentChar);
         }
     }
+
+    std::cout << _CurrentObjectBuffer->CStr() << std::endl;
 
     // The while loop should quit before we reach this call.
     assert(_CharLocation < _Reader->GetBuffer()->Length() && "Invalid method parsing error!");
@@ -450,13 +456,10 @@ void ScriptParser::_UpdateScanMode()
 void ScriptParser::_OpenScope()
 {
     // Check if we need to exit out of the argument building.
-    auto scopeObject = _CurrentObject;
-
-    _CurrentScopeObject = _CurrentObject->FindChildByName(".");
+    _CurrentScopeObject = _CurrentObject->FindChildByName(SYMPL_SCOPE_NAME);
     if (_CurrentScopeObject->IsEmpty()) {
-        _CurrentScopeObject = SymplVMInstance->CreateObject(".", ScriptObjectType::Object, scopeObject.Ptr());
+        _CurrentScopeObject = SymplVMInstance->CreateObject(SYMPL_SCOPE_NAME, ScriptObjectType::Object, _CurrentObject.Ptr());
     }
-
     _ScanMode = ParserScanMode::Type;
 }
 
@@ -524,13 +527,13 @@ bool ScriptParser::_ObjectExists(const char* objectName)
 bool ScriptParser::_TryFindObject(const char* objectName, ScriptObject*& output)
 {
     if (!_CurrentScopeObject.IsValid()) {
-        output = SymplVMInstance->FindObject(
-            fmt::format(".{0}", objectName)
+        output = SymplVMInstance->FindObjectByPath(
+            fmt::format("{0}", objectName)
         );
         return (!IsNullObject(output) && !output->IsEmpty());
     }
 
-    output = _CurrentScopeObject->TraverseUpFindChildByName(objectName);
+    output = _CurrentScopeObject->TraverseUpFindChildByName(objectName, false);
 
     return (!IsNullObject(output) && !output->IsEmpty());
 }

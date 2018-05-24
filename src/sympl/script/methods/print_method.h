@@ -29,7 +29,7 @@ sympl_nsstart
 
 class SYMPL_API PrintMethod : public ScriptMethod
 {
-    SYMPL_OBJECT(PrintMethod, ScriptObject);
+    SYMPL_OBJECT(PrintMethod, ScriptMethod);
 
 protected:
     //! Initializes the object.
@@ -54,7 +54,7 @@ public:
 
 class SYMPL_API PrintLineMethod : public ScriptMethod
 {
-    SYMPL_OBJECT(PrintLineMethod, ScriptObject);
+    SYMPL_OBJECT(PrintLineMethod, ScriptMethod);
 
 protected:
     //! Initializes the object.
