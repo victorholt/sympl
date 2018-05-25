@@ -25,8 +25,9 @@
 #include <sympl/script/methods/if_method.h>
 #include <sympl/script/methods/print_method.h>
 #include <sympl/script/methods/callback_method.h>
-
 #include <sympl/script/sympl_vm.h>
+
+#include <sympl/util/profiler.h>
 sympl_namespaces
 
 MethodRegistry::MethodRegistry()
@@ -63,6 +64,22 @@ void MethodRegistry::_Initialize()
     // Prints the memory allocated reference list.
     AddCallbackMethod("print_memory_references", [](const std::vector<WeakRef<ScriptObject>>& args) {
         std::cout << AllocInstance->PrintRefs() << std::endl;
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("print_vm_object_list", [](const std::vector<WeakRef<ScriptObject>>& args) {
+        std::cout << SymplVMInstance->PrintObjects() << std::endl;
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("profiler_start", [](const std::vector<WeakRef<ScriptObject>>& args) {
+        sympl_profile_start(args[0]->GetValue().AsString());
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("profiler_stop", [](const std::vector<WeakRef<ScriptObject>>& args) {
+        sympl_profile_stop(args[0]->GetValue().AsString());
+        sympl_profile_print(args[0]->GetValue().AsString());
     });
 }
 

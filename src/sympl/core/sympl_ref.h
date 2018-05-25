@@ -88,6 +88,11 @@ protected:
     /// Size of the memory.
     size_t _MemSize = 0;
 
+    long _ReservedMemBlockIndex = -1;
+
+    /// Guid for the reference.
+    uint64_t _MemAddress = 0;
+
     /// Guid for the reference.
     std::string _Guid;
 
@@ -104,7 +109,10 @@ public:
     }
 
     //! Returns the guid for the object.
-    inline const std::string& Guid() const { return _Guid; }
+    inline const uint64_t MemAddress() const { return _MemAddress; }
+
+    //! Returns the guid for the object.
+    inline const std::string Guid() const { return _Guid; }
 
     //! Adds to the reference count.
     inline void AddRef() { _RefCount++; }

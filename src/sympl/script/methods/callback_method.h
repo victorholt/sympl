@@ -40,6 +40,10 @@ protected:
     //! \param path
     void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
 
+    //! Copy over argument values from a list of arguments.
+    //! \param args
+    void _CopyArgs(const std::vector<Variant>& args) override;
+
     //! Handles cloning the object and adding it to the VM.
     //! \param name
     //! \param parent

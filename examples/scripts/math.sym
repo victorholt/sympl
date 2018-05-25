@@ -1,0 +1,12 @@
+// Simple math functions.
+
+profiler_start("math");
+func add(a, b) : int {
+    return a + b;
+}
+
+var x = add(2, 2);
+printl(x);
+profiler_stop("math");
+
+print_memory();

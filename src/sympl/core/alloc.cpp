@@ -27,27 +27,51 @@ sympl_namespaces
 
 Alloc* Alloc::_Instance = nullptr;
 
-//template<class T>
-//T* Alloc::Malloc(size_t size)
-//{
-//    T* ref = new T();
-//    ref->_MemSize = size;
-//    ref->_Data = malloc(size);
-//
-//    AddMemAllocated(sizeof(Ref) + ref->_MemSize);
-//    return ref;
-//}
+bool Alloc::_ReserveBlocks()
+{
+    for (int i = 0; i < MAX_RESERVE_BLOCKS; i++) {
+        ReservedMemBlock block;
+        block.Data = malloc(MAX_RESERVE_BLOCK_SIZE);
+        block.Size = MAX_RESERVE_BLOCK_SIZE;
+        block.Free = true;
 
-//void Alloc::Free(SymplRef*& ref)
-//{
-//    if (!ref->Destroy()) {
-//        return;
-//    }
-//
-//    free(ref->_Data);
-//    delete ref;
-//    ref = nullptr;
-//    RemoveMemAllocated(sizeof(Ref) + ref->_MemSize);
-//}
+        _ReservedBlocks.push_back(block);
+        AddMemAllocated(block.Size + sizeof(ReservedMemBlock));
+    }
+}
+
+void Alloc::_FreeBlocks()
+{
+    for (int i = 0; i < MAX_RESERVE_BLOCKS; i++) {
+        auto block = _ReservedBlocks[i];
+        memset(block.Data, 0, block.Size);
+        block.Free = true;
+        RemoveMemAllocated(block.Size + sizeof(ReservedMemBlock));
+    }
+}
+
+void Alloc::_FreeBlock(long index)
+{
+    if (index < 0 || index >= MAX_RESERVE_BLOCKS) {
+        return;
+    }
+
+    auto block = &_ReservedBlocks[i]
+    memset(block->Data, 0, block->Size);
+    block->Free =
+}
+
+bool Alloc::_TryFindFreeReserveBlock(size_t amount, void*& data)
+{
+    for (int i = 0; i < MAX_RESERVE_BLOCKS; i++) {
+        if (_ReservedBlocks[i].Free) {
+            data = _ReservedBlocks[i].Data;
+            _ReservedBlocks[i].Free = false;
+            return true;
+        }
+    }
+
+    return false;
+}
 
 

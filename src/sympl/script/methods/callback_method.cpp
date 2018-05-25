@@ -23,6 +23,9 @@
  **********************************************************/
 #include <sympl/script/sympl_vm.h>
 #include <sympl/script/methods/callback_method.h>
+#include <sympl/script/sympl_vm.h>
+
+#include <fmt/format.h>
 sympl_namespaces
 
 CallbackMethod::CallbackMethod()
@@ -55,6 +58,23 @@ Variant CallbackMethod::Evaluate(const std::vector<Variant>& args)
     }
 
     return Variant::Empty;
+}
+
+void CallbackMethod::_CopyArgs(const std::vector<Variant>& args)
+{
+    // Ensure we haven't set the args already.
+    // Perhaps in the future we'll just want
+    // to overwrite the values, but this object
+    // is deleted after it's out of scope...
+    if (_Args.size() > 0) return;
+
+    int argIndex = 0;
+    for (auto argIt : args) {
+        auto arg = SymplVMInstance->CreateObject(fmt::format("__arg__{0}", argIndex).c_str(), ScriptObjectType::Object, _Scope.Ptr());
+        arg->SetValue(argIt);
+        AddArg(arg);
+        argIndex++;
+    }
 }
 
 ScriptObject* CallbackMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)

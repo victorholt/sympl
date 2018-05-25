@@ -1,7 +1,6 @@
 // Simple fibonacci method.
-
+profiler_start("fib");
 func fib(previous, current) : int {
-    print("Current ");
     print_memory();
     if (current < 100) {
         return fib(current, previous + current);
@@ -9,8 +8,11 @@ func fib(previous, current) : int {
     return current;
 }
 
-var last = fib(0, 1);
+var last = fib(1, 1);
 print("Final Fibonacci Value: ");
 printl(last);
 
 print_memory();
+profiler_stop("fib");
+
+// print_vm_object_list();

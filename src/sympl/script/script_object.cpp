@@ -79,10 +79,12 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     // Generate a random name for the object.
     std::string name = _Name;
     if (uniqueName) {
-        auto guid = xg::newGuid();
-        std::stringstream guidName;
-        guidName << guid;
-        name = fmt::format("{0}:{1}", _Name, guidName.str());
+//         auto guid = xg::newGuid();
+//         std::stringstream guidName;
+//         guidName << guid;
+//         name = fmt::format("{0}:{1}", _Name, guidName.str());
+
+        name = fmt::format("{0}:{1}", _Name, AllocInstance->GenerateRandomStr(5));
     }
 
     ScriptObject* clone = _OnCloneCreateObject(name, parent);

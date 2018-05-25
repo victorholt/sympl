@@ -28,7 +28,7 @@
 
 sympl_nsstart
 
-#define SYMPL_STRING_BUFFER_CAPACITY 512
+#define SYMPL_STRING_BUFFER_CAPACITY 256
 
 class SYMPL_API StringBuffer : public Object
 {
@@ -37,6 +37,13 @@ class SYMPL_API StringBuffer : public Object
 private:
     /// Buffer for holding the string.
     uchar8      *_Buffer = nullptr;
+
+    /// Static buffer of pre-allocated bytes.
+    uchar8      _StaticBuffer[SYMPL_STRING_BUFFER_CAPACITY];
+
+    /// Flag to switch to the dynamic buffer.
+    bool        _UseDynamicBuffer = false;
+
     /// Current length of the string.
     size_t      _Length = 0;
     /// Capacity for the string
@@ -91,6 +98,11 @@ public:
     //! \param newCapacity
     void Resize(size_t newCapacity);
 
+    // Sets/replaces a given set of characters at the given location
+    //! \param pos
+    //! \param str
+    void ReplaceAt(size_t pos, const char8* str);
+
     //! Replaces occurances in the string.
     //! \param search
     //! \param replaceWith
@@ -141,10 +153,20 @@ public:
         return reinterpret_cast<char8*>(_Buffer)[_Length - 1];
     }
 
+    //! Sets a byte at a given location.
+    //! \param location
+    //! \param byte
+    inline void SetByte(size_t location, const char8 byte) {
+        if (location >= _Capacity) {
+            Resize(_Capacity + 5);
+        }
+        _Buffer[location] = byte;
+    }
+
     //! Returns the char at a given location.
     //! \param place
     //! \return
-    const char Get(size_t location) {
+    inline const char Get(size_t location) {
         if (location > Length()) {
             return '\0';
         }

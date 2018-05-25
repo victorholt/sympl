@@ -48,7 +48,7 @@ private:
     SharedRef<MethodRegistry> _MethodRegistry;
 
     /// Map of all objects (guid, object) in the vm.
-    std::unordered_map<std::string, SharedRef<ScriptObject>> _ObjectMap;
+    std::unordered_map<uint64_t, SharedRef<ScriptObject>> _ObjectMap;
 
     //! Builds a path for an object.
     //! \param name

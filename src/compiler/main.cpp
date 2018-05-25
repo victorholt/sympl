@@ -10,6 +10,15 @@ int main()
     std::stringstream guidStream;
     guidStream << guid;
 
+//    sympl_profile_start("generate_guid");
+//    for (int i = 0; i < 1000000; i++) {
+//        auto guid_test = AllocInstance->GenerateRandomStr(15, true);
+//         // auto guid_test = xg::newGuid();
+//    }
+//    sympl_profile_stop("generate_guid");
+//    sympl_profile_print("generate_guid");
+//    return 0;
+
     sympl_profile_start("string_buffer");
     // Testing out the string buffer.
     Variant str = alloc_ref(StringBuffer);
@@ -18,9 +27,21 @@ int main()
     str.GetStringBuffer()->AppendByte('.');
 
     auto buffer = str.GetStringBuffer();
+
     buffer->Prepend("Hello there! ");
     buffer->PrependByte(' ');
     buffer->PrependByte('$');
+    // cout << buffer->Str() << endl;
+
+    // std::string strBuffer;
+    for (int i = 0; i < 10; i++) {
+        buffer->Replace("there", "you!!");
+        buffer->Replace("you!!", "there");
+        // strBuffer.append(std::string(1, '$'));
+        // buffer->AppendByte('$');
+        // char c = buffer->Get(i);
+    }
+    buffer->Replace("there", "you!!");
 
     cout << buffer->Str() << endl;
     str.Clear();
@@ -28,7 +49,10 @@ int main()
     sympl_profile_stop("string_buffer");
     sympl_profile_print("string_buffer");
 
-    cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
+    // cout << buffer->Str() << endl;
+
+    // cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
+    // return 0;
 
     // Testing out threads.
     // Mutex sharedIntMutex;
@@ -62,12 +86,12 @@ int main()
     // free_ref(Thread, thread2);
     // End thread testing.
 
-    SharedRef<Interpreter> program = SymplVMInstance->LoadFile("../../examples/scripts/fib.sym");
     sympl_profile_start("script_interpreter");
+    SharedRef<Interpreter> program = SymplVMInstance->LoadFile("../../examples/scripts/math.sym");
     program->Run();
+    program.Release();
     sympl_profile_stop("script_interpreter");
     sympl_profile_print("script_interpreter");
-    program.Release();
 
     // cout << SymplVMInstance->PrintObjects() << endl;
 
@@ -103,8 +127,8 @@ int main()
     Sympl::Profiler* profiler = SymplProfiler;
     free_ref(Sympl::Profiler, profiler);
 
-    cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
-    cout << AllocInstance->PrintRefs() << endl;
+    // cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
+    // cout << AllocInstance->PrintRefs() << endl;
     return 0;
 }
 

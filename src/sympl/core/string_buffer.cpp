@@ -22,6 +22,8 @@
  *
  **********************************************************/
 #include <sympl/core/string_buffer.h>
+#include <sympl/core/shared_ref.h>
+
 sympl_namespaces
 
 StringBuffer::StringBuffer(const char8 *str, size_t capacity)
@@ -41,7 +43,9 @@ StringBuffer::StringBuffer()
 
 StringBuffer::~StringBuffer()
 {
-    delete [] _Buffer;
+    if (_UseDynamicBuffer) {
+        delete [] _Buffer;
+    }
 }
 
 void StringBuffer::Init(const char8 *str, size_t capacity)
@@ -56,7 +60,7 @@ void StringBuffer::Init(const char8 *str, size_t capacity)
     size_t strCapacity = sizeof(uchar8) * confirmedCapacity;
 
     // Create/clean up our string.
-    _Buffer = new uchar8[strCapacity];
+    _Buffer = _StaticBuffer;
     memset(_Buffer, 0, strCapacity);
     memcpy(_Buffer, str, strlen(str) + 1);
 
@@ -133,13 +137,13 @@ void StringBuffer::AppendByte(const char8 byte)
 void StringBuffer::Resize(size_t newCapacity)
 {
     // Check if we need to clear everything.
-    if (newCapacity < _Capacity) {
-        delete [] _Buffer;
-        _Capacity = newCapacity;
-
-        _Buffer = new uchar8[_Capacity];
-        memset(_Buffer, 0, _Capacity);
+    if (newCapacity <= _Capacity) {
         return;
+    } else {
+        // We probably need a lot of room for this buffer,
+        // so really up the capacity.
+        newCapacity *= 10;
+        _Capacity = newCapacity;
     }
 
     uchar8 *tmpStr = new uchar8[newCapacity];
@@ -149,13 +153,84 @@ void StringBuffer::Resize(size_t newCapacity)
         memcpy(tmpStr, _Buffer, _Length);
     }
 
-    delete [] _Buffer;
+    if (_UseDynamicBuffer) {
+        delete [] _Buffer;
+    }
+
     _Buffer = tmpStr;
     _Capacity = newCapacity;
+    _UseDynamicBuffer = true;
+}
+
+void StringBuffer::ReplaceAt(size_t pos, const char8* str)
+{
+    memset(_Buffer + pos, 0, _Capacity - pos);
+    memcpy(_Buffer + pos, str, strlen(str));
 }
 
 void StringBuffer::Replace(const char8 *search, const char8 *replaceWith)
 {
+    std::string buffer;
+    buffer.reserve(_Capacity);
+    buffer = CStr();
+
+    for (std::string::size_type i = 0; (i = buffer.find(search, i)) != std::string::npos;)
+    {
+        buffer.replace(i, strlen(search), replaceWith);
+        i += strlen(replaceWith);
+    }
+
+    Clear();
+    Append(buffer);
+    return;
+
+    // StringBuffer findBuffer;
+    // findBuffer.Resize(_Capacity);
+
+    // StringBuffer tmpBuffer;
+
+    // long long tmpBufferIndex = 0;
+    // long long capacity = _Capacity;
+    // size_t strLen = strlen(search);
+    // if (strLen > _Length) {
+    //     return;
+    // }
+
+    // for (size_t i = 0; i < _Length; i++) {
+    //     tmpBuffer.AppendByte(Get(i));
+    //     tmpBufferIndex++;
+
+    //     // Ensure we've copied over enough character to check the sequence.
+    //     if (i < (strLen - 1)) {
+    //         findBuffer.AppendByte(Get(i));
+    //         continue;
+    //     }
+
+    //     // Shift the characters to the right.
+    //     for (size_t j = 0; j < strLen - 1; j++) {
+    //         findBuffer.SetByte(j, Get((i - (strLen - 1)) + j));
+    //     }
+    //     findBuffer.SetByte(strLen - 1, Get(i));
+
+    //     // Compare the current sequence of strings.
+    //     if (strcmp(findBuffer.CStr(), search) == 0) {
+    //         size_t replaceIndex = (tmpBufferIndex - strLen);
+    //         tmpBufferIndex = replaceIndex + strlen(replaceWith);
+
+    //         // Check if we need to resize the buffer.
+    //         if ((capacity - tmpBufferIndex) < 0) {
+    //             capacity += (tmpBufferIndex * 2) + (capacity * 2);
+    //             tmpBuffer.Resize(capacity);
+    //         }
+
+    //         tmpBuffer.ReplaceAt(replaceIndex, replaceWith);
+    //     }
+    // }
+
+    // Clear();
+    // Append(&tmpBuffer);
+
+    /*
     long long capacity = _Capacity;
     size_t strLen = strlen(search);
     if (strLen > _Length) {
@@ -213,6 +288,7 @@ void StringBuffer::Replace(const char8 *search, const char8 *replaceWith)
 
     delete [] tmpStr;
     delete [] findBuffer;
+    */
 }
 
 void StringBuffer::Clear()

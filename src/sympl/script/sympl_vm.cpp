@@ -63,7 +63,7 @@ void SymplVM::Shutdown()
 
 void SymplVM::GC()
 {
-    std::vector<std::string> removeGuids;
+    std::vector<uint64_t> removeGuids;
 
     for (auto entryIt : _ObjectMap) {
         if (!entryIt.second.IsValid() || entryIt.second.RefCount() == 1) {
@@ -121,7 +121,7 @@ ScriptObject* SymplVM::CreateObject(const char* name, ScriptObjectType type, Scr
     if (!IsNullObject(parent) && !parent->IsEmpty()) {
         parent->AddChild(scriptObject);
     } else {
-        _ObjectMap[scriptObject->Guid()] = scriptObject;
+        _ObjectMap[scriptObject->MemAddress()] = scriptObject;
     }
 
     return scriptObject;
@@ -148,7 +148,7 @@ bool SymplVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
     if (!IsNullObject(parent) && !parent->IsEmpty()) {
         parent->AddChild(scriptObject);
     } else {
-        _ObjectMap[scriptObject->Guid()] = scriptObject;
+        _ObjectMap[scriptObject->MemAddress()] = scriptObject;
     }
 
     return true;
@@ -214,8 +214,6 @@ ScriptObject* SymplVM::FindObjectByPath(const std::string& path)
             }
         }
     }
-
-    //std::cout << "FOUND PATH (" << path << ") OBJ: " << currentObject->GetPath() << std::endl;
     return resultObject;
 }
 
@@ -247,7 +245,7 @@ void SymplVM::RemoveObject(ScriptObject* scriptObject)
         parent->RemoveChild(scriptObject->GetName().c_str());
     }
     scriptObject->Release();
-    _ObjectMap.erase(scriptObject->Guid());
+    _ObjectMap.erase(scriptObject->MemAddress());
 }
 
 void SymplVM::RemoveObject(const std::string& path)
@@ -263,7 +261,7 @@ void SymplVM::RemoveObject(const std::string& path)
         parent->RemoveChild(scriptObject->GetName().c_str());
     }
     scriptObject->Release();
-    _ObjectMap.erase(scriptObject->Guid());
+    _ObjectMap.erase(scriptObject->MemAddress());
 }
 
 MethodRegistry* SymplVM::GetMethodRegistry()

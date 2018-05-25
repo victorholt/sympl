@@ -24,11 +24,20 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
+#include <fmt/format.h>
 
 sympl_nsstart
 
-// #define sympl_address_ref(ref) reinterpret_cast<unsigned**>(&ref)
-#define sympl_address_ref(ref) ref->_Guid
+#define MAX_RESERVE_BLOCKS              1000
+#define MAX_RESERVE_BLOCK_SIZE          1000
+#define sympl_address_ref(ref) ref->_MemAddress
+
+struct ReservedMemBlock
+{
+    void*       Data;
+    size_t      Size;
+    bool        Free;
+}
 
 class SYMPL_API Alloc {
 private:
@@ -38,14 +47,60 @@ private:
     /// Memory allocated by our alloc class.
     size_t _MemAllocated = 0;
 
+    /// Next number for the new generated mem address.
+    size_t nextGeneratedAddressNum = 0;
+
     /// Memory table for keeping track of the size allocated.
-    std::unordered_map<std::string, size_t> _MemTable;
+    std::unordered_map<uint64_t, size_t> _MemTable;
 
     /// Reference name table.
-    std::unordered_map<std::string, std::string> _RefTable;
+    std::unordered_map<uint64_t, std::string> _RefTable;
+
+    /// Reserved memory blocks available.
+    std::vector<ReservedMemBlock> _ReservedBlocks;
 
     //! Constructor.
     Alloc() {}
+
+    //! Generates a unique memory address.
+    template<class T>
+    uint64_t GenerateMemAddress(T* ref)
+    {
+//     auto guid = xg::newGuid();
+//     std::stringstream guidStream;
+//     guidStream << guid;
+//     return guidStream.str();
+
+    //  return GenerateRandomStr(32); //fmt::format("{0}", nextGeneratedAddressNum++);
+
+        // https://stackoverflow.com/questions/8287188/stdostringstream-printing-the-address-of-the-c-string-instead-of-its-content
+        // return dynamic_cast<std::ostringstream&>(
+        //         std::ostringstream().flush() << ref
+        // ).str();
+
+        // return reinterpret_cast<uint64_t>(&ref);
+        return atol(GenerateRandomStr(17, true).c_str());
+        //  return nextGeneratedAddressNum++;
+    }
+
+    //! Attempt reserved blocks of memory.
+    //! \param amount
+    //! \param data
+    bool _ReserveBlocks();
+
+    //! Attempt to free reserved blocks of memory.
+    //! \param amount
+    //! \param data
+    void _FreeBlocks();
+
+    //! Attempt to free a reserved block of memory.
+    //! \param index
+    void _FreeBlock(long index);
+
+    //! Attempt to find a free reserved block of memory.
+    //! \param amount
+    //! \param data
+    bool _TryFindFreeReserveBlock(size_t amount, void*& data);
 
     //! Add to the memory allocated.
     //! \param amount
@@ -60,8 +115,44 @@ public:
     ~Alloc() {
         if (!IsNullObject(_Instance)) {
             _Instance->_MemTable.clear();
+            _Instance->_FreeBlocks();
             delete _Instance;
         }
+    }
+
+    // https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c
+    // given a function that generates a random character,
+    // return a string of the requested length
+    inline std::string GenerateRandomStr(size_t length, bool numbersOnly = false)
+    {
+        auto randchar = []() -> char
+        {
+            const char an_charset[] =
+                    "0123456789"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz";
+            const short an_max_index = (sizeof(an_charset) - 1);
+            return an_charset[ rand() % an_max_index ];
+        };
+
+        auto n_randchar = []() -> char
+        {
+            const char n_charset[] =
+                    "0123456789";
+            const short n_max_index = (sizeof(n_charset) - 1);
+
+            return n_charset[ rand() % n_max_index ];
+        };
+
+        std::string str(length, 0);
+
+        if (numbersOnly) {
+            std::generate_n( str.begin(), length, n_randchar );
+        } else {
+            std::generate_n( str.begin(), length, randchar );
+        }
+
+        return str;
     }
 
     //! Returns the singleton for our Alloc class.
@@ -83,17 +174,18 @@ public:
     {
         T* ref = new T();
         ref->_MemSize = size;
-        ref->_Data = malloc(size);
 
-        auto guid = xg::newGuid();
-        std::stringstream guidStream;
-        guidStream << guid;
-        ref->_Guid = guidStream.str();
+        if (!_TryFindFreeReserveBlock(size, ref->_Data)) {
+            ref->_Data = malloc(size);
+        }
+
+        ref->_MemAddress = GenerateMemAddress<T>(ref);
+        ref->_Guid = GenerateRandomStr(5);
 
         AddMemAllocated(sizeof(T) + ref->_MemSize);
 
         auto entry = _MemTable.find(sympl_address_ref(ref));
-        assert(entry == _MemTable.end() && "Invalid allocation to memory address!");
+        assert(entry == _MemTable.end() && "Invalid allocation to memory address (duplicate insert)!");
 
         _MemTable[sympl_address_ref(ref)] = sizeof(T) + ref->_MemSize;
         _RefTable[sympl_address_ref(ref)] = ref->GetTypeName();
@@ -109,7 +201,7 @@ public:
 
         // If we don't have an address ref we probably didn't allocate memory (static variable).
         // (i.e. ScriptContext::Empty)
-        if (address_ref.size() == 0) {
+        if (ref->Guid().size() == 0) {
             ref->Free();
             return;
         }
@@ -140,7 +232,7 @@ public:
     inline std::string PrintRefs() {
         std::string memAddresses;
         for (auto entryIt : _MemTable) {
-            memAddresses.append(entryIt.first);
+            memAddresses.append(std::to_string(entryIt.first));
             memAddresses.append(" (");
             memAddresses.append(_RefTable[entryIt.first]);
             memAddresses.append(")\n");

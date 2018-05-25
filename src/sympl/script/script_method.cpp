@@ -92,6 +92,12 @@ void ScriptMethod::_ProcessArgStatements()
             stat->Build(argIt.Ptr(), argValue.GetStringBuffer());
 
             argValue = stat.Ptr()->Evaluate();
+
+            // If this is a string we will need to replace the token.
+            if (argValue.GetType() == VariantType::StringBuffer) {
+                argValue.GetStringBuffer()->Replace(SYMPL_STRING_TOKEN, "");
+            }
+
             argIt->SetValue(argValue);
         }
     }

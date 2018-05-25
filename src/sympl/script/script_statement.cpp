@@ -530,7 +530,6 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
             lastConcatConditionStr = "";
 
             _StatementBuffer->Clear();
-            // _StatementBuffer->Replace(SYMPL_STRING_TOKEN, "");
 
             // We've completed building out the arguments.
             if (currentChar == ')') {
