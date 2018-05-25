@@ -62,12 +62,12 @@ int main()
     // free_ref(Thread, thread2);
     // End thread testing.
 
-    sympl_profile_start("script_interpreter");
     SharedRef<Interpreter> program = SymplVMInstance->LoadFile("../../examples/scripts/fib.sym");
+    sympl_profile_start("script_interpreter");
     program->Run();
-    program.Release();
     sympl_profile_stop("script_interpreter");
     sympl_profile_print("script_interpreter");
+    program.Release();
 
     // cout << SymplVMInstance->PrintObjects() << endl;
 

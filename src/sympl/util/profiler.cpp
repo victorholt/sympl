@@ -30,7 +30,7 @@ void Profiler::Start(const std::string& recordName)
 {
     if (!_Enabled) return;
     auto record = GetRecord(recordName);
-    record->Start = std::chrono::steady_clock::now();
+    record->Start = std::chrono::high_resolution_clock::now();
     record->HasStarted = true;
 }
 
@@ -38,7 +38,7 @@ void Profiler::Stop(const std::string& recordName)
 {
     if (!_Enabled) return;
     auto record = GetRecord(recordName);
-    record->End = std::chrono::steady_clock::now();
+    record->End = std::chrono::high_resolution_clock::now();
 }
 
 ProfileRecord* Profiler::GetRecord(const std::string& recordName)
