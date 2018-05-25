@@ -118,7 +118,7 @@ public:
 
     //! Sets the exit flag.
     //! \param exit
-    inline void SetExit(bool exit) { _Exit = exit; }
+    void Exit();
 
     //! Returns the exit flag.
     //! \return bool

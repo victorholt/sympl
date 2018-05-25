@@ -114,6 +114,31 @@ ScriptObject* ScriptObject::_OnCloneCreateObject(const std::string& name, Script
     return clone;
 }
 
+void ScriptObject::CreateContext(ScriptContext* context, ScriptObject* caller)
+{
+    ScriptContext* newContext = alloc_ref(ScriptContext);
+
+    if (!context->IsEmpty()) {
+        context->SetNextContext(context);
+        newContext->SetPreviousContext(context);
+    }
+
+    newContext->SetCaller(caller);
+    newContext->SetOwner(this);
+
+    if (caller->GetType() == ScriptObjectType::Method) {
+        newContext->SetCurrentScope(to_method(caller)->GetScope());
+    } else {
+        if (!context->IsEmpty()) {
+            newContext->SetCurrentScope(context->GetCurrentScope());
+        } else {
+            newContext->SetCurrentScope(caller);
+        }
+    }
+
+    SetContext(newContext);
+}
+
 ScriptObject* ScriptObject::FindChildByName(const char* name, bool useCleanName)
 {
     for (auto entryIt : _Children) {

@@ -83,12 +83,18 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
         // Determine if we're calling a method and attempt to resolve it.
         // Build a statement from the string within the parameters
         if (!recording && currentChar == '(') {
-            // Determine if the current statement buffer is an existing method.
-            auto existingMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
-            if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                _StatementBuffer->Append(_ResolveMethod(existingMethod, statementStr, currentOp).AsString());
+            // Check to see if the varObject we have give is a method. If it's coming from
+            // the Interpreter it may be a method and we don't want to skip it!
+            if (_StatementBuffer->Length() == 0 && varObject->GetType() == ScriptObjectType::Method) {
+                _StatementBuffer->Append(_ResolveMethod(varObject, statementStr, currentOp).AsString());
             } else {
-                _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
+                // Determine if the current statement buffer is an existing method.
+                auto existingMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
+                if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                    _StatementBuffer->Append(_ResolveMethod(varObject, statementStr, currentOp).AsString());
+                } else {
+                    _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, currentOp).AsString());
+                }
             }
             continue;
         }
@@ -142,11 +148,9 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
                         }
                     }
 
-                    // std::cout << "STMT: " << statementStr->CStr() << " WITH VALUE = " << obj->GetValue().AsString() << std::endl;
                     auto entry = Add(obj, currentOp);
                 }
             } else {
-                //  std::cout << "C STMT: " << statementStr->CStr() << " WITH VALUE = " << currentStr << std::endl;
                 _AddValueAndOperation(currentStr, currentOp);
             }
             _StatementBuffer->Clear();
@@ -415,26 +419,16 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
         return Variant::Empty;
     }
 
-    // std::cout << "RM: " << _StatementBuffer->CStr() << std::endl;
-
     // Immediate methods don't get cloned since they're already unique.
     ScriptObject* scriptObject = orgMethod;
-    ScriptContext* context = alloc_ref(ScriptContext);
-
     if (varObject->GetContext()->IsEmpty()) {
         scriptObject = orgMethod->Clone(nullptr, true);
     } else {
         scriptObject = orgMethod->Clone(varObject->GetContext()->GetCurrentScope(), true);
-
-        varObject->GetContext()->SetNextContext(context);
-        context->SetPreviousContext(varObject->GetContext());
     }
 
     // Update our context.
-    context->SetCaller(varObject);
-    context->SetOwner(scriptObject);
-    context->SetCurrentScope(to_method(scriptObject)->GetScope());
-    scriptObject->SetContext(context);
+    scriptObject->CreateContext(varObject->GetContext(), varObject);
 
     // Remove the name of the method so it's not part of the statement value.
     _StatementBuffer->Replace(orgMethod->GetCleanName().c_str(), "");
@@ -456,13 +450,27 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
         }
 
         if (!recording && currentChar == '(') {
-            // Determine if the current statement buffer is an existing method.
-            auto existingMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
-            if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                _StatementBuffer->Append(_ResolveMethod(scriptObject, statementStr, op).AsString());
+            // Check to see if the varObject we have give is a method. If it's coming from
+            // the Interpreter it may be a method and we don't want to skip it!
+            if (_StatementBuffer->Length() == 0 && varObject->GetType() == ScriptObjectType::Method) {
+                _StatementBuffer->Append(_ResolveMethod(varObject, statementStr, op).AsString());
             } else {
-                _StatementBuffer->Append(_ResolveParenth(scriptObject, statementStr, op).AsString());
+                // Determine if the current statement buffer is an existing method.
+                auto existingMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
+                if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                    _StatementBuffer->Append(_ResolveMethod(varObject, statementStr, op).AsString());
+                } else {
+                    _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, op).AsString());
+                }
             }
+
+            // Determine if the current statement buffer is an existing method.
+            // auto existingMethod = SymplVMInstance->GetMethodRegistry()->FindMethod(_StatementBuffer->CStr());
+            // if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+            //     _StatementBuffer->Append(_ResolveMethod(existingMethod, statementStr, op).AsString());
+            // } else {
+            //     _StatementBuffer->Append(_ResolveParenth(scriptObject, statementStr, op).AsString());
+            // }
             continue;
         }
 

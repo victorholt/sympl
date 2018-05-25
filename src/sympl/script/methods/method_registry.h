@@ -59,6 +59,12 @@ public:
     //! \param handle
     void AddMethod(ScriptObject* method);
 
+    //! Adds a callback method.
+    //! \param name
+    //! \param callback
+    //! \param returnType
+    void AddCallbackMethod(const char* name, SymplMethodCallback callback, MethodReturnType returnType = MethodReturnType::Void);
+
     //! Finds and returns a method.
     //! \param name
     //! \return ScriptMethod

@@ -22,29 +22,36 @@
  *
  **********************************************************/
 #pragma once
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/weak_ref.h>
-#include <sympl/script/script_common.h>
+
+#include <sympl/script/script_method.h>
 
 sympl_nsstart
 
-#define SYMPL_STRING_TOKEN "@__STRING__@"
-#define SYMPL_SCOPE_NAME "__scope__"
+class SYMPL_API CallbackMethod : public ScriptMethod
+{
+    SYMPL_OBJECT(CallbackMethod, ScriptMethod);
 
-class ScriptObject;
-typedef std::function<void(const std::vector<WeakRef<ScriptObject>>&)> SymplMethodCallback;
+protected:
+    /// Callback method called during the evaluate process.
+    SymplMethodCallback _Callback;
 
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
+
+public:
+    //! Constructor.
+    CallbackMethod();
+
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(const std::vector<Variant>& args) override;
+
+    //! Sets the callback for the method.
+    //! \param callback
+    inline void SetCallback(SymplMethodCallback callback) { _Callback = callback; }
 };
 
 sympl_nsend
-
-

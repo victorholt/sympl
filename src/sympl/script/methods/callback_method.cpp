@@ -21,30 +21,36 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/weak_ref.h>
-#include <sympl/script/script_common.h>
+#include <sympl/script/sympl_vm.h>
+#include <sympl/script/methods/callback_method.h>
+sympl_namespaces
 
-sympl_nsstart
+CallbackMethod::CallbackMethod()
+{
+    _Name = "callback_method";
 
-#define SYMPL_STRING_TOKEN "@__STRING__@"
-#define SYMPL_SCOPE_NAME "__scope__"
+    // This method does not return anything.
+    _ReturnType = MethodReturnType::Void;
 
-class ScriptObject;
-typedef std::function<void(const std::vector<WeakRef<ScriptObject>>&)> SymplMethodCallback;
+    // This method will be cloned and called immediately
+    // when the Interpreter processes it.
+    _IsImmediate = true;
 
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
-};
+    // Skip type checking this method.
+    _IgnoreReturnTypeCheck = true;
+}
 
-sympl_nsend
+void CallbackMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
+{
+    ScriptMethod::_Initialize(name, path, parent);
+}
 
+Variant CallbackMethod::Evaluate(const std::vector<Variant>& args)
+{
+    _CopyArgs(args);
+    _ProcessArgStatements();
 
+    _Callback(_Args);
+
+    return Variant::Empty;
+}

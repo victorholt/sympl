@@ -71,12 +71,9 @@ void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
 
         Variant argValue = args[argIndex];
 
-        // std::cout << "LOOKING FOR ARG: " << argIt->GetName() << " with value " << argValue.AsString() << std::endl;
-
         auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str(), false);
         assert(!argObj->IsEmpty() && "Invalid argument given for method");
 
-        // std::cout << "COPY ARG VALUE: " << argObj->GetPath() << " = " << argValue.AsString() << std::endl;
         argObj->SetValue(argValue);
 
         argIndex++;
@@ -104,11 +101,12 @@ void ScriptMethod::_ProcessArgStatements()
 void ScriptMethod::_ProcessCallStatements()
 {
     for (auto entryIt : _CallStatements) {
-        if (_Exit) {
+        if (GetContext()->GetExit()) {
+            _Value = GetContext()->GetReturnValue();
             return;
         }
 
-        // std::cout << entryIt->Variable->GetName() << " PROCESS CALL FROM: " << GetContext()->GetCurrentScope()->GetPath() << std::endl;
+        entryIt->Variable->CreateContext(GetContext(), this);
         entryIt->Statement->Build(entryIt->Variable.Ptr());
 
         _Value = entryIt->Statement->Evaluate();
@@ -116,7 +114,6 @@ void ScriptMethod::_ProcessCallStatements()
 
         // Check if we're attempting to return out of the method.
         if (entryIt->Variable->GetName() == "return") {
-            std::cout << " RETURNING VALUE: " << _Value.AsString() << std::endl;
             GetContext()->SetReturnValue(_Value);
             Exit();
             return;
@@ -209,6 +206,7 @@ ScriptObject* ScriptMethod::GetScopeParent()
 
 void ScriptMethod::Exit() {
     _Exit = true;
+    GetContext()->Exit();
 }
 
 void ScriptMethod::Release()

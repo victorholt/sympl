@@ -58,6 +58,17 @@ ScriptObject* ScriptContext::FindObject(const char* name)
     return obj;
 }
 
+void ScriptContext::Exit()
+{
+    _Exit = true;
+
+    // Update the caller's return value.
+    if (_PreviousContext.IsValid()) {
+        _PreviousContext->SetReturnValue(_RetValue);
+        _PreviousContext->Exit();
+    }
+}
+
 void ScriptContext::SetOwner(ScriptObject* owner)
 {
     _Owner = owner;

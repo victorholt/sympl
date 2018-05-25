@@ -129,6 +129,11 @@ public:
     //! \return SharedRef<ScriptObject>
     virtual ScriptObject* Clone(ScriptObject* parent, bool uniqueName);
 
+    //! Creates a context from a given context.
+    //! \param context
+    //! \param caller
+    void CreateContext(ScriptContext* context, ScriptObject* caller);
+
     //! Finds a child based on the given name.
     //! \param name
     //! \param useCleanName

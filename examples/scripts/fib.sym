@@ -1,23 +1,15 @@
 // Simple fibonacci method.
-// ** BROKEN CURRENTLY **
 
-func add(a, b) : int {
-    printl(a);
-    return a + b;
+func fib(previous, current) : int {
+    if (current < 12) {
+        print(current);
+        print(", ");
+        return fib(current, previous + current);
+    }
+    return current;
 }
 
-//func fib(n) : int {
-//    printl(n);
-//    if (n < 2) {
-//        return add(n, add(3, n));
+var last = fib(0, 1);
+printl(last);
 
-        // doesn't work...
-        //return fib(n + 1);
-//    }
-//    return n;
-//}
-
-//var x = fib(3);
-
-var x = add(2, 3);
-printl(x);
+var x = print_memory("test");

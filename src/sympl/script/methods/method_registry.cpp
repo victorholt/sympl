@@ -24,6 +24,7 @@
 #include <sympl/script/methods/method_registry.h>
 #include <sympl/script/methods/if_method.h>
 #include <sympl/script/methods/print_method.h>
+#include <sympl/script/methods/callback_method.h>
 
 #include <sympl/script/sympl_vm.h>
 sympl_namespaces
@@ -53,6 +54,11 @@ void MethodRegistry::_Initialize()
     auto printLineMethod = alloc_ref(PrintLineMethod);
     SymplVMInstance->AddObject(printLineMethod);
     AddMethod(printLineMethod);
+
+    // Prints the memory allocated currently.
+    AddCallbackMethod("print_memory", [&](const std::vector<WeakRef<ScriptObject>>& args) {
+        std::cout << "Memory Allocated (" << AllocInstance->GetMemAllocated() << ")" << std::endl;
+    });
 }
 
 void MethodRegistry::AddMethod(ScriptObject* method)
@@ -60,6 +66,23 @@ void MethodRegistry::AddMethod(ScriptObject* method)
     assert(method->GetType() == ScriptObjectType::Method && "Attempted to register an invalid method!");
 
     _Methods[method->Guid()] = to_method(method);
+}
+
+void MethodRegistry::AddCallbackMethod(const char* name, SymplMethodCallback callback, MethodReturnType returnType)
+{
+    CallbackMethod* method = static_cast<CallbackMethod*>(FindMethod(name));
+    if (!method->IsEmpty()) {
+        return;
+    }
+
+    method = alloc_ref(CallbackMethod);
+    method->SetName(name);
+    method->SetReturnType(returnType);
+    method->SetCallback(callback);
+
+    SymplVMInstance->AddObject(method);
+
+    _Methods[method->Guid()] = method;
 }
 
 ScriptObject* MethodRegistry::FindMethod(const char* name)

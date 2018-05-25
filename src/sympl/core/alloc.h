@@ -105,8 +105,17 @@ public:
     template<class T>
     inline void FreeRef(T*& ref)
     {
-        auto entry = _MemTable.find(sympl_address_ref(ref));
-    //    assert(entry != _MemTable.end() && "Invalid access to free memory!");
+        auto address_ref = sympl_address_ref(ref);
+
+        // If we don't have an address ref we probably didn't allocate memory (static variable).
+        // (i.e. ScriptContext::Empty)
+        if (address_ref.size() == 0) {
+            ref->Free();
+            return;
+        }
+
+        auto entry = _MemTable.find(address_ref);
+        assert(entry != _MemTable.end() && "Invalid access to free memory!");
 
         if (entry == _MemTable.end()) {
             return;
@@ -118,8 +127,8 @@ public:
 
         size_t size = entry->second;
         RemoveMemAllocated(size);
-        _MemTable.erase(sympl_address_ref(ref));
-        _RefTable.erase(sympl_address_ref(ref));
+        _MemTable.erase(address_ref);
+        _RefTable.erase(address_ref);
 
         free(ref->_Data);
         delete ref;
