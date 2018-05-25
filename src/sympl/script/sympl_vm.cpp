@@ -63,10 +63,17 @@ void SymplVM::Shutdown()
 
 void SymplVM::GC()
 {
+    std::vector<std::string> removeGuids;
+
     for (auto entryIt : _ObjectMap) {
         if (!entryIt.second.IsValid() || entryIt.second.RefCount() == 1) {
-            _ObjectMap.erase(entryIt.first);
+            entryIt.second->Release();
+            removeGuids.push_back(entryIt.first);
         }
+    }
+
+    for (auto guid : removeGuids) {
+        _ObjectMap.erase(guid);
     }
 }
 
@@ -229,6 +236,20 @@ std::string SymplVM::_BuildPath(const char* name, ScriptObject* parent)
     return fmt::format("{0}", name);
 }
 
+void SymplVM::RemoveObject(ScriptObject* scriptObject)
+{
+    if (IsNullObject(scriptObject) || scriptObject->IsEmpty()) {
+        return;
+    }
+
+    if (scriptObject->GetParent().IsValid()) {
+        auto parent = scriptObject->GetParent().Ptr();
+        parent->RemoveChild(scriptObject->GetName().c_str());
+    }
+    scriptObject->Release();
+    _ObjectMap.erase(scriptObject->Guid());
+}
+
 void SymplVM::RemoveObject(const std::string& path)
 {
     auto scriptObject = FindObjectByPath(path);
@@ -241,6 +262,7 @@ void SymplVM::RemoveObject(const std::string& path)
         auto parent = scriptObject->GetParent().Ptr();
         parent->RemoveChild(scriptObject->GetName().c_str());
     }
+    scriptObject->Release();
     _ObjectMap.erase(scriptObject->Guid());
 }
 

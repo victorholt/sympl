@@ -56,8 +56,13 @@ void MethodRegistry::_Initialize()
     AddMethod(printLineMethod);
 
     // Prints the memory allocated currently.
-    AddCallbackMethod("print_memory", [&](const std::vector<WeakRef<ScriptObject>>& args) {
-        std::cout << "Memory Allocated (" << AllocInstance->GetMemAllocated() << ")" << std::endl;
+    AddCallbackMethod("print_memory", [](const std::vector<WeakRef<ScriptObject>>& args) {
+        std::cout << "Memory Allocated: " << AllocInstance->GetMemAllocated() << std::endl;
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("print_memory_references", [](const std::vector<WeakRef<ScriptObject>>& args) {
+        std::cout << AllocInstance->PrintRefs() << std::endl;
     });
 }
 
@@ -68,7 +73,7 @@ void MethodRegistry::AddMethod(ScriptObject* method)
     _Methods[method->Guid()] = to_method(method);
 }
 
-void MethodRegistry::AddCallbackMethod(const char* name, SymplMethodCallback callback, MethodReturnType returnType)
+void MethodRegistry::AddCallbackMethod(const char* name, const SymplMethodCallback& callback, MethodReturnType returnType)
 {
     CallbackMethod* method = static_cast<CallbackMethod*>(FindMethod(name));
     if (!method->IsEmpty()) {
@@ -82,7 +87,7 @@ void MethodRegistry::AddCallbackMethod(const char* name, SymplMethodCallback cal
 
     SymplVMInstance->AddObject(method);
 
-    _Methods[method->Guid()] = method;
+   AddMethod(method);
 }
 
 ScriptObject* MethodRegistry::FindMethod(const char* name)

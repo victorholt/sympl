@@ -30,10 +30,7 @@ sympl_namespaces
 ScriptStatement::ScriptStatement() {
     _Type = StatementType::None;
     _String = alloc_ref(StringBuffer);
-    _String->Resize(2000);
-
     _StatementBuffer = alloc_ref(StringBuffer);
-    _StatementBuffer->Resize(2000);
 }
 
 ScriptStatement::~ScriptStatement() {
@@ -539,7 +536,11 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
             if (currentChar == ')') {
                 // Restore the statement buffer.
                 _StatementBuffer->Append(savedStatementStr);
-                return to_method(scriptObject)->Evaluate(args);
+                auto retValue = to_method(scriptObject)->Evaluate(args);
+
+                // Remove object from the VM.
+                 SymplVMInstance->RemoveObject(scriptObject);
+                return retValue;
             }
         }
 

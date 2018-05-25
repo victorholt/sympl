@@ -111,10 +111,13 @@ void Variant::Set(StringBuffer* value) {
 }
 
 void Variant::Set(const char* value) {
-    Clear();
+    // Only clear if we are not already a string buffer.
+    if (_Type != VariantType::StringBuffer) {
+        Clear();
 
-    if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
-        Set(alloc_ref(StringBuffer));
+        if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
+            Set(alloc_ref(StringBuffer));
+        }
     }
 
     GetStringBuffer()->Clear();

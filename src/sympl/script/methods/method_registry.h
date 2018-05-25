@@ -63,7 +63,7 @@ public:
     //! \param name
     //! \param callback
     //! \param returnType
-    void AddCallbackMethod(const char* name, SymplMethodCallback callback, MethodReturnType returnType = MethodReturnType::Void);
+    void AddCallbackMethod(const char* name, const SymplMethodCallback& callback, MethodReturnType returnType = MethodReturnType::Void);
 
     //! Finds and returns a method.
     //! \param name

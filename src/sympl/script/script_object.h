@@ -43,7 +43,7 @@ class SYMPL_API ScriptObject : public Object
 
 protected:
     /// Parent reference for the object.
-    SharedRef<ScriptObject> _Parent;
+    WeakRef<ScriptObject> _Parent;
 
     /// Reference to the script context.
     SharedRef<ScriptContext> _Context;
@@ -163,7 +163,7 @@ public:
 
     //! Returns the parent object.
     //! \return ScriptObject
-    SharedRef<ScriptObject> GetParent() const;
+    WeakRef<ScriptObject> GetParent() const;
 
     //! Returns the child objects.
     //! \return std::unordered_map<string, ScriptObject*>

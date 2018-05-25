@@ -32,8 +32,10 @@ sympl_nsstart
 struct ProfileRecord
 {
     std::string Name;
-    std::chrono::high_resolution_clock::time_point Start;
-    std::chrono::high_resolution_clock::time_point End;
+//    std::chrono::high_resolution_clock::time_point Start;
+//    std::chrono::high_resolution_clock::time_point End;
+    std::chrono::steady_clock::time_point Start;
+    std::chrono::steady_clock::time_point End;
     bool HasStarted;
 };
 

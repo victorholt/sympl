@@ -207,7 +207,7 @@ void ScriptObject::Release()
     _Children.clear();
 }
 
-SharedRef<ScriptObject> ScriptObject::GetParent() const
+WeakRef<ScriptObject> ScriptObject::GetParent() const
 {
     return _Parent;
 }

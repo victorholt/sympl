@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/io/script_parser.h>
 #include <sympl/script/sympl_vm.h>
+#include <sympl/script/script_object.h>
 #include <sympl/script/script_method.h>
 #include <sympl/core/sympl_number_helper.h>
 #include <sympl/script/interpreter.h>
@@ -36,13 +37,10 @@ ScriptParser::ScriptParser()
     _Reader = nullptr;
 
     _CurrentIdentifierBuffer = alloc_ref(StringBuffer);
-    _CurrentIdentifierBuffer->Resize(256);
-
     _CurrentObjectBuffer = alloc_ref(StringBuffer);
-    _CurrentObjectBuffer->Resize(256);
 
     _CurrentValueBuffer = alloc_ref(StringBuffer);
-    _CurrentValueBuffer->Resize(2000);
+    _CurrentValueBuffer->Resize(512);
 }
 
 ScriptParser::~ScriptParser()
@@ -253,8 +251,8 @@ void ScriptParser::_BuildObject()
 
     // Attempt to find the object if it already exists and we're just wanting
     // to assign it a new value.
-    ScriptObject* existingObject;
-    if (_TryFindObject(_CurrentObjectBuffer->CStr(), existingObject)) {
+    ScriptObject* existingObject = _FindObject(_CurrentObjectBuffer->CStr());
+    if (!existingObject->IsEmpty()) {
         _CurrentObject = existingObject;
 
         // If this object exists as an immediate method we should clone the original.
@@ -413,8 +411,8 @@ void ScriptParser::_UpdateScanMode()
 
                 // Check if this object exists and we're attempting to
                 // assign it a value.
-                ScriptObject* existingObject;
-                assert(_TryFindObject(_CurrentIdentifierBuffer->CStr(), existingObject) && "Unknown variable assignment attempt!");
+                ScriptObject* existingObject = _FindObject(_CurrentIdentifierBuffer->CStr());
+                assert(!existingObject->IsEmpty() && "Unknown variable assignment attempt!");
 
                 // Update the scan mode build the object (by re-calling UpdateScanMode).
                 _ScanMode = ParserScanMode::VarName;
@@ -466,15 +464,15 @@ void ScriptParser::_OpenScope()
 void ScriptParser::_CloseScope()
 {
     if (_CurrentScopeObject.IsValid()) {
-        _CurrentObject = _CurrentScopeObject->GetParent();
+        _CurrentObject = _CurrentScopeObject->GetParent().Ptr();
         _CurrentScopeObject.Release();
     } else {
-        _CurrentObject = _CurrentObject->GetParent();
+        _CurrentObject = _CurrentObject->GetParent().Ptr();
     }
 
     // Set the new scope.
     if (_CurrentObject->GetParent().IsValid()) {
-        _CurrentScopeObject = _CurrentObject->GetParent();
+        _CurrentScopeObject = _CurrentObject->GetParent().Ptr();
     }
 
     _ScanMode = ParserScanMode::Type;
@@ -520,22 +518,21 @@ StatementOperator ScriptParser::_SymbolToOp(const std::string& symbol)
 
 bool ScriptParser::_ObjectExists(const char* objectName)
 {
-    ScriptObject* output;
-    return _TryFindObject(objectName, output);
+    ScriptObject* output = _FindObject(objectName);
+    return !output->IsEmpty();
 }
 
-bool ScriptParser::_TryFindObject(const char* objectName, ScriptObject*& output)
+ScriptObject* ScriptParser::_FindObject(const char* objectName)
 {
+    ScriptObject* output = &ScriptObject::Empty;
     if (!_CurrentScopeObject.IsValid()) {
         output = SymplVMInstance->FindObjectByPath(
             fmt::format("{0}", objectName)
         );
-        return (!IsNullObject(output) && !output->IsEmpty());
+        return output;
     }
 
-    output = _CurrentScopeObject->TraverseUpFindChildByName(objectName, false);
-
-    return (!IsNullObject(output) && !output->IsEmpty());
+    return _CurrentScopeObject->TraverseUpFindChildByName(objectName, false);
 }
 
 void ScriptParser::_ClearBuffers()

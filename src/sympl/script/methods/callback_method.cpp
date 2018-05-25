@@ -50,7 +50,18 @@ Variant CallbackMethod::Evaluate(const std::vector<Variant>& args)
     _CopyArgs(args);
     _ProcessArgStatements();
 
-    _Callback(_Args);
+    if (_Callback) {
+        _Callback(_Args);
+    }
 
     return Variant::Empty;
+}
+
+ScriptObject* CallbackMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
+{
+    ScriptObject* clone = alloc_ref(CallbackMethod);
+    clone->SetName(name);
+    static_cast<CallbackMethod*>(clone)->SetCallback(_Callback);
+    SymplVMInstance->AddObject(clone, parent);
+    return clone;
 }

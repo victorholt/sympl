@@ -119,9 +119,8 @@ private:
 
     //! Checks if an object exists based on the current scope.
     //! \param objectName
-    //! \param output
-    //! \return bool
-    bool _TryFindObject(const char* objectName, ScriptObject*& output);
+    //! \return ScriptObject
+    ScriptObject* _FindObject(const char* objectName);
 
     //! Clears the buffers.
     void _ClearBuffers();

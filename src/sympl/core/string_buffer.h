@@ -28,7 +28,7 @@
 
 sympl_nsstart
 
-#define SYMPL_STRING_BUFFER_CAPACITY 512
+#define SYMPL_STRING_BUFFER_CAPACITY 128
 
 class SYMPL_API StringBuffer : public Object
 {

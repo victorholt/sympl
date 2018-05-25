@@ -40,6 +40,11 @@ protected:
     //! \param path
     void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
 
+    //! Handles cloning the object and adding it to the VM.
+    //! \param name
+    //! \param parent
+    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
+
 public:
     //! Constructor.
     CallbackMethod();
@@ -52,6 +57,10 @@ public:
     //! Sets the callback for the method.
     //! \param callback
     inline void SetCallback(SymplMethodCallback callback) { _Callback = callback; }
+
+    //! Returns the callback method.
+    //! \return SymplMethodCallback
+    inline const SymplMethodCallback& GetCallback() const { return _Callback; }
 };
 
 sympl_nsend

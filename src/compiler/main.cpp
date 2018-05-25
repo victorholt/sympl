@@ -23,51 +23,51 @@ int main()
     buffer->PrependByte('$');
 
     cout << buffer->Str() << endl;
-    cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
     str.Clear();
     // End string buffer test.
     sympl_profile_stop("string_buffer");
     sympl_profile_print("string_buffer");
 
-    // Testing out threads.
-    Mutex sharedIntMutex;
-    Variant sharedInt = 0;
-    auto thread1 = alloc_ref(Thread);
-    thread1->SetCallback([&] {
-        for (int i = 0; i < 5; i++) {
-            sharedIntMutex.Lock();
-            cout << "Thread1 - SharedInt value: " << sharedInt.GetInt() << endl;
-            sharedInt.Set(sharedInt.GetInt() + 1);
-            sharedIntMutex.Unlock();
-        }
-    });
-    thread1->Start();
+    cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
 
-    auto thread2 = alloc_ref(Thread);
-    thread2->SetCallback([&] {
-        for (int i = 0; i < 5; i++) {
-            sharedIntMutex.Lock();
-            cout << "Thread2 - SharedInt value: " << sharedInt.GetInt() << endl;
-            sharedInt.Set(sharedInt.GetInt() + 1);
-            sharedIntMutex.Unlock();
-        }
-    });
-    thread2->Start();
+    // Testing out threads.
+    // Mutex sharedIntMutex;
+    // Variant sharedInt = 0;
+    // auto thread1 = alloc_ref(Thread);
+    // thread1->SetCallback([&] {
+    //     for (int i = 0; i < 5; i++) {
+    //         sharedIntMutex.Lock();
+    //         cout << "Thread1 - SharedInt value: " << sharedInt.GetInt() << endl;
+    //         sharedInt.Set(sharedInt.GetInt() + 1);
+    //         sharedIntMutex.Unlock();
+    //     }
+    // });
+    // thread1->Start();
+
+    // auto thread2 = alloc_ref(Thread);
+    // thread2->SetCallback([&] {
+    //     for (int i = 0; i < 5; i++) {
+    //         sharedIntMutex.Lock();
+    //         cout << "Thread2 - SharedInt value: " << sharedInt.GetInt() << endl;
+    //         sharedInt.Set(sharedInt.GetInt() + 1);
+    //         sharedIntMutex.Unlock();
+    //     }
+    // });
+    // thread2->Start();
 
     // We don't want to join until they are finished because we would like
     // to test out the Mutex object.
-    while (thread1->IsRunning() || thread2->IsRunning()) {}
-    free_ref(Thread, thread1);
-    free_ref(Thread, thread2);
+    // while (thread1->IsRunning() || thread2->IsRunning()) {}
+    // free_ref(Thread, thread1);
+    // free_ref(Thread, thread2);
     // End thread testing.
 
     sympl_profile_start("script_interpreter");
     SharedRef<Interpreter> program = SymplVMInstance->LoadFile("../../examples/scripts/fib.sym");
-    sympl_profile_stop("script_interpreter");
-    sympl_profile_print("script_interpreter");
-
     program->Run();
     program.Release();
+    sympl_profile_stop("script_interpreter");
+    sympl_profile_print("script_interpreter");
 
     // cout << SymplVMInstance->PrintObjects() << endl;
 
@@ -107,3 +107,5 @@ int main()
     cout << AllocInstance->PrintRefs() << endl;
     return 0;
 }
+
+

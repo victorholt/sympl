@@ -122,8 +122,12 @@ public:
     //! \return ScriptObject
     ScriptObject* FindObjectByScope(ScriptObject* scopeObject, const std::string& objectName);
 
+     //! Remove object from the object map.
+    //! \param scriptObject
+    void RemoveObject(ScriptObject* scriptObject);
+
     //! Remove object from the object map.
-    //! \param path.
+    //! \param path
     void RemoveObject(const std::string& path);
 
     //! Returns the method registry.
