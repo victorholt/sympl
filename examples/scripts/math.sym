@@ -1,11 +1,16 @@
 // Simple math functions.
 
 profiler_start("math");
-func add(a, b) : int {
-    return a + b;
+func add(a) : int {
+    //print_memory();
+    //printl(a);
+    if (a < 60) {
+        return add(a + 1);
+    }
+    return a;
 }
 
-var x = add(2, 2);
+var x = add(0);
 printl(x);
 profiler_stop("math");
 

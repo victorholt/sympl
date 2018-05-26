@@ -37,7 +37,7 @@ bool Alloc::_ReserveBlocks()
         block.Address = i;
 
         _ReservedBlocks.push_back(block);
-//        AddMemAllocated(block.Size + sizeof(ReservedMemBlock));
+        AddMemAllocated(block.Size + sizeof(ReservedMemBlock));
     }
 }
 
@@ -47,7 +47,7 @@ void Alloc::_FreeBlocks()
         auto block = _ReservedBlocks[i];
         memset(block.Data, 0, block.Size);
         block.Free = true;
-        RemoveMemAllocated(block.Size + sizeof(ReservedMemBlock));
+        // RemoveMemAllocated(block.Size + sizeof(ReservedMemBlock));
     }
 }
 
@@ -59,7 +59,7 @@ void Alloc::_FreeBlock(block_addr index)
 
     auto block = &_ReservedBlocks[index];
     memset(block->Data, 0, block->Size);
-    RemoveMemAllocated(block->Size + sizeof(ReservedMemBlock));
+    // RemoveMemAllocated(block->Size + sizeof(ReservedMemBlock));
 
     block->Free = true;
 }
@@ -74,7 +74,7 @@ bool Alloc::_TryAllocBlock(size_t amount, void*& data, block_addr& memAddress)
             memAddress = i;
             _ReservedBlocks[i].Free = false;
 
-            AddMemAllocated(_ReservedBlocks[i].Size + sizeof(ReservedMemBlock));
+            // AddMemAllocated(_ReservedBlocks[i].Size + sizeof(ReservedMemBlock));
             return true;
         }
     }

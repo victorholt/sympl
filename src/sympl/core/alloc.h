@@ -29,7 +29,7 @@
 sympl_nsstart
 
 #define block_addr long long
-#define MAX_RESERVE_BLOCKS              1500
+#define MAX_RESERVE_BLOCKS              5000
 #define MAX_RESERVE_BLOCK_SIZE          2049
 #define sympl_address_ref(ref) ref->_MemAddress
 

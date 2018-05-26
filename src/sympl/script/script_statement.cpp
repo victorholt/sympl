@@ -421,7 +421,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
     if (varObject->GetContext()->IsEmpty()) {
         scriptObject = orgMethod->Clone(nullptr, true);
     } else {
-        scriptObject = orgMethod->Clone(varObject->GetContext()->GetCurrentScope(), true);
+        scriptObject = orgMethod->Clone(nullptr, true);
     }
 
     // Update our context.
@@ -530,6 +530,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
             lastConcatConditionStr = "";
 
             _StatementBuffer->Clear();
+            // _StatementBuffer->Replace(SYMPL_STRING_TOKEN, "");
 
             // We've completed building out the arguments.
             if (currentChar == ')') {
@@ -538,7 +539,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
                 auto retValue = to_method(scriptObject)->Evaluate(args);
 
                 // Remove object from the VM.
-                SymplVMInstance->RemoveObject(scriptObject);
+                 SymplVMInstance->RemoveObject(scriptObject);
                 return retValue;
             }
         }
