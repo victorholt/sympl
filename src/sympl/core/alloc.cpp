@@ -34,6 +34,7 @@ bool Alloc::_ReserveBlocks()
         block.Data = malloc(MAX_RESERVE_BLOCK_SIZE);
         block.Size = MAX_RESERVE_BLOCK_SIZE;
         block.Free = true;
+        block.Address = i;
 
         _ReservedBlocks.push_back(block);
         AddMemAllocated(block.Size + sizeof(ReservedMemBlock));
@@ -50,22 +51,25 @@ void Alloc::_FreeBlocks()
     }
 }
 
-void Alloc::_FreeBlock(long index)
+void Alloc::_FreeBlock(block_addr index)
 {
     if (index < 0 || index >= MAX_RESERVE_BLOCKS) {
         return;
     }
 
-    auto block = &_ReservedBlocks[i]
+    auto block = &_ReservedBlocks[index];
     memset(block->Data, 0, block->Size);
-    block->Free =
+    block->Free = true;
 }
 
-bool Alloc::_TryFindFreeReserveBlock(size_t amount, void*& data)
+bool Alloc::_TryAllocBlock(size_t amount, void*& data, block_addr& memAddress)
 {
+    if (amount >= MAX_RESERVE_BLOCK_SIZE) return false;
+
     for (int i = 0; i < MAX_RESERVE_BLOCKS; i++) {
         if (_ReservedBlocks[i].Free) {
             data = _ReservedBlocks[i].Data;
+            memAddress = i;
             _ReservedBlocks[i].Free = false;
             return true;
         }

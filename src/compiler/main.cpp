@@ -87,7 +87,7 @@ int main()
     // End thread testing.
 
     sympl_profile_start("script_interpreter");
-    SharedRef<Interpreter> program = SymplVMInstance->LoadFile("../../examples/scripts/math.sym");
+    SharedRef<Interpreter> program = SymplVMInstance->LoadFile("../../examples/scripts/fib.sym");
     program->Run();
     program.Release();
     sympl_profile_stop("script_interpreter");
@@ -127,7 +127,7 @@ int main()
     Sympl::Profiler* profiler = SymplProfiler;
     free_ref(Sympl::Profiler, profiler);
 
-    // cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
+     cout << "Memory allocated: " << AllocInstance->GetMemAllocated() << endl;
     // cout << AllocInstance->PrintRefs() << endl;
     return 0;
 }

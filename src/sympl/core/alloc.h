@@ -28,16 +28,18 @@
 
 sympl_nsstart
 
-#define MAX_RESERVE_BLOCKS              1000
-#define MAX_RESERVE_BLOCK_SIZE          1000
+#define block_addr long long
+#define MAX_RESERVE_BLOCKS              1500
+#define MAX_RESERVE_BLOCK_SIZE          2049
 #define sympl_address_ref(ref) ref->_MemAddress
 
 struct ReservedMemBlock
 {
-    void*       Data;
-    size_t      Size;
     bool        Free;
-}
+    long long   Address;
+    block_addr  Size;
+    void*       Data;
+};
 
 class SYMPL_API Alloc {
 private:
@@ -51,20 +53,24 @@ private:
     size_t nextGeneratedAddressNum = 0;
 
     /// Memory table for keeping track of the size allocated.
-    std::unordered_map<uint64_t, size_t> _MemTable;
+    std::unordered_map<block_addr, size_t> _MemTable;
 
     /// Reference name table.
-    std::unordered_map<uint64_t, std::string> _RefTable;
+    std::unordered_map<block_addr, std::string> _RefTable;
 
     /// Reserved memory blocks available.
     std::vector<ReservedMemBlock> _ReservedBlocks;
 
     //! Constructor.
-    Alloc() {}
+    Alloc() {
+        _ReservedBlocks.reserve(MAX_RESERVE_BLOCKS);
+        _MemTable.reserve(20000);
+        _RefTable.reserve(20000);
+    }
 
     //! Generates a unique memory address.
     template<class T>
-    uint64_t GenerateMemAddress(T* ref)
+    block_addr GenerateMemAddress(T* ref)
     {
 //     auto guid = xg::newGuid();
 //     std::stringstream guidStream;
@@ -79,7 +85,7 @@ private:
         // ).str();
 
         // return reinterpret_cast<uint64_t>(&ref);
-        return atol(GenerateRandomStr(17, true).c_str());
+        return atoll(GenerateRandomStr(16, true).c_str());
         //  return nextGeneratedAddressNum++;
     }
 
@@ -95,12 +101,13 @@ private:
 
     //! Attempt to free a reserved block of memory.
     //! \param index
-    void _FreeBlock(long index);
+    void _FreeBlock(block_addr index);
 
     //! Attempt to find a free reserved block of memory.
     //! \param amount
     //! \param data
-    bool _TryFindFreeReserveBlock(size_t amount, void*& data);
+    //! \param memAddress
+    bool _TryAllocBlock(size_t amount, void*& data, block_addr& memAddress);
 
     //! Add to the memory allocated.
     //! \param amount
@@ -160,6 +167,7 @@ public:
     inline static Alloc* GetInstance() {
         if (IsNullObject(_Instance)) {
             _Instance = new Alloc();
+            _Instance->_ReserveBlocks();
         }
         return _Instance;
     }
@@ -172,23 +180,34 @@ public:
     template<class T>
     inline T* MallocRef(size_t size)
     {
-        T* ref = new T();
-        ref->_MemSize = size;
+        T* ref;
 
-        if (!_TryFindFreeReserveBlock(size, ref->_Data)) {
-            ref->_Data = malloc(size);
+        void*       memData;
+        block_addr  memAddress;
+
+        if (!_TryAllocBlock(size, memData, memAddress)) {
+            memData = malloc(size);
+            ref = new(memData) T();
+            ref->_MemData = memData;
+            ref->_MemAddress = GenerateMemAddress<T>(ref);
+
+            AddMemAllocated(sizeof(T) + ref->_MemSize);
+
+            auto entry = _MemTable.find(sympl_address_ref(ref));
+            if (entry != _MemTable.end()) {
+                assert(false && "Invalid allocation to memory address (duplicate insert)!");
+            }
+
+            _MemTable[sympl_address_ref(ref)] = sizeof(T) + ref->_MemSize;
+            _RefTable[sympl_address_ref(ref)] = ref->GetTypeName();
+        } else {
+            ref = new(memData) T();
+            ref->_MemData = memData;
+            ref->_MemAddress = memAddress;
         }
 
-        ref->_MemAddress = GenerateMemAddress<T>(ref);
+        ref->_MemSize = size;
         ref->_Guid = GenerateRandomStr(5);
-
-        AddMemAllocated(sizeof(T) + ref->_MemSize);
-
-        auto entry = _MemTable.find(sympl_address_ref(ref));
-        assert(entry == _MemTable.end() && "Invalid allocation to memory address (duplicate insert)!");
-
-        _MemTable[sympl_address_ref(ref)] = sizeof(T) + ref->_MemSize;
-        _RefTable[sympl_address_ref(ref)] = ref->GetTypeName();
 
         return ref;
     }
@@ -206,24 +225,28 @@ public:
             return;
         }
 
-        auto entry = _MemTable.find(address_ref);
-        assert(entry != _MemTable.end() && "Invalid access to free memory!");
-
-        if (entry == _MemTable.end()) {
-            return;
-        }
-
         if (!ref->Free()) {
             return;
         }
 
-        size_t size = entry->second;
-        RemoveMemAllocated(size);
-        _MemTable.erase(address_ref);
-        _RefTable.erase(address_ref);
+        // Try to find this in the reserved blocks.
+        if (ref->_MemAddress < MAX_RESERVE_BLOCKS) {
+            ref->~T();
+            _FreeBlock(ref->_MemAddress);
+        } else {
+            auto entry = _MemTable.find(address_ref);
+            if (entry == _MemTable.end()) {
+                assert(false && "Invalid access to free memory!");
+            }
 
-        free(ref->_Data);
-        delete ref;
+            size_t size = entry->second;
+            RemoveMemAllocated(size);
+            _MemTable.erase(address_ref);
+            _RefTable.erase(address_ref);
+
+            ref->~T();
+            free(ref->_MemData);
+        }
         ref = nullptr;
     }
 

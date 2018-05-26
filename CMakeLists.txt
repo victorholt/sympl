@@ -52,13 +52,13 @@ endif ()
 include_directories(${SYMPL_INCLUDES})
 
 # Include the thirdparty libs.
-include(${PROJECT_SOURCE_DIR}/src/sympl/thirdparty/fmt/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/fmt/CMakeLists.txt)
 
 # Include the source.
-include(${PROJECT_SOURCE_DIR}/src/sympl/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/CMakeLists.txt)
 
 # Include the compiler.
-include(${PROJECT_SOURCE_DIR}/src/compiler/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/compiler/CMakeLists.txt)
 
 # Print out the Sympl includes.
 message (STATUS "Sympl Framework Includes\n${SYMPL_INCLUDES}\n")

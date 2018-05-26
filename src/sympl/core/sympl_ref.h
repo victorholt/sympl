@@ -80,7 +80,7 @@ public:
 class SYMPL_API Ref {
 protected:
     /// Reference to our data that has been allocated.
-    void *_Data;
+    void *_MemData;
 
     /// Current reference count before we can delete the reference.
     unsigned _RefCount = 0;
@@ -88,10 +88,8 @@ protected:
     /// Size of the memory.
     size_t _MemSize = 0;
 
-    long _ReservedMemBlockIndex = -1;
-
     /// Guid for the reference.
-    uint64_t _MemAddress = 0;
+    block_addr _MemAddress = 0;
 
     /// Guid for the reference.
     std::string _Guid;
@@ -101,7 +99,7 @@ protected:
 
     //! Returns the allocated memory data.
     //! \return
-    void *GetMemData() const { return _Data; }
+    void *GetMemData() const { return _MemData; }
 
 public:
     // Attempts to dec the reference count.
