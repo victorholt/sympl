@@ -34,7 +34,7 @@ SymplVM* SymplVM::_Instance = nullptr;
 
 SymplVM::SymplVM()
 {
-
+    _ObjectMap.reserve(200000);
 }
 
 SymplVM::~SymplVM()

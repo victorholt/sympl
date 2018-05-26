@@ -538,7 +538,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
                 auto retValue = to_method(scriptObject)->Evaluate(args);
 
                 // Remove object from the VM.
-                 SymplVMInstance->RemoveObject(scriptObject);
+                SymplVMInstance->RemoveObject(scriptObject);
                 return retValue;
             }
         }

@@ -50,7 +50,7 @@ private:
     size_t _MemAllocated = 0;
 
     /// Next number for the new generated mem address.
-    size_t nextGeneratedAddressNum = 0;
+    size_t nextAddressIndex = 0;
 
     /// Memory table for keeping track of the size allocated.
     std::unordered_map<block_addr, size_t> _MemTable;
@@ -72,21 +72,19 @@ private:
     template<class T>
     block_addr GenerateMemAddress(T* ref)
     {
-//     auto guid = xg::newGuid();
-//     std::stringstream guidStream;
-//     guidStream << guid;
-//     return guidStream.str();
+//        auto guid = xg::newGuid();
+//        std::stringstream guidStream;
+//        guidStream << guid;
+//        return guidStream.str();
 
-    //  return GenerateRandomStr(32); //fmt::format("{0}", nextGeneratedAddressNum++);
+//        return GenerateRandomStr(32); //fmt::format("{0}", nextGeneratedAddressNum++);
 
-        // https://stackoverflow.com/questions/8287188/stdostringstream-printing-the-address-of-the-c-string-instead-of-its-content
-        // return dynamic_cast<std::ostringstream&>(
-        //         std::ostringstream().flush() << ref
-        // ).str();
+//        https://stackoverflow.com/questions/8287188/stdostringstream-printing-the-address-of-the-c-string-instead-of-its-content
+//        return dynamic_cast<std::ostringstream&>(
+//             std::ostringstream().flush() << ref
+//        ).str();
 
-        // return reinterpret_cast<uint64_t>(&ref);
         return atoll(GenerateRandomStr(16, true).c_str());
-        //  return nextGeneratedAddressNum++;
     }
 
     //! Attempt reserved blocks of memory.

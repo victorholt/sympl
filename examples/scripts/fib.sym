@@ -2,7 +2,7 @@
 profiler_start("fib");
 func fib(previous, current) : int {
     //print_memory();
-    if (current < 100) {
+    if (current < 5000) {
         return fib(current, previous + current);
     }
     return current;
@@ -12,7 +12,7 @@ var last = fib(1, 1);
 //print("Final Fibonacci Value: ");
 printl(last);
 
-//print_memory();
+print_memory();
 profiler_stop("fib");
 
 // print_vm_object_list();

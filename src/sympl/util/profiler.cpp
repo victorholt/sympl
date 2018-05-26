@@ -69,8 +69,10 @@ void Profiler::PrintExecutionTime(const std::string& recordName)
             record->End - record->Start
     ).count();
 
-    auto seconds = duration / 1000000.0f;
-    printf("%s Execution Time: %f seconds\n", recordName.c_str(), seconds);
+//    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    double seconds = duration / 1000000.0f;
+    std::cout << recordName << " Execution Time: " << std::setprecision(9) << seconds << " seconds" << std::endl;
+//    printf("%s Execution Time: %d seconds\n", recordName.c_str(), seconds);
 }
 
 void Profiler::Clear()
