@@ -140,9 +140,4 @@
 #define sympl_nsend }
 #define sympl_namespaces using namespace Sympl;
 
-// Types
-typedef char char8;
-typedef unsigned char uchar8;
-typedef unsigned long ulong64;
-
 #define SYMPL_VERSION 0x00010000 // ver. 0.1.0.0

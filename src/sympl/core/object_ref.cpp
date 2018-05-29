@@ -21,59 +21,52 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include <sympl/script/interpreter.h>
-#include <sympl/script/sympl_vm.h>
-#include <sympl/script/script_method.h>
-#include <sympl/io/script_parser.h>
-#include <sympl/core/sympl_number_helper.h>
-
-#include <fmt/format.h>
+#include <sympl/core/object_ref.h>
 sympl_namespaces
 
-Interpreter::Interpreter()
+RefInfo::RefInfo(const char* typeName, const RefInfo* baseTypeInfo)
+        :   _TypeName(typeName),
+            _BaseTypeInfo(baseTypeInfo)
 {
 
 }
 
-bool Interpreter::Run()
+RefInfo::~RefInfo() = default;
+
+bool RefInfo::IsTypeOf(std::string type) const
 {
-    for (auto entry : _CommandList) {
-        if (entry.ObjectRef->GetType() != ScriptObjectType::Method) {
-            entry.Statement->Build(entry.ObjectRef.Ptr());
-            entry.ObjectRef->SetValue(entry.Statement->Evaluate());
-        } else {
-            entry.Statement->Build(entry.ObjectRef.Ptr());
-        }
+    const RefInfo* current = this;
+
+    while (current)
+    {
+        if (current->GetTypeName() == type)
+            return true;
+
+        current = current->GetBaseTypeInfo();
     }
-    return true;
+
+    return false;
 }
 
-void Interpreter::AddCommand(ScriptObject* objectRef, ScriptStatement* statement)
+bool RefInfo::IsTypeOf(const RefInfo* typeInfo) const
 {
-    InterpretCommandEntry entry;
-    entry.ObjectRef = objectRef;
-    entry.Statement = statement;
-    _CommandList.push_back(entry);
-}
+    const RefInfo* current = this;
 
-void Interpreter::_SetReader(ScriptReader* reader)
-{
-    _Reader = reader;
-}
+    while (current)
+    {
+        if (current == typeInfo)
+            return true;
 
-void Interpreter::_Parse()
-{
-    if (!_Parser.IsValid()) {
-        _Parser = alloc_ref(ScriptParser);
+        current = current->GetBaseTypeInfo();
     }
-    _Parser->Parse(this);
+
+    return false;
 }
 
-void Interpreter::Release()
+bool ObjectRef::Release()
 {
-    for (auto entryIt : _CommandList) {
-        entryIt.ObjectRef.Release();
-        entryIt.Statement.Release();
+    if (_RefCount > 0) {
+        _RefCount--;
     }
-    _CommandList.clear();
+    return (_RefCount <= 0);
 }

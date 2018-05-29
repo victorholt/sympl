@@ -21,7 +21,7 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include <sympl/core/sympl_number_helper.h>
+#include <sympl/util/number_helper.h>
 sympl_namespaces
 
 unsigned NumberHelper::lastSeed_ = 0;

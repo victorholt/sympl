@@ -25,11 +25,10 @@
 
 #include <sympl/core/sympl_pch.h>
 
-#include <sympl/core/alloc.h>
-#include <sympl/core/sympl_ref.h>
-#include <sympl/core/shared_ref.h>
-#include <sympl/core/weak_ref.h>
-#include <sympl/core/sympl_object.h>
+#include <sympl/core/alloc_manager.h>
+#include <sympl/core/object_ref.h>
+#include <sympl/core/shared_ptr.h>
+#include <sympl/core/weak_ptr.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/thread.h>
@@ -37,13 +36,14 @@
 
 #include <sympl/util/profiler.h>
 
-#include <sympl/io/script_symbol.h>
-#include <sympl/io/script_reader.h>
-#include <sympl/io/script_parser.h>
-
+#include <sympl/script/script_token.h>
+#include <sympl/script/script_reader.h>
+//#include <sympl/script/script_parser.h>
+//
 #include <sympl/script/script_common.h>
-#include <sympl/script/script_statement.h>
-#include <sympl/script/sympl_vm.h>
-#include <sympl/script/interpreter.h>
+#include <sympl/script/script_context.h>
+//#include <sympl/script/script_statement.h>
+//#include <sympl/script/sympl_vm.h>
+//#include <sympl/script/interpreter.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_method.h>
+//#include <sympl/script/script_method.h>

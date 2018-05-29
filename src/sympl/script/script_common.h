@@ -23,9 +23,9 @@
  **********************************************************/
 #pragma once
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
+#include <sympl/core/object_ref.h>
 #include <sympl/core/variant.h>
-#include <sympl/core/weak_ref.h>
+#include <sympl/core/weak_ptr.h>
 #include <sympl/script/script_common.h>
 
 sympl_nsstart
@@ -34,7 +34,7 @@ sympl_nsstart
 #define SYMPL_SCOPE_NAME "__scope__"
 
 class ScriptObject;
-typedef std::function<void(const std::vector<WeakRef<ScriptObject>>&)> SymplMethodCallback;
+typedef std::function<void(const std::vector<WeakPtr<ScriptObject>>&)> SymplMethodCallback;
 
 enum class ScriptObjectType : uint8_t {
     Empty = 0,

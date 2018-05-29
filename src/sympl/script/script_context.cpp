@@ -23,8 +23,6 @@
  **********************************************************/
 #include <sympl/script/script_context.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_method.h>
-#include <sympl/script/sympl_vm.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -43,10 +41,6 @@ ScriptContext::~ScriptContext()
 
 ScriptObject* ScriptContext::FindObject(const char* name)
 {
-    if (!_CurrentScope.IsValid()) {
-        return SymplVMInstance->FindObjectByPath(fmt::format("{0}", name));
-    }
-
     auto obj = _CurrentScope->TraverseUpFindChildByName(name, false);
     if (obj->IsEmpty()) {
         if (_PreviousContext.IsValid()) {

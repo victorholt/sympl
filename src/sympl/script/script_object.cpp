@@ -22,10 +22,8 @@
  *
  **********************************************************/
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_method.h>
-#include <sympl/script/script_statement.h>
-#include <sympl/script/sympl_vm.h>
 #include <sympl/core/string_buffer.h>
+#include <sympl/util/string_helper.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -56,7 +54,7 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
 void ScriptObject::AddChild(ScriptObject* scriptObject)
 {
     scriptObject->_SetNestLevel(_NestLevel + 1);
-    _Children[scriptObject->Guid()] = scriptObject;
+    _Children.push_back(scriptObject);
 }
 
 Variant ScriptObject::Evaluate(const std::vector<Variant>& args)
@@ -79,15 +77,10 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     // Generate a random name for the object.
     std::string name = _Name;
     if (uniqueName) {
-//         auto guid = xg::newGuid();
-//         std::stringstream guidName;
-//         guidName << guid;
-//         name = fmt::format("{0}:{1}", _Name, guidName.str());
-
-        name = fmt::format("{0}:{1}", _Name, AllocInstance->GenerateRandomStr(5));
+        name = fmt::format("{0}:{1}", _Name, StringHelper::GenerateRandomStr(5));
     }
 
-    ScriptObject* clone = _OnCloneCreateObject(name, parent);
+    auto clone = _OnCloneCreateObject(name, parent);
     clone->SetCleanName(_Name);
 
     clone->SetValue(_Value);
@@ -95,14 +88,14 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     // Clone the children!
     for (auto entryIt : _Children) {
         // Don't try to clone the clone!
-        if (entryIt.second == clone) {
+        if (entryIt == clone) {
             continue;
         }
 
         // Check if the clone already has the child.
-        auto child = clone->FindChildByName(entryIt.second->GetName().c_str(), false);
+        auto child = clone->FindChildByName(entryIt->GetName().c_str(), false);
         if (child->IsEmpty()) {
-            entryIt.second->Clone(clone, false);
+            entryIt->Clone(clone, false);
         }
     }
 
@@ -111,7 +104,7 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
 
 ScriptObject* ScriptObject::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
 {
-    ScriptObject* clone = &ScriptObject::Empty;
+    auto clone = &ScriptObject::Empty;
     clone = SymplVMInstance->CreateObject(name.c_str(), _Type, parent);
     return clone;
 }
@@ -201,22 +194,23 @@ void ScriptObject::RemoveChild(const char* name)
     _Children.erase(child->GetPath());
 }
 
-void ScriptObject::Release()
+bool ScriptObject::Release()
 {
+    if (!ObjectRef::Release()) {
+        return false;
+    }
+
     for (auto childIt : _Children) {
         childIt.second->Release();
     }
     _Children.clear();
+
+    return true;
 }
 
 WeakRef<ScriptObject> ScriptObject::GetParent() const
 {
     return _Parent;
-}
-
-const std::unordered_map<std::string, SharedRef<ScriptObject>>& ScriptObject::GetChildren() const
-{
-    return _Children;
 }
 
 void ScriptObject::_SetPath(const char* path)
@@ -227,11 +221,6 @@ void ScriptObject::_SetPath(const char* path)
 void ScriptObject::_SetType(ScriptObjectType type)
 {
     _Type = type;
-}
-
-void ScriptObject::SetValue(ScriptStatement* value)
-{
-    _Value = value->Evaluate();
 }
 
 std::string ScriptObject::GetTypeAsString() const

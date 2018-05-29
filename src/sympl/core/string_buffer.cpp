@@ -22,16 +22,15 @@
  *
  **********************************************************/
 #include <sympl/core/string_buffer.h>
-#include <sympl/core/shared_ref.h>
 
 sympl_namespaces
 
-StringBuffer::StringBuffer(const char8 *str, size_t capacity)
+StringBuffer::StringBuffer(const char *str, size_t capacity)
 {
     Init(str, capacity);
 }
 
-StringBuffer::StringBuffer(const char8 *str)
+StringBuffer::StringBuffer(const char *str)
 {
     Init(str, SYMPL_STRING_BUFFER_CAPACITY);
 }
@@ -44,11 +43,11 @@ StringBuffer::StringBuffer()
 StringBuffer::~StringBuffer()
 {
     if (_UseDynamicBuffer) {
-        delete [] _Buffer;
+        free(_Buffer);
     }
 }
 
-void StringBuffer::Init(const char8 *str, size_t capacity)
+void StringBuffer::Init(const char *str, size_t capacity)
 {
     // Confirm the string capacity.
     size_t confirmedCapacity = capacity;
@@ -57,7 +56,7 @@ void StringBuffer::Init(const char8 *str, size_t capacity)
     }
 
     // Our new string memory size to allocate.
-    size_t strCapacity = sizeof(uchar8) * confirmedCapacity;
+    size_t strCapacity = sizeof(uchar) * confirmedCapacity;
 
     // Create/clean up our string.
     _Buffer = _StaticBuffer;
@@ -68,7 +67,7 @@ void StringBuffer::Init(const char8 *str, size_t capacity)
     _Capacity = capacity;
 }
 
-void StringBuffer::Prepend(const char8 *str)
+void StringBuffer::Prepend(const char *str)
 {
     size_t strSize = strlen(str);
     if (strSize == 0) {
@@ -85,7 +84,7 @@ void StringBuffer::Prepend(const char8 *str)
     _Length += strlen(str);
 }
 
-void StringBuffer::PrependByte(const char8 byte)
+void StringBuffer::PrependByte(const char byte)
 {
     // Ensure we have enough capacity.
     if ((_Length + 2) >= _Capacity) {
@@ -93,7 +92,7 @@ void StringBuffer::PrependByte(const char8 byte)
     }
 
     memcpy(_Buffer + 1, _Buffer, _Length);
-    _Buffer[0] = static_cast<uchar8>(byte);
+    _Buffer[0] = static_cast<uchar>(byte);
     _Length += 1;
 }
 
@@ -107,7 +106,7 @@ void StringBuffer::Append(const std::string str)
     Append(str.c_str());
 }
 
-void StringBuffer::Append(const char8 *str)
+void StringBuffer::Append(const char *str)
 {
     size_t strSize = strlen(str);
     if (strSize == 0) {
@@ -119,18 +118,23 @@ void StringBuffer::Append(const char8 *str)
         Resize(_Length + strSize + SYMPL_STRING_BUFFER_CAPACITY);
     }
 
-    memcpy(_Buffer + _Length, str, strlen(str));
+    size_t index = 0;
+    while (index < strSize) {
+        _Buffer[_Length + index] = static_cast<uchar>(str[index]);
+        index++;
+    }
+
     _Length += strlen(str);
 }
 
-void StringBuffer::AppendByte(const char8 byte)
+void StringBuffer::AppendByte(const char byte)
 {
     // Ensure we have enough capacity.
     if ((_Length + 2) >= _Capacity) {
         Resize(_Length + 2 + SYMPL_STRING_BUFFER_CAPACITY);
     }
 
-    _Buffer[_Length] = static_cast<uchar8>(byte);
+    _Buffer[_Length] = static_cast<uchar>(byte);
     _Length += 1;
 }
 
@@ -142,33 +146,35 @@ void StringBuffer::Resize(size_t newCapacity)
     } else {
         // We probably need a lot of room for this buffer,
         // so really up the capacity.
-        newCapacity *= 10;
-        _Capacity = newCapacity;
+        _Capacity = 400000001;//newCapacity + (_Capacity * 5);
+        std::cout << "realloc: " << _Capacity << std::endl;
     }
 
-    uchar8 *tmpStr = new uchar8[newCapacity];
-    memset(tmpStr, 0, newCapacity);
+    uchar *tmpStr = reinterpret_cast<uchar*>(calloc(_Capacity, sizeof(uchar)));
 
     if (_Length > 0) {
-        memcpy(tmpStr, _Buffer, _Length);
+        size_t index = 0;
+        while (index < _Length) {
+            tmpStr[index] = _Buffer[index];
+            index++;
+        }
     }
 
     if (_UseDynamicBuffer) {
-        delete [] _Buffer;
+        free(_Buffer);
     }
 
     _Buffer = tmpStr;
-    _Capacity = newCapacity;
     _UseDynamicBuffer = true;
 }
 
-void StringBuffer::ReplaceAt(size_t pos, const char8* str)
+void StringBuffer::ReplaceAt(size_t pos, const char* str)
 {
     memset(_Buffer + pos, 0, _Capacity - pos);
     memcpy(_Buffer + pos, str, strlen(str));
 }
 
-void StringBuffer::Replace(const char8 *search, const char8 *replaceWith)
+void StringBuffer::Replace(const char *search, const char *replaceWith)
 {
     std::string buffer;
     buffer.reserve(_Capacity);
@@ -182,113 +188,6 @@ void StringBuffer::Replace(const char8 *search, const char8 *replaceWith)
 
     Clear();
     Append(buffer);
-    return;
-
-    // StringBuffer findBuffer;
-    // findBuffer.Resize(_Capacity);
-
-    // StringBuffer tmpBuffer;
-
-    // long long tmpBufferIndex = 0;
-    // long long capacity = _Capacity;
-    // size_t strLen = strlen(search);
-    // if (strLen > _Length) {
-    //     return;
-    // }
-
-    // for (size_t i = 0; i < _Length; i++) {
-    //     tmpBuffer.AppendByte(Get(i));
-    //     tmpBufferIndex++;
-
-    //     // Ensure we've copied over enough character to check the sequence.
-    //     if (i < (strLen - 1)) {
-    //         findBuffer.AppendByte(Get(i));
-    //         continue;
-    //     }
-
-    //     // Shift the characters to the right.
-    //     for (size_t j = 0; j < strLen - 1; j++) {
-    //         findBuffer.SetByte(j, Get((i - (strLen - 1)) + j));
-    //     }
-    //     findBuffer.SetByte(strLen - 1, Get(i));
-
-    //     // Compare the current sequence of strings.
-    //     if (strcmp(findBuffer.CStr(), search) == 0) {
-    //         size_t replaceIndex = (tmpBufferIndex - strLen);
-    //         tmpBufferIndex = replaceIndex + strlen(replaceWith);
-
-    //         // Check if we need to resize the buffer.
-    //         if ((capacity - tmpBufferIndex) < 0) {
-    //             capacity += (tmpBufferIndex * 2) + (capacity * 2);
-    //             tmpBuffer.Resize(capacity);
-    //         }
-
-    //         tmpBuffer.ReplaceAt(replaceIndex, replaceWith);
-    //     }
-    // }
-
-    // Clear();
-    // Append(&tmpBuffer);
-
-    /*
-    long long capacity = _Capacity;
-    size_t strLen = strlen(search);
-    if (strLen > _Length) {
-        return;
-    }
-
-    char8* findBuffer = new char8[strLen + 1];
-    memset(findBuffer, 0, strLen + 1);
-
-    char8* tmpStr = new char8[capacity];
-    memset(tmpStr, 0, capacity);
-
-    long long tmpBufferIndex = 0;
-    long long currentFindBufferIndex = strLen;
-
-    for (size_t i = 0; i < _Length; i++) {
-        tmpStr[tmpBufferIndex++] = Get(i);
-
-        // Ensure we've copied over enough character to check the sequence.
-        if (i < (strLen - 1)) {
-            findBuffer[i] = Get(i);
-            continue;
-        }
-
-        // Shift the characters to the right.
-        for (size_t j = 0; j < strLen - 1; j++) {
-            findBuffer[j] = Get((i - (strLen - 1)) + j);
-        }
-        findBuffer[strLen - 1] = Get(i);
-
-        // Compare the current sequence of strings.
-        if (strcmp(findBuffer, search) == 0) {
-            size_t replaceIndex = (tmpBufferIndex - strLen);
-            tmpBufferIndex = replaceIndex + strlen(replaceWith);
-
-            // Check if we need to resize the buffer.
-            if ((capacity - tmpBufferIndex) < 0) {
-                capacity += (tmpBufferIndex * 2) + (capacity * 2);
-
-                char8* newBuffer = new char8[capacity];
-                memset(newBuffer, 0, capacity);
-                memcpy(newBuffer, tmpStr, strlen(tmpStr) + 1);
-
-                delete [] tmpStr;
-                tmpStr = newBuffer;
-            }
-
-            memset(tmpStr + replaceIndex, 0, capacity - replaceIndex);
-            memcpy(tmpStr + replaceIndex, replaceWith, strlen(replaceWith));
-        }
-    }
-
-    Clear();
-    Append(tmpStr);
-
-    delete [] tmpStr;
-    delete [] findBuffer;
-    */
 }
 
 void StringBuffer::Clear()

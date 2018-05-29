@@ -24,11 +24,8 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
 
 sympl_nsstart
-
-typedef std::function<void()> SymplThreadCallback;
 
 class SYMPL_API Mutex {
 protected:

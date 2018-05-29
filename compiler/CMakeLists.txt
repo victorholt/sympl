@@ -2,7 +2,7 @@
 project(SymplCompiler)
 
 file (GLOB SYMPL_COMPILER_SRC
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/compiler/main.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/compiler/main.cpp"
 )
 list (APPEND SYMPL_SOURCES ${SYMPL_COMPILER_SRC})
 
@@ -11,7 +11,8 @@ add_executable(SymplCompiler ${SYMPL_COMPILER_SRC})
 
 target_link_libraries(
     SymplCompiler
-    SymplLib
+    SymplCoreLib
+    SymplUtilLib
 )
 
 # Only necessary if we've compiled as a dll.

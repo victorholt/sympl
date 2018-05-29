@@ -24,12 +24,11 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
+#include <sympl/core/string_buffer.h>
 
 sympl_nsstart
 
 class ScriptObject;
-class ScriptStatement;
-class StringBuffer;
 
 /// Support types for the Variant.
 enum class VariantType : uint8_t
@@ -41,7 +40,6 @@ enum class VariantType : uint8_t
 
     StringBuffer,
     ScriptObject,
-    ScriptStatement,
 
     MaxVariantTypes
 };
@@ -70,7 +68,7 @@ private:
 public:
     //! Constructor.
     Variant()
-        : _Type(VariantType::Empty)
+            : _Type(VariantType::Empty)
     {
         _Value.Ptr = nullptr;
     }
@@ -151,13 +149,9 @@ public:
     //! \param value
     Variant(ScriptObject* value);
 
-    //! Constructor.
-    //! \param value
-    Variant(ScriptStatement* value);
-
     //! Destructor.
     ~Variant() {
-       Clear();
+        Clear();
     }
 
     //! Sets the type of the variant.
@@ -343,14 +337,6 @@ public:
     //! \return ScriptObject
     ScriptObject* GetScriptObject();
 
-    //! Sets the value for the variant.
-    //! \param value
-    void Set(ScriptStatement* value);
-
-    //! Returns the script object.
-    //! \return ScriptStatement
-    ScriptStatement* GetScriptStatement();
-
     //! Returns the value as a string.
     //! \return string
     std::string AsString();
@@ -463,11 +449,6 @@ public:
     //! \param rhs
     //! \return
     Variant& operator =(ScriptObject* rhs);
-
-    //! Operator for assigning ScriptObject.
-    //! \param rhs
-    //! \return
-    Variant& operator =(ScriptStatement* rhs);
 
     //! Clears the pointer.
     void Clear();

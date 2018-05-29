@@ -48,6 +48,23 @@ else ()
     set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/builds/release)
 endif ()
 
+# Apple-specific libraries.
+list (APPEND SymplAppleLibs "")
+if (APPLE)
+    if (IOS OR TVOS)
+        list (APPEND SymplAppleLibs
+                "-framework Foundation"
+                "-framework QuartzCore"
+                )
+    else ()
+        list (APPEND SymplAppleLibs
+                "-framework CoreFoundation"
+                "-framework SystemConfiguration"
+                "-framework CoreServices"
+                )
+    endif ()
+endif ()
+
 # Setup our Sympl includes.
 include_directories(${SYMPL_INCLUDES})
 
@@ -55,10 +72,12 @@ include_directories(${SYMPL_INCLUDES})
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/fmt/CMakeLists.txt)
 
 # Include the source.
-include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/core/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/util/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/script/CMakeLists.txt)
 
 # Include the compiler.
-include(${CMAKE_CURRENT_SOURCE_DIR}/src/compiler/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/compiler/CMakeLists.txt)
 
 # Print out the Sympl includes.
 message (STATUS "Sympl Framework Includes\n${SYMPL_INCLUDES}\n")

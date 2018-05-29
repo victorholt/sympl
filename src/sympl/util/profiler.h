@@ -24,8 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
-#include <sympl/core/alloc.h>
+#include <sympl/core/object_ref.h>
 
 sympl_nsstart
 
@@ -39,9 +38,9 @@ struct ProfileRecord
     bool HasStarted;
 };
 
-class SYMPL_API Profiler : public Object
+class SYMPL_API Profiler : public ObjectRef
 {
-    SYMPL_OBJECT(Profiler, Object);
+    SYMPL_OBJECT(Profiler, ObjectRef);
 
 private:
     /// Instance for the profiler.
@@ -104,7 +103,7 @@ public:
     }
 
     /// Ensure the alloc class can access this object properly.
-    friend Alloc;
+    friend AllocManager;
 };
 
 #define SymplProfiler Sympl::Profiler::GetInstance()

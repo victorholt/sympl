@@ -23,33 +23,32 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/script/script_method.h>
+#include <sympl/core/sympl_pch.h>
+
+#include <fmt/format.h>
 
 sympl_nsstart
 
-class SYMPL_API IfMethod : public ScriptMethod
+class StringHelper
 {
-    SYMPL_OBJECT(IfMethod, ScriptMethod);
-
-protected:
-    //! Initializes the object.
-    //! \param name
-    //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
-
-    //! Handles cloning the object and adding it to the VM.
-    //! \param name
-    //! \param parent
-    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
-
 public:
-    //! Constructor.
-    IfMethod();
-
-    //! Evaluates and returns the results of the object.
-    //! \param args
+    //! Attempts to generate a guid.
     //! \return
-    Variant Evaluate(const std::vector<Variant>& args) override;
+    static std::string GenerateGuid();
+
+    // https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c
+    //! Attempts to generate a random alpha-numeric (or numeric-only) string.
+    //! \param length
+    //! \param numbersOnly
+    //! \return
+    static std::string GenerateRandomStr(size_t length, bool numbersOnly = false);
+
+    //! Replaces occurrences of a given string.
+    //! \param find
+    //! \param replace
+    //! \param subject
+    //! \return
+    static std::string Replace(std::string find, std::string replace, std::string subject);
 };
 
 sympl_nsend

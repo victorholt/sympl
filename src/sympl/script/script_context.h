@@ -23,33 +23,37 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/core/sympl_object.h>
-#include <sympl/core/shared_ref.h>
-#include <sympl/core/weak_ref.h>
+#include <sympl/core/variant.h>
+#include <sympl/core/object_ref.h>
+#include <sympl/core/shared_ptr.h>
+#include <sympl/core/weak_ptr.h>
 
 sympl_nsstart
 
 class ScriptObject;
 
-class SYMPL_API ScriptContext : public Object
+class SYMPL_API ScriptContext : public ObjectRef
 {
-    SYMPL_OBJECT(ScriptContext, Object);
+SYMPL_OBJECT(ScriptContext, ObjectRef);
 
 protected:
     /// Owner of the context.
-    WeakRef<ScriptObject> _Owner;
+    WeakPtr<ScriptObject> _Owner;
 
     /// Reference to the current scope of the context.
-    WeakRef<ScriptObject> _CurrentScope;
+    WeakPtr<ScriptObject> _CurrentScope;
 
     /// Reference to the caller.
-    WeakRef<ScriptObject> _Caller;
+    WeakPtr<ScriptObject> _Caller;
 
     /// Reference to the previous context.
-    WeakRef<ScriptContext> _PreviousContext;
+    WeakPtr<ScriptContext> _PreviousContext;
 
     /// Reference to the next context.
-    WeakRef<ScriptContext> _NextContext;
+    WeakPtr<ScriptContext> _NextContext;
+
+    /// Quick variable access list.
+    std::vector<WeakPtr<ScriptObject>> _VarList;
 
     /// Current return value.
     Variant _RetValue;

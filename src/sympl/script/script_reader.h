@@ -25,65 +25,65 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/object_ref.h>
+#include <sympl/script/script_token.h>
 
 sympl_nsstart
 
-typedef std::function<void()> SymplThreadCallback;
+class StringBuffer;
 
-class SYMPL_API Thread : public ObjectRef {
-    SYMPL_OBJECT(Thread, ObjectRef);
+class SYMPL_API ScriptReader : public ObjectRef
+{
+    SYMPL_OBJECT(ScriptReader, ObjectRef);
 
-protected:
-    /// Reference to the system thread.
-    std::thread _SystemThread;
+private:
+    /// Buffer holding the script data.
+    StringBuffer* _Buffer;
 
-    /// Reference to the thread callback.
-    SymplThreadCallback _Callback;
+    /// File path of the script.
+    std::string _FilePath;
 
-    /// Whether or not the thread has started.
-    bool _ThreadStarted = false;
+    /// Script string given.
+    std::string _ScriptString;
 
-    /// Whether or not to pause the thread.
-    bool _IsPaused = false;
+    /// Token helper for parsing.
+    ScriptToken* _ScriptToken;
 
-    /// Whether or not the thread is a single-run thread.
-    bool _IsSingleRun = true;
+    /// Adds the line numbers to the compiler's output (for debugging).
+    bool _AddLineNumbers = true;
 
-    /// Whether or not the thread has joined to the main thread.
-    bool _IsJoined = false;
-
-    /// Whether or not the thread is running.
-    bool _IsRunning = false;
-
-    /// Whether or not the thread has a callback.
-    bool _HasCallback = false;
+    //! Processes the script file/string.
+    //! \param fileStream
+    //! \param bufferLength
+    void ProcessScript(std::istream& fileStream, size_t bufferLength);
 
 public:
     //! Constructor.
-    Thread();
+    ScriptReader();
 
     //! Destructor.
-    virtual ~Thread();
+    virtual ~ScriptReader();
 
-    //! Starts the thread.
-    void Start();
+    //! Reads a script from a given file path.
+    //! \param filePath
+    //! \return bool
+    bool ReadFile(const char* filePath);
 
-    //! Joins the thread to the main thread.
-    void Join();
-
-    //! Pauses a non single-run thread.
-    void Pause();
-
-    //! Stops a non single-run thread.
-    void Stop();
-
-    //! Sets the callback for the thread.
-    //! \param callback
-    void SetCallback(SymplThreadCallback callback);
-
-    //! Returns whether or not the thread is running.
+    //! Reads a string.
+    //! \param scriptString
     //! \return
-    inline bool IsRunning() const { return _IsRunning; }
+    bool ReadString(const char* scriptString);
+
+    //! Saves the output to a given file path.
+    //! \param filePath
+    void SaveOutputTo(const char* filePath);
+
+    //! Returns the script's string buffer.
+    //! \return StringBuffer*
+    StringBuffer* GetBuffer() const;
+
+    //! Sets whether or not to add line numbers to the string buffer.
+    //! \param addLineNumbers
+    inline void SetAddLineNumbers(bool addLineNumbers) { _AddLineNumbers = addLineNumbers; }
 };
 
 sympl_nsend

@@ -22,10 +22,8 @@
  *
  **********************************************************/
 #include <sympl/core/variant.h>
-#include <sympl/core/sympl_object.h>
-#include <sympl/core/string_buffer.h>
+#include <sympl/core/object_ref.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_statement.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -56,33 +54,9 @@ Variant& Variant::operator =(ScriptObject* rhs) {
     return *this;
 }
 
-Variant::Variant(ScriptStatement* value) {
-    Set(value);
-}
-
-void Variant::Set(ScriptStatement* value) {
-    Clear();
-    value->AddRef();
-
-    SetType(VariantType::ScriptStatement);
-    _Value.Ptr = value;
-}
-
-ScriptStatement* Variant::GetScriptStatement() {
-    if (_Type != VariantType::ScriptStatement) {
-        return nullptr;
-    }
-    return reinterpret_cast<ScriptStatement*>(_Value.Ptr);
-}
-
-Variant& Variant::operator =(ScriptStatement* rhs) {
-    Set(rhs);
-    return *this;
-}
-
 void Variant::Set(const Variant& value)
- {
-     Clear();
+{
+    Clear();
 
     _Type = value._Type;
     _Value = value._Value;
@@ -95,9 +69,6 @@ void Variant::Set(const Variant& value)
     }
     if (_Type == VariantType::ScriptObject) {
         GetScriptObject()->AddRef();
-    }
-    if (_Type == VariantType::ScriptStatement) {
-        GetScriptStatement()->AddRef();
     }
 }
 
@@ -139,22 +110,15 @@ void Variant::Clear() {
 
     // Free our string buffer.
     if (_Type == VariantType::StringBuffer) {
-        StringBuffer* buffer = GetStringBuffer();
+        auto buffer = GetStringBuffer();
         free_ref(StringBuffer, buffer);
         _Value.Ptr = nullptr;
     }
 
     // Free our script object.
     if (_Type == VariantType::ScriptObject) {
-        ScriptObject* sobj = GetScriptObject();
+        auto sobj = GetScriptObject();
         free_ref(ScriptObject, sobj);
-        _Value.Ptr = nullptr;
-    }
-
-    // Free our script statement.
-    if (_Type == VariantType::ScriptStatement) {
-        ScriptStatement* sobj = GetScriptStatement();
-        free_ref(ScriptStatement, sobj);
         _Value.Ptr = nullptr;
     }
 }
@@ -181,9 +145,6 @@ std::string Variant::AsString()
         case (int)VariantType::ScriptObject:
             value = "[object]";
             break;
-        case (int)VariantType::ScriptStatement:
-            value = "[statement]";
-            break;
     }
 
     return value;
@@ -204,8 +165,6 @@ std::string Variant::GetTypeAsString()
             return "string";
         case (int)VariantType::ScriptObject:
             return "object";
-        case (int)VariantType::ScriptStatement:
-            return "statement";
     }
 
     return "unknown";

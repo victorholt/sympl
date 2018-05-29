@@ -24,22 +24,23 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
+#include <sympl/core/object_ref.h>
 
 sympl_nsstart
 
-#define SYMPL_STRING_BUFFER_CAPACITY 1512
+typedef unsigned char uchar;
+#define SYMPL_STRING_BUFFER_CAPACITY 512
 
-class SYMPL_API StringBuffer : public Object
+class SYMPL_API StringBuffer : public ObjectRef
 {
-    SYMPL_OBJECT(StringBuffer, Object);
+SYMPL_OBJECT(StringBuffer, ObjectRef);
 
 private:
     /// Buffer for holding the string.
-    uchar8      *_Buffer = nullptr;
+    uchar      *_Buffer;
 
     /// Static buffer of pre-allocated bytes.
-    uchar8      _StaticBuffer[SYMPL_STRING_BUFFER_CAPACITY];
+    uchar      _StaticBuffer[SYMPL_STRING_BUFFER_CAPACITY];
 
     /// Flag to switch to the dynamic buffer.
     bool        _UseDynamicBuffer = false;
@@ -52,17 +53,17 @@ private:
     //! Initializes the string buffer.
     //! \param str
     //! \param capacity
-    void Init(const char8 *str, size_t capacity);
+    void Init(const char *str, size_t capacity);
 
 public:
     //! Constructor.
     //! \param str
     //! \param capacity
-    StringBuffer(const char8 *str, size_t capacity);
+    StringBuffer(const char *str, size_t capacity);
 
     //! Constructor.
     //! \param str
-    StringBuffer(const char8 *str);
+    StringBuffer(const char *str);
 
     //! Constructor.
     StringBuffer();
@@ -72,11 +73,11 @@ public:
 
     //! Prepends a string to the current buffer.
     //! \param str
-    void Prepend(const char8 *str);
+    void Prepend(const char *str);
 
     //! Prepends a string to the current buffer.
     //! \param str
-    void PrependByte(const char8 byte);
+    void PrependByte(const char byte);
 
     //! Appends a string to the current buffer.
     //! \param str
@@ -88,11 +89,11 @@ public:
 
     //! Appends a string to the current buffer.
     //! \param str
-    void Append(const char8 *str);
+    void Append(const char *str);
 
     //! Appends a string to the current buffer.
     //! \param str
-    void AppendByte(const char8 byte);
+    void AppendByte(const char byte);
 
     //! Resizes the string buffer.
     //! \param newCapacity
@@ -101,23 +102,23 @@ public:
     // Sets/replaces a given set of characters at the given location
     //! \param pos
     //! \param str
-    void ReplaceAt(size_t pos, const char8* str);
+    void ReplaceAt(size_t pos, const char* str);
 
     //! Replaces occurances in the string.
     //! \param search
     //! \param replaceWith
-    void Replace(const char8 *search, const char8 *replaceWith);
+    void Replace(const char *search, const char *replaceWith);
 
     //! Clears out the string buffer.
     void Clear();
 
     //! Returns the string buffer.
-    //! \return uchar8*
-    inline const uchar8* Str() const { return _Buffer; }
+    //! \return uchar*
+    inline const uchar* Str() const { return _Buffer; }
 
     //! Returns the byte value of the buffer.
     //! \return
-    inline const char8* CStr() const { return reinterpret_cast<char8*>(_Buffer); }
+    inline const char* CStr() const { return reinterpret_cast<char*>(_Buffer); }
 
     //! Returns the length of the string.
     //! \return size_t
@@ -137,26 +138,26 @@ public:
 
     //! Returns the last byte in the buffer.
     //! \return char
-    inline char8 FirstByte() {
+    inline char FirstByte() {
         if (_Length == 0) {
             return '\0';
         }
-        return reinterpret_cast<char8*>(_Buffer)[0];
+        return reinterpret_cast<char*>(_Buffer)[0];
     }
 
     //! Returns the last byte in the buffer.
     //! \return char
-    inline char8 LastByte() {
+    inline char LastByte() {
         if (_Length == 0) {
             return '\0';
         }
-        return reinterpret_cast<char8*>(_Buffer)[_Length - 1];
+        return reinterpret_cast<char*>(_Buffer)[_Length - 1];
     }
 
     //! Sets a byte at a given location.
     //! \param location
     //! \param byte
-    inline void SetByte(size_t location, const char8 byte) {
+    inline void SetByte(size_t location, const char byte) {
         if (location >= _Capacity) {
             Resize(_Capacity + 5);
         }
@@ -187,7 +188,7 @@ public:
 
     //! Evaluates whether two string buffers are equal.
     //! \return bool
-    bool operator == (const char8* rhs) {
+    bool operator == (const char* rhs) {
         return Equals(rhs);
     }
 };

@@ -24,36 +24,34 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
+#include <sympl/core/object_ref.h>
 #include <sympl/core/variant.h>
-#include <sympl/core/shared_ref.h>
-#include <sympl/core/weak_ref.h>
+#include <sympl/core/shared_ptr.h>
+#include <sympl/core/weak_ptr.h>
 #include <sympl/script/script_common.h>
 #include <sympl/script/script_context.h>
 
 sympl_nsstart
 
-class Variant;
 class StringBuffer;
-class ScriptStatement;
 
-class SYMPL_API ScriptObject : public Object
+class SYMPL_API ScriptObject : public ObjectRef
 {
-    SYMPL_OBJECT(ScriptObject, Object);
+SYMPL_OBJECT(ScriptObject, ObjectRef);
 
 protected:
     /// Parent reference for the object.
-    WeakRef<ScriptObject> _Parent;
+    WeakPtr<ScriptObject> _Parent;
 
     /// Reference to the script context.
-    SharedRef<ScriptContext> _Context;
+    SharedPtr<ScriptContext> _Context;
 
     /// Value of the script object.
     Variant _Value;
 
     /// Children added to the object in the order they
     /// were added.
-    std::unordered_map<std::string, SharedRef<ScriptObject>> _Children;
+    std::vector<ScriptObject*> _Children;
 
     /// Name of the object.
     std::string _Name;
@@ -120,13 +118,13 @@ public:
     void AddChild(ScriptObject* scriptObject);
 
     //! Creates a clone of the object.
-    //! \return SharedRef<ScriptObject>
+    //! \return SharedPtr<ScriptObject>
     ScriptObject* Clone();
 
     //! Creates a clone of the object.
     //! \param parent
     //! \param uniqueName
-    //! \return SharedRef<ScriptObject>
+    //! \return SharedPtr<ScriptObject>
     virtual ScriptObject* Clone(ScriptObject* parent, bool uniqueName);
 
     //! Creates a context from a given context.
@@ -153,7 +151,7 @@ public:
     void RemoveChild(const char* name);
 
     //! Releases the object.
-    void Release() override;
+    bool Release() override;
 
     //! Sets the parent for the object.
     //! \param parent
@@ -163,19 +161,15 @@ public:
 
     //! Returns the parent object.
     //! \return ScriptObject
-    WeakRef<ScriptObject> GetParent() const;
+    WeakPtr<ScriptObject> GetParent() const;
 
     //! Returns the child objects.
     //! \return std::unordered_map<string, ScriptObject*>
-    const std::unordered_map<std::string, SharedRef<ScriptObject>>& GetChildren() const;
+    const std::vector<ScriptObject*>& GetChildren() const { return _Children; }
 
     //! Returns a string of the script object.
     //! \return
     std::string Print();
-
-    //! Sets the value of the object.
-    //! \param value
-    virtual void SetValue(ScriptStatement* value);
 
     //! Sets the value of the object.
     //! \param value

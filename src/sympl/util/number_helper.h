@@ -24,7 +24,6 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/sympl_object.h>
 
 #include <fmt/format.h>
 
