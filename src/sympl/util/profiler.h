@@ -53,19 +53,22 @@ private:
     bool _Enabled = true;
 
     //! Constructor.
-    Profiler() {}
+    Profiler() { __Construct(); }
 
 public:
     //! Destructor.
     ~Profiler() {
         if (!IsNullObject(_Instance)) {
-            _Instance->Clear();
+            _Instance->Release();
 
             // Double-delete... our Alloc class should cache this
             // and disregard attempting to remove it.
             // free_ref(Profiler, _Instance);
         }
     }
+
+    //! Called in place of the constructor.
+    void __Construct() override;
 
     //! Returns the instance.
     //! \return Profiler
@@ -95,6 +98,9 @@ public:
 
     //! Clears/removes all profile records.
     void Clear();
+
+    //! Releases the object.
+    bool Release() override;
 
     //! Sets whether or not to enable the profiler.
     //! \param enabled

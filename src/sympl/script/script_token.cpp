@@ -27,6 +27,16 @@ sympl_namespaces
 
 ScriptToken::ScriptToken()
 {
+    __Construct();
+}
+
+ScriptToken::~ScriptToken()
+{
+    Release();
+}
+
+void ScriptToken::__Construct()
+{
     // Setup the tokens.
     AddStdToken(TokenType::Operator, "=", "=");
     AddStdToken(TokenType::Operator, "+", "+");
@@ -60,35 +70,7 @@ ScriptToken::ScriptToken()
     AddSpecialCharToken(TokenType::SpecialChar, "\"", "\"");
 
     _TranslateBuffer = alloc_ref(StringBuffer);
-    _TranslateBuffer->Resize(200);
-
     _ResultBuffer = alloc_ref(StringBuffer);
-    _ResultBuffer->Resize(1000);
-}
-
-ScriptToken::~ScriptToken()
-{
-    TokenMeta* data;
-    for (auto tokensIt : _StdTokens) {
-        data = tokensIt.second;
-        delete data;
-    }
-    _StdTokens.clear();
-
-    for (auto tokensIt : _DelTokens) {
-        data = tokensIt.second;
-        delete data;
-    }
-    _DelTokens.clear();
-
-    for (auto tokensIt : _SpecTokens) {
-        data = tokensIt.second;
-        delete data;
-    }
-    _SpecTokens.clear();
-
-    if (!IsNullObject(_TranslateBuffer)) free_ref(StringBuffer, _TranslateBuffer);
-    if (!IsNullObject(_ResultBuffer)) free_ref(StringBuffer, _ResultBuffer);
 }
 
 const bool ScriptToken::IsType(TokenType type, const std::string& input) const
@@ -343,4 +325,31 @@ void ScriptToken::AddSpecialCharToken(TokenType type, const std::string& name, c
     pToken->Type = type;
 
     _SpecTokens[name] = pToken;
+}
+
+bool ScriptToken::Release()
+{
+    TokenMeta* data;
+    for (auto tokensIt : _StdTokens) {
+        data = tokensIt.second;
+        delete data;
+    }
+    _StdTokens.clear();
+
+    for (auto tokensIt : _DelTokens) {
+        data = tokensIt.second;
+        delete data;
+    }
+    _DelTokens.clear();
+
+    for (auto tokensIt : _SpecTokens) {
+        data = tokensIt.second;
+        delete data;
+    }
+    _SpecTokens.clear();
+
+    if (!IsNullObject(_TranslateBuffer)) free_ref(_TranslateBuffer);
+    if (!IsNullObject(_ResultBuffer)) free_ref(_ResultBuffer);
+
+    return true;
 }

@@ -80,6 +80,12 @@ public:
     //! \return
     T* Ptr() const { return _Data; }
 
+    //! Releases the object.
+    void Release()
+    {
+        _Data = nullptr;
+    }
+
     //! Operator for assigning pointer.
     //! \param rhs
     //! \return

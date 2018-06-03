@@ -21,29 +21,60 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
-
-#include <sympl/core/sympl_pch.h>
-
-#include <sympl/core/alloc_manager.h>
-#include <sympl/core/object_ref.h>
-#include <sympl/core/shared_ptr.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/core/string_buffer.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/thread.h>
-#include <sympl/core/mutex.h>
+#include <sympl/script/method_registry.h>
+#include <sympl/script/script_vm.h>
 
 #include <sympl/util/profiler.h>
+sympl_namespaces
 
-#include <sympl/script/script_token.h>
-#include <sympl/script/script_reader.h>
-#include <sympl/script/script_parser.h>
+MethodRegistry::MethodRegistry()
+{
 
-#include <sympl/script/script_common.h>
-#include <sympl/script/script_context.h>
-#include <sympl/script/script_statement.h>
-#include <sympl/script/script_vm.h>
-#include <sympl/script/interpreter.h>
-#include <sympl/script/script_object.h>
-#include <sympl/script/script_method.h>
+}
+
+MethodRegistry::~MethodRegistry()
+{
+    Release();
+}
+
+void MethodRegistry::__Construct()
+{
+
+}
+
+void MethodRegistry::_Initialize()
+{
+}
+
+void MethodRegistry::AddMethod(ScriptObject* method)
+{
+    assert(method->GetType() == ScriptObjectType::Method && "Attempted to register an invalid method!");
+
+    _Methods[method->Guid()] = to_method(method);
+}
+
+void MethodRegistry::AddCallbackMethod(const char* name, const SymplMethodCallback& callback, MethodReturnType returnType)
+{
+}
+
+ScriptObject* MethodRegistry::FindMethod(const char* name)
+{
+    for (auto method : _Methods) {
+        if (method.second->GetName() == name) {
+            return method.second.Ptr();
+        }
+    }
+    return &ScriptObject::Empty;
+}
+
+bool MethodRegistry::TryFindMethod(const char* name, ScriptObject*& method)
+{
+    method = FindMethod(name);
+    return (!method->IsEmpty());
+}
+
+bool MethodRegistry::Release()
+{
+    _Methods.clear();
+    return true;
+}

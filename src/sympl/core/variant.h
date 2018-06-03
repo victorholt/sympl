@@ -24,11 +24,12 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/string_buffer.h>
+#include <sympl/core/alloc_manager.h>
 
 sympl_nsstart
 
-class ScriptObject;
+class ObjectRef;
+class StringBuffer;
 
 /// Support types for the Variant.
 enum class VariantType : uint8_t
@@ -39,7 +40,7 @@ enum class VariantType : uint8_t
     Float,
 
     StringBuffer,
-    ScriptObject,
+    Object,
 
     MaxVariantTypes
 };
@@ -147,7 +148,7 @@ public:
 
     //! Constructor.
     //! \param value
-    Variant(ScriptObject* value);
+    Variant(ObjectRef* value);
 
     //! Destructor.
     ~Variant() {
@@ -331,11 +332,11 @@ public:
 
     //! Sets the value for the variant.
     //! \param value
-    void Set(ScriptObject* value);
+    void Set(ObjectRef* value);
 
-    //! Returns the script object.
-    //! \return ScriptObject
-    ScriptObject* GetScriptObject();
+    //! Returns the object.
+    //! \return ObjectRef
+    ObjectRef* GetObject();
 
     //! Returns the value as a string.
     //! \return string
@@ -445,12 +446,12 @@ public:
         return *this;
     }
 
-    //! Operator for assigning ScriptObject.
+    //! Operator for assigning ObjectRef.
     //! \param rhs
     //! \return
-    Variant& operator =(ScriptObject* rhs);
+    Variant& operator =(ObjectRef* rhs);
 
-    //! Clears the pointer.
+    //! Clears out the variant.
     void Clear();
 
     /// Empty script object.

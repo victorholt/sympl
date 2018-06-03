@@ -1,15 +1,17 @@
 # Header and src files.
-file (GLOB SYMPL_FRAMEWORK_HEADERS
-        "${SYMPL_SOURCE_DIR}/sympl/util/*.h"
-        )
+file (GLOB SYMPL_UTIL_HEADERS
+    "${SYMPL_SOURCE_DIR}/sympl/thirdparty/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/util/*.h"
+)
 
-file (GLOB SYMPL_FRAMEWORK_SRC
-        "${SYMPL_SOURCE_DIR}/sympl/util/*.cpp"
-        )
+file (GLOB SYMPL_UTIL_SRC
+    "${SYMPL_SOURCE_DIR}/sympl/thirdparty/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/util/*.cpp"
+)
 
 add_library(SymplUtilLib
-        ${SYMPL_FRAMEWORK_HEADERS} ${SYMPL_FRAMEWORK_SRC}
-        )
+    ${SYMPL_UTIL_HEADERS} ${SYMPL_UTIL_SRC}
+)
 
 target_link_libraries(
         SymplUtilLib
@@ -18,4 +20,4 @@ target_link_libraries(
 )
 
 # Include our src files.
-list(APPEND SYMPL_SOURCES ${SYMPL_FRAMEWORK_HEADERS})
+list(APPEND SYMPL_SOURCES ${SYMPL_UTIL_HEADERS})

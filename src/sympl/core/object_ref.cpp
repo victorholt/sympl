@@ -63,10 +63,24 @@ bool RefInfo::IsTypeOf(const RefInfo* typeInfo) const
     return false;
 }
 
-bool ObjectRef::Release()
+void ObjectRef::SetMeta(const std::string& key, const Variant& value)
 {
-    if (_RefCount > 0) {
-        _RefCount--;
+    _Meta[key] = value;
+}
+
+Variant ObjectRef::GetMeta(const std::string& key)
+{
+    auto entry = _Meta.find(key);
+
+    if (entry == _Meta.end()) {
+        return Variant::Empty;
     }
-    return (_RefCount <= 0);
+
+    return _Meta[key];
+}
+
+bool ObjectRef::HasMeta(const std::string& key)
+{
+    auto meta = GetMeta(key);
+    return (meta.GetType() != VariantType::Empty);
 }

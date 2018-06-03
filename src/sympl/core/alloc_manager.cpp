@@ -27,27 +27,48 @@ sympl_namespaces
 
 AllocManager* AllocManager::_Instance = nullptr;
 
-AllocManager::AllocManager()
+void AllocReserveGroup::_Initialize(size_t totalBlocks, size_t blockSize)
 {
-    _Initialize();
+    Resize(totalBlocks, blockSize);
 }
 
-void AllocManager::_Initialize()
+void AllocReserveGroup::Resize(size_t count, size_t blockSize)
 {
-    _ObjectMemPool = calloc(_MaxObjectPoolCount * _ObjectPoolBlockSize, sizeof(char));
-    _ByteMemPool = calloc(_MaxBytePoolCount * _BytePoolBlockSize, sizeof(char));
+    if (count <= _Blocks.size() && !_Blocks.empty()) {
+        return;
+    }
 
-    _ObjectPoolList.reserve(_MaxObjectPoolCount);
-    _BytePoolList.reserve(_MaxBytePoolCount);
+    size_t start = _Blocks.empty() ? 0 : _Blocks.size();
 
-    ResizeObjectPoolList(_MaxObjectPoolCount, _ObjectPoolBlockSize);
-    ResizeBytePoolList(_MaxBytePoolCount, _BytePoolBlockSize);
+    _Blocks.reserve(count);
+    _BlockSize = blockSize;
+
+    for (size_t i = start; i < count; i++) {
+        AllocReserveGroup::MemBlock block{};
+        block.Index      = i;
+        block.IsFree     = true;
+        block.IsDirty    = false;
+        block.Size       = 0;
+        block.Data       = malloc(blockSize * sizeof(char));//calloc(blockSize, sizeof(char));
+        memset(block.Data, 0, blockSize * sizeof(char));
+        _Blocks.push_back(block);
+    }
+}
+
+AllocReserveGroup::MemBlock* AllocReserveGroup::_FindAvailable()
+{
+    for (auto& block : _Blocks) {
+        if (block.IsFree) {
+            return &block;
+        }
+    }
+    return nullptr;
 }
 
 void* AllocManager::AllocBytes(size_t amount)
 {
     // Attempt to find an available block in memory.
-    AllocManager::MemBlock* block = _FindAvailableByteBlock();
+    AllocReserveGroup::MemBlock* block = _ByteList._FindAvailable();
 
     // Ensure we can allocate the bytes.
     assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
@@ -60,21 +81,48 @@ void* AllocManager::AllocBytes(size_t amount)
         );
 
         ResizeBytePoolList(_MaxBytePoolCount + _MaxBytePoolCount, _BytePoolBlockSize);
-        block = _FindAvailableByteBlock();
+        block = _ByteList._FindAvailable();
 
         assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
     }
 
-    memset(_ByteMemPool + (block->Index * _BytePoolBlockSize), 0, _BytePoolBlockSize);
+    if (block->IsDirty) {
+        memset(block->Data, 0, block->Size);
+    }
+
     block->IsFree = false;
+    block->IsDirty = true;
     block->Size = amount;
 
     return block->Data;
 }
 
+void AllocManager::FreeRef(ObjectRef* ref)
+{
+    auto memIndex = ref->GetMemIndex();
+    assert(memIndex < _ObjectList._Blocks.size());
+
+    if (ref->DecRef()) {
+        return;
+    }
+
+    // Check to ensure we're not trying to free static memory.
+    if (memIndex == 0) {
+        void* dataCheck = reinterpret_cast<void*>(ref);
+        if (_ObjectList._Blocks[0].Data != dataCheck) {
+            return;
+        }
+    }
+
+    _ObjectList._Blocks[memIndex].Size = 0;
+    _ObjectList._Blocks[memIndex].IsFree = true;
+
+    ref->Release();
+}
+
 void AllocManager::FreeBytes(void* src)
 {
-    for (auto& block : _BytePoolList) {
+    for (auto& block : _ByteList._Blocks) {
         if (block.Data == src) {
             block.IsFree = true;
             return;
@@ -82,58 +130,22 @@ void AllocManager::FreeBytes(void* src)
     }
 }
 
-void AllocManager::ResizeObjectPoolList(size_t count, size_t blockSize)
+AllocManager::AllocManager()
 {
-    size_t oldPoolSize = _MaxObjectPoolCount * _ObjectPoolBlockSize;
-    size_t newPoolSize = count * blockSize;
-
-    // Check if we need to delete/update the old memory pool.
-    if (newPoolSize <= oldPoolSize) {
-        return;
-    }
-
-    _MaxObjectPoolCount = count;
-    _ObjectPoolBlockSize = blockSize;
-
-    void* oldPool = _ObjectMemPool;
-    _ObjectMemPool = malloc(newPoolSize);
-
-    _CopyObjectBlockData(_ObjectMemPool);
-
-    free(oldPool);
-}
-
-void AllocManager::ResizeBytePoolList(size_t count, size_t blockSize)
-{
-    size_t oldPoolSize = _MaxBytePoolCount * _BytePoolBlockSize;
-    size_t newPoolSize = count * blockSize;
-
-    // Check if we need to delete/update the old memory pool.
-    if (newPoolSize <= oldPoolSize) {
-        return;
-    }
-
-    _MaxBytePoolCount = count;
-    _BytePoolBlockSize = blockSize;
-
-    void* oldPool = _ByteMemPool;
-    _ByteMemPool = malloc(newPoolSize);
-
-    _CopyByteBlockData(_ByteMemPool);
-
-    free(oldPool);
+    _ObjectList._Initialize(_MaxObjectPoolCount, _ObjectPoolBlockSize);
+    _ByteList._Initialize(_MaxBytePoolCount, _BytePoolBlockSize);
 }
 
 size_t AllocManager::GetMemoryUsage() const
 {
     size_t memUsage = 0;
-    for (auto& block : _ObjectPoolList) {
+    for (auto& block : _ObjectList._Blocks) {
         if (!block.IsFree) {
              memUsage += _ObjectPoolBlockSize;
         }
     }
 
-    for (auto& block : _BytePoolList) {
+    for (auto& block : _ByteList._Blocks) {
         if (!block.IsFree) {
             memUsage += _BytePoolBlockSize;
         }
@@ -145,13 +157,13 @@ size_t AllocManager::GetMemoryUsage() const
 size_t AllocManager::GetUnusedMemory() const
 {
     size_t memUsage = 0;
-    for (auto& block : _ObjectPoolList) {
+    for (auto& block : _ObjectList._Blocks) {
         if (block.IsFree) {
             memUsage += _ObjectPoolBlockSize;
         }
     }
 
-    for (auto& block : _BytePoolList) {
+    for (auto& block : _ByteList._Blocks) {
         if (block.IsFree) {
             memUsage += _BytePoolBlockSize;
         }
@@ -163,7 +175,7 @@ size_t AllocManager::GetUnusedMemory() const
 size_t AllocManager::GetAvailableObjectBlocks() const
 {
     size_t count = 0;
-    for (auto& block : _ObjectPoolList) {
+    for (auto& block : _ObjectList._Blocks) {
         if (block.IsFree) {
             count++;
         }
@@ -174,7 +186,7 @@ size_t AllocManager::GetAvailableObjectBlocks() const
 size_t AllocManager::GetAvailableByteBlocks() const
 {
     size_t count = 0;
-    for (auto& block : _BytePoolList) {
+    for (auto& block : _ByteList._Blocks) {
         if (block.IsFree) {
             count++;
         }
@@ -187,64 +199,13 @@ size_t AllocManager::GetTotalAvailableBlocks()
     return GetAvailableObjectBlocks() + GetAvailableByteBlocks();
 }
 
-void AllocManager::_CopyObjectBlockData(void* newPool)
+void AllocManager::ResizeObjectPoolList(size_t count, size_t blockSize)
 {
-    // Check if we are just now initializing the pool list.
-    if (_ObjectPoolList.empty()) {
-        for (size_t i = 0; i < _MaxObjectPoolCount; i++) {
-            MemBlock newBlock{};
-            newBlock.Index      = i;
-            newBlock.IsFree     = true;
-            newBlock.Size       = 0;
-            newBlock.Data       = _ObjectMemPool + (i * _ObjectPoolBlockSize);
-            _ObjectPoolList.push_back(newBlock);
-        }
-        return;
-    }
-
-    _ObjectPoolList.reserve(_MaxObjectPoolCount);
-    for (auto& block : _ObjectPoolList) {
-        block.Data = memcpy(newPool + (block.Index * _ObjectPoolBlockSize), block.Data, _ObjectPoolBlockSize);
-    }
-}
-void AllocManager::_CopyByteBlockData(void* newPool)
-{
-    // Check if we are just now initializing the pool list.
-    if (_BytePoolList.empty()) {
-        for (size_t i = 0; i < _MaxBytePoolCount; i++) {
-            MemBlock newBlock{};
-            newBlock.Index      = i;
-            newBlock.IsFree     = true;
-            newBlock.Size       = 0;
-            newBlock.Data       = _ByteMemPool + (i * _BytePoolBlockSize);
-            _BytePoolList.push_back(newBlock);
-        }
-        return;
-    }
-
-    _BytePoolList.reserve(_MaxBytePoolCount);
-    for (auto& block : _BytePoolList) {
-        block.Data = memcpy(newPool + (block.Index * _BytePoolBlockSize), block.Data, _BytePoolBlockSize);
-    }
+    _ObjectList.Resize(count, blockSize);
 }
 
-AllocManager::MemBlock* AllocManager::_FindAvailableObjectBlock()
+void AllocManager::ResizeBytePoolList(size_t count, size_t blockSize)
 {
-    for (auto& block : _ObjectPoolList) {
-        if (block.IsFree) {
-            return &block;
-        }
-    }
-    return nullptr;
-}
-
-AllocManager::MemBlock* AllocManager::_FindAvailableByteBlock()
-{
-    for (auto& block : _BytePoolList) {
-        if (block.IsFree) {
-            return &block;
-        }
-    }
-    return nullptr;
+    _ByteList.Resize(count, blockSize);
 }
 

@@ -61,7 +61,10 @@ public:
     ScriptReader();
 
     //! Destructor.
-    virtual ~ScriptReader();
+    ~ScriptReader() override;
+
+    //! Called in place of the constructor.
+    void __Construct() override;
 
     //! Reads a script from a given file path.
     //! \param filePath
@@ -80,6 +83,9 @@ public:
     //! Returns the script's string buffer.
     //! \return StringBuffer*
     StringBuffer* GetBuffer() const;
+
+    //! Releases the object.
+    bool Release() override;
 
     //! Sets whether or not to add line numbers to the string buffer.
     //! \param addLineNumbers

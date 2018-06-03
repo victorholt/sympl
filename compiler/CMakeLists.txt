@@ -13,6 +13,7 @@ target_link_libraries(
     SymplCompiler
     SymplCoreLib
     SymplUtilLib
+    SymplScriptLib
 )
 
 # Only necessary if we've compiled as a dll.

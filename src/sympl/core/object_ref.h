@@ -25,6 +25,7 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/alloc_manager.h>
+#include <sympl/core/variant.h>
 
 sympl_nsstart
 
@@ -79,6 +80,9 @@ public:
 
 class SYMPL_API ObjectRef {
 protected:
+    /// Meta data for the object.
+    std::unordered_map<std::string, Variant> _Meta;
+
     /// Current reference count before we can delete the reference.
     unsigned _RefCount = 0;
 
@@ -108,12 +112,31 @@ public:
     //! Adds to the reference count.
     inline void AddRef() { _RefCount++; }
 
+    //! Decrement the reference count. Returns true if we still have a ref count > 0.
+    inline bool DecRef() { if (_RefCount - 1 > 0) { _RefCount--; } return _RefCount > 0; }
+
     //! Returns the reference count.
     //! \return
     inline unsigned RefCount() const { return _RefCount; }
 
+    //! Sets meta data for the object.
+    //! \param key
+    //! \param value
+    void SetMeta(const std::string& key, const Variant& value);
+
+    //! Returns meta data for the object.
+    //! \return Variant
+    Variant GetMeta(const std::string& key);
+
+    //! Returns whether or not the meta key exists.
+    //! \return bool
+    bool HasMeta(const std::string& key);
+
+    //! Called in place of the constructor.
+    virtual void __Construct() = 0;
+
     //! Attempts to free the reference object.
-    virtual bool Release();
+    virtual bool Release() { return false; }
 
     //! Return type name.
     //! \return string

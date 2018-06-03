@@ -22,7 +22,7 @@
  *
  **********************************************************/
 #include <sympl/core/variant.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/string_buffer.h>
 #include <sympl/script/script_object.h>
 
 #include <fmt/format.h>
@@ -30,26 +30,26 @@ sympl_namespaces
 
 Variant Variant::Empty;
 
-Variant::Variant(ScriptObject* value) {
+Variant::Variant(ObjectRef* value) {
     Set(value);
 }
 
-void Variant::Set(ScriptObject* value) {
+void Variant::Set(ObjectRef* value) {
     Clear();
     value->AddRef();
 
-    SetType(VariantType::ScriptObject);
+    SetType(VariantType::Object);
     _Value.Ptr = value;
 }
 
-ScriptObject* Variant::GetScriptObject() {
-    if (_Type != VariantType::ScriptObject) {
+ObjectRef* Variant::GetObject() {
+    if (_Type != VariantType::Object) {
         return nullptr;
     }
-    return reinterpret_cast<ScriptObject*>(_Value.Ptr);
+    return reinterpret_cast<ObjectRef*>(_Value.Ptr);
 }
 
-Variant& Variant::operator =(ScriptObject* rhs) {
+Variant& Variant::operator =(ObjectRef* rhs) {
     Set(rhs);
     return *this;
 }
@@ -67,8 +67,8 @@ void Variant::Set(const Variant& value)
     if (_Type == VariantType::StringBuffer) {
         GetStringBuffer()->AddRef();
     }
-    if (_Type == VariantType::ScriptObject) {
-        GetScriptObject()->AddRef();
+    if (_Type == VariantType::Object) {
+        GetObject()->AddRef();
     }
 }
 
@@ -102,27 +102,6 @@ StringBuffer* Variant::GetStringBuffer() {
     return reinterpret_cast<StringBuffer*>(_Value.Ptr);
 }
 
-void Variant::Clear() {
-    // Check to see if we have a reference.
-    if (IsNullObject(_Value.Ptr)) {
-        return;
-    }
-
-    // Free our string buffer.
-    if (_Type == VariantType::StringBuffer) {
-        auto buffer = GetStringBuffer();
-        free_ref(StringBuffer, buffer);
-        _Value.Ptr = nullptr;
-    }
-
-    // Free our script object.
-    if (_Type == VariantType::ScriptObject) {
-        auto sobj = GetScriptObject();
-        free_ref(ScriptObject, sobj);
-        _Value.Ptr = nullptr;
-    }
-}
-
 std::string Variant::AsString()
 {
     std::string value;
@@ -142,7 +121,7 @@ std::string Variant::AsString()
         case (int)VariantType::StringBuffer:
             value = GetStringBuffer()->CStr();
             break;
-        case (int)VariantType::ScriptObject:
+        case (int)VariantType::Object:
             value = "[object]";
             break;
     }
@@ -163,9 +142,34 @@ std::string Variant::GetTypeAsString()
             return "float";
         case (int)VariantType::StringBuffer:
             return "string";
-        case (int)VariantType::ScriptObject:
+        case (int)VariantType::Object:
             return "object";
     }
 
     return "unknown";
+}
+
+void Variant::Clear() {
+    // Check to see if we have a reference.
+    if (IsNullObject(_Value.Ptr)) {
+        return;
+    }
+
+    // Free our string buffer.
+    if (_Type == VariantType::StringBuffer) {
+        auto buffer = GetStringBuffer();
+        free_ref(buffer);
+        _Value.Ptr = nullptr;
+    }
+
+    // Free our script object.
+    if (_Type == VariantType::Object) {
+        auto sobj = GetObject();
+
+        if (sobj->GetTypeName() == "") {
+            free_ref(sobj);
+        }
+
+        _Value.Ptr = nullptr;
+    }
 }

@@ -22,6 +22,8 @@
  *
  **********************************************************/
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_method.h>
+#include <sympl/script/script_vm.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/util/string_helper.h>
 
@@ -32,15 +34,21 @@ ScriptObject ScriptObject::Empty;
 
 ScriptObject::ScriptObject()
 {
+    __Construct();
+}
+
+ScriptObject::~ScriptObject()
+{
+    Release();
+}
+
+void ScriptObject::__Construct()
+{
     _Name = "";
     _Path = "";
     _Parent = nullptr;
     _Type = ScriptObjectType::Empty;
     _Context = &ScriptContext::Empty;
-}
-
-ScriptObject::~ScriptObject()
-{
 }
 
 void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject* parent)
@@ -49,12 +57,18 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
     _CleanName = name;
     _Path = path;
     _Parent = parent;
+
+    if (_Parent.IsValid()) {
+        CreateContext(parent->GetContext());
+    } else {
+        CreateContext(ScriptVMInstance->GetContext());
+    }
 }
 
 void ScriptObject::AddChild(ScriptObject* scriptObject)
 {
     scriptObject->_SetNestLevel(_NestLevel + 1);
-    _Children.push_back(scriptObject);
+    _Children.emplace_back(scriptObject);
 }
 
 Variant ScriptObject::Evaluate(const std::vector<Variant>& args)
@@ -105,32 +119,15 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
 ScriptObject* ScriptObject::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
 {
     auto clone = &ScriptObject::Empty;
-    clone = SymplVMInstance->CreateObject(name.c_str(), _Type, parent);
+    clone = ScriptVMInstance->CreateObject(name.c_str(), _Type, parent);
     return clone;
 }
 
-void ScriptObject::CreateContext(ScriptContext* context, ScriptObject* caller)
+void ScriptObject::CreateContext(ScriptContext* context)
 {
     ScriptContext* newContext = alloc_ref(ScriptContext);
-
-    if (!context->IsEmpty()) {
-        context->SetNextContext(context);
-        newContext->SetPreviousContext(context);
-    }
-
-    newContext->SetCaller(caller);
-    newContext->SetOwner(this);
-
-    if (caller->GetType() == ScriptObjectType::Method) {
-        newContext->SetCurrentScope(to_method(caller)->GetScope());
-    } else {
-        if (!context->IsEmpty()) {
-            newContext->SetCurrentScope(context->GetCurrentScope());
-        } else {
-            newContext->SetCurrentScope(caller);
-        }
-    }
-
+    newContext->SetScriptObject(this);
+    newContext->SetParentContext(context);
     SetContext(newContext);
 }
 
@@ -138,12 +135,12 @@ ScriptObject* ScriptObject::FindChildByName(const char* name, bool useCleanName)
 {
     for (auto entryIt : _Children) {
         if (useCleanName) {
-            if (strcmp(entryIt.second->GetCleanName().c_str(), name) == 0) {
-                return entryIt.second.Ptr();
+            if (strcmp(entryIt->GetCleanName().c_str(), name) == 0) {
+                return entryIt.Ptr();
             }
         } else {
-            if (strcmp(entryIt.second->GetName().c_str(), name) == 0) {
-                return entryIt.second.Ptr();
+            if (strcmp(entryIt->GetName().c_str(), name) == 0) {
+                return entryIt.Ptr();
             }
         }
     }
@@ -166,7 +163,7 @@ ScriptObject* ScriptObject::TraverseUpFindChildByName(const char* name, bool use
     }
 
     // Find in the main scope.
-    return SymplVMInstance->FindObjectByPath(fmt::format("{0}", name));
+    return ScriptVMInstance->FindObjectByPath(fmt::format("{0}", name));
 }
 
 ScriptObject* ScriptObject::FindCalledByMethod()
@@ -191,7 +188,15 @@ void ScriptObject::RemoveChild(const char* name)
     if (child->IsEmpty()) {
         return;
     }
-    _Children.erase(child->GetPath());
+
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr() == child) {
+            _Children.erase(childIt);
+            break;
+        }
+        ++childIt;
+    }
 }
 
 bool ScriptObject::Release()
@@ -201,14 +206,14 @@ bool ScriptObject::Release()
     }
 
     for (auto childIt : _Children) {
-        childIt.second->Release();
+        childIt->Release();
     }
     _Children.clear();
 
     return true;
 }
 
-WeakRef<ScriptObject> ScriptObject::GetParent() const
+WeakPtr<ScriptObject> ScriptObject::GetParent() const
 {
     return _Parent;
 }
@@ -252,11 +257,11 @@ std::string ScriptObject::Print()
     buffer->Append("\n");
 
     for (auto childIt : _Children) {
-        _PrintChild(childIt.second.Ptr(), buffer);
+        _PrintChild(childIt.Ptr(), buffer);
     }
 
     std::string results = buffer->CStr();
-    free_ref(StringBuffer, buffer);
+    free_ref(buffer);
 
     return results;
 }
@@ -270,6 +275,6 @@ void ScriptObject::_PrintChild(ScriptObject* childObj, StringBuffer*& buffer)
     buffer->Append("\n");
 
     for (auto childIt : childObj->GetChildren()) {
-        _PrintChild(childIt.second.Ptr(), buffer);
+        _PrintChild(childIt.Ptr(), buffer);
     }
 }

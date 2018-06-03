@@ -24,26 +24,66 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-
-#include <sympl/core/alloc_manager.h>
 #include <sympl/core/object_ref.h>
-#include <sympl/core/shared_ptr.h>
 #include <sympl/core/weak_ptr.h>
-#include <sympl/core/string_buffer.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/thread.h>
-#include <sympl/core/mutex.h>
 
-#include <sympl/util/profiler.h>
-
-#include <sympl/script/script_token.h>
-#include <sympl/script/script_reader.h>
-#include <sympl/script/script_parser.h>
-
-#include <sympl/script/script_common.h>
-#include <sympl/script/script_context.h>
-#include <sympl/script/script_statement.h>
-#include <sympl/script/script_vm.h>
-#include <sympl/script/interpreter.h>
-#include <sympl/script/script_object.h>
 #include <sympl/script/script_method.h>
+
+sympl_nsstart
+
+class ScriptVM;
+
+// Simple registry for holding GLOBAL methods used
+// in programs.
+
+class SYMPL_API MethodRegistry : public ObjectRef
+{
+SYMPL_OBJECT(MethodRegistry, ObjectRef);
+
+private:
+    /// List of methods available.
+    std::unordered_map<std::string, SharedPtr<ScriptMethod> >_Methods;
+
+    //! Initializes the system methods.
+    void _Initialize();
+
+public:
+    //! Constructor.
+    MethodRegistry();
+
+    //! Destructor.
+    ~MethodRegistry() override;
+
+    //! Called in place of the constructor.
+    void __Construct() override;
+
+    //! Adds a method to the registry.
+    //! \param method
+    //! \param handle
+    void AddMethod(ScriptObject* method);
+
+    //! Adds a callback method.
+    //! \param name
+    //! \param callback
+    //! \param returnType
+    void AddCallbackMethod(const char* name, const SymplMethodCallback& callback, MethodReturnType returnType = MethodReturnType::Void);
+
+    //! Finds and returns a method.
+    //! \param name
+    //! \return ScriptMethod
+    ScriptObject* FindMethod(const char* name);
+
+    //! Returns whether a method was found.
+    //! \param name
+    //! \param method
+    //! \return bool
+    bool TryFindMethod(const char* name, ScriptObject*& method);
+
+    //! Releases the object.
+    bool Release() override;
+
+    // ScriptVM is a friend to this class.
+    friend ScriptVM;
+};
+
+sympl_nsend

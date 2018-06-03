@@ -65,6 +65,9 @@ public:
     //! Destructor.
     virtual ~Thread();
 
+    //! Called in place of the constructor.
+    void __Construct() override;
+
     //! Starts the thread.
     void Start();
 
@@ -80,6 +83,9 @@ public:
     //! Sets the callback for the thread.
     //! \param callback
     void SetCallback(SymplThreadCallback callback);
+
+    //! Releases the object.
+    bool Release() override;
 
     //! Returns whether or not the thread is running.
     //! \return

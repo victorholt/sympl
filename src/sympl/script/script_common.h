@@ -30,10 +30,13 @@
 
 sympl_nsstart
 
+class ScriptObject;
+
+#define GLOBAL_SCRIPT_OBJECT "__global__"
 #define SYMPL_STRING_TOKEN "@__STRING__@"
 #define SYMPL_SCOPE_NAME "__scope__"
+#define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
 
-class ScriptObject;
 typedef std::function<void(const std::vector<WeakPtr<ScriptObject>>&)> SymplMethodCallback;
 
 enum class ScriptObjectType : uint8_t {

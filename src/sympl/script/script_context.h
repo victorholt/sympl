@@ -34,26 +34,21 @@ class ScriptObject;
 
 class SYMPL_API ScriptContext : public ObjectRef
 {
-SYMPL_OBJECT(ScriptContext, ObjectRef);
+    SYMPL_OBJECT(ScriptContext, ObjectRef);
 
 protected:
     /// Owner of the context.
-    WeakPtr<ScriptObject> _Owner;
+    SharedPtr<ScriptObject> _Object;
 
-    /// Reference to the current scope of the context.
-    WeakPtr<ScriptObject> _CurrentScope;
+    /// Reference to the parent context.
+    WeakPtr<ScriptContext> _ParentContext;
 
-    /// Reference to the caller.
-    WeakPtr<ScriptObject> _Caller;
-
-    /// Reference to the previous context.
-    WeakPtr<ScriptContext> _PreviousContext;
-
-    /// Reference to the next context.
-    WeakPtr<ScriptContext> _NextContext;
+    /// Reference to the caller context.
+    /// This is set for methods.
+    WeakPtr<ScriptContext> _CallerContext;
 
     /// Quick variable access list.
-    std::vector<WeakPtr<ScriptObject>> _VarList;
+    std::vector<ScriptObject*> _VarList;
 
     /// Current return value.
     Variant _RetValue;
@@ -68,69 +63,47 @@ public:
     //! Destructor.
     ~ScriptContext() override;
 
+    //! Called in place of the constructor.
+    void __Construct() override;
+
+    //! Adds a variable to the context.
+    //! \param varObject
+    void AddVar(ScriptObject* varObject);
+
     //! Finds an object within the scope.
     //! \return ScriptObject
-    ScriptObject* FindObject(const char* name);
+    ScriptObject* FindVariable(const char* name);
 
-    //! Sets the owner script object.
-    //! \param owner
-    void SetOwner(ScriptObject* owner);
+    //! Sets the owner of the context.
+    //! \param scriptObject
+    void SetScriptObject(ScriptObject* scriptObject);
 
-    //! Returns the owner script object.
+    //! Returns the script object.
     //! \return ScriptObject
-    ScriptObject* GetOwner() const;
+    ScriptObject* GetScriptObject();
 
-    //! Sets the current scope script object.
-    //! \param scope
-    void SetCurrentScope(ScriptObject* scope);
+    //! Releases the object.
+    bool Release() override;
 
-    //! Returns the current scope script object.
-    //! \return ScriptObject
-    ScriptObject* GetCurrentScope() const;
-
-    //! Sets the caller script object.
-    //! \param caller
-    void SetCaller(ScriptObject* caller);
-
-    //! Returns the caller script object.
-    //! \return ScriptObject
-    ScriptObject* GetCaller() const;
-
-    //! Sets the previous context.
+    //! Sets the parent context.
     //! \param context
-    inline void SetPreviousContext(ScriptContext* context) { _PreviousContext = context; }
+    inline void SetParentContext(ScriptContext* context) { _ParentContext = context; }
 
-    //! Returns the previous context.
-    //! \return ScriptContext
-    inline ScriptContext* GetPreviousContext() const { return _PreviousContext.Ptr(); }
+    //! Returns the parent context.
+    //! \return
+    inline ScriptContext* GetParentContext() const { return _ParentContext.Ptr(); }
 
-    //! Sets the next context.
+    //! Sets the caller context.
     //! \param context
-    inline void SetNextContext(ScriptContext* context) { _NextContext = context; }
+    inline void SetCallerContext(ScriptContext* context) { _CallerContext = context; }
 
-    //! Returns the next context.
-    //! \return ScriptContext
-    inline ScriptContext* GetNextContext() const { return _NextContext.Ptr(); }
-
-    //! Sets the return value.
-    //! \param value
-    inline void SetReturnValue(const Variant& value) { _RetValue = value; }
-
-    //! Returns the return value.
-    //! \return Variant
-    inline Variant GetReturnValue() const { return _RetValue; }
-
-    //! Sets the exit flag.
-    //! \param exit
-    void Exit();
-
-    //! Returns the exit flag.
-    //! \return bool
-    inline bool GetExit() const { return _Exit; }
+    //! Returns the caller context.
+    //! \return
+    inline ScriptContext* GetCallerContext() const { return _CallerContext.Ptr(); }
 
     //! Check for empty of this context.
     //! \return bool
-    inline bool IsEmpty() const { return !_Owner.IsValid(); }
+    inline bool IsEmpty() const { return !_Object.IsValid(); }
 
     /// Empty script context.
     static ScriptContext Empty;

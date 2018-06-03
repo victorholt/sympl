@@ -67,7 +67,7 @@ public:
 
     //! Constructor.
     //! \param ptr
-    explicit SharedPtr(T* ptr) {
+    SharedPtr(T* ptr) {
         _Set(ptr);
     }
 
@@ -112,7 +112,7 @@ public:
         if (IsNull()) {
             return;
         }
-        free_ref(T, _Data);
+        free_ref(_Data);
         _Data = nullptr;
     }
 

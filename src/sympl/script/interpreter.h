@@ -24,26 +24,74 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-
-#include <sympl/core/alloc_manager.h>
 #include <sympl/core/object_ref.h>
 #include <sympl/core/shared_ptr.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/core/string_buffer.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/thread.h>
-#include <sympl/core/mutex.h>
-
-#include <sympl/util/profiler.h>
-
-#include <sympl/script/script_token.h>
-#include <sympl/script/script_reader.h>
-#include <sympl/script/script_parser.h>
-
 #include <sympl/script/script_common.h>
-#include <sympl/script/script_context.h>
-#include <sympl/script/script_statement.h>
-#include <sympl/script/script_vm.h>
-#include <sympl/script/interpreter.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_method.h>
+#include <sympl/script/script_reader.h>
+
+sympl_nsstart
+
+class ScriptVM;
+class ScriptParser;
+class ScriptStatement;
+
+struct InterpretCommandEntry
+{
+    SharedPtr<ScriptObject>       ObjectRef;
+    SharedPtr<ScriptStatement>    Statement;
+};
+
+class SYMPL_API Interpreter : public ObjectRef
+{
+SYMPL_OBJECT(Interpreter, ObjectRef);
+
+private:
+    /// Command list for the program.
+    std::vector<InterpretCommandEntry> _CommandList;
+
+    /// Reference to the script parser.
+    SharedPtr<ScriptParser> _Parser;
+
+    /// Reference to the script reader.
+    SharedPtr<ScriptReader> _Reader;
+
+    //! Sets the reader for the interpreter.
+    //! \param reader
+    void _SetReader(ScriptReader* reader);
+
+    //! Parses the file.
+    void _Parse();
+
+public:
+    //! Constructor.
+    Interpreter();
+
+    //! Destructor.
+    ~Interpreter() override { Release(); }
+
+    //! Called in place of the constructor.
+    void __Construct() override;
+
+    //! Attempts to run the program.
+    //! \return bool
+    bool Run();
+
+    //! Adds a command to the interpreter.
+    //! \param objectRef
+    //! \param statement
+    void AddCommand(ScriptObject* objectRef, ScriptStatement* statement);
+
+    //! Releases the object.
+    bool Release() override;
+
+    //! Returns the script reader.
+    inline ScriptReader* GetReader() const {
+        return _Reader.Ptr();
+    }
+
+    // Enable the SymplVM as a friend.
+    friend ScriptVM;
+};
+
+sympl_nsend

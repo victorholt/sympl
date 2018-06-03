@@ -94,7 +94,10 @@ public:
     ScriptToken();
 
     //! Destructor.
-    virtual ~ScriptToken();
+    ~ScriptToken() override;
+
+    //! Called in place of the constructor.
+    void __Construct() override;
 
     //! Returns if the input is a specific type.
     //! \param type
@@ -169,6 +172,9 @@ public:
     //! \param input
     //! \return
     const std::string DecodeSpecialCharString(const std::string& input);
+
+    //! Releases the object.
+    bool Release() override;
 };
 
 sympl_nsend

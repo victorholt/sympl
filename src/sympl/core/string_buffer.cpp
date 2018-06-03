@@ -37,14 +37,17 @@ StringBuffer::StringBuffer(const char *str)
 
 StringBuffer::StringBuffer()
 {
-    Init("", SYMPL_STRING_BUFFER_CAPACITY);
+    __Construct();
 }
 
 StringBuffer::~StringBuffer()
 {
-    if (_UseDynamicBuffer) {
-        free(_Buffer);
-    }
+    Release();
+}
+
+void StringBuffer::__Construct()
+{
+    Init("", SYMPL_STRING_BUFFER_CAPACITY);
 }
 
 void StringBuffer::Init(const char *str, size_t capacity)
@@ -146,8 +149,7 @@ void StringBuffer::Resize(size_t newCapacity)
     } else {
         // We probably need a lot of room for this buffer,
         // so really up the capacity.
-        _Capacity = 400000001;//newCapacity + (_Capacity * 5);
-        std::cout << "realloc: " << _Capacity << std::endl;
+        _Capacity = newCapacity + (_Capacity * 5);
     }
 
     uchar *tmpStr = reinterpret_cast<uchar*>(calloc(_Capacity, sizeof(uchar)));
@@ -196,4 +198,13 @@ void StringBuffer::Clear()
 
     _Length = 0;
     memset(_Buffer, 0, _Capacity);
+}
+
+bool StringBuffer::Release()
+{
+    if (_UseDynamicBuffer) {
+        free(_Buffer);
+    }
+
+    return true;
 }

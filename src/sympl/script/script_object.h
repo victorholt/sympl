@@ -34,6 +34,7 @@
 sympl_nsstart
 
 class StringBuffer;
+class ScriptVM;
 
 class SYMPL_API ScriptObject : public ObjectRef
 {
@@ -51,7 +52,7 @@ protected:
 
     /// Children added to the object in the order they
     /// were added.
-    std::vector<ScriptObject*> _Children;
+    std::vector<SharedPtr<ScriptObject>> _Children;
 
     /// Name of the object.
     std::string _Name;
@@ -102,7 +103,10 @@ public:
     ScriptObject();
 
     //! Destructor.
-    virtual ~ScriptObject();
+    ~ScriptObject() override;
+
+    //! Called in place of the constructor.
+    void __Construct() override;
 
     //! Evaluates and returns the results of the object.
     //! \param args
@@ -129,8 +133,7 @@ public:
 
     //! Creates a context from a given context.
     //! \param context
-    //! \param caller
-    void CreateContext(ScriptContext* context, ScriptObject* caller);
+    void CreateContext(ScriptContext* context);
 
     //! Finds a child based on the given name.
     //! \param name
@@ -165,7 +168,7 @@ public:
 
     //! Returns the child objects.
     //! \return std::unordered_map<string, ScriptObject*>
-    const std::vector<ScriptObject*>& GetChildren() const { return _Children; }
+    const std::vector<SharedPtr<ScriptObject>>& GetChildren() const { return _Children; }
 
     //! Returns a string of the script object.
     //! \return
@@ -235,7 +238,7 @@ public:
     static ScriptObject Empty;
 
     /// Ensure the VM can access the private methods.
-    friend class SymplVM;
+    friend class ScriptVM;
 };
 
 sympl_nsend

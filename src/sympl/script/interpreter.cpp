@@ -21,29 +21,66 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
-
-#include <sympl/core/sympl_pch.h>
-
-#include <sympl/core/alloc_manager.h>
-#include <sympl/core/object_ref.h>
-#include <sympl/core/shared_ptr.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/core/string_buffer.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/thread.h>
-#include <sympl/core/mutex.h>
-
-#include <sympl/util/profiler.h>
-
-#include <sympl/script/script_token.h>
-#include <sympl/script/script_reader.h>
-#include <sympl/script/script_parser.h>
-
-#include <sympl/script/script_common.h>
-#include <sympl/script/script_context.h>
-#include <sympl/script/script_statement.h>
-#include <sympl/script/script_vm.h>
 #include <sympl/script/interpreter.h>
-#include <sympl/script/script_object.h>
+#include <sympl/script/script_vm.h>
 #include <sympl/script/script_method.h>
+#include <sympl/script/script_parser.h>
+#include <sympl/util/number_helper.h>
+
+#include <fmt/format.h>
+sympl_namespaces
+
+Interpreter::Interpreter()
+{
+
+}
+
+void Interpreter::__Construct()
+{
+
+}
+
+bool Interpreter::Run()
+{
+    for (auto entry : _CommandList) {
+        if (entry.ObjectRef->GetType() != ScriptObjectType::Method) {
+            entry.Statement->Build(entry.ObjectRef.Ptr());
+            entry.ObjectRef->SetValue(entry.Statement->Evaluate());
+        } else {
+            entry.Statement->Build(entry.ObjectRef.Ptr());
+        }
+    }
+    return true;
+}
+
+void Interpreter::AddCommand(ScriptObject* objectRef, ScriptStatement* statement)
+{
+    InterpretCommandEntry entry;
+    entry.ObjectRef = objectRef;
+    entry.Statement = statement;
+    _CommandList.push_back(entry);
+}
+
+void Interpreter::_SetReader(ScriptReader* reader)
+{
+    _Reader = reader;
+}
+
+void Interpreter::_Parse()
+{
+    if (!_Parser.IsValid()) {
+        _Parser = alloc_ref(ScriptParser);
+    }
+    _Parser->Parse(this);
+}
+
+bool Interpreter::Release()
+{
+    for (auto entryIt : _CommandList) {
+        entryIt.ObjectRef.Release();
+        entryIt.Statement.Release();
+    }
+    _CommandList.clear();
+
+    return true;
+}

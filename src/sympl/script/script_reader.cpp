@@ -28,16 +28,20 @@ sympl_namespaces
 
 ScriptReader::ScriptReader()
 {
-    _Buffer = alloc_ref(StringBuffer);
-    _ScriptToken = alloc_ref(ScriptToken);
-    _FilePath = "";
-    _ScriptString = "";
+    __Construct();
 }
 
 ScriptReader::~ScriptReader()
 {
-    free_ref(StringBuffer, _Buffer);
-    free_ref(ScriptToken, _ScriptToken);
+    Release();
+}
+
+void ScriptReader::__Construct()
+{
+    _Buffer = alloc_ref(StringBuffer);
+    _ScriptToken = alloc_ref(ScriptToken);
+    _FilePath = "";
+    _ScriptString = "";
 }
 
 bool ScriptReader::ReadFile(const char* filePath)
@@ -242,4 +246,12 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
 
         previousChar = currentChar;
     }
+}
+
+bool ScriptReader::Release()
+{
+    free_ref(_Buffer);
+    free_ref(_ScriptToken);
+
+    return true;
 }

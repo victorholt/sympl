@@ -22,9 +22,15 @@
  *
  **********************************************************/
 #include <sympl/util/profiler.h>
+
+#include <fmt/format.h>
 sympl_namespaces
 
 Profiler* Profiler::_Instance = nullptr;
+
+void Profiler::__Construct()
+{
+}
 
 void Profiler::Start(const std::string& recordName)
 {
@@ -71,7 +77,8 @@ void Profiler::PrintExecutionTime(const std::string& recordName)
 
 //    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     double seconds = duration / 1000000.0f;
-    std::cout << recordName << " Execution Time: " << std::setprecision(9) << seconds << " seconds" << std::endl;
+//    std::cout << recordName << " Execution Time: " << std::setprecision(15) << seconds << " seconds" << std::endl;
+    std::cout << recordName << " Execution Time: " << fmt::format("{:.{}f}", seconds, 15) << " seconds" << std::endl;
 //    printf("%s Execution Time: %d seconds\n", recordName.c_str(), seconds);
 }
 
@@ -81,4 +88,9 @@ void Profiler::Clear()
         delete recordIt.second;
     }
     _Records.clear();
+}
+
+bool Profiler::Release()
+{
+    Clear();
 }

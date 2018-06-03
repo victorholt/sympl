@@ -71,6 +71,9 @@ public:
     //! Destructor.
     virtual ~StringBuffer();
 
+    //! Called in place of the constructor.
+    void __Construct() override;
+
     //! Prepends a string to the current buffer.
     //! \param str
     void Prepend(const char *str);
@@ -111,6 +114,9 @@ public:
 
     //! Clears out the string buffer.
     void Clear();
+
+    //! Releases the object.
+    bool Release() override;
 
     //! Returns the string buffer.
     //! \return uchar*

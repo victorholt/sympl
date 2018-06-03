@@ -31,8 +31,12 @@ Thread::Thread()
 
 Thread::~Thread()
 {
-    Join();
-    _IsRunning = false;
+    Release();
+}
+
+void Thread::__Construct()
+{
+
 }
 
 void Thread::Start()
@@ -70,4 +74,12 @@ void Thread::SetCallback(SymplThreadCallback callback)
 {
     _HasCallback = true;
     _Callback = callback;
+}
+
+bool Thread::Release()
+{
+    Join();
+    _IsRunning = false;
+
+    return true;
 }

@@ -31,64 +31,72 @@ ScriptContext ScriptContext::Empty;
 
 ScriptContext::ScriptContext()
 {
-    _Exit = false;
 }
 
 ScriptContext::~ScriptContext()
 {
-    _RetValue.Clear();
+    Release();
 }
 
-ScriptObject* ScriptContext::FindObject(const char* name)
+void ScriptContext::__Construct()
 {
-    auto obj = _CurrentScope->TraverseUpFindChildByName(name, false);
-    if (obj->IsEmpty()) {
-        if (_PreviousContext.IsValid()) {
-            return _PreviousContext->FindObject(name);
+
+}
+
+void ScriptContext::AddVar(ScriptObject* varObject)
+{
+    // Check to ensure we don't already have this variable.
+    auto varIt = std::begin(_VarList);
+    while (varIt != std::end(_VarList)) {
+        if ((*varIt)->GetName() == varObject->GetName()) {
+            _VarList.erase(varIt);
+            break;
         }
-        return &ScriptObject::Empty;
+        varIt++;
     }
 
-    return obj;
+    _VarList.emplace_back(varObject);
 }
 
-void ScriptContext::Exit()
+ScriptObject* ScriptContext::FindVariable(const char* name)
 {
-    _Exit = true;
-
-    // Update the caller's return value.
-    if (_PreviousContext.IsValid()) {
-        _PreviousContext->SetReturnValue(_RetValue);
-        _PreviousContext->Exit();
+    // Search the context of the caller if we have one (methods).
+    if (_CallerContext.IsValid()) {
+        return _CallerContext->FindVariable(name);
     }
+
+    auto varIt = std::begin(_VarList);
+    while (varIt != std::end(_VarList)) {
+        if (strcmp((*varIt)->GetName().c_str(), name) == 0) {
+            return *varIt;
+        }
+        varIt++;
+    }
+
+    // Check if we have a parent scope and go up the chain.
+    if (_ParentContext.IsValid()) {
+        auto var = _ParentContext->FindVariable(name);
+        if (!var->IsEmpty()) {
+            return var;
+        }
+    }
+
+    return &ScriptObject::Empty;
 }
 
-void ScriptContext::SetOwner(ScriptObject* owner)
+void ScriptContext::SetScriptObject(ScriptObject* scriptObject)
 {
-    _Owner = owner;
+    _Object = scriptObject;
 }
 
-ScriptObject* ScriptContext::GetOwner() const
+ScriptObject* ScriptContext::GetScriptObject()
 {
-    return (_Owner.IsValid() ? _Owner.Ptr() : &ScriptObject::Empty);
+    return _Object.Ptr();
 }
 
-void ScriptContext::SetCurrentScope(ScriptObject* scope)
+bool ScriptContext::Release()
 {
-    _CurrentScope = scope;
+    _VarList.clear();
+    return true;
 }
 
-ScriptObject* ScriptContext::GetCurrentScope() const
-{
-    return (_CurrentScope.IsValid() ? _CurrentScope.Ptr() : &ScriptObject::Empty);
-}
-
-void ScriptContext::SetCaller(ScriptObject* caller)
-{
-    _Caller = caller;
-}
-
-ScriptObject* ScriptContext::GetCaller() const
-{
-    return (_Caller.IsValid() ? _Caller.Ptr() : &ScriptObject::Empty);
-}
