@@ -90,6 +90,7 @@ void ScriptMethod::_ProcessArgStatements()
     // to execute their value.
     for (auto argIt : _Args) {
         Variant value = argIt->GetValue();
+
         if (value.GetType() == VariantType::StringBuffer) {
             SharedPtr<ScriptStatement> stat = alloc_ref(ScriptStatement);
 
@@ -171,7 +172,7 @@ void ScriptMethod::AddArg(ScriptObject* arg)
 
 void ScriptMethod::AddStatement(ScriptObject* variable, ScriptStatement* stat)
 {
-    MethodCallStatement* callStatement = new MethodCallStatement();
+    auto callStatement = new MethodCallStatement();
     callStatement->Variable = variable;
     callStatement->Statement = stat;
 
