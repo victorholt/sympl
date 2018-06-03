@@ -122,6 +122,9 @@ public:
     //! \param arg
     void AddArg(ScriptObject* arg);
 
+    //! Clears out the arguments (unless the arguments are __arg__).
+    void ClearArgs();
+
     //! Adds a statement for the method to call.
     //! \param variable
     //! \param stat

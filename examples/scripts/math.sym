@@ -1,17 +1,20 @@
-// Simple math functions.
+// Simple math example.
 
 func add(a, b) : int {
     return a + b;
 }
 
-var y = add(1, 3);
-var x = add(2, 7);
-x = add(2, 2);
-x = add(2, 2);
-x = add(2, 2);
-x = add(2, 2);
-x = add(2, 2);
-x = add(2, 2);
-x = add(2, 2);
-x = add(2, 2);
-x = add(2, 2);
+func up(p) : void {
+    if (p < 100) {
+        return up(p + 1);
+    }
+    return p;
+}
+
+//var y = add(1, 3);
+//var x = add(2, add(add(9, y), 2));
+
+//printl(y);
+
+var n = up(0);
+printl(n);

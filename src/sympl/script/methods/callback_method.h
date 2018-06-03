@@ -22,33 +22,49 @@
  *
  **********************************************************/
 #pragma once
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/script/script_common.h>
+
+#include <sympl/script/script_method.h>
 
 sympl_nsstart
 
-class ScriptObject;
+class SYMPL_API CallbackMethod : public ScriptMethod
+{
+SYMPL_OBJECT(CallbackMethod, ScriptMethod);
 
-#define GLOBAL_SCRIPT_OBJECT "__global__"
-#define SYMPL_STRING_TOKEN "@__STRING__@"
-#define SYMPL_SCOPE_NAME "__scope__"
-#define SYMPL_METHOD_ARG_NAME "__arg__"
-#define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
+protected:
+    /// Callback method called during the evaluate process.
+    ScriptMethodCallback _Callback;
 
-typedef std::function<void(const std::vector<ScriptObject*>&)> ScriptMethodCallback;
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
 
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
+    //! Copy over argument values from a list of arguments.
+    //! \param args
+    void _CopyArgs(const std::vector<Variant>& args) override;
+
+    //! Handles cloning the object and adding it to the VM.
+    //! \param name
+    //! \param parent
+    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
+
+public:
+    //! Constructor.
+    CallbackMethod();
+
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(const std::vector<Variant>& args) override;
+
+    //! Sets the callback for the method.
+    //! \param callback
+    inline void SetCallback(ScriptMethodCallback callback) { _Callback = callback; }
+
+    //! Returns the callback method.
+    //! \return ScriptMethodCallback
+    inline const ScriptMethodCallback& GetCallback() const { return _Callback; }
 };
 
 sympl_nsend
-
-

@@ -22,33 +22,34 @@
  *
  **********************************************************/
 #pragma once
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/script/script_common.h>
+
+#include <sympl/script/script_method.h>
 
 sympl_nsstart
 
-class ScriptObject;
+class SYMPL_API IfMethod : public ScriptMethod
+{
+SYMPL_OBJECT(IfMethod, ScriptMethod);
 
-#define GLOBAL_SCRIPT_OBJECT "__global__"
-#define SYMPL_STRING_TOKEN "@__STRING__@"
-#define SYMPL_SCOPE_NAME "__scope__"
-#define SYMPL_METHOD_ARG_NAME "__arg__"
-#define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
+protected:
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
 
-typedef std::function<void(const std::vector<ScriptObject*>&)> ScriptMethodCallback;
+    //! Handles cloning the object and adding it to the VM.
+    //! \param name
+    //! \param parent
+    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
 
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
+public:
+    //! Constructor.
+    IfMethod();
+
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(const std::vector<Variant>& args) override;
 };
 
 sympl_nsend
-
-

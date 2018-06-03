@@ -119,7 +119,12 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
             }
 
             // Save the value as a statement.
-            ScriptObject* obj = varObject->GetContext()->FindVariable(currentStr.c_str());
+            ScriptObject* obj = &ScriptObject::Empty;
+            if (varObject->GetType() == ScriptObjectType::Method) {
+                obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(currentStr.c_str());
+            } else {
+                obj = varObject->GetContext()->FindVariable(currentStr.c_str());
+            }
             if (!IsNullObject(obj) && !obj->IsEmpty() && obj->GetType() == ScriptObjectType::Method) {
                 auto retType = to_method(obj)->GetReturnType();
                 if (retType != MethodReturnType::Void) {
@@ -237,7 +242,7 @@ std::string ScriptStatement::EvaluateAsString()
 
 ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
 {
-    ScriptStatement* stat = alloc_ref(ScriptStatement);
+    auto stat = alloc_ref(ScriptStatement);
     stat->SetType(_Type);
     stat->_String = _String;
 
@@ -278,7 +283,6 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
 {
     // Parse out the object value.
     char currentChar = '\0';
-    char previousChar = '\0';
     char nextChar = '\0';
     bool recording = false;
 
@@ -295,7 +299,6 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
 
     // Build out the argument statements.
     while (_CurrentCharLocation < statementStr->Length()) {
-        previousChar = currentChar;
         currentChar = statementStr->Get(_CurrentCharLocation);
         nextChar = statementStr->Get(_CurrentCharLocation + 1);
         _CurrentCharLocation++;
@@ -391,7 +394,6 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
 {
     // Parse out the object value.
     char currentChar = '\0';
-    char previousChar = '\0';
     char nextChar = '\0';
     bool recording = false;
 

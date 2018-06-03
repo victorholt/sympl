@@ -143,7 +143,6 @@ public:
 //        T* ref = reinterpret_cast<T*>(block->Data);
         T* ref = new(block->Data) T();
         ref->SetMemIndex(block->Index);
-//        ref->__Construct();
 
         return ref;
     }

@@ -24,6 +24,9 @@
 #include <sympl/script/method_registry.h>
 #include <sympl/script/script_vm.h>
 
+#include <sympl/script/methods/if_method.h>
+#include <sympl/script/methods/callback_method.h>
+
 #include <sympl/util/profiler.h>
 sympl_namespaces
 
@@ -44,23 +47,75 @@ void MethodRegistry::__Construct()
 
 void MethodRegistry::_Initialize()
 {
+    // Add the if method.
+    auto ifMethod = alloc_ref(IfMethod);
+    ScriptVMInstance->AddObject(ifMethod);
+    AddMethod(ifMethod);
+
+    // Prints text.
+    AddCallbackMethod("print", [](const std::vector<ScriptObject*>& args) {
+        if (!args.empty()) {
+            std::cout << args[0]->GetValue().AsString();
+        }
+    });
+
+    // Prints text on a new line.
+    AddCallbackMethod("printl", [](const std::vector<ScriptObject*>& args) {
+        if (!args.empty()) {
+            std::cout << args[0]->GetValue().AsString() << std::endl;
+        }
+    });
+
+    // Prints the memory allocated currently.
+    AddCallbackMethod("print_memory", [](const std::vector<ScriptObject*>& args) {
+        std::cout << "Memory Allocated: " << AllocInstance->GetMemoryUsage() << std::endl;
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("print_vm_object_list", [](const std::vector<ScriptObject*>& args) {
+        std::cout << ScriptVMInstance->PrintObjects() << std::endl;
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("profiler_start", [](const std::vector<ScriptObject*>& args) {
+        sympl_profile_start(args[0]->GetValue().AsString());
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("profiler_stop", [](const std::vector<ScriptObject*>& args) {
+        sympl_profile_stop(args[0]->GetValue().AsString());
+        sympl_profile_print(args[0]->GetValue().AsString());
+    });
 }
 
 void MethodRegistry::AddMethod(ScriptObject* method)
 {
     assert(method->GetType() == ScriptObjectType::Method && "Attempted to register an invalid method!");
 
-    _Methods[method->Guid()] = to_method(method);
+    _Methods[method->GetName()] = to_method(method);
 }
 
-void MethodRegistry::AddCallbackMethod(const char* name, const SymplMethodCallback& callback, MethodReturnType returnType)
+void MethodRegistry::AddCallbackMethod(const char* name, const ScriptMethodCallback& callback, MethodReturnType returnType)
 {
+    auto method = static_cast<CallbackMethod*>(FindMethod(name));
+    if (!method->IsEmpty()) {
+        return;
+    }
+
+    method = alloc_ref(CallbackMethod);
+    method->SetName(name);
+    method->SetReturnType(returnType);
+    method->SetCallback(callback);
+
+    ScriptVMInstance->AddObject(method);
+
+    AddMethod(method);
 }
 
 ScriptObject* MethodRegistry::FindMethod(const char* name)
 {
     for (auto method : _Methods) {
-        if (method.second->GetName() == name) {
+        if (strcmp(method.second->GetName().c_str(), name) == 0) {
             return method.second.Ptr();
         }
     }

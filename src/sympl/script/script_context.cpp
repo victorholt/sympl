@@ -60,17 +60,17 @@ void ScriptContext::AddVar(ScriptObject* varObject)
 
 ScriptObject* ScriptContext::FindVariable(const char* name)
 {
-    // Search the context of the caller if we have one (methods).
-    if (_CallerContext.IsValid()) {
-        return _CallerContext->FindVariable(name);
-    }
-
     auto varIt = std::begin(_VarList);
     while (varIt != std::end(_VarList)) {
         if (strcmp((*varIt)->GetName().c_str(), name) == 0) {
             return *varIt;
         }
         varIt++;
+    }
+
+    // Search the context of the caller if we have one (methods).
+    if (_CallerContext.IsValid()) {
+        return _CallerContext->FindVariable(name);
     }
 
     // Check if we have a parent scope and go up the chain.

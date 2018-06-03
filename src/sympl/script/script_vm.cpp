@@ -50,13 +50,13 @@ void ScriptVM::__Construct()
 
 void ScriptVM::Startup()
 {
-    _MethodRegistry = alloc_ref(MethodRegistry);
-    _MethodRegistry->_Initialize();
-
     auto globalObject = alloc_ref(ScriptObject);
     globalObject->_Initialize(GLOBAL_SCRIPT_OBJECT, GLOBAL_SCRIPT_OBJECT);
     _Context = alloc_ref(ScriptContext);
     _Context->SetScriptObject(globalObject);
+
+    _MethodRegistry = alloc_ref(MethodRegistry);
+    _MethodRegistry->_Initialize();
 }
 
 void ScriptVM::Shutdown()
