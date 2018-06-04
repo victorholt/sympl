@@ -85,7 +85,7 @@ const bool ScriptToken::IsType(TokenType type, const std::string& input) const
         }
     }
 
-    return (tokenValue->second->Type == type);
+    return ((tokenValue->second).Type == type);
 }
 
 const bool ScriptToken::IsType(TokenType type, const char input) const
@@ -161,7 +161,7 @@ bool ScriptToken::EncodeSpecialChar(const char input, std::string& output)
     if (tokenIt == _SpecTokens.end()) {
         return false;
     }
-    sData = tokenIt->second;
+    sData = &tokenIt->second;
 
     output = "";
     output = sData->Value;
@@ -197,7 +197,7 @@ const std::string ScriptToken::EncodeSpecialCharString(const std::string& input)
 bool ScriptToken::DecodeSpecialChar(const std::string& input, char& output)
 {
     for (auto tokenIt : _SpecTokens) {
-        TokenMeta* token = tokenIt.second;
+        TokenMeta* token = &tokenIt.second;
 
         if (token->Value == input) {
             output = token->AltName;
@@ -283,17 +283,17 @@ const std::string ScriptToken::DecodeSpecialCharString(const std::string& input)
 
 void ScriptToken::AddStdToken(TokenType type, const std::string& name, const std::string& value)
 {
-    // Ensure we don't already have this symbo.
+    // Ensure we don't already have this symbol.
     if (_StdTokens.find(name) != _StdTokens.end()) {
         return;
     }
 
-    auto pToken = new TokenMeta();
-    pToken->Name = name;
-    pToken->Value = value;
-    pToken->Type = type;
+    TokenMeta token {};
+    token.Name = name;
+    token.Value = value;
+    token.Type = type;
 
-    _StdTokens[name] = pToken;
+    _StdTokens[name] = token;
 }
 
 void ScriptToken::AddDelToken(TokenType type, const std::string& name, const std::string& value)
@@ -303,12 +303,12 @@ void ScriptToken::AddDelToken(TokenType type, const std::string& name, const std
         return;
     }
 
-    TokenMeta* pToken = new TokenMeta();
-    pToken->Name = name;
-    pToken->Value = value;
-    pToken->Type = type;
+    TokenMeta token{};
+    token.Name = name;
+    token.Value = value;
+    token.Type = type;
 
-    _DelTokens[name] = pToken;
+    _DelTokens[name] = token;
 }
 
 void ScriptToken::AddSpecialCharToken(TokenType type, const std::string& name, const std::string& value)
@@ -318,38 +318,23 @@ void ScriptToken::AddSpecialCharToken(TokenType type, const std::string& name, c
         return;
     }
 
-    TokenMeta* pToken = new TokenMeta();
-    pToken->Name = "";
-    pToken->AltName = (char)name[0];
-    pToken->Value = value;
-    pToken->Type = type;
+    TokenMeta token{};
+    token.Name = "";
+    token.AltName = (char)name[0];
+    token.Value = value;
+    token.Type = type;
 
-    _SpecTokens[name] = pToken;
+    _SpecTokens[name] = token;
 }
 
 bool ScriptToken::Release()
 {
-    TokenMeta* data;
-    for (auto tokensIt : _StdTokens) {
-        data = tokensIt.second;
-        delete data;
-    }
     _StdTokens.clear();
-
-    for (auto tokensIt : _DelTokens) {
-        data = tokensIt.second;
-        delete data;
-    }
     _DelTokens.clear();
-
-    for (auto tokensIt : _SpecTokens) {
-        data = tokensIt.second;
-        delete data;
-    }
     _SpecTokens.clear();
 
-    if (!IsNullObject(_TranslateBuffer)) free_ref(_TranslateBuffer);
-    if (!IsNullObject(_ResultBuffer)) free_ref(_ResultBuffer);
+    free_ref(_TranslateBuffer);
+    free_ref(_ResultBuffer);
 
     return true;
 }

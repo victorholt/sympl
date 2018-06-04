@@ -40,6 +40,7 @@ void ScriptStatement::__Construct()
     _Type = StatementType::None;
     _String = alloc_ref(StringBuffer);
     _StatementBuffer = alloc_ref(StringBuffer);
+    _Symbol = ScriptVMInstance->GetScriptToken();
 }
 
 void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
@@ -97,7 +98,7 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
         }
 
         // Check if we've reached a space and need to evaluate the statement.
-        if (!recording && (currentChar == '#' || currentChar == ';' || _Symbol.IsOperator(currentChar) || _Symbol.IsOperator(nextChar))) {
+        if (!recording && (currentChar == '#' || currentChar == ';' || _Symbol->IsOperator(currentChar) || _Symbol->IsOperator(nextChar))) {
             // Skip if we don't have anything to check.
             if (_StatementBuffer->Length() == 0) {
                 continue;
@@ -106,9 +107,9 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
             std::string currentStr = _StatementBuffer->CStr();
 
             // Check/save the operator.
-            if (_Symbol.IsOperator(currentStr)) {
+            if (_Symbol->IsOperator(currentStr)) {
                 // Check if we're a double operator.
-                if (_Symbol.IsOperator(nextChar)) {
+                if (_Symbol->IsOperator(nextChar)) {
                     currentStr.append(1, nextChar);
                     _CurrentCharLocation++;
                 }
@@ -120,11 +121,25 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
 
             // Save the value as a statement.
             ScriptObject* obj = &ScriptObject::Empty;
-            if (varObject->GetType() == ScriptObjectType::Method) {
-                obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(currentStr.c_str());
-            } else {
-                obj = varObject->GetContext()->FindVariable(currentStr.c_str());
+
+            // Check if our value is a number before we look for the variable.
+            bool isNum = false;
+            char firstChar = currentStr[0];
+            if (firstChar == '0' || firstChar == '1' || firstChar == '2' ||
+                firstChar == '3' || firstChar == '4' || firstChar == '5' ||
+                firstChar == '6' || firstChar == '7' || firstChar == '8' ||
+                firstChar == '9') {
+                isNum = true;
             }
+
+            if (!isNum) {
+                if (varObject->GetType() == ScriptObjectType::Method) {
+                    obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(currentStr.c_str());
+                } else {
+                    obj = varObject->GetContext()->FindVariable(currentStr.c_str());
+                }
+            }
+
             if (!IsNullObject(obj) && !obj->IsEmpty() && obj->GetType() == ScriptObjectType::Method) {
                 auto retType = to_method(obj)->GetReturnType();
                 if (retType != MethodReturnType::Void) {
@@ -161,9 +176,9 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
 
 StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)
 {
-    auto entry = new StatementObjectEntry();
-    entry->Op = op;
-    entry->Value = scriptObject;
+    StatementObjectEntry entry;
+    entry.Op = op;
+    entry.Value = scriptObject;
     _Entries.push_back(entry);
 
     // Set the type.
@@ -173,14 +188,14 @@ StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, Statemen
         assert(_FindType(scriptObject->GetValue()) == _Type && "Attempted to assign two different types in statement");
     }
 
-    return entry;
+    return &_Entries[_Entries.size() - 1];
 }
 
 StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, StatementOperator op)
 {
-    auto entry = new StatementObjectEntry();
-    entry->Op = op;
-    entry->ConstantValue = constantValue;
+    StatementObjectEntry entry;
+    entry.Op = op;
+    entry.ConstantValue = constantValue;
     _Entries.push_back(entry);
 
     // Set the type.
@@ -191,27 +206,27 @@ StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, Stateme
         assert((type == _Type) && "Attempted to assign two different types in statement");
     }
 
-    return entry;
+    return &_Entries[_Entries.size() - 1];
 }
 
 Variant ScriptStatement::Evaluate()
 {
-    if (_Entries.size() == 0) {
+    if (_Entries.empty()) {
         return Variant::Empty;
     }
 
     // Evaluate if we only have a single entry.
     if (_Entries.size() == 1) {
-        auto entry = _Entries[0];
-        if (entry->Op == StatementOperator::Equals) {
-            return (entry->Value.IsValid() ? entry->Value->GetValue() : entry->ConstantValue);
+        auto& entry = _Entries[0];
+        if (entry.Op == StatementOperator::Equals) {
+            return (entry.Value.IsValid() ? entry.Value->GetValue() : entry.ConstantValue);
         }
     }
 
     // Go through the entries and evaluate them.
     Variant value;
-    for (auto entryIt : _Entries) {
-        _Apply(entryIt, value);
+    for (auto& entryIt : _Entries) {
+        _Apply(&entryIt, value);
     }
 
     return value;
@@ -246,15 +261,15 @@ ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
     stat->SetType(_Type);
     stat->_String = _String;
 
-    for (auto entryIt : _Entries) {
+    for (auto& entryIt : _Entries) {
         // Check if we need to find a matching object.
-        if (!entryIt->Value->IsEmpty()) {
-            auto clonedObj = scriptObject->GetContext()->FindVariable(entryIt->Value->GetName().c_str());
+        if (!entryIt.Value->IsEmpty()) {
+            auto clonedObj = scriptObject->GetContext()->FindVariable(entryIt.Value->GetName().c_str());
             assert(!clonedObj->IsEmpty() && "Unabled to process statement, invalid traversal!");
 
-            stat->Add(clonedObj->Clone(scriptObject, false), entryIt->Op);
+            stat->Add(clonedObj->Clone(scriptObject, false), entryIt.Op);
         } else {
-            stat->Add(entryIt->ConstantValue, entryIt->Op);
+            stat->Add(entryIt.ConstantValue, entryIt.Op);
         }
     }
 
@@ -321,7 +336,7 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
         }
 
         // Check if we're dealing with a double operator for concatenating comparisons.
-        if (!recording && _Symbol.IsOperator(currentChar) && _Symbol.IsOperator(nextChar)) {
+        if (!recording && _Symbol->IsOperator(currentChar) && _Symbol->IsOperator(nextChar)) {
             bool isConcatOperator = false;
 
             if ((currentChar == '&' && nextChar == '&') || (currentChar == '|' && nextChar == '|')) {
@@ -461,7 +476,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
         }
 
         // Check if we're dealing with a double operator for concatenating comparisons.
-        if (!recording && _Symbol.IsOperator(currentChar) && _Symbol.IsOperator(nextChar)) {
+        if (!recording && _Symbol->IsOperator(currentChar) && _Symbol->IsOperator(nextChar)) {
             bool isConcatOperator = false;
 
             if ((currentChar == '&' && nextChar == '&') || (currentChar == '|' && nextChar == '|')) {
@@ -547,7 +562,10 @@ Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)
 
     // Build the statement.
     stat->Build(scriptObject);
-    return stat->Evaluate();
+    auto val = stat->Evaluate();
+    stat.Release();
+
+    return val;
 }
 
 void ScriptStatement::_AddValueAndOperation(const std::string& value, StatementOperator op)
@@ -560,10 +578,10 @@ void ScriptStatement::_AddValueAndOperation(const std::string& value, StatementO
         SetType(StatementType::Bool);
         Add(strcmp(strVal, "true") == 0 ? true : false, op);
     } else {
-        int intVal;
+        long long intVal;
         float floatVal;
 
-        if (NumberHelper::TryParseInt(strVal, &intVal)) {
+        if (NumberHelper::TryParseLong(strVal, &intVal)) {
             SetType(StatementType::Integer);
             Add(intVal, op);
         } else if (NumberHelper::TryParseFloat(strVal, &floatVal)) {
@@ -720,7 +738,7 @@ std::string ScriptStatement::GetTypeAsString() const
 StatementOperator ScriptStatement::_SymbolToOp(const std::string& symbol)
 {
     // Ensure the symbol is an operator we can parse.
-    if (!_Symbol.IsOperator(symbol)) {
+    if (!_Symbol->IsOperator(symbol)) {
         return StatementOperator::None;
     }
 
@@ -763,11 +781,12 @@ StatementOperator ScriptStatement::_SymbolToOp(const std::string& symbol)
 
 bool ScriptStatement::Release()
 {
-    for (auto entryIt : _Entries) {
-        entryIt->ConstantValue.Clear();
-        delete entryIt;
+    for (auto& entryIt : _Entries) {
+        entryIt.ConstantValue.Clear();
     }
     _Entries.clear();
+
+    _String.Release();
 
     free_ref(_StatementBuffer);
 

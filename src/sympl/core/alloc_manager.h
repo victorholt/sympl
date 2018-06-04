@@ -53,6 +53,9 @@ private:
     /// Memory pool list for holding 'ObjectRef' objects.
     std::vector<MemBlock>   _Blocks;
 
+    /// Memory pool.
+    void* _MemPool = 0;
+
     /// Size of a single block.
     size_t _BlockSize;
 
@@ -97,8 +100,6 @@ private:
     //! Constructor.
     AllocManager();
 
-
-
 public:
     //! Returns the singleton for our Alloc class.
     //! \return Alloc*
@@ -133,7 +134,8 @@ public:
         }
 
         if (block->IsDirty) {
-            memset(block->Data, 0, block->Size);
+            memset(static_cast<char*>(_ObjectList._MemPool) + (block->Index * block->Size), 0, block->Size);
+//            memset(block->Data, 0, block->Size);
         }
 
         block->IsFree = false;
@@ -183,12 +185,16 @@ public:
     size_t GetAvailableObjectBlocks() const;
 
     //! Returns the available byte blocks.
-    //! \return
+    //! \return size_t
     size_t GetAvailableByteBlocks() const;
 
     //! Returns the total available blocks.
-    //! \return
+    //! \return size_t
     size_t GetTotalAvailableBlocks();
+
+    //! Returns a string of the existing references.
+    //! \return string
+    std::string PrintExistingReferences();
 
     //! Sets the max allowed memory allocation.
     //! \param amount

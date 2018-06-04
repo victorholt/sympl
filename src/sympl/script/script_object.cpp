@@ -201,10 +201,20 @@ void ScriptObject::RemoveChild(const char* name)
 
 bool ScriptObject::Release()
 {
+    // Attempt to release the object reference.
     if (!ObjectRef::Release()) {
         return false;
     }
 
+    // Update the parent context (if we have one).
+    if (!_Context->GetParentContext()->IsEmpty()) {
+        _Context->GetParentContext()->RemoveVariable(this);
+    }
+
+    // Remove from the context.
+    _Context->Release();
+
+    // Remove the children.
     for (auto childIt : _Children) {
         childIt->Release();
     }

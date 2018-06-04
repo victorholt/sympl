@@ -29,12 +29,14 @@
 #include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_common.h>
 #include <sympl/script/script_context.h>
+#include <sympl/script/script_token.h>
 
 sympl_nsstart
 
 class Interpreter;
 class MethodRegistry;
 class AllocManager;
+class ScriptToken;
 
 class SYMPL_API ScriptVM : public ObjectRef
 {
@@ -49,6 +51,9 @@ private:
 
     /// The primary scope containing the global variables.
     SharedPtr<ScriptContext> _Context;
+
+    /// Symbol token checker.
+    SharedPtr<ScriptToken> _Symbol;
 
     //! Builds a path based on the given name/parent.
     //! \param name
@@ -146,6 +151,10 @@ public:
     //! Returns the main context.
     //! \return ScriptContext
     inline ScriptContext* GetContext() const { return _Context.Ptr(); }
+
+    //! Returns the script token.
+    //! \return ScriptToken
+    inline ScriptToken* GetScriptToken() const { return _Symbol.Ptr(); }
 
     friend AllocManager;
 };

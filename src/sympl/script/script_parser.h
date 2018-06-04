@@ -50,7 +50,7 @@ private:
     };
 
     /// Symbol token checker.
-    ScriptToken _Symbol;
+    ScriptToken* _Symbol;
 
     /// Reference to the interpreter.
     Interpreter* _Interpreter;

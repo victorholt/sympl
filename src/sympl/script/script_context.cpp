@@ -58,7 +58,7 @@ void ScriptContext::AddVar(ScriptObject* varObject)
     _VarList.emplace_back(varObject);
 }
 
-ScriptObject* ScriptContext::FindVariable(const char* name)
+ScriptObject* ScriptContext::FindVariable(const char* name, bool traverse)
 {
     auto varIt = std::begin(_VarList);
     while (varIt != std::end(_VarList)) {
@@ -67,6 +67,7 @@ ScriptObject* ScriptContext::FindVariable(const char* name)
         }
         varIt++;
     }
+    if (!traverse) return &ScriptObject::Empty;
 
     // Search the context of the caller if we have one (methods).
     if (_CallerContext.IsValid()) {
@@ -84,6 +85,32 @@ ScriptObject* ScriptContext::FindVariable(const char* name)
     return &ScriptObject::Empty;
 }
 
+void ScriptContext::RemoveVariable(ScriptObject* scriptObject)
+{
+    if (scriptObject->GetType() != ScriptObjectType::Variable) {
+        return;
+    }
+
+    auto varIt = std::begin(_VarList);
+    while (varIt != std::end(_VarList)) {
+        if ((*varIt) == scriptObject) {
+            _VarList.erase(varIt);
+            return;
+        }
+        varIt++;
+    }
+}
+
+void ScriptContext::CopyVarsTo(ScriptContext* context)
+{
+    for (auto var : _VarList) {
+        auto findVar = FindVariable(var->GetName().c_str(), false);
+        if (!findVar->IsEmpty()) {
+            context->AddVar(var);
+        }
+    }
+}
+
 void ScriptContext::SetScriptObject(ScriptObject* scriptObject)
 {
     _Object = scriptObject;
@@ -91,11 +118,12 @@ void ScriptContext::SetScriptObject(ScriptObject* scriptObject)
 
 ScriptObject* ScriptContext::GetScriptObject()
 {
-    return _Object.Ptr();
+    return _Object.IsValid() ? _Object.Ptr() : &ScriptObject::Empty;
 }
 
 bool ScriptContext::Release()
 {
+    _Object.Release();
     _VarList.clear();
     return true;
 }

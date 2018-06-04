@@ -55,20 +55,31 @@ void MethodRegistry::_Initialize()
     // Prints text.
     AddCallbackMethod("print", [](const std::vector<ScriptObject*>& args) {
         if (!args.empty()) {
-            std::cout << args[0]->GetValue().AsString();
+            if (args.size() > 1 && args[1]->GetValue().GetBool()) {
+                std::cout << args[0]->GetValue().AsString() << " (" << args[0]->GetValue().GetTypeAsString() << ")";
+            } else {
+                std::cout << args[0]->GetValue().AsString();
+            }
         }
     });
 
     // Prints text on a new line.
     AddCallbackMethod("printl", [](const std::vector<ScriptObject*>& args) {
-        if (!args.empty()) {
-            std::cout << args[0]->GetValue().AsString() << std::endl;
+        if (args.size() > 1 && args[1]->GetValue().GetBool()) {
+            std::cout << args[0]->GetValue().AsString() << " (" << args[0]->GetValue().GetTypeAsString() << ")" << std::endl;
+        } else {
+            std::cout << args[0]->GetValue().AsString() << std::endl;;
         }
     });
 
     // Prints the memory allocated currently.
     AddCallbackMethod("print_memory", [](const std::vector<ScriptObject*>& args) {
         std::cout << "Memory Allocated: " << AllocInstance->GetMemoryUsage() << std::endl;
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("print_vm_refs", [](const std::vector<ScriptObject*>& args) {
+        std::cout << AllocInstance->PrintExistingReferences() << std::endl;
     });
 
     // Prints the memory allocated reference list.

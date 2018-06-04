@@ -45,7 +45,6 @@ enum class MethodReturnType : uint8_t
 
 struct MethodCallStatement
 {
-    // TODO: Sharing the Variable reference seems to cause a mem leak...
     SharedPtr<ScriptObject> Variable;
     SharedPtr<ScriptStatement> Statement;
 };
@@ -59,7 +58,7 @@ protected:
     std::vector<ScriptObject*> _Args;
 
     /// Stored method call statements to execute.
-    std::vector<MethodCallStatement*> _CallStatements;
+    std::vector<MethodCallStatement> _CallStatements;
 
     /// Reference to the scope object.
     WeakPtr<ScriptObject> _Scope;

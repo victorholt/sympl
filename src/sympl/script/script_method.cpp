@@ -51,6 +51,8 @@ void ScriptMethod::_Initialize(const char* name, const char* path, ScriptObject*
 
 Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
 {
+    _Exit = false;
+
     _CopyArgs(args);
     _ProcessArgStatements();
     _ProcessCallStatements();
@@ -111,21 +113,20 @@ void ScriptMethod::_ProcessArgStatements()
 
 void ScriptMethod::_ProcessCallStatements()
 {
-    for (auto entryIt : _CallStatements) {
-//        if (GetContext()->GetExit()) {
-//            _Value = GetContext()->GetReturnValue();
-//            return;
-//        }
+    for (auto& entryIt : _CallStatements) {
+        if (_Exit) return;
 
-        entryIt->Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
-        entryIt->Statement->Build(entryIt->Variable.Ptr());
+        entryIt.Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
+        entryIt.Statement->Build(entryIt.Variable.Ptr());
 
-        _Value = entryIt->Statement->Evaluate();
-        entryIt->Variable->SetValue(_Value);
+        auto val = entryIt.Statement->Evaluate();
+        if (!val.IsEmpty()) {
+            _Value = val;
+            entryIt.Variable->SetValue(_Value);
+        }
 
         // Check if we're attempting to return out of the method.
-        if (entryIt->Variable->GetName() == "return") {
-//            GetContext()->SetReturnValue(_Value);
+        if (entryIt.Variable->GetName() == "return") {
             Exit();
             return;
         }
@@ -172,9 +173,9 @@ void ScriptMethod::AddArg(ScriptObject* arg)
 
 void ScriptMethod::AddStatement(ScriptObject* variable, ScriptStatement* stat)
 {
-    auto callStatement = new MethodCallStatement();
-    callStatement->Variable = variable;
-    callStatement->Statement = stat;
+    MethodCallStatement callStatement;
+    callStatement.Variable = variable;
+    callStatement.Statement = stat;
 
     _CallStatements.push_back(callStatement);
 }
@@ -204,9 +205,9 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 
     // Add the statements.
     for (auto entryIt : _CallStatements) {
-        auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str(), false);
+        auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt.Variable->GetName().c_str(), false);
         if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
-            to_method(clone)->AddStatement(callObj, entryIt->Statement->Clone(to_method(clone)->GetScope()));
+            to_method(clone)->AddStatement(callObj, entryIt.Statement->Clone(to_method(clone)->GetScope()));
         }
     }
 
@@ -227,16 +228,27 @@ ScriptObject* ScriptMethod::GetScopeParent()
 
 void ScriptMethod::Exit() {
     _Exit = true;
-//    GetContext()->Exit();
+
+    if (!GetContext()->GetCallerContext()->IsEmpty()) {
+        auto obj = GetContext()->GetCallerContext()->GetScriptObject();
+        if (!_Value.IsEmpty()) obj->SetValue(_Value);
+
+        if (obj->GetType() == ScriptObjectType::Method) {
+            to_method(obj)->Exit();
+        } else {
+            auto parent = obj->GetParent();
+            if (parent.IsValid() && parent->GetType() == ScriptObjectType::Method) {
+                if (!_Value.IsEmpty()) parent->SetValue(_Value);
+                to_method(parent.Ptr())->Exit();
+            }
+        }
+    }
 }
 
 bool ScriptMethod::Release()
 {
     _Value.Clear();
 
-    for (auto entryIt : _CallStatements) {
-        delete entryIt;
-    }
     _CallStatements.clear();
     _Args.clear();
 

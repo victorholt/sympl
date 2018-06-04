@@ -57,6 +57,8 @@ void ScriptVM::Startup()
 
     _MethodRegistry = alloc_ref(MethodRegistry);
     _MethodRegistry->_Initialize();
+
+    _Symbol = alloc_ref(ScriptToken);
 }
 
 void ScriptVM::Shutdown()
@@ -240,16 +242,7 @@ void ScriptVM::RemoveObject(ScriptObject* scriptObject)
 void ScriptVM::RemoveObject(const std::string& path)
 {
     auto scriptObject = FindObjectByPath(path);
-
-    if (scriptObject->IsEmpty()) {
-        return;
-    }
-
-    if (scriptObject->GetParent().IsValid()) {
-        auto parent = scriptObject->GetParent().Ptr();
-        parent->RemoveChild(scriptObject->GetName().c_str());
-    }
-    scriptObject->Release();
+    RemoveObject(scriptObject);
 }
 
 MethodRegistry* ScriptVM::GetMethodRegistry()

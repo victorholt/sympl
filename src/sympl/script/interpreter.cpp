@@ -72,6 +72,7 @@ void Interpreter::_Parse()
         _Parser = alloc_ref(ScriptParser);
     }
     _Parser->Parse(this);
+    _Parser.Release();
 }
 
 bool Interpreter::Release()

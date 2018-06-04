@@ -113,7 +113,12 @@ public:
     inline void AddRef() { _RefCount++; }
 
     //! Decrement the reference count. Returns true if we still have a ref count > 0.
-    inline bool DecRef() { if (_RefCount - 1 > 0) { _RefCount--; } return _RefCount > 0; }
+    inline bool DecRef() {
+        if (_RefCount > 0) {
+            _RefCount--;
+        }
+        return _RefCount > 0;
+    }
 
     //! Returns the reference count.
     //! \return

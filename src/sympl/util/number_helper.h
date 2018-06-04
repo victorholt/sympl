@@ -34,46 +34,27 @@ class NumberHelper
 public:
     /// Attempts to parse an integer from a string.
     static bool TryParseInt(const char* str, int* output) {
-        std::istringstream iss(str);
-        int i;
-        iss >> std::noskipws >> i; // noskipws considers leading whitespace invalid
-        // Check the entire string was consumed and if either failbit or badbit is set
-        *output = i;
-        return iss.eof() && !iss.fail();
+        char *end;
+        *output = std::strtol(str, &end, 10);
+        return (*end == '\0');
     }
-    /// Attempts to parse an unsigned integer from a string.
-    static bool TryParseUnsigned(const char* str, unsigned* output) {
-        std::istringstream iss(str);
-        unsigned i;
-        iss >> std::noskipws >> i; // noskipws considers leading whitespace invalid
-        // Check the entire string was consumed and if either failbit or badbit is set
-        *output = i;
-        return iss.eof() && !iss.fail();
+    /// Attempts to parse an integer from a string.
+    static bool TryParseLong(const char* str, long long* output) {
+        char *end;
+        *output = std::strtoll(str, &end, 10);
+        return (*end == '\0');
     }
     /// Attempts to parse a float from a string.
     static bool TryParseFloat(const char* str, float* output) {
-        /*std::string::size_type sz;
-        try { *output = std::stof(str, &sz); }
-        catch (std::exception) {
-            return false;
-        }
-        return true;*/
-
-        std::istringstream iss(str);
-        float f;
-        iss >> std::noskipws >> f; // noskipws considers leading whitespace invalid
-        // Check the entire string was consumed and if either failbit or badbit is set
-        *output = f;
-        return iss.eof() && !iss.fail();
+        char *end;
+        *output = std::strtof(str, &end);
+        return (*end == '\0');
     }
     /// Attempts to parse an double from a string.
     static bool TryParseDouble(const char* str, double* output) {
-        std::string::size_type sz;
-        try { *output = std::stod(str, &sz); }
-        catch (std::exception) {
-            return false;
-        }
-        return true;
+        char *end;
+        *output = std::strtod(str, &end);
+        return (*end == '\0');
     }
     /// Attemps to see if a given string is a date.
     static bool IsDatePattern(const char* str, int maxPeriods = 2) {

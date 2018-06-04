@@ -118,6 +118,12 @@ public:
 
     //! Constructor.
     //! \param value
+    Variant(long long value) {
+        Set(value);
+    }
+
+    //! Constructor.
+    //! \param value
     Variant(unsigned long value) {
         Set(value);
     }
@@ -253,6 +259,15 @@ public:
 
         SetType(VariantType::Int);
         _Value.IntVal = static_cast<long long>(value);
+    }
+
+    //! Sets the value for the variant.
+    //! \param value
+    void Set(long long value) {
+        Clear();
+
+        SetType(VariantType::Int);
+        _Value.IntVal = value;
     }
 
     //! Returns the variant value.
@@ -410,6 +425,14 @@ public:
     //! \param rhs
     //! \return
     Variant& operator =(long rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning long.
+    //! \param rhs
+    //! \return
+    Variant& operator =(long long rhs) {
         Set(rhs);
         return *this;
     }

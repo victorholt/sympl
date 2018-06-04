@@ -60,11 +60,11 @@ class SYMPL_API ScriptToken : public ObjectRef
 
 private:
     /// The map of standard tokens.
-    std::unordered_map<std::string, TokenMeta*> _StdTokens;
+    std::unordered_map<std::string, TokenMeta> _StdTokens;
     /// The map of delimiter tokens.
-    std::unordered_map<std::string, TokenMeta*> _DelTokens;
+    std::unordered_map<std::string, TokenMeta> _DelTokens;
     /// The map of special character tokens.
-    std::unordered_map<std::string, TokenMeta*> _SpecTokens;
+    std::unordered_map<std::string, TokenMeta> _SpecTokens;
 
     /// Reference to the translation buffer (special chars decode).
     StringBuffer* _TranslateBuffer = nullptr;

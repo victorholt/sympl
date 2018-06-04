@@ -23,12 +23,17 @@
  **********************************************************/
 #include <sympl/core/alloc_manager.h>
 #include <sympl/core/object_ref.h>
+
+#include <fmt/format.h>
 sympl_namespaces
 
 AllocManager* AllocManager::_Instance = nullptr;
 
 void AllocReserveGroup::_Initialize(size_t totalBlocks, size_t blockSize)
 {
+    if (_MemPool == 0) {
+        _MemPool = calloc(totalBlocks * blockSize, sizeof(char));
+    }
     Resize(totalBlocks, blockSize);
 }
 
@@ -49,8 +54,8 @@ void AllocReserveGroup::Resize(size_t count, size_t blockSize)
         block.IsFree     = true;
         block.IsDirty    = false;
         block.Size       = 0;
-        block.Data       = malloc(blockSize * sizeof(char));//calloc(blockSize, sizeof(char));
-        memset(block.Data, 0, blockSize * sizeof(char));
+        block.Data       = static_cast<char*>(_MemPool) + (i * blockSize);//malloc(blockSize * sizeof(char));//calloc(blockSize, sizeof(char));
+//        memset(block.Data, 0, blockSize * sizeof(char));
         _Blocks.push_back(block);
     }
 }
@@ -87,7 +92,8 @@ void* AllocManager::AllocBytes(size_t amount)
     }
 
     if (block->IsDirty) {
-        memset(block->Data, 0, block->Size);
+        memset(static_cast<char*>(_ObjectList._MemPool) + (block->Index * block->Size), 0, block->Size);
+//        memset(block->Data, 0, block->Size);
     }
 
     block->IsFree = false;
@@ -207,5 +213,23 @@ void AllocManager::ResizeObjectPoolList(size_t count, size_t blockSize)
 void AllocManager::ResizeBytePoolList(size_t count, size_t blockSize)
 {
     _ByteList.Resize(count, blockSize);
+}
+
+std::string AllocManager::PrintExistingReferences()
+{
+    std::string memAddresses;
+    size_t count = 0;
+    for (auto& block : _ObjectList._Blocks) {
+        if (block.IsFree) {
+            continue;
+        }
+
+        auto ref = reinterpret_cast<ObjectRef*>(block.Data);
+        memAddresses.append(ref->GetTypeName());
+        memAddresses.append("\n");
+        count++;
+    }
+    memAddresses.append(fmt::format("{0} total references", count));
+    return memAddresses;
 }
 

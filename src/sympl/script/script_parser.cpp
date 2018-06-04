@@ -52,6 +52,8 @@ void ScriptParser::__Construct()
 
     _CurrentValueBuffer = alloc_ref(StringBuffer);
     _CurrentValueBuffer->Resize(512);
+
+    _Symbol = ScriptVMInstance->GetScriptToken();
 }
 
 void ScriptParser::Parse(Interpreter* interpreter)
@@ -225,7 +227,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
             // If the next character IS an operator, we should update
             // the scan mode. (x=1 instead of x = 1).
-            if (_Symbol.IsOperator(nextChar)) {
+            if (_Symbol->IsOperator(nextChar)) {
                 bufferIndex = 0;
                 _UpdateScanMode();
                 continue;
@@ -491,7 +493,7 @@ void ScriptParser::_CloseScope()
 StatementOperator ScriptParser::_SymbolToOp(const std::string& symbol)
 {
     // Ensure the symbol is an operator we can parse.
-    if (!_Symbol.IsOperator(symbol)) {
+    if (!_Symbol->IsOperator(symbol)) {
         return StatementOperator::None;
     }
 

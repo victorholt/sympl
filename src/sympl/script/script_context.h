@@ -71,8 +71,18 @@ public:
     void AddVar(ScriptObject* varObject);
 
     //! Finds an object within the scope.
+    //! \param name
+    //! \param traverse
     //! \return ScriptObject
-    ScriptObject* FindVariable(const char* name);
+    ScriptObject* FindVariable(const char* name, bool traverse = true);
+
+    //! Attempts to remove a variable.
+    //! \param scriptObject
+    void RemoveVariable(ScriptObject* scriptObject);
+
+    //! Copy our variable list for easy access.
+    //! \param context
+    void CopyVarsTo(ScriptContext* context);
 
     //! Sets the owner of the context.
     //! \param scriptObject
@@ -91,7 +101,7 @@ public:
 
     //! Returns the parent context.
     //! \return
-    inline ScriptContext* GetParentContext() const { return _ParentContext.Ptr(); }
+    inline ScriptContext* GetParentContext() const { return _ParentContext.IsValid() ? _ParentContext.Ptr() : &ScriptContext::Empty; }
 
     //! Sets the caller context.
     //! \param context
@@ -99,7 +109,7 @@ public:
 
     //! Returns the caller context.
     //! \return
-    inline ScriptContext* GetCallerContext() const { return _CallerContext.Ptr(); }
+    inline ScriptContext* GetCallerContext() const { return _CallerContext.IsValid() ? _CallerContext.Ptr() : &ScriptContext::Empty; }
 
     //! Check for empty of this context.
     //! \return bool

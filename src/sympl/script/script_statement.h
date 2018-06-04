@@ -68,10 +68,6 @@ struct StatementObjectEntry {
     StatementOperator Op;
     WeakPtr<ScriptObject> Value;
     Variant ConstantValue;
-
-    // Next statement entry to resolve before we consider
-    // the current statement entry complete.
-    StatementObjectEntry* Next = nullptr;
 };
 
 class SYMPL_API ScriptStatement : public ObjectRef
@@ -80,13 +76,13 @@ SYMPL_OBJECT(ScriptStatement, ObjectRef);
 
 private:
     /// Script objects that make up the statement.
-    std::vector<StatementObjectEntry*> _Entries;
+    std::vector<StatementObjectEntry> _Entries;
 
     /// Representation of the statement as a string.
     SharedPtr<StringBuffer> _String;
 
     /// Symbol token checker.
-    ScriptToken _Symbol;
+    ScriptToken* _Symbol;
 
     /// Type of statement.
     StatementType _Type;
