@@ -59,11 +59,11 @@ public:
     //! Destructor.
     ~Profiler() {
         if (!IsNullObject(_Instance)) {
-            _Instance->Release();
+//            _Instance->Release();
 
             // Double-delete... our Alloc class should cache this
             // and disregard attempting to remove it.
-            // free_ref(Profiler, _Instance);
+             free_ref(_Instance);
         }
     }
 

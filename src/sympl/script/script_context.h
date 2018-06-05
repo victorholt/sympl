@@ -28,6 +28,8 @@
 #include <sympl/core/shared_ptr.h>
 #include <sympl/core/weak_ptr.h>
 
+#include <sympl/thirdparty/urho3d/container/Vector.h>
+
 sympl_nsstart
 
 class ScriptObject;
@@ -48,7 +50,7 @@ protected:
     WeakPtr<ScriptContext> _CallerContext;
 
     /// Quick variable access list.
-    std::vector<ScriptObject*> _VarList;
+    Urho3D::PODVector<ScriptObject*> _VarList;
 
     /// Current return value.
     Variant _RetValue;

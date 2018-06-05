@@ -75,7 +75,7 @@ void ScriptToken::__Construct()
     _ResultBuffer = alloc_ref(StringBuffer);
 }
 
-const bool ScriptToken::IsType(TokenType type, const std::string& input)
+const bool ScriptToken::IsType(TokenType type, const char* input)
 {
     auto tokenValue = FindToken(&_StdTokens, input);
 
@@ -95,10 +95,10 @@ const bool ScriptToken::IsType(TokenType type, const char input)
 {
     std::string inputStr = std::string(1, input);
     if (type == TokenType::SpecialChar) {
-        return (!FindToken(&_SpecTokens, inputStr)->IsEmpty());
+        return (!FindToken(&_SpecTokens, inputStr.c_str())->IsEmpty());
     }
 
-    return IsType(type, inputStr);
+    return IsType(type, inputStr.c_str());
 }
 
 const bool ScriptToken::IsObject(const char input)
@@ -119,20 +119,20 @@ const bool ScriptToken::IsObject(const char input)
 
 const bool ScriptToken::IsOperator(const char input)
 {
-    return IsOperator(std::string(1, input));
+    return IsOperator(std::string(1, input).c_str());
 }
 
-const bool ScriptToken::IsOperator(const std::string& input)
+const bool ScriptToken::IsOperator(const char* input)
 {
     return IsType(TokenType::Operator, input);
 }
 
 const bool ScriptToken::IsIdentifier(const char input)
 {
-    return IsIdentifier(std::string(1, input));
+    return IsIdentifier(std::string(1, input).c_str());
 }
 
-const bool ScriptToken::IsIdentifier(const std::string& input)
+const bool ScriptToken::IsIdentifier(const char* input)
 {
     return IsType(TokenType::Identifier, input);
 }
@@ -151,7 +151,7 @@ bool ScriptToken::EncodeSpecialChar(const char input, std::string& output)
 {
     std::string inputStr = std::string(1, input);
 
-    auto tokenIt = FindToken(&_SpecTokens, inputStr);
+    auto tokenIt = FindToken(&_SpecTokens, inputStr.c_str());
     if (tokenIt->IsEmpty()) {
         return false;
     }
@@ -160,10 +160,10 @@ bool ScriptToken::EncodeSpecialChar(const char input, std::string& output)
     return true;
 }
 
-const std::string ScriptToken::EncodeSpecialCharString(const std::string& input)
+const std::string ScriptToken::EncodeSpecialCharString(const char* input)
 {
     std::string transChar;
-    size_t strLen = input.length();
+    size_t strLen = strlen(input);
 
     for (size_t i = 0; i < strLen - 1; i++) {
         char c = input[i];
@@ -186,7 +186,7 @@ const std::string ScriptToken::EncodeSpecialCharString(const std::string& input)
     return result;
 }
 
-bool ScriptToken::DecodeSpecialChar(const std::string& input, char& output)
+bool ScriptToken::DecodeSpecialChar(const char* input, char& output)
 {
     for (auto& tokenIt : _SpecTokens) {
         if (tokenIt->Value == input) {
@@ -199,11 +199,11 @@ bool ScriptToken::DecodeSpecialChar(const std::string& input, char& output)
     return false;
 }
 
-const std::string ScriptToken::DecodeSpecialCharString(const std::string& input)
+const std::string ScriptToken::DecodeSpecialCharString(const char* input)
 {
     bool record = false;
     int recordCount = 1;
-    size_t strLen = input.length();
+    size_t strLen = strlen(input);
 
     for (size_t i = 0; i < strLen; i++) {
         char c = input[i];
@@ -247,7 +247,7 @@ const std::string ScriptToken::DecodeSpecialCharString(const std::string& input)
                 char dc;
                 std::string tranStr = _TranslateBuffer->CStr();
 
-                if (!DecodeSpecialChar(tranStr, dc)) {
+                if (!DecodeSpecialChar(tranStr.c_str(), dc)) {
                     _ResultBuffer->Append(tranStr.c_str());
                 } else {
                     _ResultBuffer->AppendByte(dc);
@@ -271,7 +271,7 @@ const std::string ScriptToken::DecodeSpecialCharString(const std::string& input)
     return result;
 }
 
-void ScriptToken::AddStdToken(TokenType type, const std::string& name, const std::string& value)
+void ScriptToken::AddStdToken(TokenType type, const char* name, const char* value)
 {
     // Ensure we don't already have this symbol.
     auto tokenIt = FindToken(&_StdTokens, name);
@@ -287,7 +287,7 @@ void ScriptToken::AddStdToken(TokenType type, const std::string& name, const std
     _StdTokens.Push(token);
 }
 
-void ScriptToken::AddDelToken(TokenType type, const std::string& name, const std::string& value)
+void ScriptToken::AddDelToken(TokenType type, const char* name, const char* value)
 {
     // Ensure we don't already have this symbol.
     auto tokenIt = FindToken(&_DelTokens, name);
@@ -303,7 +303,7 @@ void ScriptToken::AddDelToken(TokenType type, const std::string& name, const std
     _DelTokens.Push(token);
 }
 
-void ScriptToken::AddSpecialCharToken(TokenType type, const std::string& name, const std::string& value)
+void ScriptToken::AddSpecialCharToken(TokenType type, const char* name, const char* value)
 {
     // Ensure we don't already have this symbol.
     auto tokenIt = FindToken(&_SpecTokens, name);
@@ -313,14 +313,14 @@ void ScriptToken::AddSpecialCharToken(TokenType type, const std::string& name, c
 
     auto token = alloc_bytes(TokenMeta);
     token->Name = "";
-    token->AltName = (char)name[0];
+    token->AltName = name[0];
     token->Value = value;
     token->Type = type;
 
     _SpecTokens.Push(token);
 }
 
-TokenMeta* ScriptToken::FindToken(TokenType type, const std::string& token)
+TokenMeta* ScriptToken::FindToken(TokenType type, const char* token)
 {
     Urho3D::PODVector<TokenMeta*>* list;
     switch ((int)type) {
@@ -338,11 +338,11 @@ TokenMeta* ScriptToken::FindToken(TokenType type, const std::string& token)
     return FindToken(list, token);
 }
 
-TokenMeta* ScriptToken::FindToken(Urho3D::PODVector<TokenMeta*>* list, const std::string& token)
+TokenMeta* ScriptToken::FindToken(Urho3D::PODVector<TokenMeta*>* list, const char* token)
 {
     for (size_t i = 0; i < list->Size(); i++) {
         auto entry = list->At(i);
-        if (entry->Name == token) {
+        if (strcmp(entry->Name.c_str(), token) == 0) {
             return entry;
         }
     }

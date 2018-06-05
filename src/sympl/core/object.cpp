@@ -24,23 +24,37 @@
 #include <sympl/core/object.h>
 sympl_namespaces
 
-void Object::SetMeta(const std::string& key, const Variant& value)
+Object::~Object()
 {
-    _Meta[key] = value;
-}
-
-Variant Object::GetMeta(const std::string& key)
-{
-    auto entry = _Meta.find(key);
-
-    if (entry == _Meta.end()) {
-        return Variant::Empty;
+    for (auto key : _MetaKeys) {
+        delete [] key;
+        //free_bytes_array(key);
     }
-
-    return _Meta[key];
+    _MetaKeys.Clear();
+    _MetaValues.Clear();
 }
 
-bool Object::HasMeta(const std::string& key)
+void Object::SetMeta(const char* key, const Variant& value)
+{
+    auto data = new char[strlen(key) + 1];//alloc_bytes_array(char, strlen(key) + 1);
+    memset(data, 0, strlen(key) + 1);
+    memcpy(data, key, strlen(key));
+
+    _MetaKeys.Push(data);
+    _MetaValues.Push(value);
+}
+
+Variant Object::GetMeta(const char* key)
+{
+    for (size_t i = 0; i < _MetaKeys.Size(); i++) {
+        if (strcmp(_MetaKeys[i], key) == 0) {
+            return _MetaValues[i];
+        }
+    }
+    return Variant::Empty;
+}
+
+bool Object::HasMeta(const char* key)
 {
     auto meta = GetMeta(key);
     return (meta.GetType() != VariantType::Empty);

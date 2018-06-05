@@ -109,10 +109,6 @@ private:
     //! Closes the current scope.
     void _CloseScope();
 
-    //! Converts a symbol to a statement operator.
-    //! \param symbol
-    StatementOperator _SymbolToOp(const std::string& symbol);
-
     //! Checks if an object exists based on the current scope.
     //! \return bool
     bool _ObjectExists(const char* objectName);

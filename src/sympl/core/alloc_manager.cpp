@@ -27,8 +27,6 @@
 #include <fmt/format.h>
 sympl_namespaces
 
-AllocManager* AllocManager::_Instance = nullptr;
-
 void AllocReserveGroup::_Initialize(size_t totalBlocks, size_t blockSize)
 {
     if (_MemPool == nullptr) {
@@ -51,11 +49,11 @@ void AllocReserveGroup::Resize(size_t count, size_t blockSize)
     _Blocks.reserve(count);
 
     for (size_t i = start; i < count; i++) {
-        auto* block         = new AllocReserveGroup::MemBlock();
+        auto block         = new AllocReserveGroup::MemBlock();
         block->Index        = i;
         block->IsFree       = true;
         block->Size         = 0;
-        block->Data         = calloc(blockSize, sizeof(char));
+        block->Data         = nullptr; // calloc(blockSize, sizeof(char));
 //        memset(block->Data, 1, sizeof(char) * blockSize);
 //        block.Data       = static_cast<char*>(_MemPool) + (i * blockSize);//malloc(blockSize * sizeof(char));//calloc(blockSize, sizeof(char));
 //        memset(static_cast<char*>(_MemPool) + (block.Index * blockSize), 0, blockSize);
@@ -68,7 +66,7 @@ void AllocReserveGroup::ClearBlockMemory(size_t index)
 {
     auto block = _Blocks[index];
 //    memset(static_cast<char*>(_MemPool) + (block->Index * block->Size), 0, block->Size);
-    memset(block->Data, 0, sizeof(char) * _BlockSize);
+//    memset(block->Data, 0, block->Size);
 }
 
 AllocReserveGroup::MemBlock* AllocReserveGroup::_FindAvailable()
@@ -84,52 +82,32 @@ AllocReserveGroup::MemBlock* AllocReserveGroup::_FindAvailable()
 
 AllocManager::AllocManager()
 {
-    _ObjectList._Initialize(_MaxObjectPoolCount, _ObjectPoolBlockSize);
-    _ByteList._Initialize(_MaxBytePoolCount, _BytePoolBlockSize);
+    _Initialize();
+}
+
+void AllocManager::_Initialize()
+{
+//    _ObjectList._Initialize(_MaxObjectPoolCount, _ObjectPoolBlockSize);
+//    _ByteList._Initialize(_MaxBytePoolCount, _BytePoolBlockSize);
 }
 
 void AllocManager::FreeRef(RefCounter* ref)
 {
-    auto memIndex = ref->GetMemIndex();
-    assert((memIndex >= 0 && memIndex < _ObjectList._Blocks.size()) && "Attempted to free invalid memory index!");
-
-    if (ref->DecRef()) {
-        return;
-    }
-
-    // Check to ensure we're not trying to free static memory.
-    if (memIndex == 0) {
-        auto dataCheck = reinterpret_cast<void*>(ref);
-        if (_ObjectList._Blocks[0]->Data != dataCheck) {
-            return;
-        }
-    }
-
-    ref->SetMemIndex(-1);
-    ref->Release();
-
-    _ObjectList._Blocks[memIndex]->Size = 0;
-    _ObjectList._Blocks[memIndex]->IsFree = true;
-    _ObjectList.ClearBlockMemory(_ObjectList._Blocks[memIndex]->Index);
-    _ObjectList._BlocksUsed--;
+    delete ref;
 }
 
-void AllocManager::FreeBytes(void* src)
+void AllocManager::FreeBytes(void* src, bool isArray)
 {
-    for (auto block : _ByteList._Blocks) {
-        if (block->Data == src) {
-            block->Size = 0;
-            block->IsFree = true;
-            _ByteList.ClearBlockMemory(block->Index);
-            _ByteList._BlocksUsed--;
-            return;
-        }
+    if (isArray) {
+        delete [] src;
+    } else {
+        delete src;
     }
 }
 
 void AllocManager::FreeBytesArray(void* src)
 {
-    FreeBytes(src);
+    FreeBytes(src, true);
 }
 
 size_t AllocManager::GetMemoryUsage() const

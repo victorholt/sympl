@@ -171,7 +171,7 @@ public:
     //! \param place
     //! \return
     inline const char Get(size_t location) {
-        if (location > Length()) {
+        if (location > _Length) {
             return '\0';
         }
         return _Buffer[location];

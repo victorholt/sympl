@@ -139,7 +139,7 @@ private:
 
     //! Converts a symbol to a statement operator.
     //! \param symbol
-    StatementOperator _SymbolToOp(const std::string& symbol);
+    StatementOperator _SymbolToOp(const char* symbol);
 
 public:
     //! Constructor.

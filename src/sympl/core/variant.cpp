@@ -168,11 +168,6 @@ std::string Variant::GetTypeAsString()
 }
 
 void Variant::Clear() {
-    // Check to see if we have a reference.
-    if (IsNullObject(_Value.Ptr)) {
-        return;
-    }
-
     // Free our string buffer.
     if (_Type == VariantType::StringBuffer) {
         auto buffer = GetStringBuffer();

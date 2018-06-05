@@ -87,7 +87,7 @@ protected:
 
 public:
     // Attempts to dec the reference count.
-    virtual ~RefCounter() {}
+    virtual ~RefCounter() { Release(); }
 
     //! Sets the memory index.
     //! \param index

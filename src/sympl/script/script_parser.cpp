@@ -485,44 +485,6 @@ void ScriptParser::_CloseScope()
     _ScanMode = ParserScanMode::Type;
 }
 
-StatementOperator ScriptParser::_SymbolToOp(const std::string& symbol)
-{
-    // Ensure the symbol is an operator we can parse.
-    if (!_Symbol->IsOperator(symbol)) {
-        return StatementOperator::None;
-    }
-
-    if (symbol == "=") {
-        return StatementOperator::Equals;
-    }
-    if (symbol == "+") {
-        return StatementOperator::Add;
-    }
-    if (symbol == "-") {
-        return StatementOperator::Subtract;
-    }
-    if (symbol == "/") {
-        return StatementOperator::Divide;
-    }
-    if (symbol == "*") {
-        return StatementOperator::Multiply;
-    }
-    if (symbol == ">") {
-        return StatementOperator::GreaterThan;
-    }
-    if (symbol == "<") {
-        return StatementOperator::LessThan;
-    }
-    if (symbol == ">=") {
-        return StatementOperator::GreaterEqualThan;
-    }
-    if (symbol == "<=") {
-        return StatementOperator::LessEqualThan;
-    }
-
-    return StatementOperator::None;
-}
-
 bool ScriptParser::_ObjectExists(const char* objectName)
 {
     ScriptObject* output = _FindObject(objectName);

@@ -107,14 +107,14 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
             std::string currentStr = _StatementBuffer->CStr();
 
             // Check/save the operator.
-            if (_Symbol->IsOperator(currentStr)) {
+            if (_Symbol->IsOperator(currentStr.c_str())) {
                 // Check if we're a double operator.
                 if (_Symbol->IsOperator(nextChar)) {
                     currentStr.append(1, nextChar);
                     _CurrentCharLocation++;
                 }
 
-                currentOp = _SymbolToOp(currentStr);
+                currentOp = _SymbolToOp(currentStr.c_str());
                 _StatementBuffer->Clear();
                 continue;
             }
@@ -582,15 +582,17 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
 
 Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)
 {
+    assert((_StatementBuffer->Length() > 0) && "Attempting to evaluate an invalid statement!");
+
     // Create the statement and set the string.
-    SharedPtr<ScriptStatement> stat = alloc_ref(ScriptStatement);
+    auto stat = alloc_ref(ScriptStatement);
     stat->SetString(_StatementBuffer);
     _StatementBuffer->Clear();
 
     // Build the statement.
     stat->Build(scriptObject);
     auto val = stat->Evaluate();
-    stat.Release();
+    free_ref(stat);
 
     return val;
 }
@@ -777,44 +779,44 @@ std::string ScriptStatement::GetTypeAsString() const
     }
 }
 
-StatementOperator ScriptStatement::_SymbolToOp(const std::string& symbol)
+StatementOperator ScriptStatement::_SymbolToOp(const char* symbol)
 {
     // Ensure the symbol is an operator we can parse.
     if (!_Symbol->IsOperator(symbol)) {
         return StatementOperator::None;
     }
 
-    if (symbol == "=") {
+    if (strcmp(symbol, "=") == 0) {
         return StatementOperator::Equals;
     }
-    if (symbol == "+") {
+    if (strcmp(symbol, "+") == 0) {
         return StatementOperator::Add;
     }
-    if (symbol == "-") {
+    if (strcmp(symbol, "-") == 0) {
         return StatementOperator::Subtract;
     }
-    if (symbol == "/") {
+    if (strcmp(symbol, "/") == 0) {
         return StatementOperator::Divide;
     }
-    if (symbol == "*") {
+    if (strcmp(symbol, "*") == 0) {
         return StatementOperator::Multiply;
     }
-    if (symbol == ">") {
+    if (strcmp(symbol, ">") == 0) {
         return StatementOperator::GreaterThan;
     }
-    if (symbol == "<") {
+    if (strcmp(symbol, "<") == 0) {
         return StatementOperator::LessThan;
     }
-    if (symbol == ">=") {
+    if (strcmp(symbol, ">=") == 0) {
         return StatementOperator::GreaterEqualThan;
     }
-    if (symbol == "<=") {
+    if (strcmp(symbol, "<=") == 0) {
         return StatementOperator::LessEqualThan;
     }
-    if (symbol == "==") {
+    if (strcmp(symbol, "==") == 0) {
         return StatementOperator::IsEqual2;
     }
-    if (symbol == "!=") {
+    if (strcmp(symbol, "!=") == 0) {
         return StatementOperator::NotIsEqual2;
     }
 

@@ -42,6 +42,7 @@ void ScriptObject::__Construct()
     _Name = "";
     _Path = "";
     _Parent = nullptr;
+    _Context = nullptr;
     _Type = ScriptObjectType::Empty;
 }
 
@@ -249,9 +250,7 @@ std::string ScriptObject::GetTypeAsString() const
     if (_Type == ScriptObjectType::Statement) {
         return "statement";
     }
-    if (_Type == ScriptObjectType::Empty) {
-        return "empty";
-    }
+    return "empty";
 }
 
 std::string ScriptObject::Print()

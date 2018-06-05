@@ -88,31 +88,31 @@ private:
     //! \param type
     //! \param name
     //! \param value
-    void AddStdToken(TokenType type, const std::string& name, const std::string& value);
+    void AddStdToken(TokenType type, const char* name, const char* value);
 
     //! Adds a delimiter symbol to the helper.
     //! \param type
     //! \param name
     //! \param value
-    void AddDelToken(TokenType type, const std::string& name, const std::string& value);
+    void AddDelToken(TokenType type, const char* name, const char* value);
 
     //! Adds a special character symbol to the helper.
     //! \param type
     //! \param name
     //! \param value
-    void AddSpecialCharToken(TokenType type, const std::string& name, const std::string& value);
+    void AddSpecialCharToken(TokenType type, const char* name, const char* value);
 
     //! Finds a token.
     //! \param type
     //! \param token
     //! \return
-    TokenMeta* FindToken(TokenType type, const std::string& token);
+    TokenMeta* FindToken(TokenType type, const char* token);
 
     //! Finds a token.
     //! \param list
     //! \param token
     //! \return
-    TokenMeta* FindToken(Urho3D::PODVector<TokenMeta*>* list, const std::string& token);
+    TokenMeta* FindToken(Urho3D::PODVector<TokenMeta*>* list, const char* token);
 
 public:
     //! Constructor.
@@ -128,7 +128,7 @@ public:
     //! \param type
     //! \param input
     //! \return
-    const bool IsType(TokenType type, const std::string& input);
+    const bool IsType(TokenType type, const char* input);
 
     //! Returns if the input is a specific type.
     //! \param type
@@ -149,7 +149,7 @@ public:
     //! Returns whether or not the input is an operator type.
     //! \param input
     //! \return
-    const bool IsOperator(const std::string& input);
+    const bool IsOperator(const char* input);
 
     //! Returns whether or not the input is an identifier.
     //! \param input
@@ -159,7 +159,7 @@ public:
     //! Returns whether or not the input is an identifier.
     //! \param input
     //! \return
-    const bool IsIdentifier(const std::string& input);
+    const bool IsIdentifier(const char* input);
 
     //! Returns whether or not the input is a delimiter.
     //! \param input
@@ -180,18 +180,18 @@ public:
     //! Returns a string where any special characters have been converted.
     //! \param input
     //! \return
-    const std::string EncodeSpecialCharString(const std::string& input);
+    const std::string EncodeSpecialCharString(const char* input);
 
     //! Attempts to decode a given encoded character.
     //! \param input
     //! \param output
     //! \return
-    bool DecodeSpecialChar(const std::string& input, char& output);
+    bool DecodeSpecialChar(const char* input, char& output);
 
     //! Returns a string where any special characters have been converted.
     //! \param input
     //! \return
-    const std::string DecodeSpecialCharString(const std::string& input);
+    const std::string DecodeSpecialCharString(const char* input);
 
     //! Releases the object.
     bool Release() override;

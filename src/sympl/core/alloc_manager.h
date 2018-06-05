@@ -95,59 +95,36 @@ private:
     /// Max number of blocks that can be created in the object pool.
     size_t _MaxObjectPoolCount      = 25000;
     /// Max number of blocks that can be created in the byte pool.
-    size_t _MaxBytePoolCount        = 25000;
+    size_t _MaxBytePoolCount        = 5000;
     /// Max allowed memory allocation.
     size_t _MaxAllowedMemoryAlloc   = 2048000000;
-
-    /// AllocManager singleton instance.
-    static AllocManager* _Instance;
 
     //! Constructor.
     AllocManager();
 
+    //! Initializes the manager.
+    void _Initialize();
+
 public:
+    AllocManager(AllocManager const&)    = delete;
+    void operator=(AllocManager const&)  = delete;
+
+    //! Destructor.
+    ~AllocManager() {
+    }
+
     //! Returns the singleton for our Alloc class.
     //! \return Alloc*
-    inline static AllocManager* GetInstance() {
-        if (IsNullObject(_Instance)) {
-            _Instance = new AllocManager();
-        }
-        return _Instance;
+    static AllocManager& GetInstance() {
+        static AllocManager instance;
+        return instance;
     }
 
     //! Attempts to allocate memory for an object reference.
     template<typename T>
     T* AllocRef()
     {
-        // Attempt to find an available block in memory.
-        AllocReserveGroup::MemBlock* block = _ObjectList._FindAvailable();
-
-        // Ensure we can allocate the bytes.
-        assert(sizeof(T) < _ObjectPoolBlockSize && "Unable to allocate the given amount of memory");
-
-        // If we don't have an available block, try to allocate more space.
-        if (IsNullObject(block)) {
-            assert(
-                    (_MaxObjectPoolCount + _MaxObjectPoolCount) < _MaxAllowedMemoryAlloc
-                    && "Failed to allocate from the object memory pool!"
-            );
-
-            ResizeObjectPoolList(_MaxObjectPoolCount + _MaxObjectPoolCount, _ObjectPoolBlockSize);
-            block = _ObjectList._FindAvailable();
-
-            assert(!IsNullObject(block) && "Failed to allocate object memory block!");
-        }
-
-        _ObjectList._BlocksUsed++;
-        _ObjectList.ClearBlockMemory(block->Index);
-        block->IsFree = false;
-        block->Size = sizeof(T);
-
-//        T* ref = reinterpret_cast<T*>(block->Data);
-        T* ref = new(block->Data) T();
-        ref->SetMemIndex(block->Index);
-
-        return ref;
+        return new T();
     }
 
     //! Attempts to allocate memory.
@@ -156,32 +133,7 @@ public:
     template<typename T>
     T* AllocBytes(size_t amount)
     {
-        // Attempt to find an available block in memory.
-        AllocReserveGroup::MemBlock* block = _ByteList._FindAvailable();
-
-        // Ensure we can allocate the bytes.
-        assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
-
-        // If we don't have an available block, try to allocate more space.
-        if (IsNullObject(block)) {
-            assert(
-                    (_MaxBytePoolCount + _MaxBytePoolCount) < _MaxAllowedMemoryAlloc
-                    && "Failed to allocate from the byte memory pool!"
-            );
-
-            ResizeBytePoolList(_MaxBytePoolCount + _MaxBytePoolCount, _BytePoolBlockSize);
-            block = _ByteList._FindAvailable();
-
-            assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
-        }
-
-        _ByteList._BlocksUsed++;
-        _ByteList.ClearBlockMemory(block->Index);
-        block->IsFree = false;
-        block->Size = amount;
-
-        T* ref = new(block->Data) T();
-        return ref;
+        return new T();
     }
 
     //! Attempts to allocate memory.
@@ -190,32 +142,7 @@ public:
     template<typename T>
     T* AllocBytesArray(size_t amount)
     {
-        // Attempt to find an available block in memory.
-        AllocReserveGroup::MemBlock* block = _ByteList._FindAvailable();
-
-        // Ensure we can allocate the bytes.
-        assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
-
-        // If we don't have an available block, try to allocate more space.
-        if (IsNullObject(block)) {
-            assert(
-                    (_MaxBytePoolCount + _MaxBytePoolCount) < _MaxAllowedMemoryAlloc
-                    && "Failed to allocate from the byte memory pool!"
-            );
-
-            ResizeBytePoolList(_MaxBytePoolCount + _MaxBytePoolCount, _BytePoolBlockSize);
-            block = _ByteList._FindAvailable();
-
-            assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
-        }
-
-        _ByteList._BlocksUsed++;
-        _ByteList.ClearBlockMemory(block->Index);
-        block->IsFree = false;
-        block->Size = amount;
-
-        T* ref = new(block->Data) T();
-        return ref;
+        return new T[amount];
     }
 
     //! Attempts to free an object reference.
@@ -224,7 +151,8 @@ public:
 
     //! Attempts to free bytes.
     //! \param src
-    void FreeBytes(void* src);
+    //! \param isArray
+    void FreeBytes(void* src, bool isArray = false);
 
     //! Attempts to free bytes.
     //! \param src
@@ -274,12 +202,12 @@ public:
 
 #define AllocInstance Sympl::AllocManager::GetInstance()
 
-#define alloc_ref(clazz) AllocInstance->AllocRef<clazz>()
-#define free_ref(ref) AllocInstance->FreeRef(reinterpret_cast<RefCounter*>(ref)); ref = nullptr
+#define alloc_ref(clazz) AllocInstance.AllocRef<clazz>()
+#define free_ref(ref) AllocInstance.FreeRef(reinterpret_cast<RefCounter*>(ref)); ref = nullptr
 
-#define alloc_bytes(type) AllocInstance->AllocBytes<type>(sizeof(type))
-#define alloc_bytes_array(type, amount) AllocInstance->AllocBytesArray<type>(amount)
-#define free_bytes(ref) AllocInstance->FreeBytes(reinterpret_cast<void*>(ref)); ref = nullptr
-#define free_bytes_array(ref) AllocInstance->FreeBytesArray(reinterpret_cast<void*>(ref)); ref = nullptr
+#define alloc_bytes(type) AllocInstance.AllocBytes<type>(sizeof(type))
+#define alloc_bytes_array(type, amount) AllocInstance.AllocBytesArray<type>(amount)
+#define free_bytes(ref) AllocInstance.FreeBytes(reinterpret_cast<void*>(ref)); ref = nullptr
+#define free_bytes_array(ref) AllocInstance.FreeBytesArray(reinterpret_cast<void*>(ref)); ref = nullptr
 
 sympl_nsend
