@@ -120,7 +120,7 @@
     #define GUID_LIBUUID
 #endif
 
-#include <sympl/thirdparty/guid.h>
+//#include <sympl/thirdparty/guid.h>
 
 #ifdef _WIN32
 #ifndef SYMPL_IMPORTS

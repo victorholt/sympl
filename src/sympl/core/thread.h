@@ -24,14 +24,14 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 
 sympl_nsstart
 
 typedef std::function<void()> SymplThreadCallback;
 
-class SYMPL_API Thread : public ObjectRef {
-    SYMPL_OBJECT(Thread, ObjectRef);
+class SYMPL_API Thread : public Object {
+    SYMPL_OBJECT(Thread, Object);
 
 protected:
     /// Reference to the system thread.
@@ -61,9 +61,6 @@ protected:
 public:
     //! Constructor.
     Thread();
-
-    //! Destructor.
-    virtual ~Thread();
 
     //! Called in place of the constructor.
     void __Construct() override;

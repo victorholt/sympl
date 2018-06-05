@@ -26,10 +26,11 @@ sympl_namespaces
 
 std::string StringHelper::GenerateGuid()
 {
-    auto guid = xg::newGuid();
-    std::stringstream guidStream;
-    guidStream << guid;
-    return guidStream.str();
+//    auto guid = xg::newGuid();
+//    std::stringstream guidStream;
+//    guidStream << guid;
+//    return guidStream.str();
+    return "";
 }
 
 std::string StringHelper::GenerateRandomStr(size_t length, bool numbersOnly)

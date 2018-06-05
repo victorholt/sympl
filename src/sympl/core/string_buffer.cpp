@@ -40,11 +40,6 @@ StringBuffer::StringBuffer()
     __Construct();
 }
 
-StringBuffer::~StringBuffer()
-{
-    Release();
-}
-
 void StringBuffer::__Construct()
 {
     Init("", SYMPL_STRING_BUFFER_CAPACITY);
@@ -62,6 +57,7 @@ void StringBuffer::Init(const char *str, size_t capacity)
     size_t strCapacity = sizeof(uchar) * confirmedCapacity;
 
     // Create/clean up our string.
+    _StaticBuffer = alloc_bytes_array(uchar, SYMPL_STRING_BUFFER_CAPACITY);
     _Buffer = _StaticBuffer;
     memset(_Buffer, 0, strCapacity);
     memcpy(_Buffer, str, strlen(str) + 1);
@@ -82,21 +78,38 @@ void StringBuffer::Prepend(const char *str)
         Resize(_Length + strSize + SYMPL_STRING_BUFFER_CAPACITY);
     }
 
-    memcpy(_Buffer + strlen(str), _Buffer, _Length);
-    memcpy(_Buffer, str, strlen(str));
+    auto tmpBuffer = alloc_bytes_array(uchar, _Capacity);
+    memcpy(tmpBuffer + strlen(str), _Buffer, _Length);
+    memcpy(tmpBuffer, str, strlen(str));
+
+    if (_UseDynamicBuffer) {
+        free(_Buffer);
+    } else {
+        free_bytes_array(_Buffer);
+    }
+    _Buffer = tmpBuffer;
+
     _Length += strlen(str);
 }
 
 void StringBuffer::PrependByte(const char byte)
 {
     // Ensure we have enough capacity.
-    if ((_Length + 2) >= _Capacity) {
-        Resize(_Length + 2 + SYMPL_STRING_BUFFER_CAPACITY);
+    if ((_Length + 1) >= _Capacity) {
+        Resize(_Length + 1 + SYMPL_STRING_BUFFER_CAPACITY);
     }
 
-    memcpy(_Buffer + 1, _Buffer, _Length);
-    _Buffer[0] = static_cast<uchar>(byte);
+    auto tmpBuffer = alloc_bytes_array(uchar, _Capacity);
+    memcpy(tmpBuffer + 1, _Buffer, _Length);
+    tmpBuffer[0] = static_cast<uchar>(byte);
     _Length += 1;
+
+    if (_UseDynamicBuffer) {
+        free(_Buffer);
+    } else {
+        free_bytes_array(_Buffer);
+    }
+    _Buffer = tmpBuffer;
 }
 
 void StringBuffer::Append(StringBuffer *str)
@@ -152,7 +165,7 @@ void StringBuffer::Resize(size_t newCapacity)
         _Capacity = newCapacity + (_Capacity * 5);
     }
 
-    uchar *tmpStr = reinterpret_cast<uchar*>(calloc(_Capacity, sizeof(uchar)));
+    auto *tmpStr = reinterpret_cast<uchar*>(calloc(_Capacity, sizeof(uchar)));
 
     if (_Length > 0) {
         size_t index = 0;
@@ -178,8 +191,10 @@ void StringBuffer::ReplaceAt(size_t pos, const char* str)
 
 void StringBuffer::Replace(const char *search, const char *replaceWith)
 {
+    if (_Length == 0) return;
+
     std::string buffer;
-    buffer.reserve(_Capacity);
+    //buffer.reserve(_Capacity);
     buffer = CStr();
 
     for (std::string::size_type i = 0; (i = buffer.find(search, i)) != std::string::npos;)
@@ -190,6 +205,113 @@ void StringBuffer::Replace(const char *search, const char *replaceWith)
 
     Clear();
     Append(buffer);
+
+//
+//     StringBuffer findBuffer;
+//     findBuffer.Resize(_Capacity);
+//
+//     StringBuffer tmpBuffer;
+//
+//     long long tmpBufferIndex = 0;
+//     long long capacity = _Capacity;
+//     size_t strLen = strlen(search);
+//     if (strLen > _Length) {
+//         return;
+//     }
+//
+//     for (size_t i = 0; i < _Length; i++) {
+//         tmpBuffer.AppendByte(Get(i));
+//         tmpBufferIndex++;
+//
+//         // Ensure we've copied over enough character to check the sequence.
+//         if (i < (strLen - 1)) {
+//             findBuffer.AppendByte(Get(i));
+//             continue;
+//         }
+//
+//         // Shift the characters to the right.
+//         for (size_t j = 0; j < strLen - 1; j++) {
+//             findBuffer.SetByte(j, Get((i - (strLen - 1)) + j));
+//         }
+//         findBuffer.SetByte(strLen - 1, Get(i));
+//
+//         // Compare the current sequence of strings.
+//         if (strcmp(findBuffer.CStr(), search) == 0) {
+//             size_t replaceIndex = (tmpBufferIndex - strLen);
+//             tmpBufferIndex = replaceIndex + strlen(replaceWith);
+//
+//             // Check if we need to resize the buffer.
+//             if ((capacity - tmpBufferIndex) < 0) {
+//                 capacity += (tmpBufferIndex * 2) + (capacity * 2);
+//                 tmpBuffer.Resize(capacity);
+//             }
+//
+//             tmpBuffer.ReplaceAt(replaceIndex, replaceWith);
+//         }
+//     }
+//
+//     Clear();
+//     Append(&tmpBuffer);
+
+    /*
+    long long capacity = _Capacity;
+    size_t strLen = strlen(search);
+    if (strLen > _Length) {
+        return;
+    }
+
+    char8* findBuffer = new char8[strLen + 1];
+    memset(findBuffer, 0, strLen + 1);
+
+    char8* tmpStr = new char8[capacity];
+    memset(tmpStr, 0, capacity);
+
+    long long tmpBufferIndex = 0;
+    long long currentFindBufferIndex = strLen;
+
+    for (size_t i = 0; i < _Length; i++) {
+        tmpStr[tmpBufferIndex++] = Get(i);
+
+        // Ensure we've copied over enough character to check the sequence.
+        if (i < (strLen - 1)) {
+            findBuffer[i] = Get(i);
+            continue;
+        }
+
+        // Shift the characters to the right.
+        for (size_t j = 0; j < strLen - 1; j++) {
+            findBuffer[j] = Get((i - (strLen - 1)) + j);
+        }
+        findBuffer[strLen - 1] = Get(i);
+
+        // Compare the current sequence of strings.
+        if (strcmp(findBuffer, search) == 0) {
+            size_t replaceIndex = (tmpBufferIndex - strLen);
+            tmpBufferIndex = replaceIndex + strlen(replaceWith);
+
+            // Check if we need to resize the buffer.
+            if ((capacity - tmpBufferIndex) < 0) {
+                capacity += (tmpBufferIndex * 2) + (capacity * 2);
+
+                char8* newBuffer = new char8[capacity];
+                memset(newBuffer, 0, capacity);
+                memcpy(newBuffer, tmpStr, strlen(tmpStr) + 1);
+
+                delete [] tmpStr;
+                tmpStr = newBuffer;
+            }
+
+            memset(tmpStr + replaceIndex, 0, capacity - replaceIndex);
+            memcpy(tmpStr + replaceIndex, replaceWith, strlen(replaceWith));
+        }
+    }
+
+    Clear();
+    Append(tmpStr);
+
+    delete [] tmpStr;
+    delete [] findBuffer;
+    */
 }
 
 void StringBuffer::Clear()
@@ -205,6 +327,7 @@ bool StringBuffer::Release()
     if (_UseDynamicBuffer) {
         free(_Buffer);
     }
+    free_bytes_array(_StaticBuffer);
 
     return true;
 }

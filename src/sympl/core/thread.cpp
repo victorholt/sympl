@@ -29,11 +29,6 @@ Thread::Thread()
 
 }
 
-Thread::~Thread()
-{
-    Release();
-}
-
 void Thread::__Construct()
 {
 

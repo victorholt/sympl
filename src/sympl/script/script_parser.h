@@ -25,7 +25,7 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/string_buffer.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_reader.h>
 #include <sympl/script/script_token.h>
@@ -37,9 +37,9 @@ sympl_nsstart
 class ScriptReader;
 class Interpreter;
 
-class SYMPL_API ScriptParser : public ObjectRef
+class SYMPL_API ScriptParser : public Object
 {
-SYMPL_OBJECT(ScriptParser, ObjectRef);
+    SYMPL_OBJECT(ScriptParser, Object);
 
 private:
     enum class ParserScanMode {
@@ -128,9 +128,6 @@ private:
 public:
     //! Constructor.
     ScriptParser();
-
-    //! Destructor.
-    ~ScriptParser() override;
 
     //! Called in place of the constructor.
     void __Construct() override;

@@ -21,66 +21,34 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include <sympl/core/object_ref.h>
-sympl_namespaces
+#pragma once
 
-RefInfo::RefInfo(const char* typeName, const RefInfo* baseTypeInfo)
-        :   _TypeName(typeName),
-            _BaseTypeInfo(baseTypeInfo)
-{
+#include <sympl/core/sympl_pch.h>
+#include <sympl/core/alloc_manager.h>
+#include <sympl/core/ref.h>
+#include <sympl/core/variant.h>
 
-}
+sympl_nsstart
 
-RefInfo::~RefInfo() = default;
+class SYMPL_API Object : public RefCounter {
+protected:
+    /// Meta data for the object.
+    std::unordered_map<std::string, Variant> _Meta;
 
-bool RefInfo::IsTypeOf(std::string type) const
-{
-    const RefInfo* current = this;
+public:
 
-    while (current)
-    {
-        if (current->GetTypeName() == type)
-            return true;
+    //! Sets meta data for the object.
+    //! \param key
+    //! \param value
+    void SetMeta(const std::string& key, const Variant& value);
 
-        current = current->GetBaseTypeInfo();
-    }
+    //! Returns meta data for the object.
+    //! \return Variant
+    Variant GetMeta(const std::string& key);
 
-    return false;
-}
+    //! Returns whether or not the meta key exists.
+    //! \return bool
+    bool HasMeta(const std::string& key);
+};
 
-bool RefInfo::IsTypeOf(const RefInfo* typeInfo) const
-{
-    const RefInfo* current = this;
-
-    while (current)
-    {
-        if (current == typeInfo)
-            return true;
-
-        current = current->GetBaseTypeInfo();
-    }
-
-    return false;
-}
-
-void ObjectRef::SetMeta(const std::string& key, const Variant& value)
-{
-    _Meta[key] = value;
-}
-
-Variant ObjectRef::GetMeta(const std::string& key)
-{
-    auto entry = _Meta.find(key);
-
-    if (entry == _Meta.end()) {
-        return Variant::Empty;
-    }
-
-    return _Meta[key];
-}
-
-bool ObjectRef::HasMeta(const std::string& key)
-{
-    auto meta = GetMeta(key);
-    return (meta.GetType() != VariantType::Empty);
-}
+sympl_nsend

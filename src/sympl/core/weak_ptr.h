@@ -25,7 +25,7 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/alloc_manager.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/ref.h>
 
 sympl_nsstart
 
@@ -48,12 +48,14 @@ public:
 
     //! Constructor.
     //! \param ptr
-    WeakPtr(T* ptr) {
+    WeakPtr(T* ptr) noexcept {
         _Set(ptr);
     }
 
     //! Destructor.
-    ~WeakPtr() {
+    ~WeakPtr() noexcept
+    {
+        Release();
     }
 
     //! Returns the data reference count.

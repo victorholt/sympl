@@ -24,7 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/core/weak_ptr.h>
@@ -36,9 +36,9 @@ sympl_nsstart
 class StringBuffer;
 class ScriptVM;
 
-class SYMPL_API ScriptObject : public ObjectRef
+class SYMPL_API ScriptObject : public Object
 {
-SYMPL_OBJECT(ScriptObject, ObjectRef);
+    SYMPL_OBJECT(ScriptObject, Object);
 
 protected:
     /// Parent reference for the object.
@@ -102,16 +102,13 @@ public:
     //! Constructor.
     ScriptObject();
 
-    //! Destructor.
-    ~ScriptObject() override;
-
     //! Called in place of the constructor.
     void __Construct() override;
 
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
-    virtual Variant Evaluate(const std::vector<Variant>& args);
+    virtual Variant Evaluate(const Urho3D::PODVector<Variant>& args);
 
     //! Evaluates and returns the results of the object.
     //! \return

@@ -14,6 +14,8 @@ target_link_libraries(
     SymplCoreLib
     SymplUtilLib
     SymplScriptLib
+    Urho3DLib
+    fmtLib
 )
 
 # Only necessary if we've compiled as a dll.

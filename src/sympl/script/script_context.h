@@ -24,7 +24,7 @@
 #pragma once
 
 #include <sympl/core/variant.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/core/weak_ptr.h>
 
@@ -32,9 +32,9 @@ sympl_nsstart
 
 class ScriptObject;
 
-class SYMPL_API ScriptContext : public ObjectRef
+class SYMPL_API ScriptContext : public Object
 {
-    SYMPL_OBJECT(ScriptContext, ObjectRef);
+    SYMPL_OBJECT(ScriptContext, Object);
 
 protected:
     /// Owner of the context.
@@ -59,9 +59,6 @@ protected:
 public:
     //! Constructor.
     ScriptContext();
-
-    //! Destructor.
-    ~ScriptContext() override;
 
     //! Called in place of the constructor.
     void __Construct() override;

@@ -63,6 +63,7 @@ void ScriptVM::Startup()
 
 void ScriptVM::Shutdown()
 {
+    _Symbol.Release();
     _MethodRegistry.Release();
     _Context.Release();
 }

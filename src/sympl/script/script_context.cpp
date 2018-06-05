@@ -33,11 +33,6 @@ ScriptContext::ScriptContext()
 {
 }
 
-ScriptContext::~ScriptContext()
-{
-    Release();
-}
-
 void ScriptContext::__Construct()
 {
 
@@ -123,7 +118,6 @@ ScriptObject* ScriptContext::GetScriptObject()
 
 bool ScriptContext::Release()
 {
-    _Object.Release();
     _VarList.clear();
     return true;
 }

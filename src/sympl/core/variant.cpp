@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/core/variant.h>
 #include <sympl/core/string_buffer.h>
+#include <sympl/core/object.h>
 #include <sympl/script/script_object.h>
 
 #include <fmt/format.h>
@@ -30,11 +31,13 @@ sympl_namespaces
 
 Variant Variant::Empty;
 
-Variant::Variant(ObjectRef* value) {
+Variant::Variant(Object* value)
+        : _Type(VariantType::Empty)
+{
     Set(value);
 }
 
-void Variant::Set(ObjectRef* value) {
+void Variant::Set(Object* value) {
     Clear();
     value->AddRef();
 
@@ -42,14 +45,14 @@ void Variant::Set(ObjectRef* value) {
     _Value.Ptr = value;
 }
 
-ObjectRef* Variant::GetObject() {
+Object* Variant::GetObject() {
     if (_Type != VariantType::Object) {
         return nullptr;
     }
-    return reinterpret_cast<ObjectRef*>(_Value.Ptr);
+    return reinterpret_cast<Object*>(_Value.Ptr);
 }
 
-Variant& Variant::operator =(ObjectRef* rhs) {
+Variant& Variant::operator =(Object* rhs) {
     Set(rhs);
     return *this;
 }
@@ -59,7 +62,22 @@ void Variant::Set(const Variant& value)
     Clear();
 
     _Type = value._Type;
-    _Value = value._Value;
+
+    switch ((int)_Type) {
+        case (int)VariantType::Bool:
+            _Value.BoolVal = value._Value.BoolVal;
+            break;
+        case (int)VariantType::Int:
+            _Value.IntVal = value._Value.IntVal;
+            break;
+        case (int)VariantType::Float:
+            _Value.FloatVal = value._Value.FloatVal;
+            break;
+        case (int)VariantType::Object:
+        case (int)VariantType::StringBuffer:
+            _Value.Ptr = value._Value.Ptr;
+            break;
+    }
 
     // Increment the reference count so we don't run into
     // a segment fault situation when passing the pointer

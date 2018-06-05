@@ -24,7 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 
 sympl_nsstart
 
@@ -38,9 +38,9 @@ struct ProfileRecord
     bool HasStarted;
 };
 
-class SYMPL_API Profiler : public ObjectRef
+class SYMPL_API Profiler : public Object
 {
-    SYMPL_OBJECT(Profiler, ObjectRef);
+    SYMPL_OBJECT(Profiler, Object);
 
 private:
     /// Instance for the profiler.

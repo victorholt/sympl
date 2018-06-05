@@ -23,10 +23,17 @@
  **********************************************************/
 #pragma once
 
+#include <fmt/format.h>
+
+#include <urho3d/container/Swap.h>
+#include <urho3d/container/VectorBase.h>
+#include <urho3d/container/Vector.h>
+
 #include <sympl/core/sympl_pch.h>
 
 #include <sympl/core/alloc_manager.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/core/weak_ptr.h>
 #include <sympl/core/string_buffer.h>

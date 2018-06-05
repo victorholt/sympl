@@ -47,7 +47,7 @@ void CallbackMethod::_Initialize(const char* name, const char* path, ScriptObjec
     ScriptMethod::_Initialize(name, path, parent);
 }
 
-Variant CallbackMethod::Evaluate(const std::vector<Variant>& args)
+Variant CallbackMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
 {
     _CopyArgs(args);
     _ProcessArgStatements();
@@ -59,13 +59,13 @@ Variant CallbackMethod::Evaluate(const std::vector<Variant>& args)
     return Variant::Empty;
 }
 
-void CallbackMethod::_CopyArgs(const std::vector<Variant>& args)
+void CallbackMethod::_CopyArgs(const Urho3D::PODVector<Variant>& args)
 {
-    if (args.empty()) return;
+    if (args.Empty()) return;
 
     int argIndex = 0;
-    for (auto argIt : args) {
-        if (_Args.size() <= argIndex) {
+    for (auto& argIt : args) {
+        if (_Args.Size() <= argIndex) {
             auto arg = ScriptVMInstance->CreateObject(fmt::format("__arg__{0}", argIndex).c_str(),
                                                       ScriptObjectType::Object, _Scope.Ptr());
             arg->SetValue(argIt);
@@ -81,7 +81,7 @@ ScriptObject* CallbackMethod::_OnCloneCreateObject(const std::string& name, Scri
 {
     ScriptObject* clone = alloc_ref(CallbackMethod);
     clone->SetName(name);
-    static_cast<CallbackMethod*>(clone)->SetCallback(_Callback);
+    dynamic_cast<CallbackMethod*>(clone)->SetCallback(_Callback);
     ScriptVMInstance->AddObject(clone, parent);
     return clone;
 }

@@ -49,7 +49,7 @@ void ScriptMethod::_Initialize(const char* name, const char* path, ScriptObject*
     _Scope = ScriptVMInstance->CreateObject(SYMPL_SCOPE_NAME, ScriptObjectType::Object, this);
 }
 
-Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
+Variant ScriptMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
 {
     _Exit = false;
 
@@ -62,16 +62,16 @@ Variant ScriptMethod::Evaluate(const std::vector<Variant>& args)
 
 Variant ScriptMethod::Evaluate()
 {
-    std::vector<Variant> args;
+    Urho3D::PODVector<Variant> args;
     return Evaluate(args);
 }
 
-void ScriptMethod::_CopyArgs(const std::vector<Variant>& args)
+void ScriptMethod::_CopyArgs(const Urho3D::PODVector<Variant>& args)
 {
     int argIndex = 0;
     for (auto argIt : _Args) {
         // Ensure we have args.
-        if (argIndex >= args.size()) {
+        if (argIndex >= args.Size()) {
             break;
         }
 
@@ -113,20 +113,20 @@ void ScriptMethod::_ProcessArgStatements()
 
 void ScriptMethod::_ProcessCallStatements()
 {
-    for (auto& entryIt : _CallStatements) {
+    for (auto entryIt : _CallStatements) {
         if (_Exit) return;
 
-        entryIt.Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
-        entryIt.Statement->Build(entryIt.Variable.Ptr());
+        entryIt->Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
+        entryIt->Statement->Build(entryIt->Variable.Ptr());
 
-        auto val = entryIt.Statement->Evaluate();
+        auto val = entryIt->Statement->Evaluate();
         if (!val.IsEmpty()) {
             _Value = val;
-            entryIt.Variable->SetValue(_Value);
+            entryIt->Variable->SetValue(_Value);
         }
 
         // Check if we're attempting to return out of the method.
-        if (entryIt.Variable->GetName() == "return") {
+        if (entryIt->Variable->GetName() == "return") {
             Exit();
             return;
         }
@@ -135,7 +135,6 @@ void ScriptMethod::_ProcessCallStatements()
 
 bool ScriptMethod::_CheckReturnType(const Variant& value)
 {
-    Variant v = value;
     VariantType type = value.GetType();
     if (type == VariantType::Int && (_ReturnType != MethodReturnType::Int && _ReturnType != MethodReturnType::String)) {
         return false;
@@ -165,7 +164,7 @@ void ScriptMethod::AddArg(ScriptObject* arg)
     }
 
     arg->SetMeta("is_method_arg", true);
-    _Args.push_back(arg);
+    _Args.Push(arg);
 
     // Add arg as a variable in the context.
     GetScope()->GetContext()->AddVar(arg);
@@ -173,11 +172,11 @@ void ScriptMethod::AddArg(ScriptObject* arg)
 
 void ScriptMethod::AddStatement(ScriptObject* variable, ScriptStatement* stat)
 {
-    MethodCallStatement callStatement;
-    callStatement.Variable = variable;
-    callStatement.Statement = stat;
+    auto callStatement = alloc_bytes(MethodCallStatement);
+    callStatement->Variable = variable;
+    callStatement->Statement = stat;
 
-    _CallStatements.push_back(callStatement);
+    _CallStatements.Push(callStatement);
 }
 
 ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
@@ -205,9 +204,9 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 
     // Add the statements.
     for (auto entryIt : _CallStatements) {
-        auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt.Variable->GetName().c_str(), false);
+        auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str(), false);
         if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
-            to_method(clone)->AddStatement(callObj, entryIt.Statement->Clone(to_method(clone)->GetScope()));
+            to_method(clone)->AddStatement(callObj, entryIt->Statement->Clone(to_method(clone)->GetScope()));
         }
     }
 
@@ -249,8 +248,11 @@ bool ScriptMethod::Release()
 {
     _Value.Clear();
 
-    _CallStatements.clear();
-    _Args.clear();
+    for (auto entryIt : _CallStatements) {
+        free_bytes(entryIt);
+    }
+    _CallStatements.Clear();
+    _Args.Clear();
 
     return true;
 }

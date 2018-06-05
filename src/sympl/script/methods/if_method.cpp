@@ -49,7 +49,7 @@ void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* par
     AddArg(arg);
 }
 
-Variant IfMethod::Evaluate(const std::vector<Variant>& args)
+Variant IfMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
 {
     _CopyArgs(args);
     _ProcessArgStatements();

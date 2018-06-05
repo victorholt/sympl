@@ -25,7 +25,6 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/alloc_manager.h>
-#include <sympl/core/variant.h>
 
 sympl_nsstart
 
@@ -78,36 +77,24 @@ public:
         static const std::string& GetTypeNameStatic() { return GetTypeInfoStatic()->GetTypeName(); } \
         static const Sympl::RefInfo* GetTypeInfoStatic() { static const Sympl::RefInfo typeInfoStatic(#typeName, BaseClassName::GetTypeInfoStatic()); return &typeInfoStatic; } \
 
-class SYMPL_API ObjectRef {
+class SYMPL_API RefCounter {
 protected:
-    /// Meta data for the object.
-    std::unordered_map<std::string, Variant> _Meta;
-
     /// Current reference count before we can delete the reference.
     unsigned _RefCount = 0;
 
-    /// Size of the memory.
-    size_t _MemSize = 0;
-
     /// Memory address for the reference.
-    size_t _MemIndex = 0;
-
-    /// Guid for the reference.
-    std::string _Guid;
+    long long _MemIndex = -1;
 
 public:
     // Attempts to dec the reference count.
-    virtual ~ObjectRef() { Release(); }
+    virtual ~RefCounter() {}
 
     //! Sets the memory index.
     //! \param index
-    inline void SetMemIndex(size_t index) { _MemIndex = index; }
+    inline void SetMemIndex(long long index) { _MemIndex = index; }
 
     //! Returns the block memory index for the object.
-    inline const size_t GetMemIndex() const { return _MemIndex; }
-
-    //! Returns the guid for the object.
-    inline const std::string Guid() const { return _Guid; }
+    inline const long long GetMemIndex() const { return _MemIndex; }
 
     //! Adds to the reference count.
     inline void AddRef() { _RefCount++; }
@@ -123,19 +110,6 @@ public:
     //! Returns the reference count.
     //! \return
     inline unsigned RefCount() const { return _RefCount; }
-
-    //! Sets meta data for the object.
-    //! \param key
-    //! \param value
-    void SetMeta(const std::string& key, const Variant& value);
-
-    //! Returns meta data for the object.
-    //! \return Variant
-    Variant GetMeta(const std::string& key);
-
-    //! Returns whether or not the meta key exists.
-    //! \return bool
-    bool HasMeta(const std::string& key);
 
     //! Called in place of the constructor.
     virtual void __Construct() = 0;

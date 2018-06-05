@@ -24,8 +24,10 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/mutex.h>
+
+#include <sympl/thirdparty/urho3d/container/Vector.h>
 
 sympl_nsstart
 
@@ -34,7 +36,7 @@ class StringBuffer;
 /// Types of tokens read by the parser.
 enum class TokenType
 {
-    Keyword,
+    Empty,
     Operator,
     Identifier,
     Delimiter,
@@ -52,19 +54,30 @@ struct TokenMeta
     std::string Value;
     /// The type of symbol.
     TokenType Type;
+
+    TokenMeta() noexcept {
+        AltName = '\0';
+        Type = TokenType::Empty;
+    }
+
+    bool IsEmpty() const {
+        return Type == TokenType::Empty;
+    }
 };
 
-class SYMPL_API ScriptToken : public ObjectRef
+class SYMPL_API ScriptToken : public Object
 {
-    SYMPL_OBJECT(ScriptToken, ObjectRef);
+    SYMPL_OBJECT(ScriptToken, Object);
 
 private:
+    static TokenMeta Empty;
+
     /// The map of standard tokens.
-    std::unordered_map<std::string, TokenMeta> _StdTokens;
+    Urho3D::PODVector<TokenMeta*> _StdTokens;
     /// The map of delimiter tokens.
-    std::unordered_map<std::string, TokenMeta> _DelTokens;
+    Urho3D::PODVector<TokenMeta*> _DelTokens;
     /// The map of special character tokens.
-    std::unordered_map<std::string, TokenMeta> _SpecTokens;
+    Urho3D::PODVector<TokenMeta*> _SpecTokens;
 
     /// Reference to the translation buffer (special chars decode).
     StringBuffer* _TranslateBuffer = nullptr;
@@ -89,6 +102,18 @@ private:
     //! \param value
     void AddSpecialCharToken(TokenType type, const std::string& name, const std::string& value);
 
+    //! Finds a token.
+    //! \param type
+    //! \param token
+    //! \return
+    TokenMeta* FindToken(TokenType type, const std::string& token);
+
+    //! Finds a token.
+    //! \param list
+    //! \param token
+    //! \return
+    TokenMeta* FindToken(Urho3D::PODVector<TokenMeta*>* list, const std::string& token);
+
 public:
     //! Constructor.
     ScriptToken();
@@ -103,53 +128,48 @@ public:
     //! \param type
     //! \param input
     //! \return
-    const bool IsType(TokenType type, const std::string& input) const;
+    const bool IsType(TokenType type, const std::string& input);
 
     //! Returns if the input is a specific type.
     //! \param type
     //! \param input
     //! \return
-    const bool IsType(TokenType type, const char input) const;
+    const bool IsType(TokenType type, const char input);
 
     //! Returns whether or not the input is an object.
     //! \param input
     //! \return
-    const bool IsObject(const char input) const;
+    const bool IsObject(const char input);
 
     //! Returns whether or not the input is an operator type.
     //! \param input
     //! \return
-    const bool IsOperator(const char input) const;
+    const bool IsOperator(const char input);
 
     //! Returns whether or not the input is an operator type.
     //! \param input
     //! \return
-    const bool IsOperator(const std::string& input) const;
+    const bool IsOperator(const std::string& input);
 
     //! Returns whether or not the input is an identifier.
     //! \param input
     //! \return
-    const bool IsIdentifier(const char input) const;
+    const bool IsIdentifier(const char input);
 
     //! Returns whether or not the input is an identifier.
     //! \param input
     //! \return
-    const bool IsIdentifier(const std::string& input) const;
-
-    //! Returns whether or not the input is a keyword.
-    //! \param input
-    //! \return
-    const bool IsKeyword(const std::string& input) const;
+    const bool IsIdentifier(const std::string& input);
 
     //! Returns whether or not the input is a delimiter.
     //! \param input
     //! \return
-    const bool IsDelimiter(const char input) const;
+    const bool IsDelimiter(const char input);
 
     //! Returns whether or not the input is a special character.
     //! \param input
     //! \return
-    const bool IsSpecialChar(const char input) const;
+    const bool IsSpecialChar(const char input);
 
     //! Attempts to encode a given special character.
     //! \param input

@@ -24,7 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/weak_ptr.h>
 
 #include <sympl/script/script_method.h>
@@ -36,9 +36,9 @@ class ScriptVM;
 // Simple registry for holding GLOBAL methods used
 // in programs.
 
-class SYMPL_API MethodRegistry : public ObjectRef
+class SYMPL_API MethodRegistry : public Object
 {
-SYMPL_OBJECT(MethodRegistry, ObjectRef);
+    SYMPL_OBJECT(MethodRegistry, Object);
 
 private:
     /// List of methods available.
@@ -50,9 +50,6 @@ private:
 public:
     //! Constructor.
     MethodRegistry();
-
-    //! Destructor.
-    ~MethodRegistry() override;
 
     //! Called in place of the constructor.
     void __Construct() override;

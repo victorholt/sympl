@@ -70,6 +70,7 @@ include_directories(${SYMPL_INCLUDES})
 
 # Include the thirdparty libs.
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/fmt/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/urho3d/CMakeLists.txt)
 
 # Include the source.
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/core/CMakeLists.txt)

@@ -24,7 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/core/weak_ptr.h>
 #include <sympl/core/string_buffer.h>
@@ -68,15 +68,18 @@ struct StatementObjectEntry {
     StatementOperator Op;
     WeakPtr<ScriptObject> Value;
     Variant ConstantValue;
+    StatementObjectEntry* NextEntry;
 };
 
-class SYMPL_API ScriptStatement : public ObjectRef
+class SYMPL_API ScriptStatement : public Object
 {
-SYMPL_OBJECT(ScriptStatement, ObjectRef);
+    SYMPL_OBJECT(ScriptStatement, Object);
 
 private:
     /// Script objects that make up the statement.
-    std::vector<StatementObjectEntry> _Entries;
+    StatementObjectEntry* _FirstEntry;
+    /// The current entry.
+    StatementObjectEntry* _CurrentEntry;
 
     /// Representation of the statement as a string.
     SharedPtr<StringBuffer> _String;
@@ -131,6 +134,9 @@ private:
     //! \param value
     void _Apply(StatementObjectEntry* entry, Variant& value);
 
+    //! Clears out the entries.
+    void _ClearEntries();
+
     //! Converts a symbol to a statement operator.
     //! \param symbol
     StatementOperator _SymbolToOp(const std::string& symbol);
@@ -138,9 +144,6 @@ private:
 public:
     //! Constructor.
     ScriptStatement();
-
-    //! Destructor.
-    ~ScriptStatement() override;
 
     //! Called in place of the constructor.
     void __Construct() override;
@@ -154,7 +157,7 @@ public:
     //! Adds a script object as part of the statement.
     //! \param scriptObject
     //! \param op
-    StatementObjectEntry* Add(ScriptObject*& scriptObject, StatementOperator op = StatementOperator::Equals);
+    StatementObjectEntry* Add(ScriptObject* scriptObject, StatementOperator op = StatementOperator::Equals);
 
     //! Adds a constant value as part of the statement.
     //! \param constantValue

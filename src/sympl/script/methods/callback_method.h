@@ -29,7 +29,7 @@ sympl_nsstart
 
 class SYMPL_API CallbackMethod : public ScriptMethod
 {
-SYMPL_OBJECT(CallbackMethod, ScriptMethod);
+    SYMPL_OBJECT(CallbackMethod, ScriptMethod);
 
 protected:
     /// Callback method called during the evaluate process.
@@ -38,11 +38,11 @@ protected:
     //! Initializes the object.
     //! \param name
     //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
+    void _Initialize(const char* name, const char* path, ScriptObject* parent) override;
 
     //! Copy over argument values from a list of arguments.
     //! \param args
-    void _CopyArgs(const std::vector<Variant>& args) override;
+    void _CopyArgs(const Urho3D::PODVector<Variant>& args) override;
 
     //! Handles cloning the object and adding it to the VM.
     //! \param name
@@ -56,7 +56,7 @@ public:
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
-    Variant Evaluate(const std::vector<Variant>& args) override;
+    Variant Evaluate(const Urho3D::PODVector<Variant>& args) override;
 
     //! Sets the callback for the method.
     //! \param callback

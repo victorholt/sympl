@@ -24,23 +24,23 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 
 sympl_nsstart
 
 typedef unsigned char uchar;
 #define SYMPL_STRING_BUFFER_CAPACITY 512
 
-class SYMPL_API StringBuffer : public ObjectRef
+class SYMPL_API StringBuffer : public Object
 {
-SYMPL_OBJECT(StringBuffer, ObjectRef);
+    SYMPL_OBJECT(StringBuffer, Object);
 
 private:
     /// Buffer for holding the string.
     uchar      *_Buffer;
 
     /// Static buffer of pre-allocated bytes.
-    uchar      _StaticBuffer[SYMPL_STRING_BUFFER_CAPACITY];
+    uchar      *_StaticBuffer;
 
     /// Flag to switch to the dynamic buffer.
     bool        _UseDynamicBuffer = false;
@@ -67,9 +67,6 @@ public:
 
     //! Constructor.
     StringBuffer();
-
-    //! Destructor.
-    virtual ~StringBuffer();
 
     //! Called in place of the constructor.
     void __Construct() override;

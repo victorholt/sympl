@@ -24,7 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_common.h>
 #include <sympl/script/script_object.h>
@@ -42,9 +42,9 @@ struct InterpretCommandEntry
     SharedPtr<ScriptStatement>    Statement;
 };
 
-class SYMPL_API Interpreter : public ObjectRef
+class SYMPL_API Interpreter : public Object
 {
-SYMPL_OBJECT(Interpreter, ObjectRef);
+    SYMPL_OBJECT(Interpreter, Object);
 
 private:
     /// Command list for the program.
@@ -66,9 +66,6 @@ private:
 public:
     //! Constructor.
     Interpreter();
-
-    //! Destructor.
-    ~Interpreter() override { Release(); }
 
     //! Called in place of the constructor.
     void __Construct() override;

@@ -35,7 +35,7 @@ public:
     /// Attempts to parse an integer from a string.
     static bool TryParseInt(const char* str, int* output) {
         char *end;
-        *output = std::strtol(str, &end, 10);
+        *output = (int)std::strtol(str, &end, 10);
         return (*end == '\0');
     }
     /// Attempts to parse an integer from a string.

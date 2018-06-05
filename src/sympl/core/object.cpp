@@ -21,36 +21,27 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
-#include <sympl/core/sympl_pch.h>
 #include <sympl/core/object.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/script/script_common.h>
+sympl_namespaces
 
-#include <sympl/thirdparty/urho3d/container/Vector.h>
+void Object::SetMeta(const std::string& key, const Variant& value)
+{
+    _Meta[key] = value;
+}
 
-sympl_nsstart
+Variant Object::GetMeta(const std::string& key)
+{
+    auto entry = _Meta.find(key);
 
-class ScriptObject;
+    if (entry == _Meta.end()) {
+        return Variant::Empty;
+    }
 
-#define GLOBAL_SCRIPT_OBJECT "__global__"
-#define SYMPL_STRING_TOKEN "@__STRING__@"
-#define SYMPL_SCOPE_NAME "__scope__"
-#define SYMPL_METHOD_ARG_NAME "__arg__"
-#define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
+    return _Meta[key];
+}
 
-typedef std::function<void(const Urho3D::PODVector<ScriptObject*>&)> ScriptMethodCallback;
-
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
-};
-
-sympl_nsend
-
-
+bool Object::HasMeta(const std::string& key)
+{
+    auto meta = GetMeta(key);
+    return (meta.GetType() != VariantType::Empty);
+}

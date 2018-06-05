@@ -38,11 +38,6 @@ ScriptParser::ScriptParser()
     __Construct();
 }
 
-ScriptParser::~ScriptParser()
-{
-    Release();
-}
-
 void ScriptParser::__Construct()
 {
     _Reader = nullptr;

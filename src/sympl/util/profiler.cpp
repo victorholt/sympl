@@ -30,6 +30,7 @@ Profiler* Profiler::_Instance = nullptr;
 
 void Profiler::__Construct()
 {
+    _Enabled = true;
 }
 
 void Profiler::Start(const std::string& recordName)
@@ -53,7 +54,7 @@ ProfileRecord* Profiler::GetRecord(const std::string& recordName)
 
     auto record = _Records.find(recordName);
     if (record == _Records.end()) {
-        auto record = new ProfileRecord();
+        auto record = alloc_bytes(ProfileRecord);
         record->HasStarted = false;
         _Records[recordName] = record;
         return record;
@@ -71,12 +72,13 @@ void Profiler::PrintExecutionTime(const std::string& recordName)
         return;
     }
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
             record->End - record->Start
     ).count();
 
 //    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    double seconds = duration / 1000000.0f;
+//    double seconds = duration / 1000000.0f;
+    double seconds = duration / 1000.0f;
 //    std::cout << recordName << " Execution Time: " << std::setprecision(15) << seconds << " seconds" << std::endl;
     std::cout << recordName << " Execution Time: " << fmt::format("{:.{}f}", seconds, 15) << " seconds" << std::endl;
 //    printf("%s Execution Time: %d seconds\n", recordName.c_str(), seconds);
@@ -85,7 +87,7 @@ void Profiler::PrintExecutionTime(const std::string& recordName)
 void Profiler::Clear()
 {
     for (auto recordIt : _Records) {
-        delete recordIt.second;
+        free_bytes(recordIt.second);
     }
     _Records.clear();
 }

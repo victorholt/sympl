@@ -37,18 +37,12 @@ ScriptObject::ScriptObject()
     __Construct();
 }
 
-ScriptObject::~ScriptObject()
-{
-    Release();
-}
-
 void ScriptObject::__Construct()
 {
     _Name = "";
     _Path = "";
     _Parent = nullptr;
     _Type = ScriptObjectType::Empty;
-    _Context = &ScriptContext::Empty;
 }
 
 void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject* parent)
@@ -71,7 +65,7 @@ void ScriptObject::AddChild(ScriptObject* scriptObject)
     _Children.emplace_back(scriptObject);
 }
 
-Variant ScriptObject::Evaluate(const std::vector<Variant>& args)
+Variant ScriptObject::Evaluate(const Urho3D::PODVector<Variant>& args)
 {
     return Variant::Empty;
 }
@@ -125,7 +119,7 @@ ScriptObject* ScriptObject::_OnCloneCreateObject(const std::string& name, Script
 
 void ScriptObject::CreateContext(ScriptContext* context)
 {
-    ScriptContext* newContext = alloc_ref(ScriptContext);
+    auto newContext = alloc_ref(ScriptContext);
     newContext->SetScriptObject(this);
     newContext->SetParentContext(context);
     SetContext(newContext);
@@ -202,7 +196,7 @@ void ScriptObject::RemoveChild(const char* name)
 bool ScriptObject::Release()
 {
     // Attempt to release the object reference.
-    if (!ObjectRef::Release()) {
+    if (!Object::Release()) {
         return false;
     }
 

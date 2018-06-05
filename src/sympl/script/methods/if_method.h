@@ -29,13 +29,13 @@ sympl_nsstart
 
 class SYMPL_API IfMethod : public ScriptMethod
 {
-SYMPL_OBJECT(IfMethod, ScriptMethod);
+    SYMPL_OBJECT(IfMethod, ScriptMethod);
 
 protected:
     //! Initializes the object.
     //! \param name
     //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent = nullptr) override;
+    void _Initialize(const char* name, const char* path, ScriptObject* parent) override;
 
     //! Handles cloning the object and adding it to the VM.
     //! \param name
@@ -49,7 +49,7 @@ public:
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
-    Variant Evaluate(const std::vector<Variant>& args) override;
+    Variant Evaluate(const Urho3D::PODVector<Variant>& args) override;
 };
 
 sympl_nsend

@@ -5,7 +5,7 @@ func add(a, b) : int {
 }
 
 func up(p) : void {
-    if (p < 1500) {
+    if (p < 1050) {
         return up(p + 1);
     }
     return p;

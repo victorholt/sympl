@@ -31,11 +31,6 @@ ScriptReader::ScriptReader()
     __Construct();
 }
 
-ScriptReader::~ScriptReader()
-{
-    Release();
-}
-
 void ScriptReader::__Construct()
 {
     _Buffer = alloc_ref(StringBuffer);

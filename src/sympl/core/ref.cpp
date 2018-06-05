@@ -21,36 +21,44 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
-#include <sympl/core/sympl_pch.h>
 #include <sympl/core/object.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/script/script_common.h>
+sympl_namespaces
 
-#include <sympl/thirdparty/urho3d/container/Vector.h>
+RefInfo::RefInfo(const char* typeName, const RefInfo* baseTypeInfo)
+        :   _TypeName(typeName),
+            _BaseTypeInfo(baseTypeInfo)
+{
 
-sympl_nsstart
+}
 
-class ScriptObject;
+RefInfo::~RefInfo() = default;
 
-#define GLOBAL_SCRIPT_OBJECT "__global__"
-#define SYMPL_STRING_TOKEN "@__STRING__@"
-#define SYMPL_SCOPE_NAME "__scope__"
-#define SYMPL_METHOD_ARG_NAME "__arg__"
-#define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
+bool RefInfo::IsTypeOf(std::string type) const
+{
+    const RefInfo* current = this;
 
-typedef std::function<void(const Urho3D::PODVector<ScriptObject*>&)> ScriptMethodCallback;
+    while (current)
+    {
+        if (current->GetTypeName() == type)
+            return true;
 
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
-};
+        current = current->GetBaseTypeInfo();
+    }
 
-sympl_nsend
+    return false;
+}
 
+bool RefInfo::IsTypeOf(const RefInfo* typeInfo) const
+{
+    const RefInfo* current = this;
 
+    while (current)
+    {
+        if (current == typeInfo)
+            return true;
+
+        current = current->GetBaseTypeInfo();
+    }
+
+    return false;
+}

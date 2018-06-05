@@ -25,10 +25,12 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/alloc_manager.h>
+#include <sympl/core/ref.h>
+#include <sympl/core/weak_ptr.h>
 
 sympl_nsstart
 
-class ObjectRef;
+class Object;
 class StringBuffer;
 
 /// Support types for the Variant.
@@ -52,109 +54,122 @@ struct VariantValue {
         long long           IntVal;
         float               FloatVal;
         void*               Ptr;
+
     };
 
-    VariantValue() {
-        Ptr = nullptr;
-    }
+    VariantValue() { }
+    VariantValue(const VariantValue& value) = delete;
+    ~VariantValue() { }
 };
 
 class SYMPL_API Variant {
 private:
     /// Type of variant.
-    VariantType _Type;
+    VariantType _Type = VariantType::Empty;
     /// Value for the variant object.
     VariantValue _Value;
 
 public:
     //! Constructor.
     Variant()
-            : _Type(VariantType::Empty)
     {
         _Value.Ptr = nullptr;
     }
 
     //! Constructor.
     //! \param value
-    Variant(const Variant& value) {
+    Variant(const Variant& value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(bool value) {
+    Variant(const bool value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(short value) {
+    Variant(short value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(unsigned short value) {
+    Variant(unsigned short value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(int value) {
+    Variant(int value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(unsigned int value) {
+    Variant(unsigned int value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(long value) {
+    Variant(long value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(long long value) {
+    Variant(long long value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(unsigned long value) {
+    Variant(unsigned long value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(float value) {
+    Variant(float value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(double value) {
+    Variant(double value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(const char* value) {
+    Variant(const char* value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(StringBuffer* value) {
+    Variant(StringBuffer* value)
+    {
         Set(value);
     }
 
     //! Constructor.
     //! \param value
-    Variant(ObjectRef* value);
+    Variant(Object* value);
 
     //! Destructor.
     ~Variant() {
@@ -347,11 +362,11 @@ public:
 
     //! Sets the value for the variant.
     //! \param value
-    void Set(ObjectRef* value);
+    void Set(Object* value);
 
     //! Returns the object.
     //! \return ObjectRef
-    ObjectRef* GetObject();
+    Object* GetObject();
 
     //! Returns the value as a string.
     //! \return string
@@ -472,7 +487,7 @@ public:
     //! Operator for assigning ObjectRef.
     //! \param rhs
     //! \return
-    Variant& operator =(ObjectRef* rhs);
+    Variant& operator =(Object* rhs);
 
     //! Clears out the variant.
     void Clear();

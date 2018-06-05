@@ -31,22 +31,22 @@ ScriptStatement::ScriptStatement() {
     __Construct();
 }
 
-ScriptStatement::~ScriptStatement() {
-    Release();
-}
-
 void ScriptStatement::__Construct()
 {
     _Type = StatementType::None;
     _String = alloc_ref(StringBuffer);
     _StatementBuffer = alloc_ref(StringBuffer);
     _Symbol = ScriptVMInstance->GetScriptToken();
+    _FirstEntry = nullptr;
+    _CurrentEntry = nullptr;
 }
 
 void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
 {
     assert(!IsNullObject(varObject) && !varObject->IsEmpty() && "Failed to evaluate statement on an unknown variable");
-    _Entries.clear();
+
+    _ClearEntries();
+    _StatementBuffer->Clear();
 
     if (IsNullObject(statementStr)) {
         statementStr = _String.Ptr();
@@ -174,12 +174,20 @@ void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
     }
 }
 
-StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, StatementOperator op)
+StatementObjectEntry* ScriptStatement::Add(ScriptObject* scriptObject, StatementOperator op)
 {
-    StatementObjectEntry entry;
-    entry.Op = op;
-    entry.Value = scriptObject;
-    _Entries.push_back(entry);
+    auto entry = alloc_bytes(StatementObjectEntry);
+    entry->Op = op;
+    entry->Value = scriptObject;
+    entry->NextEntry = nullptr;
+
+    if (_CurrentEntry == nullptr) {
+        _FirstEntry = entry;
+        _CurrentEntry = entry;
+    } else {
+        _CurrentEntry->NextEntry = entry;
+        _CurrentEntry = entry;
+    }
 
     // Set the type.
     if (_Type == StatementType::None) {
@@ -188,15 +196,23 @@ StatementObjectEntry* ScriptStatement::Add(ScriptObject*& scriptObject, Statemen
         assert(_FindType(scriptObject->GetValue()) == _Type && "Attempted to assign two different types in statement");
     }
 
-    return &_Entries[_Entries.size() - 1];
+    return entry;
 }
 
 StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, StatementOperator op)
 {
-    StatementObjectEntry entry;
-    entry.Op = op;
-    entry.ConstantValue = constantValue;
-    _Entries.push_back(entry);
+    auto entry = alloc_bytes(StatementObjectEntry);
+    entry->Op = op;
+    entry->ConstantValue = constantValue;
+    entry->NextEntry = nullptr;
+
+    if (_CurrentEntry == nullptr) {
+        _FirstEntry = entry;
+        _CurrentEntry = entry;
+    } else {
+        _CurrentEntry->NextEntry = entry;
+        _CurrentEntry = entry;
+    }
 
     // Set the type.
     auto type = _FindType(constantValue);
@@ -206,27 +222,30 @@ StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, Stateme
         assert((type == _Type) && "Attempted to assign two different types in statement");
     }
 
-    return &_Entries[_Entries.size() - 1];
+    return entry;
 }
 
 Variant ScriptStatement::Evaluate()
 {
-    if (_Entries.empty()) {
+    if (_FirstEntry == nullptr) {
         return Variant::Empty;
     }
 
     // Evaluate if we only have a single entry.
-    if (_Entries.size() == 1) {
-        auto& entry = _Entries[0];
-        if (entry.Op == StatementOperator::Equals) {
-            return (entry.Value.IsValid() ? entry.Value->GetValue() : entry.ConstantValue);
+    if (_FirstEntry->NextEntry == nullptr) {
+        auto entry = _FirstEntry;
+        if (entry->Op == StatementOperator::Equals) {
+            return (entry->Value.IsValid() ? entry->Value->GetValue() : entry->ConstantValue);
         }
     }
 
     // Go through the entries and evaluate them.
     Variant value;
-    for (auto& entryIt : _Entries) {
-        _Apply(&entryIt, value);
+    auto next = _FirstEntry;
+    while (next != nullptr) {
+        auto current = next;
+        _Apply(current, value);
+        next = current->NextEntry;
     }
 
     return value;
@@ -261,16 +280,21 @@ ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
     stat->SetType(_Type);
     stat->_String = _String;
 
-    for (auto& entryIt : _Entries) {
+    auto next = _FirstEntry;
+    while (next != nullptr) {
+        auto current = next;
+
         // Check if we need to find a matching object.
-        if (!entryIt.Value->IsEmpty()) {
-            auto clonedObj = scriptObject->GetContext()->FindVariable(entryIt.Value->GetName().c_str());
+        if (!current->Value->IsEmpty()) {
+            auto clonedObj = scriptObject->GetContext()->FindVariable(current->Value->GetName().c_str());
             assert(!clonedObj->IsEmpty() && "Unabled to process statement, invalid traversal!");
 
-            stat->Add(clonedObj->Clone(scriptObject, false), entryIt.Op);
+            stat->Add(clonedObj->Clone(scriptObject, false), current->Op);
         } else {
-            stat->Add(entryIt.ConstantValue, entryIt.Op);
+            stat->Add(current->ConstantValue, current->Op);
         }
+
+        next = current->NextEntry;
     }
 
     return stat;
@@ -413,11 +437,11 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
     bool recording = false;
 
     // Current/last concatenating condition.
-    std::string currentConcatConditionStr = "";
-    std::string lastConcatConditionStr = "";
+    std::string currentConcatConditionStr;
+    std::string lastConcatConditionStr;
 
     // Save args in the variant.
-    std::vector<Variant> args;
+    Urho3D::PODVector<Variant> args;
 
     // Current argument value.
     Variant argValue;
@@ -516,17 +540,17 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
             // Check if we already have an argument value.
             if (argValue.IsEmpty()) {
                 argValue = GetEvalFromStatementBuffer(scriptObject);
-                args.push_back(argValue);
+                args.Push(argValue);
             } else if (currentConcatConditionStr == "&&") {
                 if (argValue.GetType() != VariantType::Bool || argValue.GetBool()) {
                     argValue = GetEvalFromStatementBuffer(scriptObject);
                 }
-                args.push_back(argValue);
+                args.Push(argValue);
             } else if (currentConcatConditionStr == "||") {
                 if (argValue.GetType() != VariantType::Bool || !argValue.GetBool()) {
                     argValue = GetEvalFromStatementBuffer(scriptObject);
                 }
-                args.push_back(argValue);
+                args.Push(argValue);
             }
 
             argValue = Variant::Empty;
@@ -540,7 +564,10 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
             if (currentChar == ')') {
                 // Restore the statement buffer.
                 _StatementBuffer->Append(savedStatementStr);
-                return to_method(scriptObject)->Evaluate(args);
+                auto retVal = to_method(scriptObject)->Evaluate(args);
+
+                args.Clear();
+                return retVal;
             }
         }
 
@@ -710,6 +737,21 @@ void ScriptStatement::_Apply(StatementObjectEntry* entry, Variant& value)
     }
 }
 
+void ScriptStatement::_ClearEntries()
+{
+    StatementObjectEntry* next = _FirstEntry;
+    while (next != nullptr) {
+        auto current = next;
+        current->Value.Release();
+        current->ConstantValue.Clear();
+        next = current->NextEntry;
+        free_bytes(current);
+    }
+
+    _FirstEntry = nullptr;
+    _CurrentEntry = nullptr;
+}
+
 std::string ScriptStatement::GetTypeAsString() const
 {
     if (_Type == StatementType::Bool) {
@@ -781,10 +823,7 @@ StatementOperator ScriptStatement::_SymbolToOp(const std::string& symbol)
 
 bool ScriptStatement::Release()
 {
-    for (auto& entryIt : _Entries) {
-        entryIt.ConstantValue.Clear();
-    }
-    _Entries.clear();
+    _ClearEntries();
 
     _String.Release();
 

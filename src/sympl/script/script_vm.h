@@ -24,7 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_common.h>
@@ -38,9 +38,9 @@ class MethodRegistry;
 class AllocManager;
 class ScriptToken;
 
-class SYMPL_API ScriptVM : public ObjectRef
+class SYMPL_API ScriptVM : public Object
 {
-SYMPL_OBJECT(ScriptVM, ObjectRef);
+    SYMPL_OBJECT(ScriptVM, Object);
 
 private:
     /// Instance for the vm.

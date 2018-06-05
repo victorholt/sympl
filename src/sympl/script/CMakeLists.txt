@@ -18,6 +18,7 @@ target_link_libraries(
         SymplCoreLib
         SymplUtilLib
         fmtLib
+        Urho3DLib
         ${SymplAppleLibs}
 )
 

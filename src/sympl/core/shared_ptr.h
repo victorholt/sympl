@@ -24,7 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/ref.h>
 
 sympl_nsstart
 
@@ -63,22 +63,22 @@ private:
 
 public:
     //! Constructor.
-    explicit SharedPtr() { _AddRef(); }
+    explicit SharedPtr() noexcept { _AddRef(); }
 
     //! Constructor.
     //! \param ptr
-    SharedPtr(T* ptr) {
+    SharedPtr(T* ptr) noexcept {
         _Set(ptr);
     }
 
     //! Constructor.
     //! \param rhs
-    SharedPtr(const SharedPtr<T>& rhs) {
+    SharedPtr(const SharedPtr<T>& rhs) noexcept {
         _Set(rhs.Ptr());
     }
 
     //! Destructor.
-    ~SharedPtr() {
+    ~SharedPtr() noexcept {
         Release();
     }
 

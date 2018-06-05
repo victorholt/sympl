@@ -24,16 +24,16 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/object_ref.h>
+#include <sympl/core/object.h>
 #include <sympl/script/script_token.h>
 
 sympl_nsstart
 
 class StringBuffer;
 
-class SYMPL_API ScriptReader : public ObjectRef
+class SYMPL_API ScriptReader : public Object
 {
-    SYMPL_OBJECT(ScriptReader, ObjectRef);
+    SYMPL_OBJECT(ScriptReader, Object);
 
 private:
     /// Buffer holding the script data.
@@ -59,9 +59,6 @@ private:
 public:
     //! Constructor.
     ScriptReader();
-
-    //! Destructor.
-    ~ScriptReader() override;
 
     //! Called in place of the constructor.
     void __Construct() override;
