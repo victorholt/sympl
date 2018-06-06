@@ -419,7 +419,9 @@ void ScriptParser::_UpdateScanMode()
                 // Check if this object exists and we're attempting to
                 // assign it a value.
                 ScriptObject* existingObject = _FindObject(_CurrentIdentifierBuffer->CStr());
-                assert(!existingObject->IsEmpty() && "Unknown variable assignment attempt!");
+                if (existingObject->IsEmpty()) {
+                    assert(!existingObject->IsEmpty() && "Unknown variable assignment attempt!");
+                }
 
                 // Update the scan mode build the object (by re-calling UpdateScanMode).
                 _ScanMode = ParserScanMode::VarName;

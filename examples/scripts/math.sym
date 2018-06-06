@@ -5,7 +5,7 @@ func add(a, b) : int {
 }
 
 func up(p) : void {
-    if (p < 50) {
+    if (p < 5) {
         return up(p + 1);
     }
     return p;
@@ -16,7 +16,7 @@ func up(p) : void {
 
 //printl(y);
 
-var n = up(0);
+var n = 1;
 printl(n, true);
 
 //print_vm_refs();

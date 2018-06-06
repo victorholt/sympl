@@ -5,6 +5,13 @@ sympl_namespaces
 
 int main()
 {
+//    auto sb1 = alloc_ref(StringBuffer);
+//    sb1->Append("testing this out");
+//    cout << sb1->CStr() << endl;
+//    free_ref(sb1);
+//
+//    return 0;
+
 //    sympl_profile_start("math_program_load");
     auto program = ScriptVMInstance->LoadFile("../../examples/scripts/math.sym");
 //    sympl_profile_stop("math_program_load");

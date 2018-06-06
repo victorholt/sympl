@@ -40,7 +40,7 @@ class SYMPL_API ScriptContext : public Object
 
 protected:
     /// Owner of the context.
-    SharedPtr<ScriptObject> _Object;
+    WeakPtr<ScriptObject> _Object;
 
     /// Reference to the parent context.
     WeakPtr<ScriptContext> _ParentContext;

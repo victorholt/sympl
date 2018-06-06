@@ -86,6 +86,7 @@ void StringBuffer::Prepend(const char *str)
         free(_Buffer);
     } else {
         free_bytes_array(_Buffer);
+        _StaticBuffer = tmpBuffer;
     }
     _Buffer = tmpBuffer;
 
@@ -108,6 +109,7 @@ void StringBuffer::PrependByte(const char byte)
         free(_Buffer);
     } else {
         free_bytes_array(_Buffer);
+        _StaticBuffer = tmpBuffer;
     }
     _Buffer = tmpBuffer;
 }

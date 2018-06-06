@@ -50,10 +50,11 @@ void ScriptVM::__Construct()
 
 void ScriptVM::Startup()
 {
-    auto globalObject = alloc_ref(ScriptObject);
-    globalObject->_Initialize(GLOBAL_SCRIPT_OBJECT, GLOBAL_SCRIPT_OBJECT);
+    _GlobalObject = alloc_ref(ScriptObject);
+    _GlobalObject->_Initialize(GLOBAL_SCRIPT_OBJECT, GLOBAL_SCRIPT_OBJECT);
+    _GlobalObject->_SetType(ScriptObjectType::Object);
     _Context = alloc_ref(ScriptContext);
-    _Context->SetScriptObject(globalObject);
+    _Context->SetScriptObject(_GlobalObject);
 
     _MethodRegistry = alloc_ref(MethodRegistry);
     _MethodRegistry->_Initialize();
@@ -66,6 +67,7 @@ void ScriptVM::Shutdown()
     _Symbol.Release();
     _MethodRegistry.Release();
     _Context.Release();
+    free_ref(_GlobalObject);
 }
 
 void ScriptVM::GC()
@@ -116,7 +118,7 @@ ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, Sc
     if (!IsNullObject(parent) && !parent->IsEmpty()) {
         parent->AddChild(scriptObject);
     } else {
-        _Context->GetScriptObject()->AddChild(scriptObject);
+        _GlobalObject->AddChild(scriptObject);
     }
 
     return scriptObject;
@@ -139,7 +141,7 @@ bool ScriptVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
     if (!IsNullObject(parent) && !parent->IsEmpty()) {
         parent->AddChild(scriptObject);
     } else {
-        _Context->GetScriptObject()->AddChild(scriptObject);
+        _GlobalObject->AddChild(scriptObject);
     }
 
     return true;
@@ -156,11 +158,12 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
 
     auto currentObject = &ScriptObject::Empty;
     auto resultObject = &ScriptObject::Empty;
+    auto& globalChildren = _GlobalObject->GetChildren();
 
     // Check first if we have the path '.' delimeter. If not.
     // then we should look in the global scope.
     if ((pos = parseStr.find(delimiter)) == std::string::npos) {
-        for (auto entryIt : _Context->GetScriptObject()->GetChildren()) {
+        for (auto& entryIt : globalChildren) {
             if (entryIt->GetPath() == path) {
                 resultObject = entryIt.Ptr();
                 break;
@@ -174,7 +177,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
             // Search through the object map and the children.
             if (currentObject->IsEmpty()) {
                 currentPath.append(token);
-                for (auto entryIt : _Context->GetScriptObject()->GetChildren()) {
+                for (auto& entryIt : globalChildren) {
                     if (entryIt->GetPath() == currentPath) {
                         currentObject = entryIt.Ptr();
                         break;
@@ -186,7 +189,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
                 currentPath.append(".");
                 currentPath.append(token);
 
-                for (auto entryIt : currentObject->GetChildren()) {
+                for (auto& entryIt : currentObject->GetChildren()) {
                     if (entryIt->GetPath() == currentPath) {
                         currentObject = entryIt.Ptr();
                         break;
@@ -249,6 +252,11 @@ void ScriptVM::RemoveObject(const std::string& path)
 MethodRegistry* ScriptVM::GetMethodRegistry()
 {
     return _MethodRegistry.Ptr();
+}
+
+ScriptObject* ScriptVM::GetGlobalObject()
+{
+    return _GlobalObject;
 }
 
 std::string ScriptVM::PrintObjects()

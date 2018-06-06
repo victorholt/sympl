@@ -93,7 +93,7 @@ void AllocManager::_Initialize()
 
 void AllocManager::FreeRef(RefCounter* ref)
 {
-    delete ref;
+//    delete ref;
 }
 
 void AllocManager::FreeBytes(void* src, bool isArray)

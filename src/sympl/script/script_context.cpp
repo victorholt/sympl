@@ -107,9 +107,6 @@ ScriptObject* ScriptContext::GetScriptObject()
 
 bool ScriptContext::Release()
 {
-    if (_Object.IsValid()) {
-        _Object.Release();
-    }
     _VarList.Clear();
     return true;
 }

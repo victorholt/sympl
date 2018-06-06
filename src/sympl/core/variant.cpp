@@ -105,10 +105,12 @@ void Variant::Set(const char* value) {
         Clear();
 
         if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
-            Set(alloc_ref(StringBuffer));
+            auto sb = alloc_ref(StringBuffer);
+            Set(sb);
         }
     }
 
+    SetType(VariantType::StringBuffer);
     GetStringBuffer()->Clear();
     GetStringBuffer()->Append(value);
 }
@@ -185,4 +187,6 @@ void Variant::Clear() {
 
         _Value.Ptr = nullptr;
     }
+
+    _Type = VariantType::Empty;
 }

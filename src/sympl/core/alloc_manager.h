@@ -202,12 +202,20 @@ public:
 
 #define AllocInstance Sympl::AllocManager::GetInstance()
 
-#define alloc_ref(clazz) AllocInstance.AllocRef<clazz>()
-#define free_ref(ref) AllocInstance.FreeRef(reinterpret_cast<RefCounter*>(ref)); ref = nullptr
+#define alloc_ref(clazz) new clazz()
+#define free_ref(ref) if (!ref->DecRef()) { ref->Release(); delete ref; ref = nullptr; }
 
-#define alloc_bytes(type) AllocInstance.AllocBytes<type>(sizeof(type))
-#define alloc_bytes_array(type, amount) AllocInstance.AllocBytesArray<type>(amount)
-#define free_bytes(ref) AllocInstance.FreeBytes(reinterpret_cast<void*>(ref)); ref = nullptr
-#define free_bytes_array(ref) AllocInstance.FreeBytesArray(reinterpret_cast<void*>(ref)); ref = nullptr
+#define alloc_bytes(type) new type()
+#define alloc_bytes_array(type, amount) new type[amount]
+#define free_bytes(ref) delete ref; ref = nullptr
+#define free_bytes_array(ref) delete [] ref; ref = nullptr
+
+//#define alloc_ref(clazz) AllocInstance.AllocRef<clazz>()
+//#define free_ref(ref) AllocInstance.FreeRef(reinterpret_cast<RefCounter*>(ref)); ref = nullptr
+//
+//#define alloc_bytes(type) AllocInstance.AllocBytes<type>(sizeof(type))
+//#define alloc_bytes_array(type, amount) AllocInstance.AllocBytesArray<type>(amount)
+//#define free_bytes(ref) AllocInstance.FreeBytes(reinterpret_cast<void*>(ref)); ref = nullptr
+//#define free_bytes_array(ref) AllocInstance.FreeBytesArray(reinterpret_cast<void*>(ref)); ref = nullptr
 
 sympl_nsend

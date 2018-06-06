@@ -97,7 +97,6 @@ void MethodRegistry::_Initialize()
 void MethodRegistry::AddMethod(ScriptObject* method)
 {
     assert(method->GetType() == ScriptObjectType::Method && "Attempted to register an invalid method!");
-
     _Methods[method->GetName()] = to_method(method);
 }
 
@@ -120,9 +119,9 @@ void MethodRegistry::AddCallbackMethod(const char* name, const ScriptMethodCallb
 
 ScriptObject* MethodRegistry::FindMethod(const char* name)
 {
-    for (auto& method : _Methods) {
+    for (auto method : _Methods) {
         if (strcmp(method.second->GetName().c_str(), name) == 0) {
-            return method.second.Ptr();
+            return method.second;
         }
     }
     return &ScriptObject::Empty;

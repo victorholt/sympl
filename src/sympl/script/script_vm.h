@@ -37,6 +37,7 @@ class Interpreter;
 class MethodRegistry;
 class AllocManager;
 class ScriptToken;
+class ScriptObject;
 
 class SYMPL_API ScriptVM : public Object
 {
@@ -48,6 +49,9 @@ private:
 
     /// Reference to the method registry.
     SharedPtr<MethodRegistry> _MethodRegistry;
+
+    /// Reference to the global script object.
+    ScriptObject* _GlobalObject;
 
     /// The primary scope containing the global variables.
     SharedPtr<ScriptContext> _Context;
@@ -140,6 +144,10 @@ public:
     //! Returns the method registry.
     //! \return SharedPtr<MethodRegistry>
     MethodRegistry* GetMethodRegistry();
+
+    //! Returns the global script object.
+    //! \return ScriptObject
+    ScriptObject* GetGlobalObject();
 
     //! Returns a string representing objects in the vm.
     //! \return string

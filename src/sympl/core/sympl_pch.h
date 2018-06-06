@@ -105,6 +105,7 @@
 #include <sympl/thirdparty/getoptutil.h>
 #include <sympl/thirdparty/timeutil.h>
 #include <sympl/thirdparty/unistdutil.h>
+#include <sympl/thirdparty/dynamic_mem_pool.h>
 
 //#define IsSpaceChar(c, loc) std::isspace(static_cast<int>(c), loc)
 #define IsSpaceChar(c, loc) std::isspace(c, loc)

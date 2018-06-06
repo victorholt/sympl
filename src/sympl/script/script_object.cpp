@@ -63,7 +63,7 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
 void ScriptObject::AddChild(ScriptObject* scriptObject)
 {
     scriptObject->_SetNestLevel(_NestLevel + 1);
-    _Children.emplace_back(scriptObject);
+    _Children.push_back(scriptObject);
 }
 
 Variant ScriptObject::Evaluate(const Urho3D::PODVector<Variant>& args)
