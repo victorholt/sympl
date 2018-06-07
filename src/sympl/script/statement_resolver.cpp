@@ -50,7 +50,7 @@ public:
         assert((strlen(stmtStr) > 0) && "Attempting to evaluate an invalid statement!");
 
         // Create the statement and set the string.
-        SharedPtr<StatementResolver> stmtResolver = alloc_ref(StatementResolver);
+        SharedPtr<StatementResolver> stmtResolver = mem_alloc(StatementResolver);
         return stmtResolver->Resolve(stmtStr, scriptObject);
     }
 
@@ -122,7 +122,7 @@ public:
         bool recording = false;
 
         // String to resolve.
-        SharedPtr<StringBuffer> resolveStr = alloc_ref(StringBuffer);
+        SharedPtr<StringBuffer> resolveStr = mem_alloc(StringBuffer);
 
         // Current/last concatenating condition.
         std::string currentConcatConditionStr;
@@ -264,7 +264,7 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
     bool recording = false;
 
     // String to resolve.
-    SharedPtr<StringBuffer> resolveStr = alloc_ref(StringBuffer);
+    SharedPtr<StringBuffer> resolveStr = mem_alloc(StringBuffer);
 
     // Current/last concatenating condition.
     std::string currentConcatConditionStr;
@@ -380,25 +380,27 @@ StatementResolver::StatementResolver()
 
 void StatementResolver::__Construct()
 {
-    _StmtString = alloc_ref(StringBuffer);
+    _StmtString = mem_alloc(StringBuffer);
     _TokenHelper = ScriptVMInstance->GetScriptToken();
 }
 
 Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject)
 {
+    // Statement entries.
+    Urho3D::PODVector<StatementEntry*> stmtEntries;
+
     // Clear out the previous statement and append the new statement.
     _StmtString->Clear();
     _StmtString->Append(str);
     if (_StmtString->LastByte() != ';') {
         _StmtString->AppendByte(';');
     }
-    _ClearStatements();
 
     // Set our default operator.
     StatementOperator currentOp = StatementOperator::Equals;
 
     // Go through our string and create our entries.
-    SharedPtr<StringBuffer> stmtEntryStr = alloc_ref(StringBuffer);
+    SharedPtr<StringBuffer> stmtEntryStr = mem_alloc(StringBuffer);
     char currentChar = '\0';
     char nextChar = '\0';
     bool recording = false;
@@ -517,25 +519,32 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject)
                 }
             }
 
-            _Statements.Push(stmtEntry);
+            stmtEntries.Push(stmtEntry);
             stmtEntryStr->Clear();
             continue;
         }
     }
 
     // Resolve the statements and update the value.
-    return _ResolveStatements();
+    auto retVal = _ResolveStatements(stmtEntries);
+
+    for (auto stmtEntry : stmtEntries) {
+        delete stmtEntry;
+    }
+    stmtEntries.Clear();
+
+    return retVal;
 }
 
-Variant StatementResolver::_ResolveStatements()
+Variant StatementResolver::_ResolveStatements(const Urho3D::PODVector<StatementEntry*>& stmtEntries)
 {
-    if (_Statements.Empty()) {
+    if (stmtEntries.Empty()) {
         return Variant::Empty;
     }
 
     // Evaluate if we only have 1 statement entry.
-    if (_Statements.Size() == 1) {
-        auto entry = _Statements[0];
+    if (stmtEntries.Size() == 1) {
+        auto entry = stmtEntries[0];
         if (entry->Op == StatementOperator::Equals) {
             return (entry->ObjectValue.IsValid() ? entry->ObjectValue->GetValue() : entry->ConstantValue);
         }
@@ -543,15 +552,15 @@ Variant StatementResolver::_ResolveStatements()
 
     // Set the type.
     if (_Type == StatementType::None) {
-        Variant firstVal = _Statements[0]->ObjectValue.IsValid() ?
-                _Statements[0]->ObjectValue->GetValue() : _Statements[0]->ConstantValue;
+        Variant firstVal = stmtEntries[0]->ObjectValue.IsValid() ?
+                           stmtEntries[0]->ObjectValue->GetValue() : stmtEntries[0]->ConstantValue;
 
         auto type = _FindType(firstVal);
         _Type = type;
     }
 
     Variant value;
-    for (auto entry : _Statements) {
+    for (auto entry : stmtEntries) {
 //        Variant entryValue = entry->ObjectValue.IsValid() ?
 //                           entry->ObjectValue->GetValue() : entry->ConstantValue;
 
@@ -749,16 +758,7 @@ StatementOperator StatementResolver::_SymbolToOp(const char* symbol)
     return StatementOperator::None;
 }
 
-void StatementResolver::_ClearStatements()
-{
-    for (auto entry : _Statements) {
-        free_bytes(entry);
-    }
-    _Statements.Clear();
-}
-
 bool StatementResolver::Release()
 {
-    free_ref(_StmtString);
-    _ClearStatements();
+    mem_free(StringBuffer, _StmtString);
 }

@@ -12,6 +12,14 @@ int main()
 //
 //    return 0;
 
+    MemPoolInstance.CreatePool<StringBuffer>(15000);
+    MemPoolInstance.CreatePool<StatementResolver>(6000);
+    MemPoolInstance.CreatePool<ScriptObject>();
+    MemPoolInstance.CreatePool<ScriptMethod>();
+    MemPoolInstance.CreatePool<CallbackMethod>();
+    MemPoolInstance.CreatePool<IfMethod>();
+
+
     sympl_profile_start("math_program_load");
     auto program = ScriptVMInstance->LoadFile("../../examples/scripts/math.sym");
     sympl_profile_stop("math_program_load");

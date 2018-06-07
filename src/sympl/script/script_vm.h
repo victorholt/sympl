@@ -36,6 +36,8 @@ sympl_nsstart
 class Interpreter;
 class MethodRegistry;
 class AllocManager;
+class MemPool;
+class MemPoolManager;
 class ScriptToken;
 class ScriptObject;
 
@@ -79,7 +81,7 @@ public:
     //! \return ScriptVM
     static ScriptVM* GetInstance() {
         if (IsNullObject(_Instance)) {
-            _Instance = alloc_ref(ScriptVM);
+            _Instance = mem_alloc(ScriptVM);
             _Instance->Startup();
         }
         return _Instance;
@@ -165,6 +167,8 @@ public:
     inline ScriptToken* GetScriptToken() const { return _Symbol.Ptr(); }
 
     friend AllocManager;
+    friend MemPool;
+    friend MemPoolManager;
 };
 
 #define ScriptVMInstance Sympl::ScriptVM::GetInstance()

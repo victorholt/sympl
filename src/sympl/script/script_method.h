@@ -69,6 +69,9 @@ protected:
     /// Arguments given to the method as a string.
     SharedPtr<StringBuffer> _ArgString;
 
+    /// Argument string with no () at the beginning/end.
+    SharedPtr<StringBuffer> _ArgStringNoParenth;
+
     /// Flag to determine whether this is an immediate method.
     /// Immediate methods are called the moment they are defined (if, while, etc).
     bool _IsImmediate = false;
@@ -137,6 +140,43 @@ public:
     //! \return ScriptObject.
     ScriptObject* GetScopeParent();
 
+    //! Sets the arguments string.
+    //! \param argString
+    inline void SetArgString(StringBuffer* argString)
+    {
+        if (_ArgString.IsValid()) {
+            _ArgString->Clear();
+        } else {
+            _ArgString = alloc_ref(StringBuffer);
+        }
+
+        if (_ArgStringNoParenth.IsValid()) {
+            _ArgStringNoParenth->Clear();
+        } else {
+            _ArgStringNoParenth = alloc_ref(StringBuffer);
+        }
+
+
+        _ArgString->Append(argString);
+
+        _ArgStringNoParenth = alloc_ref(StringBuffer);
+        char currentChar = '\0';
+        size_t location = 0;
+        while (location < argString->Length()) {
+            char currentChar = argString->Get(location);
+            location++;
+
+            if (currentChar == '(' && location == 1) {
+                continue;
+            }
+            if (currentChar == ')' && (location + 1) == argString->Length()) {
+                continue;
+            }
+
+            _ArgStringNoParenth->AppendByte(currentChar);
+        }
+    }
+
     //! Sets the signal exit flag.
     void Exit();
 
@@ -189,12 +229,6 @@ public:
     //! \return bool
     inline bool IsImmediate() const {
         return _IsImmediate;
-    }
-
-    //! Sets the arguments string.
-    //! \param argString
-    inline void SetArgString(StringBuffer* argString) {
-        SetArgString(argString->CStr());
     }
 
     //! Sets the arguments string.

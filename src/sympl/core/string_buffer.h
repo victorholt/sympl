@@ -39,9 +39,6 @@ private:
     /// Buffer for holding the string.
     uchar      *_Buffer;
 
-    /// Static buffer of pre-allocated bytes.
-    uchar      *_StaticBuffer;
-
     /// Flag to switch to the dynamic buffer.
     bool        _UseDynamicBuffer = false;
 

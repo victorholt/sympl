@@ -34,8 +34,8 @@ ScriptStatement::ScriptStatement() {
 void ScriptStatement::__Construct()
 {
     _Type = StatementType::None;
-    _String = alloc_ref(StringBuffer);
-    _StatementBuffer = alloc_ref(StringBuffer);
+    _String = mem_alloc(StringBuffer);
+    _StatementBuffer = mem_alloc(StringBuffer);
     _Symbol = ScriptVMInstance->GetScriptToken();
     _FirstEntry = nullptr;
     _CurrentEntry = nullptr;
@@ -276,7 +276,7 @@ std::string ScriptStatement::EvaluateAsString()
 
 ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
 {
-    auto stat = alloc_ref(ScriptStatement);
+    auto stat = mem_alloc(ScriptStatement);
     stat->SetType(_Type);
     stat->_String = _String;
 
@@ -585,14 +585,14 @@ Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)
     assert((_StatementBuffer->Length() > 0) && "Attempting to evaluate an invalid statement!");
 
     // Create the statement and set the string.
-    auto stat = alloc_ref(ScriptStatement);
+    auto stat = mem_alloc(ScriptStatement);
     stat->SetString(_StatementBuffer);
     _StatementBuffer->Clear();
 
     // Build the statement.
     stat->Build(scriptObject);
     auto val = stat->Evaluate();
-    free_ref(stat);
+    mem_free(ScriptStatement, stat);
 
     return val;
 }
@@ -829,7 +829,7 @@ bool ScriptStatement::Release()
 
     _String.Release();
 
-    free_ref(_StatementBuffer);
+    mem_free(StringBuffer, _StatementBuffer);
 
     return true;
 }

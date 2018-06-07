@@ -23,39 +23,33 @@
  **********************************************************/
 #pragma once
 
-#include <fmt/format.h>
-
-#include <urho3d/container/Swap.h>
-#include <urho3d/container/VectorBase.h>
-#include <urho3d/container/Vector.h>
-
-#include <sympl/core/sympl_pch.h>
-
-#include <sympl/core/alloc_manager.h>
-#include <sympl/core/mempool.h>
-#include <sympl/core/ref.h>
-#include <sympl/core/object.h>
-#include <sympl/core/shared_ptr.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/core/string_buffer.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/thread.h>
-#include <sympl/core/mutex.h>
-
-#include <sympl/util/profiler.h>
-
-#include <sympl/script/script_token.h>
-#include <sympl/script/script_reader.h>
-#include <sympl/script/script_parser.h>
-
-#include <sympl/script/script_common.h>
-#include <sympl/script/script_context.h>
-#include <sympl/script/script_statement.h>
-#include <sympl/script/statement_resolver.h>
-#include <sympl/script/script_vm.h>
-#include <sympl/script/interpreter.h>
-#include <sympl/script/script_object.h>
 #include <sympl/script/script_method.h>
-#include <sympl/script/methods/callback_method.h>
-#include <sympl/script/methods/if_method.h>
-#include <sympl/script/methods/while_method.h>
+
+sympl_nsstart
+
+class SYMPL_API WhileMethod : public ScriptMethod
+{
+    SYMPL_OBJECT(WhileMethod, ScriptMethod);
+
+protected:
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent) override;
+
+    //! Handles cloning the object and adding it to the VM.
+    //! \param name
+    //! \param parent
+    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
+
+public:
+    //! Constructor.
+    WhileMethod();
+
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(const Urho3D::PODVector<Variant>& args) override;
+};
+
+sympl_nsend

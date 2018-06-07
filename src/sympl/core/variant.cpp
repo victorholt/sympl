@@ -105,7 +105,7 @@ void Variant::Set(const char* value) {
         Clear();
 
         if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
-            auto sb = alloc_ref(StringBuffer);
+            auto sb = mem_alloc(StringBuffer);
             Set(sb);
         }
     }
@@ -173,7 +173,7 @@ void Variant::Clear() {
     // Free our string buffer.
     if (_Type == VariantType::StringBuffer) {
         auto buffer = GetStringBuffer();
-        free_ref(buffer);
+        mem_free(StringBuffer, buffer);
         _Value.Ptr = nullptr;
     }
 
@@ -182,7 +182,7 @@ void Variant::Clear() {
         auto sobj = GetObject();
 
         if (sobj->GetTypeName() == "") {
-            free_ref(sobj);
+            mem_free(Object, sobj);
         }
 
         _Value.Ptr = nullptr;

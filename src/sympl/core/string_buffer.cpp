@@ -57,8 +57,7 @@ void StringBuffer::Init(const char *str, size_t capacity)
     size_t strCapacity = sizeof(uchar) * confirmedCapacity;
 
     // Create/clean up our string.
-    _StaticBuffer = alloc_bytes_array(uchar, SYMPL_STRING_BUFFER_CAPACITY);
-    _Buffer = _StaticBuffer;
+    _Buffer = alloc_bytes_array(uchar, SYMPL_STRING_BUFFER_CAPACITY);
     memset(_Buffer, 0, strCapacity);
     memcpy(_Buffer, str, strlen(str) + 1);
 
@@ -82,12 +81,7 @@ void StringBuffer::Prepend(const char *str)
     memcpy(tmpBuffer + strlen(str), _Buffer, _Length);
     memcpy(tmpBuffer, str, strlen(str));
 
-    if (_UseDynamicBuffer) {
-        free(_Buffer);
-    } else {
-        free_bytes_array(_Buffer);
-        _StaticBuffer = tmpBuffer;
-    }
+    free_bytes_array(_Buffer);
     _Buffer = tmpBuffer;
 
     _Length += strlen(str);
@@ -106,12 +100,7 @@ void StringBuffer::PrependByte(const char byte)
     tmpBuffer[0] = static_cast<uchar>(byte);
     _Length += 1;
 
-    if (_UseDynamicBuffer) {
-        free(_Buffer);
-    } else {
-        free_bytes_array(_Buffer);
-        _StaticBuffer = tmpBuffer;
-    }
+    free_bytes_array(_Buffer);
     _Buffer = tmpBuffer;
 }
 
@@ -327,10 +316,6 @@ void StringBuffer::Clear()
 
 bool StringBuffer::Release()
 {
-    if (_UseDynamicBuffer) {
-        free(_Buffer);
-    }
-    free_bytes_array(_StaticBuffer);
-
+    free_bytes_array(_Buffer);
     return true;
 }

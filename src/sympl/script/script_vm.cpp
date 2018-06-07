@@ -50,16 +50,16 @@ void ScriptVM::__Construct()
 
 void ScriptVM::Startup()
 {
-    _GlobalObject = alloc_ref(ScriptObject);
+    _GlobalObject = mem_alloc(ScriptObject);
     _GlobalObject->_Initialize(GLOBAL_SCRIPT_OBJECT, GLOBAL_SCRIPT_OBJECT);
     _GlobalObject->_SetType(ScriptObjectType::Object);
-    _Context = alloc_ref(ScriptContext);
+    _Context = mem_alloc(ScriptContext);
     _Context->SetScriptObject(_GlobalObject);
 
-    _MethodRegistry = alloc_ref(MethodRegistry);
+    _MethodRegistry = mem_alloc(MethodRegistry);
     _MethodRegistry->_Initialize();
 
-    _Symbol = alloc_ref(ScriptToken);
+    _Symbol = mem_alloc(ScriptToken);
 }
 
 void ScriptVM::Shutdown()
@@ -67,7 +67,7 @@ void ScriptVM::Shutdown()
     _Symbol.Release();
     _MethodRegistry.Release();
     _Context.Release();
-    free_ref(_GlobalObject);
+    mem_free(ScriptObject, _GlobalObject);
 }
 
 void ScriptVM::GC()
@@ -76,10 +76,10 @@ void ScriptVM::GC()
 
 Interpreter* ScriptVM::LoadFile(const char* filePath)
 {
-    SharedPtr<ScriptReader> reader = alloc_ref(ScriptReader);
+    SharedPtr<ScriptReader> reader = mem_alloc(ScriptReader);
     reader->ReadFile(filePath);
 
-    auto interpret = alloc_ref(Interpreter);
+    auto interpret = mem_alloc(Interpreter);
     interpret->_SetReader(reader.Ptr());
     interpret->_Parse();
 
@@ -88,10 +88,10 @@ Interpreter* ScriptVM::LoadFile(const char* filePath)
 
 Interpreter* ScriptVM::LoadString(const char* str)
 {
-    SharedPtr<ScriptReader> reader = alloc_ref(ScriptReader);
+    SharedPtr<ScriptReader> reader = mem_alloc(ScriptReader);
     reader->ReadString(str);
 
-    auto interpret = alloc_ref(Interpreter);
+    auto interpret = mem_alloc(Interpreter);
     interpret->_SetReader(reader.Ptr());
     interpret->_Parse();
 
@@ -108,9 +108,9 @@ ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, Sc
     ScriptObject* scriptObject = nullptr;
 
     if (type == ScriptObjectType::Method) {
-        scriptObject = alloc_ref(ScriptMethod);
+        scriptObject = mem_alloc(ScriptMethod);
     } else {
-        scriptObject = alloc_ref(ScriptObject);
+        scriptObject = mem_alloc(ScriptObject);
     }
     scriptObject->_Initialize(name, path.c_str(), parent);
     scriptObject->_SetType(type);
@@ -261,7 +261,7 @@ ScriptObject* ScriptVM::GetGlobalObject()
 
 std::string ScriptVM::PrintObjects()
 {
-    auto buffer = alloc_ref(StringBuffer);
+    auto buffer = mem_alloc(StringBuffer);
     for (auto entryIt : _Context->GetScriptObject()->GetChildren()) {
         // Don't print out objects with parents.
         if (entryIt->GetParent().IsValid()) {
@@ -271,7 +271,7 @@ std::string ScriptVM::PrintObjects()
     }
 
     std::string results = buffer->CStr();
-    free_ref(buffer);
+    mem_free(StringBuffer, buffer);
 
     return results;
 }

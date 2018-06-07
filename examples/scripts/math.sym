@@ -5,13 +5,20 @@ func add(a, b) : int {
 }
 
 func up(p) : int {
-    if (p < 100) {
+    if (p < 1100) {
         return up(p + 1);
     }
     return p;
 }
 
-var x = up(0);
-printl(x, true);
+//var x = up(0);
+//printl(x, true);
+
+var x = 0;
+while (x < 3) {
+    x = x + 1;
+}
+printl(x);
+printl("Finished!");
 
 //print_vm_refs();

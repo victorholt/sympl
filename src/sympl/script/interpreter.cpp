@@ -57,9 +57,9 @@ bool Interpreter::Run()
 
 void Interpreter::AddCommand(ScriptObject* objectRef, const char* stmtStr)
 {
-    InterpretCommandEntry entry{};
+    InterpretCommandEntry entry;
     entry.ObjectRef     = objectRef;
-    entry.StatementStr  = alloc_ref(StringBuffer);
+    entry.StatementStr  = mem_alloc(StringBuffer);
     entry.StatementStr->Append(stmtStr);
     _CommandList.push_back(entry);
 }
@@ -72,7 +72,7 @@ void Interpreter::_SetReader(ScriptReader* reader)
 void Interpreter::_Parse()
 {
     if (!_Parser.IsValid()) {
-        _Parser = alloc_ref(ScriptParser);
+        _Parser = mem_alloc(ScriptParser);
     }
     _Parser->Parse(this);
     _Parser.Release();

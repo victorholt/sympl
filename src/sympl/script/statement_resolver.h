@@ -77,9 +77,6 @@ class SYMPL_API StatementResolver : public Object
     SYMPL_OBJECT(StatementResolver, Object);
 
 private:
-    /// Statements to resolve. Resolves the last first.
-    Urho3D::PODVector<StatementEntry*> _Statements;
-
     /// Statement string we want to resolve.
     StringBuffer* _StmtString = nullptr;
 
@@ -93,7 +90,9 @@ private:
     StatementType _Type = StatementType::None;
 
     //! Attempts to resolve a given statement.
-    Variant _ResolveStatements();
+    //! \param stmtEntries
+    //! \return Variant
+    Variant _ResolveStatements(const Urho3D::PODVector<StatementEntry*>& stmtEntries);
 
     //! Solves a statement entry with a current value.
     //! \param entry
@@ -118,9 +117,6 @@ private:
     //! Converts a symbol to a statement operator.
     //! \param symbol
     StatementOperator _SymbolToOp(const char* symbol);
-
-    //! Clears out the statements.
-    void _ClearStatements();
 
 public:
     //! Constructor.

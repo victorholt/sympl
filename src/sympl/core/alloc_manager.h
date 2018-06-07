@@ -24,6 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
+#include <sympl/core/mempool.h>
 
 sympl_nsstart
 
@@ -284,9 +285,9 @@ public:
 #define free_ref(ref) if (!ref->DecRef()) { ref->Release(); delete ref; ref = nullptr; }
 
 #define alloc_bytes(type) new type()
-#define alloc_bytes_array(type, amount) new type[amount]
+#define alloc_bytes_array(type, amount) (type*)calloc(amount, sizeof(type))
 #define free_bytes(ref) delete ref; ref = nullptr
-#define free_bytes_array(ref) delete [] ref; ref = nullptr
+#define free_bytes_array(ref) free(ref); ref = nullptr
 
 //#define alloc_ref(clazz) AllocInstance.AllocRef<clazz>()
 //#define free_ref(ref) AllocInstance.FreeRef(reinterpret_cast<RefCounter*>(ref)); ref = nullptr

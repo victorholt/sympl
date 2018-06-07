@@ -25,6 +25,7 @@
 #include <sympl/script/script_vm.h>
 
 #include <sympl/script/methods/if_method.h>
+#include <sympl/script/methods/while_method.h>
 #include <sympl/script/methods/callback_method.h>
 
 #include <sympl/util/profiler.h>
@@ -43,9 +44,14 @@ void MethodRegistry::__Construct()
 void MethodRegistry::_Initialize()
 {
     // Add the if method.
-    auto ifMethod = alloc_ref(IfMethod);
+    auto ifMethod = mem_alloc(IfMethod);
     ScriptVMInstance->AddObject(ifMethod);
     AddMethod(ifMethod);
+
+    // Add the while method.
+    auto whileMethod = mem_alloc(WhileMethod);
+    ScriptVMInstance->AddObject(whileMethod);
+    AddMethod(whileMethod);
 
     // Prints text.
     AddCallbackMethod("print", [](const Urho3D::PODVector<ScriptObject*>& args) {
@@ -107,7 +113,7 @@ void MethodRegistry::AddCallbackMethod(const char* name, const ScriptMethodCallb
         return;
     }
 
-    method = alloc_ref(CallbackMethod);
+    method = mem_alloc(CallbackMethod);
     method->SetName(name);
     method->SetReturnType(returnType);
     method->SetCallback(callback);
