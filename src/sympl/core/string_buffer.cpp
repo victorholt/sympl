@@ -101,6 +101,7 @@ void StringBuffer::PrependByte(const char byte)
     }
 
     auto tmpBuffer = alloc_bytes_array(uchar, _Capacity);
+    memset(tmpBuffer, 0, _Capacity);
     memcpy(tmpBuffer + 1, _Buffer, _Length);
     tmpBuffer[0] = static_cast<uchar>(byte);
     _Length += 1;

@@ -42,7 +42,7 @@ void ScriptContext::AddVar(ScriptObject* varObject)
 {
     // Check to ensure we don't already have this variable.
     auto varIt = _VarList.Find(varObject);
-    if (varIt == _VarList.End()) {
+    if (varIt != _VarList.End()) {
         return;
     }
     _VarList.Push(varObject);

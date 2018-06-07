@@ -39,7 +39,7 @@ class ScriptStatement;
 struct InterpretCommandEntry
 {
     SharedPtr<ScriptObject>       ObjectRef;
-    SharedPtr<ScriptStatement>    Statement;
+    SharedPtr<StringBuffer>       StatementStr;
 };
 
 class SYMPL_API Interpreter : public Object
@@ -76,8 +76,8 @@ public:
 
     //! Adds a command to the interpreter.
     //! \param objectRef
-    //! \param statement
-    void AddCommand(ScriptObject* objectRef, ScriptStatement* statement);
+    //! \param stmtStr
+    void AddCommand(ScriptObject* objectRef, const char* stmtStr);
 
     //! Releases the object.
     bool Release() override;

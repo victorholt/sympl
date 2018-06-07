@@ -25,6 +25,7 @@
 #include <sympl/script/script_statement.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/script/script_vm.h>
+#include <sympl/script/statement_resolver.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -47,6 +48,7 @@ void ScriptMethod::_Initialize(const char* name, const char* path, ScriptObject*
 
     // Create the scope.
     _Scope = ScriptVMInstance->CreateObject(SYMPL_SCOPE_NAME, ScriptObjectType::Object, this);
+    _Scope->GetContext()->SetParentContext(_Context.Ptr());
 }
 
 Variant ScriptMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
@@ -94,12 +96,10 @@ void ScriptMethod::_ProcessArgStatements()
         Variant value = argIt->GetValue();
 
         if (value.GetType() == VariantType::StringBuffer) {
-            SharedPtr<ScriptStatement> stat = alloc_ref(ScriptStatement);
+            SharedPtr<StatementResolver> resolver = alloc_ref(StatementResolver);
 
             Variant argValue = argIt->GetValue();
-            stat->Build(argIt, argValue.GetStringBuffer());
-
-            argValue = stat.Ptr()->Evaluate();
+            argValue = resolver->Resolve(argValue.GetStringBuffer()->CStr(), argIt);
 
             // If this is a string we will need to replace the token.
             if (argValue.GetType() == VariantType::StringBuffer) {
@@ -116,10 +116,10 @@ void ScriptMethod::_ProcessCallStatements()
     for (auto entryIt : _CallStatements) {
         if (_Exit) return;
 
+        SharedPtr<StatementResolver> resolver = alloc_ref(StatementResolver);
         entryIt->Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
-        entryIt->Statement->Build(entryIt->Variable.Ptr());
 
-        auto val = entryIt->Statement->Evaluate();
+        auto val = resolver->Resolve(entryIt->StatementStr->CStr(), entryIt->Variable.Ptr());
         if (!val.IsEmpty()) {
             _Value = val;
             entryIt->Variable->SetValue(_Value);
@@ -170,11 +170,12 @@ void ScriptMethod::AddArg(ScriptObject* arg)
     GetScope()->GetContext()->AddVar(arg);
 }
 
-void ScriptMethod::AddStatement(ScriptObject* variable, ScriptStatement* stat)
+void ScriptMethod::AddStatement(ScriptObject* variable, const char* stmtStr)
 {
     auto callStatement = alloc_bytes(MethodCallStatement);
     callStatement->Variable = variable;
-    callStatement->Statement = stat;
+    callStatement->StatementStr = alloc_ref(StringBuffer);
+    callStatement->StatementStr->Append(stmtStr);
 
     _CallStatements.Push(callStatement);
 }
@@ -206,7 +207,7 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
     for (auto entryIt : _CallStatements) {
         auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str(), false);
         if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
-            to_method(clone)->AddStatement(callObj, entryIt->Statement->Clone(to_method(clone)->GetScope()));
+            to_method(clone)->AddStatement(callObj, entryIt->StatementStr->CStr());
         }
     }
 

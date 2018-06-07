@@ -127,6 +127,10 @@ public:
     //! \return size_t
     inline size_t Length() const { return _Length; }
 
+    //! Returns whether or not the string is empty.
+    //! \return
+    inline bool Empty() const { return _Length == 0; }
+
     //! Returns the capacity of the string.
     //! \return size_t
     inline size_t Capacity() const { return _Capacity; }

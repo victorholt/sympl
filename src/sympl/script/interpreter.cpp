@@ -26,6 +26,7 @@
 #include <sympl/script/script_method.h>
 #include <sympl/script/script_parser.h>
 #include <sympl/util/number_helper.h>
+#include <sympl/script/statement_resolver.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -42,22 +43,24 @@ void Interpreter::__Construct()
 
 bool Interpreter::Run()
 {
+    SharedPtr<StatementResolver> resolver = alloc_ref(StatementResolver);
+
     for (auto entry : _CommandList) {
         if (entry.ObjectRef->GetType() != ScriptObjectType::Method) {
-            entry.Statement->Build(entry.ObjectRef.Ptr());
-            entry.ObjectRef->SetValue(entry.Statement->Evaluate());
+            entry.ObjectRef->SetValue(resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr()));
         } else {
-            entry.Statement->Build(entry.ObjectRef.Ptr());
+            resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
         }
     }
     return true;
 }
 
-void Interpreter::AddCommand(ScriptObject* objectRef, ScriptStatement* statement)
+void Interpreter::AddCommand(ScriptObject* objectRef, const char* stmtStr)
 {
-    InterpretCommandEntry entry;
-    entry.ObjectRef = objectRef;
-    entry.Statement = statement;
+    InterpretCommandEntry entry{};
+    entry.ObjectRef     = objectRef;
+    entry.StatementStr  = alloc_ref(StringBuffer);
+    entry.StatementStr->Append(stmtStr);
     _CommandList.push_back(entry);
 }
 
@@ -78,8 +81,8 @@ void Interpreter::_Parse()
 bool Interpreter::Release()
 {
     for (auto entryIt : _CommandList) {
+        entryIt.StatementStr.Release();
         entryIt.ObjectRef.Release();
-        entryIt.Statement.Release();
     }
     _CommandList.clear();
 

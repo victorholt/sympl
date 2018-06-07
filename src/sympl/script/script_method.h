@@ -46,7 +46,7 @@ enum class MethodReturnType : uint8_t
 struct MethodCallStatement
 {
     SharedPtr<ScriptObject> Variable;
-    SharedPtr<ScriptStatement> Statement;
+    SharedPtr<StringBuffer> StatementStr;
 };
 
 class SYMPL_API ScriptMethod : public ScriptObject
@@ -118,13 +118,10 @@ public:
     //! \param arg
     void AddArg(ScriptObject* arg);
 
-    //! Clears out the arguments (unless the arguments are __arg__).
-    void ClearArgs();
-
     //! Adds a statement for the method to call.
     //! \param variable
-    //! \param stat
-    void AddStatement(ScriptObject* variable, ScriptStatement* stat);
+    //! \param stmtStr
+    void AddStatement(ScriptObject* variable, const char* stmtStr);
 
     //! Creates a clone of the object.
     //! \param parent

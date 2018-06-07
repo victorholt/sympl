@@ -34,34 +34,9 @@
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_context.h>
 
+#include <sympl/script/statement_resolver.h>
+
 sympl_nsstart
-
-enum class StatementOperator {
-    None = 0,
-    Equals,
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
-    Mod,
-    IsEqual2,
-    NotIsEqual2,
-    GreaterThan,
-    LessThan,
-    GreaterEqualThan,
-    LessEqualThan
-};
-
-enum class StatementType {
-    None = 0,
-    Object,
-    Method,
-    String,
-    Bool,
-    Integer,
-    Float,
-    Void
-};
 
 /// Entry for the objects in the statement.
 struct StatementObjectEntry {

@@ -484,6 +484,22 @@ public:
         return *this;
     }
 
+    //! Operator for assigning StringBuffer.
+    //! \param rhs
+    //! \return
+    Variant& operator =(const char* rhs) {
+        Set(rhs);
+        return *this;
+    }
+
+    //! Operator for assigning StringBuffer.
+    //! \param rhs
+    //! \return
+    Variant& operator =(const std::string& rhs) {
+        Set(rhs.c_str());
+        return *this;
+    }
+
     //! Operator for assigning ObjectRef.
     //! \param rhs
     //! \return

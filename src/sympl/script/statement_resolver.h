@@ -38,11 +38,38 @@
 
 sympl_nsstart
 
+enum class StatementOperator {
+    None = 0,
+    Equals,
+    Add,
+    Subtract,
+    Divide,
+    Multiply,
+    Mod,
+    IsEqual2,
+    NotIsEqual2,
+    GreaterThan,
+    LessThan,
+    GreaterEqualThan,
+    LessEqualThan
+};
+
+enum class StatementType {
+    None = 0,
+    Object,
+    Method,
+    String,
+    Bool,
+    Integer,
+    Float,
+    Void
+};
+
 struct StatementEntry
 {
-    SharedPtr<ScriptObject> EvalObject;
+    SharedPtr<ScriptObject> ObjectValue;
     Variant ConstantValue;
-    std::string EvalString;
+    StatementOperator Op;
 };
 
 class SYMPL_API StatementResolver : public Object
@@ -51,23 +78,60 @@ class SYMPL_API StatementResolver : public Object
 
 private:
     /// Statements to resolve. Resolves the last first.
-    Urho3D::PODVector<StatementEntry> _Statements;
+    Urho3D::PODVector<StatementEntry*> _Statements;
 
     /// Statement string we want to resolve.
     StringBuffer* _StmtString = nullptr;
 
+    /// Reference to the script token helper.
+    ScriptToken* _TokenHelper = nullptr;
+
     /// Current character location.
     size_t _CurrentCharLocation = 0;
 
-    //! Checks if a given string is an object.
-    //! \param str
-    //! \return
-    ScriptObject* _IsObject(const char* str);
+    /// Type of statement.
+    StatementType _Type = StatementType::None;
+
+    //! Attempts to resolve a given statement.
+    Variant _ResolveStatements();
+
+    //! Resolves statements within a parenthesis and returns a value.
+    //! \param varObject
+    //! \param op
+    //! \return Variant
+    Variant _ResolveParenth(ScriptObject* varObject, StatementOperator op);
+
+    //! Resolves a method in a given statement to a value.
+    //! \param varObject
+    //! \param op
+    Variant _ResolveMethod(ScriptObject* varObject, StatementOperator op);
+
+    //! Solves a statement entry with a current value.
+    //! \param entry
+    //! \param value
+    void _Solve(StatementEntry* entry, Variant& value);
 
     //! Checks if a given string is a number.
     //! \param str
-    //! \return bool
+    //! \return Variant
     Variant _IsNumber(const char* str);
+
+    //! Checks if a given string is a boolean value.
+    //! \param str
+    //! \return Variant
+    Variant _IsBoolean(const char* str);
+
+    //! Finds the statement type.
+    //! \param value
+    //! \return StatementType
+    StatementType _FindType(const Variant& value);
+
+    //! Converts a symbol to a statement operator.
+    //! \param symbol
+    StatementOperator _SymbolToOp(const char* symbol);
+
+    //! Clears out the statements.
+    void _ClearStatements();
 
 public:
     //! Constructor.
@@ -78,7 +142,32 @@ public:
 
     //! Attempts to resolve a given string.
     //! \param str
-    void Resolve(const char* str);
+    //! \param varObject
+    Variant Resolve(const char* str, ScriptObject* varObject);
+
+    //! Release the object.
+    //! \return bool
+    bool Release() override;
+
+    //! Returns the statement string.
+    //! \return StringBuffer
+    inline StringBuffer* GetStatementString() const { return _StmtString; }
+
+    //! Sets the current character location.
+    //! \param location
+    inline void SetCurrentCharLocation(size_t location) { _CurrentCharLocation = location; }
+
+    //! Returns the current character location of the statement.
+    //! \return size_t
+    inline size_t GetCurrentCharLocation() const { return _CurrentCharLocation; }
+
+    //! Sets the statement type.
+    //! \param type
+    inline void SetType(StatementType type) { _Type = type; }
+
+    //! Returns the statement type.
+    //! \return StatementType
+    inline StatementType GetType() const { return _Type; }
 };
 
 sympl_nsend
