@@ -27,8 +27,8 @@ sympl_namespaces
 Object::~Object()
 {
     for (auto key : _MetaKeys) {
-        delete [] key;
-        //free_bytes_array(key);
+//        delete [] key;
+        free_bytes_array(key);
     }
     _MetaKeys.Clear();
     _MetaValues.Clear();
@@ -36,7 +36,8 @@ Object::~Object()
 
 void Object::SetMeta(const char* key, const Variant& value)
 {
-    auto data = new char[strlen(key) + 1];//alloc_bytes_array(char, strlen(key) + 1);
+//    auto data = new char[strlen(key) + 1];//alloc_bytes_array(char, strlen(key) + 1);
+    auto data = alloc_bytes_array(char, strlen(key) + 1);
     memset(data, 0, strlen(key) + 1);
     memcpy(data, key, strlen(key));
 

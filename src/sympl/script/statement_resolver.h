@@ -95,17 +95,6 @@ private:
     //! Attempts to resolve a given statement.
     Variant _ResolveStatements();
 
-    //! Resolves statements within a parenthesis and returns a value.
-    //! \param varObject
-    //! \param op
-    //! \return Variant
-    Variant _ResolveParenth(ScriptObject* varObject, StatementOperator op);
-
-    //! Resolves a method in a given statement to a value.
-    //! \param varObject
-    //! \param op
-    Variant _ResolveMethod(ScriptObject* varObject, StatementOperator op);
-
     //! Solves a statement entry with a current value.
     //! \param entry
     //! \param value

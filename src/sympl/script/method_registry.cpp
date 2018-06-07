@@ -119,7 +119,7 @@ void MethodRegistry::AddCallbackMethod(const char* name, const ScriptMethodCallb
 
 ScriptObject* MethodRegistry::FindMethod(const char* name)
 {
-    for (auto method : _Methods) {
+    for (auto& method : _Methods) {
         if (strcmp(method.second->GetName().c_str(), name) == 0) {
             return method.second;
         }

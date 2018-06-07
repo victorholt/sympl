@@ -124,7 +124,35 @@ public:
     template<typename T>
     T* AllocRef()
     {
-        return new T();
+        // Attempt to find an available block in memory.
+        AllocReserveGroup::MemBlock* block = _ObjectList._FindAvailable();
+
+        // Ensure we can allocate the bytes.
+        assert(sizeof(T) < _ObjectPoolBlockSize && "Unable to allocate the given amount of memory");
+
+        // If we don't have an available block, try to allocate more space.
+        if (IsNullObject(block)) {
+            assert(
+                    (_MaxObjectPoolCount + _MaxObjectPoolCount) < _MaxAllowedMemoryAlloc
+                    && "Failed to allocate from the object memory pool!"
+            );
+
+            ResizeObjectPoolList(_MaxObjectPoolCount + _MaxObjectPoolCount, _ObjectPoolBlockSize);
+            block = _ObjectList._FindAvailable();
+
+            assert(!IsNullObject(block) && "Failed to allocate object memory block!");
+        }
+
+        _ObjectList._BlocksUsed++;
+        _ObjectList.ClearBlockMemory(block->Index);
+        block->IsFree = false;
+        block->Size = sizeof(T);
+
+//        T* ref = reinterpret_cast<T*>(block->Data);
+        T* ref = new(block->Data) T();
+        ref->SetMemIndex(block->Index);
+
+        return ref;
     }
 
     //! Attempts to allocate memory.
@@ -133,7 +161,32 @@ public:
     template<typename T>
     T* AllocBytes(size_t amount)
     {
-        return new T();
+        // Attempt to find an available block in memory.
+        AllocReserveGroup::MemBlock* block = _ByteList._FindAvailable();
+
+        // Ensure we can allocate the bytes.
+        assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
+
+        // If we don't have an available block, try to allocate more space.
+        if (IsNullObject(block)) {
+            assert(
+                    (_MaxBytePoolCount + _MaxBytePoolCount) < _MaxAllowedMemoryAlloc
+                    && "Failed to allocate from the byte memory pool!"
+            );
+
+            ResizeBytePoolList(_MaxBytePoolCount + _MaxBytePoolCount, _BytePoolBlockSize);
+            block = _ByteList._FindAvailable();
+
+            assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
+        }
+
+        _ByteList._BlocksUsed++;
+        _ByteList.ClearBlockMemory(block->Index);
+        block->IsFree = false;
+        block->Size = amount;
+
+        T* ref = new(block->Data) T();
+        return ref;
     }
 
     //! Attempts to allocate memory.
@@ -142,7 +195,32 @@ public:
     template<typename T>
     T* AllocBytesArray(size_t amount)
     {
-        return new T[amount];
+        // Attempt to find an available block in memory.
+        AllocReserveGroup::MemBlock* block = _ByteList._FindAvailable();
+
+        // Ensure we can allocate the bytes.
+        assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
+
+        // If we don't have an available block, try to allocate more space.
+        if (IsNullObject(block)) {
+            assert(
+                    (_MaxBytePoolCount + _MaxBytePoolCount) < _MaxAllowedMemoryAlloc
+                    && "Failed to allocate from the byte memory pool!"
+            );
+
+            ResizeBytePoolList(_MaxBytePoolCount + _MaxBytePoolCount, _BytePoolBlockSize);
+            block = _ByteList._FindAvailable();
+
+            assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
+        }
+
+        _ByteList._BlocksUsed++;
+        _ByteList.ClearBlockMemory(block->Index);
+        block->IsFree = false;
+        block->Size = amount;
+
+        T* ref = new(block->Data) T();
+        return ref;
     }
 
     //! Attempts to free an object reference.

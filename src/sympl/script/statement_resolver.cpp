@@ -28,6 +28,13 @@
 #include <sympl/util/string_helper.h>
 sympl_namespaces
 
+class StmtResolverHelper
+{
+public:
+    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                            ScriptObject* varObject, StatementOperator op) {};
+};
+
 class EvalResolver
 {
 public:
@@ -69,7 +76,16 @@ public:
     }
 };
 
-class MethodResolver
+class ParenthResolver : public StmtResolverHelper
+{
+public:
+    ParenthResolver() = default;
+
+    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                            ScriptObject* varObject, StatementOperator op) override;
+};
+
+class MethodResolver : public StmtResolverHelper
 {
 public:
     //! Constructor.
@@ -77,7 +93,7 @@ public:
 
     //! Attempts to resolve a method from a given string.
     Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
-                    ScriptObject* varObject, StatementOperator op)
+                    ScriptObject* varObject, StatementOperator op) override
     {
         auto tokenHelper = ScriptVMInstance->GetScriptToken();
         auto statementStr = stmtResolver->GetStatementString();
@@ -133,16 +149,20 @@ public:
                 // Check to see if the varObject we have give is a method. If it's coming from
                 // the Interpreter it may be a method and we don't want to skip it!
                 if (resolveStr->Empty() && varObject->GetType() == ScriptObjectType::Method) {
-                    MethodResolver methodResolver;
-                    resolveStr->Append(methodResolver.Resolve(stmtResolver, resolveStr.Ptr(), varObject, op).AsString());
+                    auto methodResolver = alloc_bytes(MethodResolver);
+                    resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr.Ptr(), varObject, op).AsString());
+                    free_bytes(methodResolver);
                 } else {
                     // Determine if the current statement buffer is an existing method.
                     auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(resolveStr->CStr());
                     if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                        MethodResolver methodResolver;
-                        resolveStr->Append(methodResolver.Resolve(stmtResolver, resolveStr.Ptr(), varObject, op).AsString());
+                        auto methodResolver = alloc_bytes(MethodResolver);
+                        resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr.Ptr(), varObject, op).AsString());
+                        free_bytes(methodResolver);
                     } else {
-//                        _StatementBuffer->Append(_ResolveParenth(varObject, statementStr, op).AsString());
+                        auto parenthResolver = alloc_bytes(ParenthResolver);
+                        resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr.Ptr(), existingMethod, op).AsString());
+                        free_bytes(parenthResolver);
                     }
                 }
                 continue;
@@ -179,6 +199,7 @@ public:
                     } else if (lastConcatConditionStr == "||" && !argValue.GetBool()) {
                         argValue = evalResolver.IsStatementBufferTrue(resolveStr->CStr(), scriptObject);
                     }
+
                     lastConcatConditionStr = currentConcatConditionStr;
                     stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + 1);
                     continue;
@@ -230,6 +251,127 @@ public:
         assert(false && "Unclosed call to method!");
     }
 };
+
+Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                    ScriptObject* varObject, StatementOperator op)
+{
+    auto tokenHelper = ScriptVMInstance->GetScriptToken();
+    auto statementStr = stmtResolver->GetStatementString();
+
+    // Parse out the object value.
+    char currentChar = '\0';
+    char nextChar = '\0';
+    bool recording = false;
+
+    // String to resolve.
+    SharedPtr<StringBuffer> resolveStr = alloc_ref(StringBuffer);
+
+    // Current/last concatenating condition.
+    std::string currentConcatConditionStr;
+    std::string lastConcatConditionStr;
+
+    // Current return value.
+    Variant retValue;
+
+    // Build out the argument statements.
+    while (stmtResolver->GetCurrentCharLocation() < statementStr->Length()) {
+        currentChar = statementStr->Get(stmtResolver->GetCurrentCharLocation());
+        nextChar = statementStr->Get(stmtResolver->GetCurrentCharLocation() + 1);
+        stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + 1);
+
+        if (currentChar == '"') {
+            resolveStr->Append(SYMPL_STRING_TOKEN);
+            recording = !recording;
+        }
+
+        // Resolve another contained value.
+        if (!recording && currentChar == '(') {
+            // Determine if the current statement buffer is an existing method.
+            auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(resolveStr->CStr());
+            if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                auto methodResolver = alloc_bytes(MethodResolver);
+                resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr.Ptr(), existingMethod, op).AsString());
+                free_bytes(methodResolver);
+            } else {
+                auto parenthResolver = alloc_bytes(ParenthResolver);
+                resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr.Ptr(), existingMethod, op).AsString());
+                free_bytes(parenthResolver);
+            }
+            continue;
+        }
+
+        // Check if we're dealing with a double operator for concatenating comparisons.
+        if (!recording && tokenHelper->IsOperator(currentChar) && tokenHelper->IsOperator(nextChar)) {
+            EvalResolver evalResolver;
+            bool isConcatOperator = false;
+
+            if ((currentChar == '&' && nextChar == '&') || (currentChar == '|' && nextChar == '|')) {
+                isConcatOperator = true;
+                currentConcatConditionStr.clear();
+                currentConcatConditionStr.append(1, currentChar);
+                currentConcatConditionStr.append(1, nextChar);
+
+                // If this is the first time encountering the concat condition,
+                // then evaluate the current argument and move on to the next
+                // iteration.
+                if (lastConcatConditionStr.size() == 0) {
+                    retValue = evalResolver.IsStatementBufferTrue(resolveStr->CStr(), varObject);
+                    lastConcatConditionStr = currentConcatConditionStr;
+                    continue;
+                }
+            }
+
+            // Check if we need to ensure that the entire statement is true.
+            if (isConcatOperator) {
+                if (lastConcatConditionStr == "&&" && retValue.GetBool()) {
+                    retValue = evalResolver.IsStatementBufferTrue(resolveStr->CStr(), varObject);
+                    if (!retValue.GetBool()) {
+                        retValue = false;
+                    }
+                } else if (lastConcatConditionStr == "||" && !retValue.GetBool()) {
+                    retValue = evalResolver.IsStatementBufferTrue(resolveStr->CStr(), varObject);
+                }
+
+                lastConcatConditionStr = currentConcatConditionStr;
+                stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + 1);
+                continue;
+            }
+        }
+
+        // Build and evaluate the statement.
+        if (!recording && currentChar == ')') {
+            EvalResolver evalResolver;
+
+            // Check if we already have an argument value.
+            if (retValue.IsEmpty()) {
+                retValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), varObject);
+            } else if (currentConcatConditionStr == "&&") {
+                if (retValue.GetType() != VariantType::Bool || retValue.GetBool()) {
+                    retValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), varObject);
+                }
+            } else if (currentConcatConditionStr == "||") {
+                if (retValue.GetType() != VariantType::Bool || !retValue.GetBool()) {
+                    retValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), varObject);
+                }
+            }
+
+            // Restore the statement buffer.
+//                resolveStr->Clear();
+//                resolveStr->Append(savedStatementStr);
+
+            // Return our value.
+            return retValue;
+        }
+
+        if (recording || (!recording && currentChar != '#')) {
+            resolveStr->AppendByte(currentChar);
+        }
+    }
+
+    // We failed to exit the while loop early!
+    assert(false && "Unclosed parenthesis in statement found!");
+}
+
 
 StatementResolver::StatementResolver()
 {
@@ -285,16 +427,20 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject)
             // Check to see if the varObject we have give is a method. If it's coming from
             // the Interpreter it may be a method and we don't want to skip it!
             if (stmtEntryStr->Empty() && varObject->GetType() == ScriptObjectType::Method) {
-                MethodResolver mResolver;
-                stmtEntryStr->Append(mResolver.Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
+                auto methodResolver = alloc_bytes(MethodResolver);
+                stmtEntryStr->Append(methodResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
+                free_bytes(methodResolver);
             } else {
                 // Determine if the current statement buffer is an existing method.
                 auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
                 if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                    MethodResolver methodResolver;
-                    stmtEntryStr->Append(methodResolver.Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
+                    auto methodResolver = alloc_bytes(MethodResolver);
+                    stmtEntryStr->Append(methodResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
+                    free_bytes(methodResolver);
                 } else {
-                    stmtEntryStr->Append(_ResolveParenth(varObject, currentOp).AsString());
+                    auto parenthResolver = alloc_bytes(ParenthResolver);
+                    stmtEntryStr->Append(parenthResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
+                    free_bytes(parenthResolver);
                 }
             }
             continue;
@@ -422,18 +568,6 @@ Variant StatementResolver::_ResolveStatements()
     }
 
     return value;
-}
-
-Variant StatementResolver::_ResolveParenth(ScriptObject* varObject, StatementOperator op)
-{
-    std::cout << "Resolving parenth" << std::endl;
-    return Variant::Empty;
-}
-
-Variant StatementResolver::_ResolveMethod(ScriptObject* varObject, StatementOperator op)
-{
-    std::cout << "Resolving method" << std::endl;
-    return Variant::Empty;
 }
 
 void StatementResolver::_Solve(StatementEntry* entry, Variant& value)
