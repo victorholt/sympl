@@ -12,23 +12,24 @@ int main()
 //
 //    return 0;
 
-    MemPoolInstance.CreatePool<StringBuffer>(15000);
-    MemPoolInstance.CreatePool<StatementResolver>(6000);
-    MemPoolInstance.CreatePool<ScriptObject>();
-    MemPoolInstance.CreatePool<ScriptMethod>();
-    MemPoolInstance.CreatePool<CallbackMethod>();
-    MemPoolInstance.CreatePool<IfMethod>();
+    mem_create_pool(StringBuffer, 200);
+    mem_create_pool(StatementResolver, 200);
+    mem_create_pool(ScriptObject, 200);
+    mem_create_pool(ScriptMethod, 200);
+    mem_create_pool(CallbackMethod, 200);
+    mem_create_pool(IfMethod, 200);
+    mem_create_pool(WhileMethod, 200);
 
+    mem_create_object_pool(EvalResolver, 50);
+    mem_create_object_pool(MethodResolver, 50);
+    mem_create_object_pool(ParenthResolver, 50);
 
-    sympl_profile_start("math_program_load");
+    sympl_profile_start("program_load");
     auto program = ScriptVMInstance->LoadFile("../../examples/scripts/math.sym");
-    sympl_profile_stop("math_program_load");
-    sympl_profile_print("math_program_load");
+    sympl_profile_stop("program_load");
+    sympl_profile_print("program_load");
 
-    sympl_profile_start("math_program");
     program->Run();
-    sympl_profile_stop("math_program");
-    sympl_profile_print("math_program");
 
     cout << "Memory Usage: " << AllocInstance.GetMemoryUsage() << endl;
     return 0;

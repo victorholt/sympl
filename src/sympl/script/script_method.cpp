@@ -39,7 +39,7 @@ void ScriptMethod::__Construct()
 {
     _Type = ScriptObjectType::Method;
     _ReturnType = MethodReturnType::Object;
-    _ArgString = mem_alloc(StringBuffer);
+    _ArgString = mem_alloc_ref(StringBuffer);
 }
 
 void ScriptMethod::_Initialize(const char* name, const char* path, ScriptObject* parent)
@@ -96,7 +96,7 @@ void ScriptMethod::_ProcessArgStatements()
         Variant value = argIt->GetValue();
 
         if (value.GetType() == VariantType::StringBuffer) {
-            SharedPtr<StatementResolver> resolver = mem_alloc(StatementResolver);
+            SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
 
             Variant argValue = argIt->GetValue();
             argValue = resolver->Resolve(argValue.GetStringBuffer()->CStr(), argIt);
@@ -116,7 +116,7 @@ void ScriptMethod::_ProcessCallStatements()
     for (auto entryIt : _CallStatements) {
         if (_Exit) return;
 
-        SharedPtr<StatementResolver> resolver = mem_alloc(StatementResolver);
+        SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
         entryIt->Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
 
         auto val = resolver->Resolve(entryIt->StatementStr->CStr(), entryIt->Variable.Ptr());
@@ -174,7 +174,7 @@ void ScriptMethod::AddStatement(ScriptObject* variable, const char* stmtStr)
 {
     auto callStatement = alloc_bytes(MethodCallStatement);
     callStatement->Variable = variable;
-    callStatement->StatementStr = mem_alloc(StringBuffer);
+    callStatement->StatementStr = mem_alloc_ref(StringBuffer);
     callStatement->StatementStr->Append(stmtStr);
 
     _CallStatements.Push(callStatement);

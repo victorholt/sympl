@@ -37,6 +37,8 @@ class Interpreter;
 class MethodRegistry;
 class AllocManager;
 class MemPool;
+class MemPoolRef;
+class MemPoolObject;
 class MemPoolManager;
 class ScriptToken;
 class ScriptObject;
@@ -81,7 +83,7 @@ public:
     //! \return ScriptVM
     static ScriptVM* GetInstance() {
         if (IsNullObject(_Instance)) {
-            _Instance = mem_alloc(ScriptVM);
+            _Instance = mem_alloc_ref(ScriptVM);
             _Instance->Startup();
         }
         return _Instance;
@@ -168,6 +170,8 @@ public:
 
     friend AllocManager;
     friend MemPool;
+    friend MemPoolRef;
+    friend MemPoolObject;
     friend MemPoolManager;
 };
 

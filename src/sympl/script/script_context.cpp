@@ -61,13 +61,18 @@ ScriptObject* ScriptContext::FindVariable(const char* name, bool traverse)
 
     // Search the context of the caller if we have one (methods).
     if (_CallerContext.IsValid()) {
-        return _CallerContext->FindVariable(name);
+        auto var = _CallerContext->FindVariable(name);
+        if (!var->IsEmpty()) {
+            AddVar(var);
+            return var;
+        }
     }
 
     // Check if we have a parent scope and go up the chain.
     if (_ParentContext.IsValid()) {
         auto var = _ParentContext->FindVariable(name);
         if (!var->IsEmpty()) {
+            AddVar(var);
             return var;
         }
     }

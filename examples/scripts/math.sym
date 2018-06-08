@@ -1,11 +1,11 @@
 // Simple math example.
-
+profiler_start("math");
 func add(a, b) : int {
     return a + b;
 }
 
 func up(p) : int {
-    if (p < 1100) {
+    if (p < 100) {
         return up(p + 1);
     }
     return p;
@@ -15,10 +15,10 @@ func up(p) : int {
 //printl(x, true);
 
 var x = 0;
-while (x < 3) {
-    x = x + 1;
+while (x < 500) {
+    x = add(x, 1);
 }
 printl(x);
 printl("Finished!");
-
+profiler_stop("math");
 //print_vm_refs();

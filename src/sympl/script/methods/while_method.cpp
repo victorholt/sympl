@@ -58,7 +58,7 @@ Variant WhileMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
 
     // Process the statements.
     if (value.GetType() == VariantType::Bool && value.GetBool()) {
-        SharedPtr<StatementResolver> resolver = mem_alloc(StatementResolver);
+        SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
         while (value.GetType() == VariantType::Bool && value.GetBool()) {
             _ProcessCallStatements();
             value = resolver->Resolve(_ArgStringNoParenth->CStr(), this);
@@ -70,7 +70,7 @@ Variant WhileMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
 
 ScriptObject* WhileMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
 {
-    ScriptObject* clone = mem_alloc(WhileMethod);
+    ScriptObject* clone = mem_alloc_ref(WhileMethod);
     clone->SetName(name);
     ScriptVMInstance->AddObject(clone, parent);
     return clone;

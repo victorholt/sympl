@@ -44,12 +44,12 @@ void MethodRegistry::__Construct()
 void MethodRegistry::_Initialize()
 {
     // Add the if method.
-    auto ifMethod = mem_alloc(IfMethod);
+    auto ifMethod = mem_alloc_ref(IfMethod);
     ScriptVMInstance->AddObject(ifMethod);
     AddMethod(ifMethod);
 
     // Add the while method.
-    auto whileMethod = mem_alloc(WhileMethod);
+    auto whileMethod = mem_alloc_ref(WhileMethod);
     ScriptVMInstance->AddObject(whileMethod);
     AddMethod(whileMethod);
 
@@ -113,7 +113,7 @@ void MethodRegistry::AddCallbackMethod(const char* name, const ScriptMethodCallb
         return;
     }
 
-    method = mem_alloc(CallbackMethod);
+    method = mem_alloc_ref(CallbackMethod);
     method->SetName(name);
     method->SetReturnType(returnType);
     method->SetCallback(callback);

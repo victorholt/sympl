@@ -29,7 +29,7 @@ sympl_nsstart
 
 class MemPool
 {
-private:
+protected:
     /// Blocks in the pool.
     struct MemBlock
     {
@@ -56,16 +56,24 @@ private:
     /// Max memory blocks to allocate.
     size_t _Padding = 0;
 
-    /// The next available block.
-    size_t _NextAvailableBlock = 0;
+    /// Whether or not this pool manages a ref counter object.
+    bool _IsRefCounter = false;
 
-    //! Finds an available blcok.
+    //! Finds an available block.
     //! \return MemBlock
     MemBlock* FindAvailableBlock();
+
+    //! Finds an available block.
+    //! \return MemBlock
+    MemBlock* FindBlock(void* ref);
 
     //! Clears the block memory.
     //! \param index
     void ClearBlock(size_t index);
+
+    //! Fills the block with junk data.
+    //! \param index
+    void FillBlock(size_t index);
 public:
     //! Constructor.
     MemPool();
@@ -76,41 +84,20 @@ public:
     //! Constructor.
     //! \param typeName
     //! \param blockSize
+    //! \param isRefCounter
     //! \param padding
     //! \param maxMemBlocks
-    MemPool(const char* typeName, size_t blockSize, size_t padding, size_t maxMemBlocks);
+    MemPool(const char* typeName, size_t blockSize, bool isRefCounter, size_t padding, size_t maxMemBlocks);
 
     //! Allocate new memory.
     //! \return T
     template<class T>
-    T* Allocate()
-    {
-        auto block = FindAvailableBlock();
-        block->Free = false;
-
-//        ClearBlock(block->Index);
-
-        T* ref = new(block->Data) T();
-        ref->SetMemIndex(block->Index);
-
-        return ref;
-    }
+    T* Allocate() { return nullptr; }
 
     //! Deallocate memory.
     //! \param ref
     template<class T>
-    void Deallocate(T* ref)
-    {
-        if (ref->DecRef()) {
-            return;
-        }
-        if (ref->GetMemIndex() == -1) {
-            return;
-        }
-        _Blocks[ref->GetMemIndex()]->Free = true;
-        ref->Release();
-        ref->~T();
-    }
+    void Deallocate(T* ref) {}
 
     //! Returns the type name.
     //! \return const char*
@@ -130,6 +117,90 @@ public:
     inline bool TypeNameEquals(const std::string& typeName)
     {
         return TypeNameEquals(typeName.c_str());
+    }
+
+    //! Returns whether or not this pool holds ref counter objects.
+    //! \return bool
+    inline bool IsRefCounter() const { return _IsRefCounter; }
+};
+
+class MemPoolRef : public MemPool
+{
+public:
+    //! Constructor.
+    //! \param typeName
+    //! \param blockSize
+    //! \param isRefCounter
+    //! \param padding
+    //! \param maxMemBlocks
+    MemPoolRef(const char* typeName, size_t blockSize, bool isRefCounter, size_t padding, size_t maxMemBlocks);
+
+    //! Allocate new memory.
+    //! \return T
+    template<class T>
+    T* Allocate()
+    {
+        auto block = FindAvailableBlock();
+        block->Free = false;
+
+        T* ref = new(block->Data) T();
+        ref->SetMemIndex(block->Index);
+
+        return ref;
+    }
+
+    //! Deallocate memory.
+    //! \param ref
+    template<class T>
+    void Deallocate(T* ref)
+    {
+        if (ref->DecRef()) {
+            return;
+        }
+        if (ref->GetMemIndex() == -1) {
+            return;
+        }
+
+        size_t blockIndex = ref->GetMemIndex();
+
+        ref->Release();
+        ref->~T();
+
+        _Blocks[blockIndex]->Free = true;
+    }
+};
+
+class MemPoolObject : public MemPool
+{
+public:
+    //! Constructor.
+    //! \param typeName
+    //! \param blockSize
+    //! \param isRefCounter
+    //! \param padding
+    //! \param maxMemBlocks
+    MemPoolObject(const char* typeName, size_t blockSize, bool isRefCounter, size_t padding, size_t maxMemBlocks);
+
+    //! Allocate new memory.
+    //! \return T
+    template<class T>
+    T* Allocate()
+    {
+        auto block = FindAvailableBlock();
+        block->Free = false;
+
+        T* ref = new(block->Data) T();
+        return ref;
+    }
+
+    //! Deallocate memory.
+    //! \param ref
+    template<class T>
+    void Deallocate(T* ref)
+    {
+        auto block = FindBlock(reinterpret_cast<void*>(ref));
+        ref->~T();
+        block->Free = true;
     }
 };
 
@@ -165,11 +236,39 @@ public:
     //! \tparam T
     //! \tparam Padding
     //! \tparam Size
+    //! \param isRefCounter
     //! \param maxMemBlocks
     template<class T, size_t Padding = 64, size_t Size = sizeof(T)>
-    MemPool* CreatePool(size_t maxMemBlocks = 200)
+    MemPool* CreatePool(bool isRefCounter = true, size_t maxMemBlocks = 200)
     {
-        auto pool = new MemPool(T::GetTypeNameStatic().c_str(), Size, Padding, maxMemBlocks);
+        MemPool* pool = nullptr;
+
+        if (isRefCounter) {
+            pool = new MemPoolRef(T::GetTypeNameStatic().c_str(), Size, isRefCounter, Padding, maxMemBlocks);
+        } else {
+            pool = new MemPoolObject(T::GetTypeNameStatic().c_str(), Size, isRefCounter, Padding, maxMemBlocks);
+        }
+        _Pools.push_back(pool);
+
+        return pool;
+    };
+
+    //! Creates a new pool.
+    //! \tparam T
+    //! \tparam Padding
+    //! \tparam Size
+    //! \param isRefCounter
+    //! \param maxMemBlocks
+    template<class T, size_t Padding = 64, size_t Size = sizeof(T)>
+    MemPool* CreatePool(const char* typeName, bool isRefCounter = true, size_t maxMemBlocks = 200)
+    {
+        MemPool* pool = nullptr;
+
+        if (isRefCounter) {
+            pool = new MemPoolRef(typeName, Size, isRefCounter, Padding, maxMemBlocks);
+        } else {
+            pool = new MemPoolObject(typeName, Size, isRefCounter, Padding, maxMemBlocks);
+        }
         _Pools.push_back(pool);
 
         return pool;
@@ -230,11 +329,11 @@ public:
     //! \param typeName
     //! \return MemPool
     template<class T>
-    T* Allocate(const char* typeName)
+    T* AllocateRef(const char* typeName)
     {
         auto pool = FindPool(typeName);
         if (!IsNullObject(pool)) {
-            return pool->template Allocate<T>();
+            return ((MemPoolRef*)pool)->template Allocate<T>();
         }
         return new T();
     }
@@ -243,20 +342,42 @@ public:
     //! \param typeName
     //! \return MemPool
     template<class T>
-    T* Allocate(const std::string& typeName)
+    T* AllocateObject(const char* typeName)
     {
-        return Allocate<T>(typeName.c_str());
+        auto pool = FindPool(typeName);
+        if (!IsNullObject(pool)) {
+            return ((MemPoolObject*)pool)->template Allocate<T>();
+        }
+        return new T();
+    }
+
+    //! Attempts to find and return a memory pool.
+    //! \param typeName
+    //! \return MemPool
+    template<class T>
+    T* AllocateRef(const std::string& typeName)
+    {
+        return AllocateRef<T>(typeName.c_str());
+    }
+
+    //! Attempts to find and return a memory pool.
+    //! \param typeName
+    //! \return MemPool
+    template<class T>
+    T* AllocateObject(const std::string& typeName)
+    {
+        return AllocateObject<T>(typeName.c_str());
     }
 
     //! Attempts to deallocate a reference.
     //! \tparam T
     //! \param ref
     template<class T>
-    void Deallocate(T* ref)
+    void DeallocateRef(T* ref)
     {
         auto pool = FindPool(ref->GetTypeName().c_str());
         if (!IsNullObject(pool)) {
-            pool->template Deallocate<T>(ref);
+            ((MemPoolRef*)pool)->template Deallocate<T>(ref);
             return;
         }
 
@@ -266,10 +387,28 @@ public:
         ref->Release();
         delete ref;
     }
+
+    //! Attempts to deallocate a reference.
+    //! \tparam T
+    //! \param ref
+    template<class T>
+    void DeallocateObject(const char* typeName, T* ref)
+    {
+        auto pool = FindPool(typeName);
+        if (!IsNullObject(pool)) {
+            ((MemPoolObject*)pool)->template Deallocate<T>(ref);
+            return;
+        }
+        delete ref;
+    }
 };
 
 #define MemPoolInstance MemPoolManager::GetInstance()
-#define mem_alloc(type) MemPoolInstance.Allocate<type>(type::GetTypeNameStatic())
-#define mem_free(type, ref) MemPoolInstance.Deallocate<type>(ref)
+#define mem_create_pool(type, amount) MemPoolInstance.CreatePool<type>(true, amount)
+#define mem_create_object_pool(type, amount) MemPoolInstance.CreatePool<type>(#type, false, amount)
+#define mem_alloc_ref(type) MemPoolInstance.AllocateRef<type>(type::GetTypeNameStatic())
+#define mem_free_ref(type, ref) MemPoolInstance.DeallocateRef<type>(ref)
+#define mem_alloc_object(type) MemPoolInstance.AllocateObject<type>(#type)
+#define mem_free_object(type, ref) MemPoolInstance.DeallocateObject<type>(#type, ref)
 
 sympl_nsend

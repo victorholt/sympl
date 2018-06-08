@@ -120,7 +120,7 @@ ScriptObject* ScriptObject::_OnCloneCreateObject(const std::string& name, Script
 
 void ScriptObject::CreateContext(ScriptContext* context)
 {
-    auto newContext = mem_alloc(ScriptContext);
+    auto newContext = mem_alloc_ref(ScriptContext);
     newContext->SetScriptObject(this);
     newContext->SetParentContext(context);
     SetContext(newContext);
@@ -255,7 +255,7 @@ std::string ScriptObject::GetTypeAsString() const
 
 std::string ScriptObject::Print()
 {
-    auto buffer = mem_alloc(StringBuffer);
+    auto buffer = mem_alloc_ref(StringBuffer);
     buffer->Append(fmt::format("{0} ({1}) -> {2}", _Name, _Path, GetTypeAsString()).c_str());
     buffer->Append("\n");
 
@@ -264,7 +264,7 @@ std::string ScriptObject::Print()
     }
 
     std::string results = buffer->CStr();
-    mem_free(StringBuffer, buffer);
+    mem_free_ref(StringBuffer, buffer);
 
     return results;
 }

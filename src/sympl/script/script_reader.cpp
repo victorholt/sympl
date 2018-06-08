@@ -33,8 +33,8 @@ ScriptReader::ScriptReader()
 
 void ScriptReader::__Construct()
 {
-    _Buffer = mem_alloc(StringBuffer);
-    _ScriptToken = mem_alloc(ScriptToken);
+    _Buffer = mem_alloc_ref(StringBuffer);
+    _ScriptToken = mem_alloc_ref(ScriptToken);
     _FilePath = "";
     _ScriptString = "";
 }
@@ -115,7 +115,7 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
     if (!IsNullObject(_Buffer)) {
         _Buffer->Clear();
     } else {
-        _Buffer = mem_alloc(StringBuffer);
+        _Buffer = mem_alloc_ref(StringBuffer);
     }
     _Buffer->Resize(2000);
 
@@ -245,8 +245,8 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
 
 bool ScriptReader::Release()
 {
-    mem_free(StringBuffer, _Buffer);
-    mem_free(ScriptToken, _ScriptToken);
+    mem_free_ref(StringBuffer, _Buffer);
+    mem_free_ref(ScriptToken, _ScriptToken);
 
     return true;
 }

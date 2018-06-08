@@ -112,7 +112,7 @@ public:
         if (IsNull()) {
             return;
         }
-        mem_free(T, _Data);
+        mem_free_ref(T, _Data);
         _Data = nullptr;
     }
 

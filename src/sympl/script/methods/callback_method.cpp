@@ -79,7 +79,7 @@ void CallbackMethod::_CopyArgs(const Urho3D::PODVector<Variant>& args)
 
 ScriptObject* CallbackMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
 {
-    ScriptObject* clone = mem_alloc(CallbackMethod);
+    ScriptObject* clone = mem_alloc_ref(CallbackMethod);
     clone->SetName(name);
     dynamic_cast<CallbackMethod*>(clone)->SetCallback(_Callback);
     ScriptVMInstance->AddObject(clone, parent);

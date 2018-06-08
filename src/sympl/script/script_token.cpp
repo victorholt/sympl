@@ -71,8 +71,8 @@ void ScriptToken::__Construct()
     AddSpecialCharToken(TokenType::SpecialChar, "\'", "#q#");
     AddSpecialCharToken(TokenType::SpecialChar, "\"", "\"");
 
-    _TranslateBuffer = mem_alloc(StringBuffer);
-    _ResultBuffer = mem_alloc(StringBuffer);
+    _TranslateBuffer = mem_alloc_ref(StringBuffer);
+    _ResultBuffer = mem_alloc_ref(StringBuffer);
 }
 
 const bool ScriptToken::IsType(TokenType type, const char* input)
@@ -365,8 +365,8 @@ bool ScriptToken::Release()
     _DelTokens.Clear();
     _SpecTokens.Clear();
 
-    mem_free(StringBuffer, _TranslateBuffer);
-    mem_free(StringBuffer, _ResultBuffer);
+    mem_free_ref(StringBuffer, _TranslateBuffer);
+    mem_free_ref(StringBuffer, _ResultBuffer);
 
     return true;
 }

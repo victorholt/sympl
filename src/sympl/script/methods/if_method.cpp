@@ -66,7 +66,7 @@ Variant IfMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
 
 ScriptObject* IfMethod::_OnCloneCreateObject(const std::string& name, ScriptObject* parent)
 {
-    ScriptObject* clone = mem_alloc(IfMethod);
+    ScriptObject* clone = mem_alloc_ref(IfMethod);
     clone->SetName(name);
     ScriptVMInstance->AddObject(clone, parent);
     return clone;

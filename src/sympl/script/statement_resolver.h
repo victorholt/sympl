@@ -72,6 +72,63 @@ struct StatementEntry
     StatementOperator Op;
 };
 
+class StatementResolver;
+class EvalResolver
+{
+public:
+    //! Constructor.
+    EvalResolver() = default;
+
+    //! Returns a value from evaluating a given script object.
+    //! \param stmtStr
+    //! \param scriptObject
+    //! \return
+    Variant GetEvalFromStatementBuffer(const char* stmtStr, ScriptObject* scriptObject);
+
+    //! Returns whether or not a given script object evaluates to true.
+    //! \param stmtStr
+    //! \param scriptObject
+    //! \return
+    bool IsStatementBufferTrue(const char* stmtStr, ScriptObject* scriptObject);
+};
+
+class MethodResolver
+{
+public:
+    MethodResolver() = default;
+
+    //! Resolves the method.
+    //! \param stmtResolver
+    //! \param currentStr
+    //! \param varObject
+    //! \param op
+    //! \return
+    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                            ScriptObject* varObject, StatementOperator op);
+};
+
+class ParenthResolver
+{
+public:
+    ParenthResolver() = default;
+
+    //! Resolves the parentheses.
+    //! \param stmtResolver
+    //! \param currentStr
+    //! \param varObject
+    //! \param op
+    //! \return
+    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                            ScriptObject* varObject, StatementOperator op);
+};
+
+class StmtResolverHelper
+{
+public:
+    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                            ScriptObject* varObject, StatementOperator op) {};
+};
+
 class SYMPL_API StatementResolver : public Object
 {
     SYMPL_OBJECT(StatementResolver, Object);

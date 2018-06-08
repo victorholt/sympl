@@ -42,10 +42,10 @@ void ScriptParser::__Construct()
 {
     _Reader = nullptr;
 
-    _CurrentIdentifierBuffer = mem_alloc(StringBuffer);
-    _CurrentObjectBuffer = mem_alloc(StringBuffer);
+    _CurrentIdentifierBuffer = mem_alloc_ref(StringBuffer);
+    _CurrentObjectBuffer = mem_alloc_ref(StringBuffer);
 
-    _CurrentValueBuffer = mem_alloc(StringBuffer);
+    _CurrentValueBuffer = mem_alloc_ref(StringBuffer);
     _CurrentValueBuffer->Resize(512);
 
     _Symbol = ScriptVMInstance->GetScriptToken();
@@ -511,9 +511,9 @@ void ScriptParser::_ClearBuffers()
 
 bool ScriptParser::Release()
 {
-    mem_free(StringBuffer, _CurrentIdentifierBuffer);
-    mem_free(StringBuffer, _CurrentObjectBuffer);
-    mem_free(StringBuffer, _CurrentValueBuffer);
+    mem_free_ref(StringBuffer, _CurrentIdentifierBuffer);
+    mem_free_ref(StringBuffer, _CurrentObjectBuffer);
+    mem_free_ref(StringBuffer, _CurrentValueBuffer);
 
     return true;
 }
