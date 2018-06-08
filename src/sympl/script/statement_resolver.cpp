@@ -144,7 +144,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
                 // If this is the first time encountering the concat condition,
                 // then evaluate the current argument and move on to the next
                 // iteration.
-                if (lastConcatConditionStr.size() == 0) {
+                if (lastConcatConditionStr.empty()) {
                     argValue = evalResolver.IsStatementBufferTrue(resolveStr->CStr(), scriptObject);
                     lastConcatConditionStr = currentConcatConditionStr;
                     continue;
@@ -345,155 +345,155 @@ void StatementResolver::__Construct()
     _TokenHelper = ScriptVMInstance->GetScriptToken();
 }
 
-Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject)
+Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, bool cache)
 {
-    // Statement entries.
-    Urho3D::PODVector<StatementEntry*> stmtEntries;
-
     // Clear out the previous statement and append the new statement.
-    _StmtString->Clear();
-    _StmtString->Append(str);
-    if (_StmtString->LastByte() != ';') {
-        _StmtString->AppendByte(';');
-    }
-
-    // Set our default operator.
-    StatementOperator currentOp = StatementOperator::Equals;
-
-    // Go through our string and create our entries.
-    SharedPtr<StringBuffer> stmtEntryStr = mem_alloc_ref(StringBuffer);
-    char currentChar = '\0';
-    char nextChar = '\0';
-    bool recording = false;
-    _CurrentCharLocation = 0;
-
-    while (_CurrentCharLocation < _StmtString->Length()) {
-        currentChar = _StmtString->Get(_CurrentCharLocation);
-        nextChar = _StmtString->Get(_CurrentCharLocation + 1);
-        _CurrentCharLocation++;
-
-        // Check if we're starting a string.
-        if (currentChar == '"') {
-            stmtEntryStr->Append(SYMPL_STRING_TOKEN);
-            recording = !recording;
-            continue;
+    if (_StmtEntries.Empty()) {
+        _StmtString->Clear();
+        _StmtString->Append(str);
+        if (_StmtString->LastByte() != ';') {
+            _StmtString->AppendByte(';');
         }
 
-        // Save our current character.
-        if (recording || (currentChar != '#' && currentChar != ';' &&
-            currentChar != '(' && currentChar != '{')) {
-            stmtEntryStr->Append(std::string(1, currentChar));
-        }
+        // Set our default operator.
+        StatementOperator currentOp = StatementOperator::Equals;
 
-        // Check if we're in a parenth or method.
-        if (!recording && currentChar == '(') {
-            // Check to see if the varObject we have give is a method. If it's coming from
-            // the Interpreter it may be a method and we don't want to skip it!
-            if (stmtEntryStr->Empty() && varObject->GetType() == ScriptObjectType::Method) {
-                auto methodResolver = mem_alloc_object(MethodResolver);
-                stmtEntryStr->Append(methodResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
-                mem_free_object(MethodResolver, methodResolver);
-            } else {
-                // Determine if the current statement buffer is an existing method.
-                auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
-                if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+        // Go through our string and create our entries.
+        SharedPtr<StringBuffer> stmtEntryStr = mem_alloc_ref(StringBuffer);
+        char currentChar = '\0';
+        char nextChar = '\0';
+        bool recording = false;
+        _CurrentCharLocation = 0;
+
+        while (_CurrentCharLocation < _StmtString->Length()) {
+            currentChar = _StmtString->Get(_CurrentCharLocation);
+            nextChar = _StmtString->Get(_CurrentCharLocation + 1);
+            _CurrentCharLocation++;
+
+            // Check if we're starting a string.
+            if (currentChar == '"') {
+                stmtEntryStr->Append(SYMPL_STRING_TOKEN);
+                recording = !recording;
+                continue;
+            }
+
+            // Save our current character.
+            if (recording || (currentChar != '#' && currentChar != ';' &&
+                              currentChar != '(' && currentChar != '{')) {
+                stmtEntryStr->Append(std::string(1, currentChar));
+            }
+
+            // Check if we're in a parenth or method.
+            if (!recording && currentChar == '(') {
+                // Check to see if the varObject we have give is a method. If it's coming from
+                // the Interpreter it may be a method and we don't want to skip it!
+                if (stmtEntryStr->Empty() && varObject->GetType() == ScriptObjectType::Method) {
                     auto methodResolver = mem_alloc_object(MethodResolver);
-                    stmtEntryStr->Append(methodResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
+                    stmtEntryStr->Append(
+                            methodResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
                     mem_free_object(MethodResolver, methodResolver);
                 } else {
-                    auto parenthResolver = mem_alloc_object(ParenthResolver);
-                    stmtEntryStr->Append(parenthResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
-                    mem_free_object(ParenthResolver, parenthResolver);
+                    // Determine if the current statement buffer is an existing method.
+                    auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
+                    if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                        auto methodResolver = mem_alloc_object(MethodResolver);
+                        stmtEntryStr->Append(
+                                methodResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
+                        mem_free_object(MethodResolver, methodResolver);
+                    } else {
+                        auto parenthResolver = mem_alloc_object(ParenthResolver);
+                        stmtEntryStr->Append(
+                                parenthResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
+                        mem_free_object(ParenthResolver, parenthResolver);
+                    }
                 }
-            }
-            continue;
-        }
-
-        // Check if we need to create the statement entry.
-        if (!recording && (currentChar == '#' || currentChar == ';' ||
-            _TokenHelper->IsOperator(currentChar) || _TokenHelper->IsOperator(nextChar))) {
-
-            // Skip if we don't have anything to check.
-            if (stmtEntryStr->Empty()) {
                 continue;
             }
 
-            // Check/save the operator.
-            if (_TokenHelper->IsOperator(stmtEntryStr->CStr())) {
-                // Check if we're a double operator.
-                if (_TokenHelper->IsOperator(nextChar)) {
-                    stmtEntryStr->AppendByte(nextChar);
-                    _CurrentCharLocation++;
+            // Check if we need to create the statement entry.
+            if (!recording && (currentChar == '#' || currentChar == ';' ||
+                               _TokenHelper->IsOperator(currentChar) || _TokenHelper->IsOperator(nextChar))) {
+
+                // Skip if we don't have anything to check.
+                if (stmtEntryStr->Empty()) {
+                    continue;
                 }
 
-                currentOp = _SymbolToOp(stmtEntryStr->CStr());
-                stmtEntryStr->Clear();
-                continue;
-            }
+                // Check/save the operator.
+                if (_TokenHelper->IsOperator(stmtEntryStr->CStr())) {
+                    // Check if we're a double operator.
+                    if (_TokenHelper->IsOperator(nextChar)) {
+                        stmtEntryStr->AppendByte(nextChar);
+                        _CurrentCharLocation++;
+                    }
 
-            // Create our entry.
-            auto stmtEntry = alloc_bytes(StatementEntry);
-            stmtEntry->Op = currentOp;
-            stmtEntry->ConstantValue = _IsNumber(stmtEntryStr->CStr());
-
-            // Check if the value is a boolean value.
-            if (stmtEntry->ConstantValue.IsEmpty()) {
-                stmtEntry->ConstantValue = _IsBoolean(stmtEntryStr->CStr());
-            }
-
-            // Check to see if we're an object or string.
-            if (stmtEntry->ConstantValue.IsEmpty()) {
-                ScriptObject* obj = nullptr;
-                if (varObject->GetType() == ScriptObjectType::Method) {
-                    obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
-                } else {
-                    obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
+                    currentOp = _SymbolToOp(stmtEntryStr->CStr());
+                    stmtEntryStr->Clear();
+                    continue;
                 }
 
-                // If this is an empty then we will consider it as a string.
-                if (obj->IsEmpty()) {
-                    stmtEntry->ConstantValue = stmtEntryStr->CStr();
-                } else {
-                    stmtEntry->ObjectValue = obj;
+                // Create our entry.
+                auto stmtEntry = alloc_bytes(StatementEntry);
+                stmtEntry->Op = currentOp;
+                stmtEntry->ConstantValue = _IsNumber(stmtEntryStr->CStr());
 
-                    // Update our statement type if this object is a method.
-                    if (obj->GetType() == ScriptObjectType::Method && !to_method(obj)->IsImmediate()) {
-                        auto retType = to_method(obj)->GetReturnType();
-                        switch ((int) retType) {
-                            case (int) MethodReturnType::Object:
-                                SetType(StatementType::Object);
-                                break;
-                            case (int) MethodReturnType::String:
-                                SetType(StatementType::String);
-                                break;
-                            case (int) MethodReturnType::Int:
-                                SetType(StatementType::Integer);
-                                break;
-                            case (int) MethodReturnType::Float:
-                                SetType(StatementType::Float);
-                                break;
-                            case (int) MethodReturnType::Bool:
-                                SetType(StatementType::Bool);
-                                break;
+                // Check if the value is a boolean value.
+                if (stmtEntry->ConstantValue.IsEmpty()) {
+                    stmtEntry->ConstantValue = _IsBoolean(stmtEntryStr->CStr());
+                }
+
+                // Check to see if we're an object or string.
+                if (stmtEntry->ConstantValue.IsEmpty()) {
+                    ScriptObject* obj = nullptr;
+                    if (varObject->GetType() == ScriptObjectType::Method) {
+                        obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
+                    } else {
+                        obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
+                    }
+
+                    // If this is an empty then we will consider it as a string.
+                    if (obj->IsEmpty()) {
+                        stmtEntry->ConstantValue = stmtEntryStr->CStr();
+                    } else {
+                        stmtEntry->ObjectValue = obj;
+
+                        // Update our statement type if this object is a method.
+                        if (obj->GetType() == ScriptObjectType::Method && !to_method(obj)->IsImmediate()) {
+                            auto retType = to_method(obj)->GetReturnType();
+                            switch ((int) retType) {
+                                case (int) MethodReturnType::Object:
+                                    SetType(StatementType::Object);
+                                    break;
+                                case (int) MethodReturnType::String:
+                                    SetType(StatementType::String);
+                                    break;
+                                case (int) MethodReturnType::Int:
+                                    SetType(StatementType::Integer);
+                                    break;
+                                case (int) MethodReturnType::Float:
+                                    SetType(StatementType::Float);
+                                    break;
+                                case (int) MethodReturnType::Bool:
+                                    SetType(StatementType::Bool);
+                                    break;
+                            }
                         }
                     }
                 }
-            }
 
-            stmtEntries.Push(stmtEntry);
-            stmtEntryStr->Clear();
-            continue;
+                _StmtEntries.Push(stmtEntry);
+                stmtEntryStr->Clear();
+                continue;
+            }
         }
     }
 
     // Resolve the statements and update the value.
-    auto retVal = _ResolveStatements(stmtEntries);
+    auto retVal = _ResolveStatements(_StmtEntries);
 
-    for (auto stmtEntry : stmtEntries) {
-        delete stmtEntry;
+    if (!cache) {
+        ClearStatementEntries();
     }
-    stmtEntries.Clear();
-
     return retVal;
 }
 
@@ -719,7 +719,16 @@ StatementOperator StatementResolver::_SymbolToOp(const char* symbol)
     return StatementOperator::None;
 }
 
+void StatementResolver::ClearStatementEntries()
+{
+    for (auto stmtEntry : _StmtEntries) {
+        delete stmtEntry;
+    }
+    _StmtEntries.Clear();
+}
+
 bool StatementResolver::Release()
 {
     mem_free_ref(StringBuffer, _StmtString);
+    ClearStatementEntries();
 }

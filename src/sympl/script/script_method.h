@@ -31,7 +31,7 @@
 
 sympl_nsstart
 
-class ScriptStatement;
+class StatementResolver;
 
 enum class MethodReturnType : uint8_t
 {
@@ -47,6 +47,7 @@ struct MethodCallStatement
 {
     SharedPtr<ScriptObject> Variable;
     SharedPtr<StringBuffer> StatementStr;
+    SharedPtr<StatementResolver> Resolver;
 };
 
 class SYMPL_API ScriptMethod : public ScriptObject

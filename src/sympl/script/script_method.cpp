@@ -116,10 +116,12 @@ void ScriptMethod::_ProcessCallStatements()
     for (auto entryIt : _CallStatements) {
         if (_Exit) return;
 
-        SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
+        if (!entryIt->Resolver.IsValid()) {
+            entryIt->Resolver = mem_alloc_ref(StatementResolver);
+        }
         entryIt->Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
+        auto val = entryIt->Resolver->Resolve(entryIt->StatementStr->CStr(), entryIt->Variable.Ptr());
 
-        auto val = resolver->Resolve(entryIt->StatementStr->CStr(), entryIt->Variable.Ptr());
         if (!val.IsEmpty()) {
             _Value = val;
             entryIt->Variable->SetValue(_Value);

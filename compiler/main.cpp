@@ -16,9 +16,9 @@ int main()
     mem_create_pool(StatementResolver, 200);
     mem_create_pool(ScriptObject, 200);
     mem_create_pool(ScriptMethod, 200);
-    mem_create_pool(CallbackMethod, 200);
-    mem_create_pool(IfMethod, 200);
-    mem_create_pool(WhileMethod, 200);
+//    mem_create_pool(CallbackMethod, 200);
+//    mem_create_pool(IfMethod, 200);
+//    mem_create_pool(WhileMethod, 200);
 
     mem_create_object_pool(EvalResolver, 50);
     mem_create_object_pool(MethodResolver, 50);

@@ -38,40 +38,6 @@
 
 sympl_nsstart
 
-enum class StatementOperator {
-    None = 0,
-    Equals,
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
-    Mod,
-    IsEqual2,
-    NotIsEqual2,
-    GreaterThan,
-    LessThan,
-    GreaterEqualThan,
-    LessEqualThan
-};
-
-enum class StatementType {
-    None = 0,
-    Object,
-    Method,
-    String,
-    Bool,
-    Integer,
-    Float,
-    Void
-};
-
-struct StatementEntry
-{
-    SharedPtr<ScriptObject> ObjectValue;
-    Variant ConstantValue;
-    StatementOperator Op;
-};
-
 class StatementResolver;
 class EvalResolver
 {
@@ -146,6 +112,9 @@ private:
     /// Type of statement.
     StatementType _Type = StatementType::None;
 
+    // Statement entries.
+    Urho3D::PODVector<StatementEntry*> _StmtEntries;
+
     //! Attempts to resolve a given statement.
     //! \param stmtEntries
     //! \return Variant
@@ -185,7 +154,11 @@ public:
     //! Attempts to resolve a given string.
     //! \param str
     //! \param varObject
-    Variant Resolve(const char* str, ScriptObject* varObject);
+    //! \param cache
+    Variant Resolve(const char* str, ScriptObject* varObject, bool cache = false);
+
+    //! Clears the statement entries.
+    void ClearStatementEntries();
 
     //! Release the object.
     //! \return bool

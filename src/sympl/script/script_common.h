@@ -51,6 +51,40 @@ enum class ScriptObjectType : uint8_t {
     Statement
 };
 
+enum class StatementOperator {
+    None = 0,
+    Equals,
+    Add,
+    Subtract,
+    Divide,
+    Multiply,
+    Mod,
+    IsEqual2,
+    NotIsEqual2,
+    GreaterThan,
+    LessThan,
+    GreaterEqualThan,
+    LessEqualThan
+};
+
+enum class StatementType {
+    None = 0,
+    Object,
+    Method,
+    String,
+    Bool,
+    Integer,
+    Float,
+    Void
+};
+
+struct StatementEntry
+{
+    SharedPtr<ScriptObject> ObjectValue;
+    Variant ConstantValue;
+    StatementOperator Op;
+};
+
 sympl_nsend
 
 
