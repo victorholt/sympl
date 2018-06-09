@@ -103,7 +103,7 @@ ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, Sc
     std::string path = _BuildPath(name, parent);
     auto* searchObj = FindObjectByPath(path);
 
-    assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
+    sympl_assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
 
     ScriptObject* scriptObject = nullptr;
 
@@ -134,7 +134,7 @@ bool ScriptVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
     std::string path = _BuildPath(scriptObject->GetName().c_str(), parent);
     auto* searchObj = FindObjectByPath(path);
 
-    assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
+    sympl_assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
 
     scriptObject->_Initialize(scriptObject->GetName().c_str(), path.c_str(), parent);
 

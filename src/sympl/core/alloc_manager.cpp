@@ -94,7 +94,7 @@ void AllocManager::_Initialize()
 void AllocManager::FreeRef(RefCounter* ref)
 {
     auto memIndex = ref->GetMemIndex();
-    assert((memIndex >= 0 && memIndex < _ObjectList._Blocks.size()) && "Attempted to free invalid memory index!");
+    sympl_assert((memIndex >= 0 && memIndex < _ObjectList._Blocks.size()) && "Attempted to free invalid memory index!");
 
     if (ref->DecRef()) {
         return;

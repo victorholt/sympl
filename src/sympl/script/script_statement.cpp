@@ -43,7 +43,7 @@ void ScriptStatement::__Construct()
 
 void ScriptStatement::Build(ScriptObject* varObject, StringBuffer* statementStr)
 {
-    assert(!IsNullObject(varObject) && !varObject->IsEmpty() && "Failed to evaluate statement on an unknown variable");
+    sympl_assert(!IsNullObject(varObject) && !varObject->IsEmpty() && "Failed to evaluate statement on an unknown variable");
 
     _ClearEntries();
     _StatementBuffer->Clear();
@@ -193,7 +193,7 @@ StatementObjectEntry* ScriptStatement::Add(ScriptObject* scriptObject, Statement
     if (_Type == StatementType::None) {
         SetType(_FindType(scriptObject->GetValue()));
     } else {
-        assert(_FindType(scriptObject->GetValue()) == _Type && "Attempted to assign two different types in statement");
+        sympl_assert(_FindType(scriptObject->GetValue()) == _Type && "Attempted to assign two different types in statement");
     }
 
     return entry;
@@ -219,7 +219,7 @@ StatementObjectEntry* ScriptStatement::Add(const Variant& constantValue, Stateme
     if (_Type == StatementType::None) {
         SetType(type);
     } else {
-        assert((type == _Type) && "Attempted to assign two different types in statement");
+        sympl_assert((type == _Type) && "Attempted to assign two different types in statement");
     }
 
     return entry;
@@ -287,7 +287,7 @@ ScriptStatement* ScriptStatement::Clone(ScriptObject* scriptObject)
         // Check if we need to find a matching object.
         if (!current->Value->IsEmpty()) {
             auto clonedObj = scriptObject->GetContext()->FindVariable(current->Value->GetName().c_str());
-            assert(!clonedObj->IsEmpty() && "Unabled to process statement, invalid traversal!");
+            sympl_assert(!clonedObj->IsEmpty() && "Unabled to process statement, invalid traversal!");
 
             stat->Add(clonedObj->Clone(scriptObject, false), current->Op);
         } else {
@@ -426,7 +426,7 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
     }
 
     // We failed to exit the while loop early!
-    assert(false && "Unclosed parenthesis in statement found!");
+    sympl_assert(false && "Unclosed parenthesis in statement found!");
 }
 
 Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
@@ -577,12 +577,12 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
     }
 
     // We failed to exit the while loop early!
-    assert(false && "Unclosed call to method!");
+    sympl_assert(false && "Unclosed call to method!");
 }
 
 Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)
 {
-    assert((_StatementBuffer->Length() > 0) && "Attempting to evaluate an invalid statement!");
+    sympl_assert((_StatementBuffer->Length() > 0) && "Attempting to evaluate an invalid statement!");
 
     // Create the statement and set the string.
     auto stat = mem_alloc_ref(ScriptStatement);

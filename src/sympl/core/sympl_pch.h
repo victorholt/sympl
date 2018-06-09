@@ -35,7 +35,6 @@
 #include <algorithm>
 #include <atomic>
 #include <array>
-#include <assert.h>
 
 #include <ctime>
 #include <cstring>
@@ -140,5 +139,12 @@
 #define sympl_nsstart namespace Sympl {
 #define sympl_nsend }
 #define sympl_namespaces using namespace Sympl;
+
+#ifdef SYMPL_DEBUG
+#include <assert.h>
+#define sympl_assert(stmt) assert(stmt)
+#else
+#define sympl_assert(stmt)
+#endif
 
 #define SYMPL_VERSION 0x00010000 // ver. 0.1.0.0

@@ -66,7 +66,8 @@ public:
     //! \param entry
     void Register(Object* entry) {
         // Ensure the entry isn't already registered.
-        for (unsigned i = 0; i < _Entries.Size(); i++) {
+        auto size = _Entries.Size();
+        for (unsigned i = 0; i < size; i++) {
             if (_Entries[i]->GetTypeName() == entry->GetTypeName()) {
                 return;
             }
@@ -79,7 +80,8 @@ public:
     //! \return T
     template<class T>
     T* Get() {
-        for (unsigned i = 0; i < _Entries.Size(); i++) {
+        auto size = _Entries.Size();
+        for (unsigned i = 0; i < size; i++) {
             if (_Entries[i]->GetTypeName() == T::GetTypeNameStatic()) {
                 return dynamic_cast<T*>(_Entries[i].Ptr());
             }

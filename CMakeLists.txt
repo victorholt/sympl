@@ -39,6 +39,7 @@ set (SYMPL_SOURCES)
 
 # Setup the build locations.
 if (CMAKE_BUILD_TYPE MATCHES Debug)
+    add_definitions(-DSYMPL_DEBUG)
     set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/builds/debug)
     set (CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${PROJECT_SOURCE_DIR}/builds/debug)
     set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/builds/debug)

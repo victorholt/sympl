@@ -30,7 +30,7 @@ sympl_namespaces
 
 Variant EvalResolver::GetEvalFromStatementBuffer(const char* stmtStr, ScriptObject* scriptObject)
 {
-    assert((strlen(stmtStr) > 0) && "Attempting to evaluate an invalid statement!");
+    sympl_assert((strlen(stmtStr) > 0) && "Attempting to evaluate an invalid statement!");
 
     // Create the statement and set the string.
     auto stmtResolver = SymplRegistry.Get<StatementResolver>();
@@ -80,7 +80,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     // Check if we have arguments cached.
 
     MethodArgCache* methodArgCache = to_method(scriptObject)->FindOrCreateArgCache(stmtResolver->GetStatementString()->CStr());
-    if (!IsNullObject(methodArgCache) && methodArgCache->Args.Size() == to_method(scriptObject)->GetNumArgs()) {
+    if (!IsNullObject(methodArgCache) && methodArgCache->Args.size() == to_method(scriptObject)->GetNumArgs()) {
         for (auto& cacheArg: methodArgCache->Args) {
             if (cacheArg.ArgValue.GetType() == VariantType::Object) {
                 auto obj = ((ScriptObject*)cacheArg.ArgValue.GetObject());
@@ -222,10 +222,10 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
                 if (!IsNullObject(methodArgCache)) {
                     if (!IsNullObject(obj)) {
                         cacheValue.ArgValue = obj;
-                        methodArgCache->Args.Push(cacheValue);
+                        methodArgCache->Args.push_back(cacheValue);
                     } else {
                         cacheValue.ArgValue = objectValue;
-                        methodArgCache->Args.Push(cacheValue);
+                        methodArgCache->Args.push_back(cacheValue);
                     }
                 }
             } else {
@@ -247,7 +247,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
                 if (!IsNullObject(methodArgCache)) {
                     cacheValue.ArgValue = argValue;
-                    methodArgCache->Args.Push(cacheValue);
+                    methodArgCache->Args.push_back(cacheValue);
                 }
             }
 
@@ -273,7 +273,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     }
 
     // We failed to exit the while loop early!
-    assert(false && "Unclosed call to method!");
+    sympl_assert(false && "Unclosed call to method!");
 }
 
 Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
@@ -393,7 +393,7 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
     }
 
     // We failed to exit the while loop early!
-    assert(false && "Unclosed parenthesis in statement found!");
+    sympl_assert(false && "Unclosed parenthesis in statement found!");
 }
 
 
@@ -584,7 +584,8 @@ Variant StatementResolver::_ResolveStatements(const std::vector<StatementEntry*>
     }
 
     Variant value;
-    for (unsigned i = 0; i < stmtEntries.size(); i++) {
+    auto size = stmtEntries.size();
+    for (unsigned i = 0; i < size; i++) {
         _Solve(stmtEntries[i], value);
     }
 

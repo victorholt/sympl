@@ -129,11 +129,11 @@ public:
         AllocReserveGroup::MemBlock* block = _ObjectList._FindAvailable();
 
         // Ensure we can allocate the bytes.
-        assert(sizeof(T) < _ObjectPoolBlockSize && "Unable to allocate the given amount of memory");
+        sympl_assert(sizeof(T) < _ObjectPoolBlockSize && "Unable to allocate the given amount of memory");
 
         // If we don't have an available block, try to allocate more space.
         if (IsNullObject(block)) {
-            assert(
+            sympl_assert(
                     (_MaxObjectPoolCount + _MaxObjectPoolCount) < _MaxAllowedMemoryAlloc
                     && "Failed to allocate from the object memory pool!"
             );
@@ -141,7 +141,7 @@ public:
             ResizeObjectPoolList(_MaxObjectPoolCount + _MaxObjectPoolCount, _ObjectPoolBlockSize);
             block = _ObjectList._FindAvailable();
 
-            assert(!IsNullObject(block) && "Failed to allocate object memory block!");
+            sympl_assert(!IsNullObject(block) && "Failed to allocate object memory block!");
         }
 
         _ObjectList._BlocksUsed++;
@@ -166,11 +166,11 @@ public:
         AllocReserveGroup::MemBlock* block = _ByteList._FindAvailable();
 
         // Ensure we can allocate the bytes.
-        assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
+        sympl_assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
 
         // If we don't have an available block, try to allocate more space.
         if (IsNullObject(block)) {
-            assert(
+            sympl_assert(
                     (_MaxBytePoolCount + _MaxBytePoolCount) < _MaxAllowedMemoryAlloc
                     && "Failed to allocate from the byte memory pool!"
             );
@@ -178,7 +178,7 @@ public:
             ResizeBytePoolList(_MaxBytePoolCount + _MaxBytePoolCount, _BytePoolBlockSize);
             block = _ByteList._FindAvailable();
 
-            assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
+            sympl_assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
         }
 
         _ByteList._BlocksUsed++;
@@ -200,11 +200,11 @@ public:
         AllocReserveGroup::MemBlock* block = _ByteList._FindAvailable();
 
         // Ensure we can allocate the bytes.
-        assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
+        sympl_assert(amount < _BytePoolBlockSize && "Unable to allocate the given amount of bytes");
 
         // If we don't have an available block, try to allocate more space.
         if (IsNullObject(block)) {
-            assert(
+            sympl_assert(
                     (_MaxBytePoolCount + _MaxBytePoolCount) < _MaxAllowedMemoryAlloc
                     && "Failed to allocate from the byte memory pool!"
             );
@@ -212,7 +212,7 @@ public:
             ResizeBytePoolList(_MaxBytePoolCount + _MaxBytePoolCount, _BytePoolBlockSize);
             block = _ByteList._FindAvailable();
 
-            assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
+            sympl_assert(!IsNullObject(block) && "Failed to allocate byte memory block!");
         }
 
         _ByteList._BlocksUsed++;

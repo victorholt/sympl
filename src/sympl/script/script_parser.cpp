@@ -53,7 +53,7 @@ void ScriptParser::__Construct()
 
 void ScriptParser::Parse(Interpreter* interpreter)
 {
-    assert(!IsNullObject(interpreter) && "Invalid interpreter given during parse!");
+    sympl_assert(!IsNullObject(interpreter) && "Invalid interpreter given during parse!");
 
     _ClearBuffers();
 
@@ -96,7 +96,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         if (currentChar == ';') {
             // If we're attempting to find method arguments and we're
             // ending too soon, error out!
-            assert(currentChar == ';' && (_ScanMode == ParserScanMode::VarName || _ScanMode == ParserScanMode::Value) && "Unable to close statement without object name.");
+            sympl_assert(currentChar == ';' && (_ScanMode == ParserScanMode::VarName || _ScanMode == ParserScanMode::Value) && "Unable to close statement without object name.");
 
             _CurrentValueBuffer->PrependByte('#');
             _CurrentValueBuffer->AppendByte(';');
@@ -214,10 +214,10 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         }
 
         if (_ScanMode == ParserScanMode::Type) {
-            assert(bufferIndex < 256 && "Identifier name too long!");
+            sympl_assert(bufferIndex < 256 && "Identifier name too long!");
             _CurrentIdentifierBuffer->AppendByte(currentChar);
         } else if (_ScanMode == ParserScanMode::VarName) {
-            assert(bufferIndex < 256 && "Object name too long!");
+            sympl_assert(bufferIndex < 256 && "Object name too long!");
             _CurrentObjectBuffer->AppendByte(currentChar);
 
             // If the next character IS an operator, we should update
@@ -357,7 +357,7 @@ void ScriptParser::_BuildMethodArgs()
             } else if (_CurrentObjectBuffer->Equals("void")) {
                 to_method(_CurrentObject.Ptr())->SetReturnType(MethodReturnType::Void);
             } else {
-                assert(false && "Unknown method return type!");
+                sympl_assert(false && "Unknown method return type!");
             }
             _CurrentObjectBuffer->Clear();
             return;
@@ -371,7 +371,7 @@ void ScriptParser::_BuildMethodArgs()
     std::cout << _CurrentObjectBuffer->CStr() << std::endl;
 
     // The while loop should quit before we reach this call.
-    assert(_CharLocation < _Reader->GetBuffer()->Length() && "Invalid method parsing error!");
+    sympl_assert(_CharLocation < _Reader->GetBuffer()->Length() && "Invalid method parsing error!");
 }
 
 void ScriptParser::_UpdateObjectValue()
@@ -419,7 +419,7 @@ void ScriptParser::_UpdateScanMode()
                 // assign it a value.
                 ScriptObject* existingObject = _FindObject(_CurrentIdentifierBuffer->CStr());
                 if (existingObject->IsEmpty()) {
-                    assert(!existingObject->IsEmpty() && "Unknown variable assignment attempt!");
+                    sympl_assert(!existingObject->IsEmpty() && "Unknown variable assignment attempt!");
                 }
 
                 // Update the scan mode build the object (by re-calling UpdateScanMode).

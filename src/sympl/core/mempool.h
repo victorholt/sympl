@@ -279,7 +279,8 @@ public:
     //! \return MemPool
     MemPool* FindPool(const char* typeName)
     {
-        for (unsigned i = 0; i < _Pools.size(); i++) {
+        auto size = _Pools.size();
+        for (unsigned i = 0; i < size; i++) {
             if (_Pools[i]->TypeNameEquals(typeName)) {
                 return _Pools[i];
             }

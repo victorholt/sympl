@@ -120,25 +120,25 @@ public:
 
     //! Dereference access.
     const T *operator->() const {
-        assert(IsValid() && "Attempted to access empty pointer");
+        sympl_assert(IsValid() && "Attempted to access empty pointer");
         return _Data;
     }
 
     //! Dereference object.
     const T &operator*() const {
-        assert(IsValid() && "Attempted to access empty pointer");
+        sympl_assert(IsValid() && "Attempted to access empty pointer");
         return *_Data;
     }
 
     //! Dereference access.
     T *operator->() {
-        assert(IsValid() && "Attempted to access empty pointer");
+        sympl_assert(IsValid() && "Attempted to access empty pointer");
         return _Data;
     }
 
     //! Dereference object.
     T &operator*() {
-        assert(IsValid() && "Attempted to access empty pointer");
+        sympl_assert(IsValid() && "Attempted to access empty pointer");
         return *_Data;
     }
 };

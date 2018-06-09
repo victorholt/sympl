@@ -102,7 +102,7 @@ void MethodRegistry::_Initialize()
 
 void MethodRegistry::AddMethod(ScriptObject* method)
 {
-    assert(method->GetType() == ScriptObjectType::Method && "Attempted to register an invalid method!");
+    sympl_assert(method->GetType() == ScriptObjectType::Method && "Attempted to register an invalid method!");
     _Methods[method->GetName()] = to_method(method);
 }
 

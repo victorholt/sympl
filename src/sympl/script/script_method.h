@@ -63,7 +63,7 @@ struct MethodArgCacheValue
 struct MethodArgCache
 {
     char ArgString[256];
-    Urho3D::PODVector<MethodArgCacheValue> Args;
+    std::vector<MethodArgCacheValue> Args;
 };
 
 class SYMPL_API ScriptMethod : public ScriptObject
@@ -75,7 +75,7 @@ protected:
     Urho3D::PODVector<ScriptObject*> _Args;
 
     /// Stored method call statements to execute.
-    Urho3D::PODVector<MethodCallStatement*> _CallStatements;
+    std::vector<MethodCallStatement*> _CallStatements;
 
     /// Key/Value for argument caching.
     std::unordered_map<std::string, MethodArgCache*> _ArgCache;

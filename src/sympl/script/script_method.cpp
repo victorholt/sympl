@@ -71,7 +71,10 @@ Variant ScriptMethod::Evaluate()
 void ScriptMethod::_CopyArgs(const Urho3D::PODVector<Variant>& args)
 {
     int argIndex = 0;
-    for (auto argIt : _Args) {
+
+    auto size = _Args.Size();
+    for (unsigned i = 0; i < size; i++) {
+        auto argIt = _Args[i];
         // Ensure we have args.
         if (argIndex >= args.Size()) {
             break;
@@ -80,7 +83,7 @@ void ScriptMethod::_CopyArgs(const Urho3D::PODVector<Variant>& args)
         Variant argValue = args[argIndex];
 
         auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str(), false);
-        assert(!argObj->IsEmpty() && "Invalid argument given for method");
+        sympl_assert(!argObj->IsEmpty() && "Invalid argument given for method");
 
         argObj->SetValue(argValue);
 
@@ -92,7 +95,9 @@ void ScriptMethod::_ProcessArgStatements()
 {
     // String arguments will need to have statements
     // to execute their value.
-    for (auto argIt : _Args) {
+    auto size = _Args.Size();
+    for (unsigned i = 0; i < size; i++) {
+        auto argIt = _Args[i];
         Variant value = argIt->GetValue();
 
         if (value.GetType() == VariantType::StringBuffer) {
@@ -113,12 +118,11 @@ void ScriptMethod::_ProcessArgStatements()
 
 void ScriptMethod::_ProcessCallStatements()
 {
-    for (auto entryIt : _CallStatements) {
+    auto size = _CallStatements.size();
+    for (unsigned i = 0; i < size; i++) {
+        auto entryIt = _CallStatements[i];
         if (_Exit) return;
 
-        if (!entryIt->Resolver.IsValid()) {
-            entryIt->Resolver = mem_alloc_ref(StatementResolver);
-        }
         entryIt->Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
         auto val = entryIt->Resolver->Resolve(entryIt->StatementStr->CStr(), entryIt->Variable.Ptr());
 
@@ -160,7 +164,7 @@ void ScriptMethod::AddArg(ScriptObject* arg)
 {
     // Check if we already have this object.
     for (auto argIt : _Args) {
-        if (argIt->GetName() == arg->GetName()) {
+        if (argIt == arg) {
             return;
         }
     }
@@ -175,11 +179,12 @@ void ScriptMethod::AddArg(ScriptObject* arg)
 void ScriptMethod::AddStatement(ScriptObject* variable, const char* stmtStr)
 {
     auto callStatement = alloc_bytes(MethodCallStatement);
+    callStatement->Resolver = mem_alloc_ref(StatementResolver);
     callStatement->Variable = variable;
     callStatement->StatementStr = mem_alloc_ref(StringBuffer);
     callStatement->StatementStr->Append(stmtStr);
 
-    _CallStatements.Push(callStatement);
+    _CallStatements.push_back(callStatement);
 }
 
 ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
@@ -235,7 +240,7 @@ void ScriptMethod::AddArgCache(const char* argString, Variant& argValue, unsigne
         return;
     }
 
-    if (!cache->Args.Empty()) {
+    if (!cache->Args.empty()) {
         for (auto &arg : cache->Args) {
             if (arg.ArgValue == argValue) {
                 return;
@@ -247,7 +252,7 @@ void ScriptMethod::AddArgCache(const char* argString, Variant& argValue, unsigne
     cacheValue.ArgValue = argValue;
     cacheValue.ArgStringLength = argStringLength;
 
-    cache->Args.Push(cacheValue);
+    cache->Args.push_back(cacheValue);
 }
 
 MethodArgCache* ScriptMethod::FindOrCreateArgCache(const char* argString)
@@ -257,7 +262,7 @@ MethodArgCache* ScriptMethod::FindOrCreateArgCache(const char* argString)
         return nullptr;
     }
 
-    for (auto& entry : _ArgCache) {
+    for (auto entry : _ArgCache) {
         if (strcmp(argString, entry.first.c_str()) == 0) {
             return entry.second;
         }
@@ -315,7 +320,7 @@ bool ScriptMethod::Release()
     for (auto entryIt : _CallStatements) {
         free_bytes(entryIt);
     }
-    _CallStatements.Clear();
+    _CallStatements.clear();
     _Args.Clear();
 
     ClearArgCaches();

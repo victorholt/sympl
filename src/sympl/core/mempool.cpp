@@ -64,18 +64,20 @@ MemPool::~MemPool()
 
 MemPool::MemBlock* MemPool::FindAvailableBlock()
 {
-    for (unsigned i = 0; i < _Blocks.size(); i++) {
+    auto size = _Blocks.size();
+    for (unsigned i = 0; i < size; i++) {
         if (_Blocks[i]->Free) {
             return _Blocks[i];
         }
     }
 
-    assert(false && "Unable to allocate memory block!");
+    sympl_assert(false && "Unable to allocate memory block!");
 }
 
 MemPool::MemBlock* MemPool::FindBlock(void* ref)
 {
-    for (unsigned i = 0; i < _Blocks.size(); i++) {
+    auto size = _Blocks.size();
+    for (unsigned i = 0; i < size; i++) {
         if (!_Blocks[i]->Free && _Blocks[i]->Data == ref) {
             return _Blocks[i];
         }
