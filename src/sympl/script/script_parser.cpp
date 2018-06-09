@@ -295,6 +295,7 @@ void ScriptParser::_BuildMethodArgs()
     char previousChar = '\0';
     char nextChar = '\0';
     bool searchReturnType = false;
+    unsigned numArgs = 0;
 
     _CurrentObjectBuffer->Clear();
 
@@ -320,6 +321,8 @@ void ScriptParser::_BuildMethodArgs()
 
         // Attempt to save an argument.
         if (!searchReturnType && !_RecordingString && (currentChar == ',' || currentChar == ')')) {
+            numArgs++;
+
             // Check to see if we need to create an argument object.
             if (_CurrentObjectBuffer->Length() > 0) {
                 auto argObj = ScriptVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), ScriptObjectType::Variable, _CurrentScopeObject.Ptr());
@@ -328,6 +331,7 @@ void ScriptParser::_BuildMethodArgs()
             }
 
             if (currentChar == ')') {
+                to_method(_CurrentObject.Ptr())->SetNumArgs(numArgs);
                 _CloseScope();
                 continue;
             }

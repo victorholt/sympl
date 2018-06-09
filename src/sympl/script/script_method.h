@@ -40,6 +40,7 @@ enum class MethodReturnType : uint8_t
     Int,
     Float,
     Bool,
+    Array,
     Void
 };
 
@@ -48,6 +49,21 @@ struct MethodCallStatement
     SharedPtr<ScriptObject> Variable;
     SharedPtr<StringBuffer> StatementStr;
     SharedPtr<StatementResolver> Resolver;
+};
+
+struct MethodArgCacheValue
+{
+    Variant                 ArgValue;
+
+    // Need to know how many characters to advance
+    // when parsing the statement string.
+    size_t                  ArgStringLength;
+};
+
+struct MethodArgCache
+{
+    char ArgString[256];
+    Urho3D::PODVector<MethodArgCacheValue> Args;
 };
 
 class SYMPL_API ScriptMethod : public ScriptObject
@@ -60,6 +76,9 @@ protected:
 
     /// Stored method call statements to execute.
     Urho3D::PODVector<MethodCallStatement*> _CallStatements;
+
+    /// Key/Value for argument caching.
+    std::unordered_map<std::string, MethodArgCache*> _ArgCache;
 
     /// Reference to the scope object.
     WeakPtr<ScriptObject> _Scope;
@@ -82,6 +101,9 @@ protected:
 
     /// Flag to exit the method.
     bool _Exit = false;
+
+    /// Number of arguments the method can take.
+    unsigned _NumArgs = 0;
 
     //! Copy over argument values from a list of arguments.
     //! \param args
@@ -140,6 +162,25 @@ public:
     //! Returns the parent of the current scope.
     //! \return ScriptObject.
     ScriptObject* GetScopeParent();
+
+    //! Adds an argument cache entry.
+    //! \param argString
+    //! \param argValue
+    //! \param argStringLength
+    void AddArgCache(const char* argString, Variant& argValue, unsigned argStringLength);
+
+    //! Attempts to find an argument cache entry.
+    //! \param argString
+    //! \return
+    MethodArgCache* FindOrCreateArgCache(const char* argString);
+
+    //! Checks if an arg cache exists.
+    //! \param argString
+    //! \return bool
+    bool HasArgCache(const char* argString);
+
+    //! Clear the argument caches.
+    void ClearArgCaches();
 
     //! Sets the arguments string.
     //! \param argString
@@ -203,9 +244,15 @@ public:
         return static_cast<unsigned>(_Args.Size());
     }
 
+    //! Sets the number of arguments.
+    //! \param numArgs
+    inline void SetNumArgs(unsigned numArgs) {
+        _NumArgs = numArgs;
+    }
+
     //! Returns the number of arguments given to this method.
     inline unsigned GetNumArgs() const {
-        return 0;
+        return _NumArgs;
     }
 
     //! Sets the return type.

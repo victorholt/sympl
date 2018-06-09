@@ -183,6 +183,10 @@ public:
     //! Returns the statement type.
     //! \return StatementType
     inline StatementType GetType() const { return _Type; }
+
+    friend EvalResolver;
+    friend MethodResolver;
+    friend ParenthResolver;
 };
 
 sympl_nsend

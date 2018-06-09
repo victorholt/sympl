@@ -87,6 +87,9 @@ public:
     //! \param recordName
     void Stop(const std::string& recordName);
 
+    //! Resets the profiler record.
+    void Reset(const std::string& recordName);
+
     //! Returns a record given the name.
     //! \param recordName
     //! \return ProfileRecord*
@@ -116,6 +119,7 @@ public:
 #define sympl_profile_start(recordName) SymplProfiler->Start(recordName)
 #define sympl_profile_stop(recordName) SymplProfiler->Stop(recordName)
 #define sympl_profile_print(recordName) SymplProfiler->PrintExecutionTime(recordName)
+#define sympl_profile_stop_and_print(recordName) SymplProfiler->Stop(recordName); SymplProfiler->PrintExecutionTime(recordName)
 
 sympl_nsend
 

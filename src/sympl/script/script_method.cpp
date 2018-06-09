@@ -228,6 +228,67 @@ ScriptObject* ScriptMethod::GetScopeParent()
     return (parent.IsValid() ? parent.Ptr() : &ScriptObject::Empty);
 }
 
+void ScriptMethod::AddArgCache(const char* argString, Variant& argValue, unsigned argStringLength)
+{
+    auto cache = FindOrCreateArgCache(argString);
+    if (IsNullObject(cache)) {
+        return;
+    }
+
+    if (!cache->Args.Empty()) {
+        for (auto &arg : cache->Args) {
+            if (arg.ArgValue == argValue) {
+                return;
+            }
+        }
+    }
+
+    MethodArgCacheValue cacheValue;
+    cacheValue.ArgValue = argValue;
+    cacheValue.ArgStringLength = argStringLength;
+
+    cache->Args.Push(cacheValue);
+}
+
+MethodArgCache* ScriptMethod::FindOrCreateArgCache(const char* argString)
+{
+    // TODO: Think about not having a limit (or larger limit)...?
+    if (IsImmediate() || strlen(argString) > 255) {
+        return nullptr;
+    }
+
+    for (auto& entry : _ArgCache) {
+        if (strcmp(argString, entry.first.c_str()) == 0) {
+            return entry.second;
+        }
+    }
+
+    MethodArgCache* cache = nullptr;
+    cache = mem_alloc_object(MethodArgCache);
+    memcpy(cache->ArgString, argString, strlen(argString));
+    _ArgCache[argString] = cache;
+
+    return cache;
+}
+
+bool ScriptMethod::HasArgCache(const char* argString)
+{
+    for (auto& entry : _ArgCache) {
+        if (strcmp(argString, entry.first.c_str()) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ScriptMethod::ClearArgCaches()
+{
+    for (auto& entry : _ArgCache) {
+        delete entry.second;
+    }
+    _ArgCache.clear();
+}
+
 void ScriptMethod::Exit() {
     _Exit = true;
 
@@ -256,6 +317,8 @@ bool ScriptMethod::Release()
     }
     _CallStatements.Clear();
     _Args.Clear();
+
+    ClearArgCaches();
 
     return true;
 }

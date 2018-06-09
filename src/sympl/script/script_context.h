@@ -52,12 +52,6 @@ protected:
     /// Quick variable access list.
     Urho3D::PODVector<ScriptObject*> _VarList;
 
-    /// Current return value.
-    Variant _RetValue;
-
-    /// Flag to signal an exit.
-    bool _Exit = false;
-
 public:
     //! Constructor.
     ScriptContext();

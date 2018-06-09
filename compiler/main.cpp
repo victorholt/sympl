@@ -29,7 +29,9 @@ int main()
     sympl_profile_stop("program_load");
     sympl_profile_print("program_load");
 
+//    sympl_profile_start("program_run");
     program->Run();
+//    sympl_profile_stop_and_print("program_run");
 
     cout << "Memory Usage: " << AllocInstance.GetMemoryUsage() << endl;
     return 0;

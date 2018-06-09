@@ -505,6 +505,16 @@ public:
     //! \return
     Variant& operator =(Object* rhs);
 
+    //! Operator for assigning ObjectRef.
+    //! \param rhs
+    //! \return
+    const bool operator ==(const Variant& rhs) {
+        return (
+            _Type == rhs.GetType() &&
+            _Value.Ptr == rhs._Value.Ptr
+        );
+    }
+
     //! Clears out the variant.
     void Clear();
 

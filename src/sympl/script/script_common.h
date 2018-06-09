@@ -26,7 +26,7 @@
 #include <sympl/core/object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/weak_ptr.h>
-#include <sympl/script/script_common.h>
+#include <sympl/util/profiler.h>
 
 #include <sympl/thirdparty/urho3d/container/Vector.h>
 

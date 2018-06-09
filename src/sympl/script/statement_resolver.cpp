@@ -60,9 +60,8 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     auto tokenHelper = ScriptVMInstance->GetScriptToken();
     auto statementStr = stmtResolver->GetStatementString();
 
-//        if (strlen(currentStr) != 0) {
-//            stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() - 1);
-//        }
+    // Save args in the variant.
+    Urho3D::PODVector<Variant> args;
 
     // Check if this is really a valid method object.
     ScriptObject* scriptObject = varObject;
@@ -78,6 +77,29 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     // Remove the name of the method so it's not part of the statement value.
     currentStr->Replace(scriptObject->GetCleanName().c_str(), "");
 
+    // Check if we have arguments cached.
+
+    MethodArgCache* methodArgCache = to_method(scriptObject)->FindOrCreateArgCache(stmtResolver->GetStatementString()->CStr());
+    if (!IsNullObject(methodArgCache) && methodArgCache->Args.Size() == to_method(scriptObject)->GetNumArgs()) {
+        for (auto& cacheArg: methodArgCache->Args) {
+            if (cacheArg.ArgValue.GetType() == VariantType::Object) {
+                auto obj = ((ScriptObject*)cacheArg.ArgValue.GetObject());
+                args.Push(obj->GetValue());
+
+                // Advance the character location.
+                stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + cacheArg.ArgStringLength);
+            } else {
+                args.Push(cacheArg.ArgValue);
+
+                // Advance the character location.
+                stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + cacheArg.ArgStringLength);
+            }
+        }
+
+        auto retVal = to_method(scriptObject)->Evaluate(args);
+        return retVal;
+    }
+
     // Parse out the object value.
     char currentChar = '\0';
     char nextChar = '\0';
@@ -89,9 +111,6 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     // Current/last concatenating condition.
     std::string currentConcatConditionStr;
     std::string lastConcatConditionStr;
-
-    // Save args in the variant.
-    Urho3D::PODVector<Variant> args;
 
     // Current argument value.
     Variant argValue;
@@ -172,20 +191,64 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
         if (!recording && currentChar == ',' || (currentChar == ')')) {
             EvalResolver evalResolver;
 
-            // Check if we already have an argument value.
-            if (argValue.IsEmpty()) {
-                argValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), scriptObject);
-                args.Push(argValue);
-            } else if (currentConcatConditionStr == "&&") {
-                if (argValue.GetType() != VariantType::Bool || argValue.GetBool()) {
-                    argValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), scriptObject);
+            // Check if the string is an object/value and not a buffer.
+            Variant objectValue = stmtResolver->_IsNumber(resolveStr->CStr());
+
+            // Check if the value is a boolean value.
+            if (objectValue.IsEmpty()) {
+                objectValue = stmtResolver->_IsBoolean(resolveStr->CStr());
+            }
+
+            // Check to see if we're an object or string.
+            ScriptObject *obj = nullptr;
+            if (objectValue.IsEmpty()) {
+                if (varObject->GetType() == ScriptObjectType::Method) {
+                    obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(resolveStr->CStr(), true);
+                } else {
+                    obj = varObject->GetContext()->FindVariable(resolveStr->CStr(), true);
                 }
-                args.Push(argValue);
-            } else if (currentConcatConditionStr == "||") {
-                if (argValue.GetType() != VariantType::Bool || !argValue.GetBool()) {
-                    argValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), scriptObject);
+                if (!obj->IsEmpty()) {
+                    objectValue = obj->GetValue();
                 }
-                args.Push(argValue);
+            }
+
+            // Check if we were able to find an object value.
+            MethodArgCacheValue cacheValue;
+            cacheValue.ArgStringLength = resolveStr->Length();
+
+            if (!objectValue.IsEmpty()) {
+                args.Push(objectValue);
+
+                if (!IsNullObject(methodArgCache)) {
+                    if (!IsNullObject(obj)) {
+                        cacheValue.ArgValue = obj;
+                        methodArgCache->Args.Push(cacheValue);
+                    } else {
+                        cacheValue.ArgValue = objectValue;
+                        methodArgCache->Args.Push(cacheValue);
+                    }
+                }
+            } else {
+                // Check if we already have an argument value.
+                if (argValue.IsEmpty()) {
+                    argValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), scriptObject);
+                    args.Push(argValue);
+                } else if (currentConcatConditionStr == "&&") {
+                    if (argValue.GetType() != VariantType::Bool || argValue.GetBool()) {
+                        argValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), scriptObject);
+                    }
+                    args.Push(argValue);
+                } else if (currentConcatConditionStr == "||") {
+                    if (argValue.GetType() != VariantType::Bool || !argValue.GetBool()) {
+                        argValue = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), scriptObject);
+                    }
+                    args.Push(argValue);
+                }
+
+                if (!IsNullObject(methodArgCache)) {
+                    cacheValue.ArgValue = argValue;
+                    methodArgCache->Args.Push(cacheValue);
+                }
             }
 
             argValue = Variant::Empty;
@@ -522,18 +585,6 @@ Variant StatementResolver::_ResolveStatements(const Urho3D::PODVector<StatementE
 
     Variant value;
     for (auto entry : stmtEntries) {
-//        Variant entryValue = entry->ObjectValue.IsValid() ?
-//                           entry->ObjectValue->GetValue() : entry->ConstantValue;
-
-//        auto type = _FindType(entryValue);
-//        if (type != _Type && _Type != StatementType::String) {
-//            if (type == StatementType::String) {
-//                _Type = StatementType::String;
-//            } else {
-//                assert(false && "Attempted to assign two different types in statement");
-//            }
-//        }
-
         _Solve(entry, value);
     }
 

@@ -48,6 +48,13 @@ void Profiler::Stop(const std::string& recordName)
     record->End = std::chrono::high_resolution_clock::now();
 }
 
+void Profiler::Reset(const std::string& recordName)
+{
+    auto record = GetRecord(recordName);
+    record->Start = std::chrono::high_resolution_clock::now();
+    record->End = std::chrono::high_resolution_clock::now();
+}
+
 ProfileRecord* Profiler::GetRecord(const std::string& recordName)
 {
     if (!_Enabled) return nullptr;
@@ -80,8 +87,10 @@ void Profiler::PrintExecutionTime(const std::string& recordName)
 //    double seconds = duration / 1000000.0f;
     double seconds = duration / 1000.0f;
 //    std::cout << recordName << " Execution Time: " << std::setprecision(15) << seconds << " seconds" << std::endl;
-    std::cout << recordName << " Execution Time: " << fmt::format("{:.{}f}", seconds, 15) << " seconds" << std::endl;
+    std::cout << recordName << " Execution Time: " << fmt::format("{:.{}f}", seconds, 35) << " seconds" << std::endl;
 //    printf("%s Execution Time: %d seconds\n", recordName.c_str(), seconds);
+
+    Reset(recordName);
 }
 
 void Profiler::Clear()
