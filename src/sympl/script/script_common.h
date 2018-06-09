@@ -23,6 +23,7 @@
  **********************************************************/
 #pragma once
 #include <sympl/core/sympl_pch.h>
+#include <sympl/core/registry.h>
 #include <sympl/core/object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/weak_ptr.h>

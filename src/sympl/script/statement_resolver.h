@@ -113,12 +113,12 @@ private:
     StatementType _Type = StatementType::None;
 
     // Statement entries.
-    Urho3D::PODVector<StatementEntry*> _StmtEntries;
+    std::vector<StatementEntry*> _StmtEntries;
 
     //! Attempts to resolve a given statement.
     //! \param stmtEntries
     //! \return Variant
-    Variant _ResolveStatements(const Urho3D::PODVector<StatementEntry*>& stmtEntries);
+    Variant _ResolveStatements(const std::vector<StatementEntry*>& stmtEntries);
 
     //! Solves a statement entry with a current value.
     //! \param entry

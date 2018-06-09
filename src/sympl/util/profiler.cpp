@@ -87,7 +87,7 @@ void Profiler::PrintExecutionTime(const std::string& recordName)
 //    double seconds = duration / 1000000.0f;
     double seconds = duration / 1000.0f;
 //    std::cout << recordName << " Execution Time: " << std::setprecision(15) << seconds << " seconds" << std::endl;
-    std::cout << recordName << " Execution Time: " << fmt::format("{:.{}f}", seconds, 35) << " seconds" << std::endl;
+    std::cout << recordName << " Execution Time: " << fmt::format("{:.{}f}", seconds, 15) << " seconds" << std::endl;
 //    printf("%s Execution Time: %d seconds\n", recordName.c_str(), seconds);
 
     Reset(recordName);

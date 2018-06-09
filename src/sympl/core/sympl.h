@@ -33,6 +33,7 @@
 
 #include <sympl/core/alloc_manager.h>
 #include <sympl/core/mempool.h>
+#include <sympl/core/registry.h>
 #include <sympl/core/ref.h>
 #include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>

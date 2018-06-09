@@ -64,9 +64,9 @@ MemPool::~MemPool()
 
 MemPool::MemBlock* MemPool::FindAvailableBlock()
 {
-    for (auto& block : _Blocks) {
-        if (block->Free) {
-            return block;
+    for (unsigned i = 0; i < _Blocks.size(); i++) {
+        if (_Blocks[i]->Free) {
+            return _Blocks[i];
         }
     }
 
@@ -75,9 +75,9 @@ MemPool::MemBlock* MemPool::FindAvailableBlock()
 
 MemPool::MemBlock* MemPool::FindBlock(void* ref)
 {
-    for (auto& block : _Blocks) {
-        if (!block->Free && block->Data == ref) {
-            return block;
+    for (unsigned i = 0; i < _Blocks.size(); i++) {
+        if (!_Blocks[i]->Free && _Blocks[i]->Data == ref) {
+            return _Blocks[i];
         }
     }
     return nullptr;

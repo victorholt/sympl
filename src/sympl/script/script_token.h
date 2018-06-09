@@ -47,17 +47,19 @@ enum class TokenType
 struct TokenMeta
 {
     /// The name of the symbol.
-    std::string Name;
+    char Name[5];
     /// The alternative name for the symbol (used for decoding strings).
     char AltName;
     /// The value of the symbol.
-    std::string Value;
+    char Value[5];
     /// The type of symbol.
     TokenType Type;
 
     TokenMeta() noexcept {
         AltName = '\0';
         Type = TokenType::Empty;
+        memset(Name, 0, 5);
+        memset(Value, 0, 5);
     }
 
     bool IsEmpty() const {
@@ -73,11 +75,11 @@ private:
     static TokenMeta Empty;
 
     /// The map of standard tokens.
-    Urho3D::PODVector<TokenMeta*> _StdTokens;
+    std::vector<TokenMeta*> _StdTokens;
     /// The map of delimiter tokens.
-    Urho3D::PODVector<TokenMeta*> _DelTokens;
+    std::vector<TokenMeta*> _DelTokens;
     /// The map of special character tokens.
-    Urho3D::PODVector<TokenMeta*> _SpecTokens;
+    std::vector<TokenMeta*> _SpecTokens;
 
     /// Reference to the translation buffer (special chars decode).
     StringBuffer* _TranslateBuffer = nullptr;
@@ -109,10 +111,10 @@ private:
     TokenMeta* FindToken(TokenType type, const char* token);
 
     //! Finds a token.
-    //! \param list
+    //! \param type
     //! \param token
     //! \return
-    TokenMeta* FindToken(Urho3D::PODVector<TokenMeta*>* list, const char* token);
+    TokenMeta* FindToken(TokenType type, const char token);
 
 public:
     //! Constructor.

@@ -225,8 +225,8 @@ public:
         _Pools.clear();
     }
 
-    //! Returns the singleton for our Alloc class.
-    //! \return Alloc*
+    //! Returns the singleton for our class.
+    //! \return MemPoolManager*
     static MemPoolManager& GetInstance() {
         static MemPoolManager instance;
         return instance;
@@ -279,9 +279,9 @@ public:
     //! \return MemPool
     MemPool* FindPool(const char* typeName)
     {
-        for (auto pool : _Pools) {
-            if (pool->TypeNameEquals(typeName)) {
-                return pool;
+        for (unsigned i = 0; i < _Pools.size(); i++) {
+            if (_Pools[i]->TypeNameEquals(typeName)) {
+                return _Pools[i];
             }
         }
         return nullptr;

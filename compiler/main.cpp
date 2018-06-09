@@ -24,10 +24,11 @@ int main()
     mem_create_object_pool(MethodResolver, 50);
     mem_create_object_pool(ParenthResolver, 50);
 
+    SymplRegistry.Register(mem_alloc_ref(StatementResolver));
+
     sympl_profile_start("program_load");
     auto program = ScriptVMInstance->LoadFile("../../examples/scripts/math.sym");
-    sympl_profile_stop("program_load");
-    sympl_profile_print("program_load");
+    sympl_profile_stop_and_print("program_load");
 
 //    sympl_profile_start("program_run");
     program->Run();

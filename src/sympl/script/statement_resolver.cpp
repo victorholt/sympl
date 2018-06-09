@@ -33,7 +33,7 @@ Variant EvalResolver::GetEvalFromStatementBuffer(const char* stmtStr, ScriptObje
     assert((strlen(stmtStr) > 0) && "Attempting to evaluate an invalid statement!");
 
     // Create the statement and set the string.
-    SharedPtr<StatementResolver> stmtResolver = mem_alloc_ref(StatementResolver);
+    auto stmtResolver = SymplRegistry.Get<StatementResolver>();
     return stmtResolver->Resolve(stmtStr, scriptObject);
 }
 
@@ -411,7 +411,7 @@ void StatementResolver::__Construct()
 Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, bool cache)
 {
     // Clear out the previous statement and append the new statement.
-    if (_StmtEntries.Empty()) {
+    if (_StmtEntries.empty()) {
         _StmtString->Clear();
         _StmtString->Append(str);
         if (_StmtString->LastByte() != ';') {
@@ -544,7 +544,7 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                     }
                 }
 
-                _StmtEntries.Push(stmtEntry);
+                _StmtEntries.push_back(stmtEntry);
                 stmtEntryStr->Clear();
                 continue;
             }
@@ -560,14 +560,14 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
     return retVal;
 }
 
-Variant StatementResolver::_ResolveStatements(const Urho3D::PODVector<StatementEntry*>& stmtEntries)
+Variant StatementResolver::_ResolveStatements(const std::vector<StatementEntry*>& stmtEntries)
 {
-    if (stmtEntries.Empty()) {
+    if (stmtEntries.empty()) {
         return Variant::Empty;
     }
 
     // Evaluate if we only have 1 statement entry.
-    if (stmtEntries.Size() == 1) {
+    if (stmtEntries.size() == 1) {
         auto entry = stmtEntries[0];
         if (entry->Op == StatementOperator::Equals) {
             return (entry->ObjectValue.IsValid() ? entry->ObjectValue->GetValue() : entry->ConstantValue);
@@ -584,8 +584,8 @@ Variant StatementResolver::_ResolveStatements(const Urho3D::PODVector<StatementE
     }
 
     Variant value;
-    for (auto entry : stmtEntries) {
-        _Solve(entry, value);
+    for (unsigned i = 0; i < stmtEntries.size(); i++) {
+        _Solve(stmtEntries[i], value);
     }
 
     return value;
@@ -775,7 +775,7 @@ void StatementResolver::ClearStatementEntries()
     for (auto stmtEntry : _StmtEntries) {
         delete stmtEntry;
     }
-    _StmtEntries.Clear();
+    _StmtEntries.clear();
 }
 
 bool StatementResolver::Release()

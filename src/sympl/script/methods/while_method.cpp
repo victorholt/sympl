@@ -62,9 +62,7 @@ Variant WhileMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
 
         while (value.GetType() == VariantType::Bool && value.GetBool()) {
 
-            sympl_profile_start("while_method");
             _ProcessCallStatements();
-            sympl_profile_stop_and_print("while_method");
             value = resolver->Resolve(_ArgStringNoParenth->CStr(), this, true);
         }
     }

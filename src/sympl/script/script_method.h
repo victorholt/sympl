@@ -198,10 +198,7 @@ public:
             _ArgStringNoParenth = alloc_ref(StringBuffer);
         }
 
-
         _ArgString->Append(argString);
-
-        _ArgStringNoParenth = alloc_ref(StringBuffer);
         char currentChar = '\0';
         size_t location = 0;
         while (location < argString->Length()) {
