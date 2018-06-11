@@ -23,6 +23,8 @@
  **********************************************************/
 #include <sympl/script/script_reader.h>
 #include <sympl/core/string_buffer.h>
+#include <sympl/core/registry.h>
+#include <sympl/script/script_object.h>
 #include <fmt/format.h>
 sympl_namespaces
 
@@ -34,7 +36,7 @@ ScriptReader::ScriptReader()
 void ScriptReader::__Construct()
 {
     _Buffer = mem_alloc_ref(StringBuffer);
-    _ScriptToken = mem_alloc_ref(ScriptToken);
+    _ScriptToken = SymplRegistry.Get<ScriptToken>();
     _FilePath = "";
     _ScriptString = "";
 }

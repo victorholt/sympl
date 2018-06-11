@@ -75,7 +75,7 @@ void MethodRegistry::_Initialize()
 
     // Prints the memory allocated currently.
     AddCallbackMethod("print_memory", [](const Urho3D::PODVector<ScriptObject*>& args) {
-        std::cout << "Memory Allocated: " << AllocInstance.GetMemoryUsage() << std::endl;
+        std::cout << "Memory Allocated: " << MemPoolInstance.GetMemoryUsage() << std::endl;
     });
 
     // Prints the memory allocated reference list.

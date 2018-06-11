@@ -7,7 +7,7 @@ func add(a, b) : int {
 
 var x = 0;
 while (x < 50000) {
-    x = add(x, 1);
+    x = x + 1; //add(x, 1);
 }
 
 printl(x);

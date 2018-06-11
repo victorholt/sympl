@@ -12,19 +12,25 @@ int main()
 //
 //    return 0;
 
-    mem_create_pool(StringBuffer, 200);
-    mem_create_pool(StatementResolver, 200);
-    mem_create_pool(ScriptObject, 200);
-    mem_create_pool(ScriptMethod, 200);
-//    mem_create_pool(CallbackMethod, 200);
-//    mem_create_pool(IfMethod, 200);
-//    mem_create_pool(WhileMethod, 200);
+//    mem_create_pool(StringBuffer, 50);
+//    mem_create_pool(StatementResolver, 50);
+//    mem_create_pool(ScriptObject, 50);
+//    mem_create_pool(ScriptMethod, 50);
 
-    mem_create_object_pool(EvalResolver, 50);
-    mem_create_object_pool(MethodResolver, 50);
-    mem_create_object_pool(ParenthResolver, 50);
+//    mem_create_object_pool(StatementEntry, 50);
 
+    SymplRegistry.Register(mem_alloc_ref(ScriptToken));
     SymplRegistry.Register(mem_alloc_ref(StatementResolver));
+    SymplRegistry.Register(mem_alloc_ref(EvalResolver));
+    SymplRegistry.Register(mem_alloc_ref(MethodResolver));
+    SymplRegistry.Register(mem_alloc_ref(ParenthResolver));
+
+//    sympl_profile_start("memcheck");
+//    for (int i = 0; i < 50000; i++) {
+//        auto r = SymplRegistry.Get<EvalResolver>();
+//    }
+//    sympl_profile_stop_and_print("memcheck");
+//    return 0;
 
     sympl_profile_start("program_load");
     auto program = ScriptVMInstance->LoadFile("../../examples/scripts/math.sym");
@@ -34,7 +40,7 @@ int main()
     program->Run();
 //    sympl_profile_stop_and_print("program_run");
 
-    cout << "Memory Usage: " << AllocInstance.GetMemoryUsage() << endl;
+    cout << "Memory Usage: " << MemPoolInstance.GetMemoryUsage() << endl;
     return 0;
 }
 

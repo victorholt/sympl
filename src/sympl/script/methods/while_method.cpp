@@ -61,7 +61,6 @@ Variant WhileMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
         SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
 
         while (value.GetType() == VariantType::Bool && value.GetBool()) {
-
             _ProcessCallStatements();
             value = resolver->Resolve(_ArgStringNoParenth->CStr(), this, true);
         }

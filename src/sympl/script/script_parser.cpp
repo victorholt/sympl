@@ -48,7 +48,7 @@ void ScriptParser::__Construct()
     _CurrentValueBuffer = mem_alloc_ref(StringBuffer);
     _CurrentValueBuffer->Resize(512);
 
-    _Symbol = ScriptVMInstance->GetScriptToken();
+    _Symbol = SymplRegistry.Get<ScriptToken>();
 }
 
 void ScriptParser::Parse(Interpreter* interpreter)

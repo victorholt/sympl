@@ -75,38 +75,6 @@ void ScriptToken::__Construct()
     _ResultBuffer = mem_alloc_ref(StringBuffer);
 }
 
-const bool ScriptToken::IsType(TokenType type, const char* input)
-{
-    auto tokenValue = FindToken(TokenType::Identifier, input);
-    if (type != TokenType::Delimiter && tokenValue->IsEmpty()) {
-        return false;
-    } else if (type == TokenType::Delimiter) {
-        tokenValue = FindToken(TokenType::Delimiter, input);
-        if (tokenValue->IsEmpty()) {
-            return false;
-        }
-    }
-    return (tokenValue->Type == type);
-}
-
-const bool ScriptToken::IsType(TokenType type, const char input)
-{
-    if (type == TokenType::SpecialChar) {
-        return (!FindToken(TokenType::SpecialChar, input)->IsEmpty());
-    }
-
-    auto tokenValue = FindToken(TokenType::Identifier, input);
-    if (type != TokenType::Delimiter && tokenValue->IsEmpty()) {
-        return false;
-    } else if (type == TokenType::Delimiter) {
-        tokenValue = FindToken(TokenType::Delimiter, input);
-        if (tokenValue->IsEmpty()) {
-            return false;
-        }
-    }
-    return (tokenValue->Type == type);
-}
-
 const bool ScriptToken::IsObject(const char input)
 {
     std::locale loc;
@@ -334,54 +302,62 @@ void ScriptToken::AddSpecialCharToken(TokenType type, const char* name, const ch
 
 TokenMeta* ScriptToken::FindToken(TokenType type, const char* token)
 {
-    if (type == TokenType::Delimiter) {
-        auto size = _DelTokens.size();
-        for (unsigned i = 0; i < size; i++) {
-            if (strcmp(_DelTokens[i]->Name, token) == 0) {
-                return _DelTokens[i];
+    size_t size;
+    switch ((int)type) {
+        case (int)TokenType::Delimiter:
+            size = _DelTokens.size();
+            for (unsigned i = 0; i < size; i++) {
+                if (strcmp(_DelTokens[i]->Name, token) == 0) {
+                    return _DelTokens[i];
+                }
             }
-        }
-    } else if (type == TokenType::SpecialChar) {
-        auto size = _SpecTokens.size();
-        for (unsigned i = 0; i < size; i++) {
-            if (strcmp(_SpecTokens[i]->Name, token) == 0) {
-                return _SpecTokens[i];
+            break;
+        case (int)TokenType::SpecialChar:
+            size = _SpecTokens.size();
+            for (unsigned i = 0; i < size; i++) {
+                if (strcmp(_SpecTokens[i]->Name, token) == 0) {
+                    return _SpecTokens[i];
+                }
             }
-        }
-    } else {
-        auto size = _StdTokens.size();
-        for (unsigned i = 0; i < size; i++) {
-            if (strcmp(_StdTokens[i]->Name, token) == 0) {
-                return _StdTokens[i];
+            break;
+        default:
+            size = _StdTokens.size();
+            for (unsigned i = 0; i < size; i++) {
+                if (strcmp(_StdTokens[i]->Name, token) == 0) {
+                    return _StdTokens[i];
+                }
             }
-        }
     }
     return &ScriptToken::Empty;
 }
 
 TokenMeta* ScriptToken::FindToken(TokenType type, const char token)
 {
-    if (type == TokenType::Delimiter) {
-        auto size = _DelTokens.size();
-        for (unsigned i = 0; i < size; i++) {
-            if (_DelTokens[i]->Name[0] == token) {
-                return _DelTokens[i];
+    size_t size;
+    switch ((int)type) {
+        case (int)TokenType::Delimiter:
+            size = _DelTokens.size();
+            for (unsigned i = 0; i < size; i++) {
+                if (*_DelTokens[i]->Name == token) {
+                    return _DelTokens[i];
+                }
             }
-        }
-    } else if (type == TokenType::SpecialChar) {
-        auto size = _SpecTokens.size();
-        for (unsigned i = 0; i < size; i++) {
-            if (_SpecTokens[i]->Name[0] == token) {
-                return _SpecTokens[i];
+            break;
+        case (int)TokenType::SpecialChar:
+            size = _SpecTokens.size();
+            for (unsigned i = 0; i < size; i++) {
+                if (*_SpecTokens[i]->Name == token) {
+                    return _SpecTokens[i];
+                }
             }
-        }
-    } else {
-        auto size = _StdTokens.size();
-        for (unsigned i = 0; i < size; i++) {
-            if (_StdTokens[i]->Name[0] == token) {
-                return _StdTokens[i];
+            break;
+        default:
+            size = _StdTokens.size();
+            for (unsigned i = 0; i < size; i++) {
+                if (*_StdTokens[i]->Name == token) {
+                    return _StdTokens[i];
+                }
             }
-        }
     }
     return &ScriptToken::Empty;
 }

@@ -104,4 +104,5 @@ void Profiler::Clear()
 bool Profiler::Release()
 {
     Clear();
+    return true;
 }

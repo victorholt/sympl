@@ -106,7 +106,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     bool recording = false;
 
     // String to resolve.
-    SharedPtr<StringBuffer> resolveStr = mem_alloc_ref(StringBuffer);
+    auto resolveStr = mem_alloc_ref(StringBuffer);
 
     // Current/last concatenating condition.
     std::string currentConcatConditionStr;
@@ -116,7 +116,8 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     Variant argValue;
 
     // Build out the argument statements.
-    while (stmtResolver->GetCurrentCharLocation() < statementStr->Length()) {
+    auto stmtLen = statementStr->Length();
+    while (stmtResolver->GetCurrentCharLocation() < stmtLen) {
         currentChar = statementStr->Get(stmtResolver->GetCurrentCharLocation());
         nextChar = statementStr->Get(stmtResolver->GetCurrentCharLocation() + 1);
         stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + 1);
@@ -130,20 +131,17 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
             // Check to see if the varObject we have give is a method. If it's coming from
             // the Interpreter it may be a method and we don't want to skip it!
             if (resolveStr->Empty() && varObject->GetType() == ScriptObjectType::Method) {
-                auto methodResolver = mem_alloc_object(MethodResolver);
-                resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr.Ptr(), varObject, op).AsString());
-                mem_free_object(MethodResolver, methodResolver);
+                auto methodResolver = SymplRegistry.Get<MethodResolver>();
+                resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr, varObject, op).AsString());
             } else {
                 // Determine if the current statement buffer is an existing method.
                 auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(resolveStr->CStr());
                 if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                    auto methodResolver = mem_alloc_object(MethodResolver);
-                    resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr.Ptr(), varObject, op).AsString());
-                    mem_free_object(MethodResolver, methodResolver);
+                    auto methodResolver = SymplRegistry.Get<MethodResolver>();
+                    resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr, varObject, op).AsString());
                 } else {
-                    auto parenthResolver = mem_alloc_object(ParenthResolver);
-                    resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr.Ptr(), existingMethod, op).AsString());
-                    mem_free_object(ParenthResolver, parenthResolver);
+                    auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
+                    resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr, existingMethod, op).AsString());
                 }
             }
             continue;
@@ -258,6 +256,8 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
             // We've completed building out the arguments.
             if (currentChar == ')') {
+                mem_free_ref(StringBuffer, resolveStr);
+
                 // Restore the statement buffer.
                 //_StatementBuffer->Append(savedStatementStr);
                 auto retVal = to_method(scriptObject)->Evaluate(args);
@@ -288,7 +288,7 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
     bool recording = false;
 
     // String to resolve.
-    SharedPtr<StringBuffer> resolveStr = mem_alloc_ref(StringBuffer);
+    auto resolveStr = mem_alloc_ref(StringBuffer);
 
     // Current/last concatenating condition.
     std::string currentConcatConditionStr;
@@ -313,13 +313,11 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
             // Determine if the current statement buffer is an existing method.
             auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(resolveStr->CStr());
             if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                auto methodResolver = mem_alloc_object(MethodResolver);
-                resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr.Ptr(), existingMethod, op).AsString());
-                mem_free_object(MethodResolver, methodResolver);
+                auto methodResolver = SymplRegistry.Get<MethodResolver>();
+                resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr, existingMethod, op).AsString());
             } else {
-                auto parenthResolver = mem_alloc_object(ParenthResolver);
-                resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr.Ptr(), existingMethod, op).AsString());
-                mem_free_object(ParenthResolver, parenthResolver);
+                auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
+                resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr, existingMethod, op).AsString());
             }
             continue;
         }
@@ -384,6 +382,7 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
 //                resolveStr->Append(savedStatementStr);
 
             // Return our value.
+            mem_free_ref(StringBuffer, resolveStr);
             return retValue;
         }
 
@@ -422,15 +421,18 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
         StatementOperator currentOp = StatementOperator::Equals;
 
         // Go through our string and create our entries.
-        SharedPtr<StringBuffer> stmtEntryStr = mem_alloc_ref(StringBuffer);
+        auto stmtEntryStr = mem_alloc_ref(StringBuffer);
         char currentChar = '\0';
         char nextChar = '\0';
         bool recording = false;
+
+        auto stmtLen = _StmtString->Length();
         _CurrentCharLocation = 0;
 
         while (_CurrentCharLocation < _StmtString->Length()) {
             currentChar = _StmtString->Get(_CurrentCharLocation);
             nextChar = _StmtString->Get(_CurrentCharLocation + 1);
+
             _CurrentCharLocation++;
 
             // Check if we're starting a string.
@@ -451,23 +453,20 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                 // Check to see if the varObject we have give is a method. If it's coming from
                 // the Interpreter it may be a method and we don't want to skip it!
                 if (stmtEntryStr->Empty() && varObject->GetType() == ScriptObjectType::Method) {
-                    auto methodResolver = mem_alloc_object(MethodResolver);
+                    auto methodResolver = SymplRegistry.Get<MethodResolver>();
                     stmtEntryStr->Append(
-                            methodResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
-                    mem_free_object(MethodResolver, methodResolver);
+                            methodResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
                 } else {
                     // Determine if the current statement buffer is an existing method.
                     auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
                     if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
-                        auto methodResolver = mem_alloc_object(MethodResolver);
+                        auto methodResolver = SymplRegistry.Get<MethodResolver>();
                         stmtEntryStr->Append(
-                                methodResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
-                        mem_free_object(MethodResolver, methodResolver);
+                                methodResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
                     } else {
-                        auto parenthResolver = mem_alloc_object(ParenthResolver);
+                        auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
                         stmtEntryStr->Append(
-                                parenthResolver->Resolve(this, stmtEntryStr.Ptr(), varObject, currentOp).AsString());
-                        mem_free_object(ParenthResolver, parenthResolver);
+                                parenthResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
                     }
                 }
                 continue;
@@ -496,7 +495,7 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                 }
 
                 // Create our entry.
-                auto stmtEntry = alloc_bytes(StatementEntry);
+                auto stmtEntry = mem_alloc_object(StatementEntry);
                 stmtEntry->Op = currentOp;
                 stmtEntry->ConstantValue = _IsNumber(stmtEntryStr->CStr());
 
@@ -549,6 +548,8 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                 continue;
             }
         }
+
+        mem_free_ref(StringBuffer, stmtEntryStr);
     }
 
     // Resolve the statements and update the value.
@@ -693,15 +694,22 @@ void StatementResolver::_Solve(StatementEntry* entry, Variant& value)
 
 Variant StatementResolver::_IsNumber(const char* str)
 {
-    long long intVal;
-    float floatVal;
+    char firstChar = *str;
+    if (firstChar == '0' || firstChar == '1' || firstChar == '2' ||
+        firstChar == '3' || firstChar == '4' || firstChar == '5' ||
+        firstChar == '6' || firstChar == '7' || firstChar == '8' ||
+        firstChar == '9') {
 
-    if (NumberHelper::TryParseLong(str, &intVal)) {
-        return intVal;
-    } else if (NumberHelper::TryParseFloat(str, &floatVal)) {
-        return floatVal;
+        long long intVal;
+        float floatVal;
+
+        if (NumberHelper::TryParseLong(str, &intVal)) {
+            return intVal;
+        } else if (NumberHelper::TryParseFloat(str, &floatVal)) {
+            return floatVal;
+        }
+
     }
-
     return Variant::Empty;
 }
 
@@ -774,7 +782,7 @@ StatementOperator StatementResolver::_SymbolToOp(const char* symbol)
 void StatementResolver::ClearStatementEntries()
 {
     for (auto stmtEntry : _StmtEntries) {
-        delete stmtEntry;
+        mem_free_object(StatementEntry, stmtEntry);
     }
     _StmtEntries.clear();
 }
@@ -783,4 +791,5 @@ bool StatementResolver::Release()
 {
     mem_free_ref(StringBuffer, _StmtString);
     ClearStatementEntries();
+    return true;
 }

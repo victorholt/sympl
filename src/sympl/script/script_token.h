@@ -126,18 +126,6 @@ public:
     //! Called in place of the constructor.
     void __Construct() override;
 
-    //! Returns if the input is a specific type.
-    //! \param type
-    //! \param input
-    //! \return
-    const bool IsType(TokenType type, const char* input);
-
-    //! Returns if the input is a specific type.
-    //! \param type
-    //! \param input
-    //! \return
-    const bool IsType(TokenType type, const char input);
-
     //! Returns whether or not the input is an object.
     //! \param input
     //! \return

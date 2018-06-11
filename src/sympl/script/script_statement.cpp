@@ -777,6 +777,7 @@ std::string ScriptStatement::GetTypeAsString() const
     if (_Type == StatementType::Void) {
         return "void";
     }
+    return "";
 }
 
 StatementOperator ScriptStatement::_SymbolToOp(const char* symbol)

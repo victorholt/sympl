@@ -207,8 +207,11 @@ public:
 class MemPoolManager final
 {
 private:
-    // Pools available in the manager.
+    /// Pools available in the manager.
     std::vector<MemPool*> _Pools;
+
+    /// Memory usage size.
+    size_t _MemoryUsage = 0;
 
     //! Constructor.
     explicit MemPoolManager() = default;
@@ -250,6 +253,7 @@ public:
         }
         _Pools.push_back(pool);
 
+        _MemoryUsage += sizeof(T) * maxMemBlocks;
         return pool;
     };
 
@@ -271,6 +275,7 @@ public:
         }
         _Pools.push_back(pool);
 
+        _MemoryUsage += sizeof(T) * maxMemBlocks;
         return pool;
     };
 
@@ -323,7 +328,7 @@ public:
     template<class T>
     MemPool* FindOrAlloc(const std::string& typeName)
     {
-        FindOrAlloc<T>(typeName.c_str());
+        return FindOrAlloc<T>(typeName.c_str());
     }
 
     //! Attempts to find and return a memory pool.
@@ -336,6 +341,8 @@ public:
         if (!IsNullObject(pool)) {
             return ((MemPoolRef*)pool)->template Allocate<T>();
         }
+
+        _MemoryUsage += sizeof(T);
         return new T();
     }
 
@@ -349,6 +356,8 @@ public:
         if (!IsNullObject(pool)) {
             return ((MemPoolObject*)pool)->template Allocate<T>();
         }
+
+        _MemoryUsage += sizeof(T);
         return new T();
     }
 
@@ -387,6 +396,8 @@ public:
         }
         ref->Release();
         delete ref;
+
+        _MemoryUsage -= sizeof(T);
     }
 
     //! Attempts to deallocate a reference.
@@ -401,7 +412,13 @@ public:
             return;
         }
         delete ref;
+
+        _MemoryUsage -= sizeof(T);
     }
+
+    //! Returns the memory usage.
+    //! \return size_t
+    inline size_t GetMemoryUsage() const { return _MemoryUsage; }
 };
 
 #define MemPoolInstance MemPoolManager::GetInstance()

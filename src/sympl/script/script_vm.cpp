@@ -59,7 +59,7 @@ void ScriptVM::Startup()
     _MethodRegistry = mem_alloc_ref(MethodRegistry);
     _MethodRegistry->_Initialize();
 
-    _Symbol = mem_alloc_ref(ScriptToken);
+    _Symbol = SymplRegistry.Get<ScriptToken>();
 }
 
 void ScriptVM::Shutdown()

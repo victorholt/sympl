@@ -39,11 +39,16 @@
 sympl_nsstart
 
 class StatementResolver;
-class EvalResolver
+class SYMPL_API EvalResolver : public Object
 {
+    SYMPL_OBJECT(EvalResolver, Object);
+
 public:
     //! Constructor.
     EvalResolver() = default;
+
+    //! Called in place of the constructor.
+    void __Construct() override {}
 
     //! Returns a value from evaluating a given script object.
     //! \param stmtStr
@@ -58,10 +63,15 @@ public:
     bool IsStatementBufferTrue(const char* stmtStr, ScriptObject* scriptObject);
 };
 
-class MethodResolver
+class SYMPL_API MethodResolver : public Object
 {
+    SYMPL_OBJECT(MethodResolver, Object);
+
 public:
     MethodResolver() = default;
+
+    //! Called in place of the constructor.
+    void __Construct() override {}
 
     //! Resolves the method.
     //! \param stmtResolver
@@ -73,10 +83,15 @@ public:
                             ScriptObject* varObject, StatementOperator op);
 };
 
-class ParenthResolver
+class SYMPL_API ParenthResolver : public Object
 {
+    SYMPL_OBJECT(ParenthResolver, Object);
+
 public:
     ParenthResolver() = default;
+
+    //! Called in place of the constructor.
+    void __Construct() override {}
 
     //! Resolves the parentheses.
     //! \param stmtResolver
@@ -86,13 +101,6 @@ public:
     //! \return
     virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
                             ScriptObject* varObject, StatementOperator op);
-};
-
-class StmtResolverHelper
-{
-public:
-    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
-                            ScriptObject* varObject, StatementOperator op) {};
 };
 
 class SYMPL_API StatementResolver : public Object

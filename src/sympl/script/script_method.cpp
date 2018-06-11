@@ -101,7 +101,7 @@ void ScriptMethod::_ProcessArgStatements()
         Variant value = argIt->GetValue();
 
         if (value.GetType() == VariantType::StringBuffer) {
-            SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
+            auto resolver = SymplRegistry.Get<StatementResolver>();
 
             Variant argValue = argIt->GetValue();
             argValue = resolver->Resolve(argValue.GetStringBuffer()->CStr(), argIt);
