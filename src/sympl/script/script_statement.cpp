@@ -256,7 +256,7 @@ std::string ScriptStatement::EvaluateAsString()
     Variant value = Evaluate();
 
     if (_Type == StatementType::Bool) {
-        return (value.GetBool() > 0 ? "true" : "false");
+        return (value.GetBool() ? "true" : "false");
     }
     if (_Type == StatementType::String) {
         return value.GetStringBuffer()->CStr();

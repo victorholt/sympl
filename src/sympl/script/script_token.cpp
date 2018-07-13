@@ -40,36 +40,36 @@ ScriptToken::~ScriptToken()
 void ScriptToken::__Construct()
 {
     // Setup the tokens.
-    AddStdToken(TokenType::Operator, "=", "=");
-    AddStdToken(TokenType::Operator, "+", "+");
-    AddStdToken(TokenType::Operator, "-", "-");
-    AddStdToken(TokenType::Operator, "/", "/");
-    AddStdToken(TokenType::Operator, "*", "*");
-    AddStdToken(TokenType::Operator, ">", ">");
-    AddStdToken(TokenType::Operator, "<", "<");
-    AddStdToken(TokenType::Operator, ">=", ">=");
-    AddStdToken(TokenType::Operator, "<=", "<=");
-    AddStdToken(TokenType::Operator, "|", "|");
-    AddStdToken(TokenType::Operator, "&", "&");
-    AddStdToken(TokenType::Operator, "!", "!");
+    AddStdToken(ScriptTokenType::Operator, "=", "=");
+    AddStdToken(ScriptTokenType::Operator, "+", "+");
+    AddStdToken(ScriptTokenType::Operator, "-", "-");
+    AddStdToken(ScriptTokenType::Operator, "/", "/");
+    AddStdToken(ScriptTokenType::Operator, "*", "*");
+    AddStdToken(ScriptTokenType::Operator, ">", ">");
+    AddStdToken(ScriptTokenType::Operator, "<", "<");
+    AddStdToken(ScriptTokenType::Operator, ">=", ">=");
+    AddStdToken(ScriptTokenType::Operator, "<=", "<=");
+    AddStdToken(ScriptTokenType::Operator, "|", "|");
+    AddStdToken(ScriptTokenType::Operator, "&", "&");
+    AddStdToken(ScriptTokenType::Operator, "!", "!");
 
-    AddStdToken(TokenType::Operator, "||", "||");
-    AddStdToken(TokenType::Operator, "&&", "&&");
-    AddStdToken(TokenType::Operator, "!=", "!=");
-    AddStdToken(TokenType::Operator, "==", "==");
+    AddStdToken(ScriptTokenType::Operator, "||", "||");
+    AddStdToken(ScriptTokenType::Operator, "&&", "&&");
+    AddStdToken(ScriptTokenType::Operator, "!=", "!=");
+    AddStdToken(ScriptTokenType::Operator, "==", "==");
 
-    AddStdToken(TokenType::Identifier, "{", "{");
-    AddStdToken(TokenType::Identifier, "}", "}");
-    AddStdToken(TokenType::Identifier, "[", "[");
-    AddStdToken(TokenType::Identifier, "]", "]");
+    AddStdToken(ScriptTokenType::Identifier, "{", "{");
+    AddStdToken(ScriptTokenType::Identifier, "}", "}");
+    AddStdToken(ScriptTokenType::Identifier, "[", "[");
+    AddStdToken(ScriptTokenType::Identifier, "]", "]");
 
-    AddDelToken(TokenType::Delimiter, ",", ",");
-    AddDelToken(TokenType::Delimiter, ";", ";");
+    AddDelToken(ScriptTokenType::Delimiter, ",", ",");
+    AddDelToken(ScriptTokenType::Delimiter, ";", ";");
 
-    AddSpecialCharToken(TokenType::SpecialChar, ",", "#c#");
-    AddSpecialCharToken(TokenType::SpecialChar, ";", "#sc#");
-    AddSpecialCharToken(TokenType::SpecialChar, "\'", "#q#");
-    AddSpecialCharToken(TokenType::SpecialChar, "\"", "\"");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, ",", "#c#");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, ";", "#sc#");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, "\'", "#q#");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, "\"", "\"");
 
     _TranslateBuffer = mem_alloc_ref(StringBuffer);
     _ResultBuffer = mem_alloc_ref(StringBuffer);
@@ -93,37 +93,37 @@ const bool ScriptToken::IsObject(const char input)
 
 const bool ScriptToken::IsOperator(const char input)
 {
-    auto token = FindToken(TokenType::Operator, input);
+    auto token = FindToken(ScriptTokenType::Operator, input);
     return !token->IsEmpty();
 }
 
 const bool ScriptToken::IsOperator(const char* input)
 {
-    auto token = FindToken(TokenType::Operator, input);
+    auto token = FindToken(ScriptTokenType::Operator, input);
     return !token->IsEmpty();
 }
 
 const bool ScriptToken::IsIdentifier(const char input)
 {
-    auto token = FindToken(TokenType::Identifier, input);
+    auto token = FindToken(ScriptTokenType::Identifier, input);
     return !token->IsEmpty();
 }
 
 const bool ScriptToken::IsIdentifier(const char* input)
 {
-    auto token = FindToken(TokenType::Identifier, input);
+    auto token = FindToken(ScriptTokenType::Identifier, input);
     return !token->IsEmpty();
 }
 
 const bool ScriptToken::IsDelimiter(const char input)
 {
-    auto token = FindToken(TokenType::Delimiter, input);
+    auto token = FindToken(ScriptTokenType::Delimiter, input);
     return !token->IsEmpty();
 }
 
 const bool ScriptToken::IsSpecialChar(const char input)
 {
-    auto token = FindToken(TokenType::SpecialChar, input);
+    auto token = FindToken(ScriptTokenType::SpecialChar, input);
     return !token->IsEmpty();
 }
 
@@ -131,7 +131,7 @@ bool ScriptToken::EncodeSpecialChar(const char input, std::string& output)
 {
     std::string inputStr = std::string(1, input);
 
-    auto tokenIt = FindToken(TokenType::SpecialChar, inputStr.c_str());
+    auto tokenIt = FindToken(ScriptTokenType::SpecialChar, inputStr.c_str());
     if (tokenIt->IsEmpty()) {
         return false;
     }
@@ -251,10 +251,10 @@ const std::string ScriptToken::DecodeSpecialCharString(const char* input)
     return result;
 }
 
-void ScriptToken::AddStdToken(TokenType type, const char* name, const char* value)
+void ScriptToken::AddStdToken(ScriptTokenType type, const char* name, const char* value)
 {
     // Ensure we don't already have this symbol.
-    auto tokenIt = FindToken(TokenType::Identifier, name);
+    auto tokenIt = FindToken(ScriptTokenType::Identifier, name);
     if (!tokenIt->IsEmpty()) {
         return;
     }
@@ -267,10 +267,10 @@ void ScriptToken::AddStdToken(TokenType type, const char* name, const char* valu
     _StdTokens.push_back(token);
 }
 
-void ScriptToken::AddDelToken(TokenType type, const char* name, const char* value)
+void ScriptToken::AddDelToken(ScriptTokenType type, const char* name, const char* value)
 {
     // Ensure we don't already have this symbol.
-    auto tokenIt = FindToken(TokenType::Delimiter, name);
+    auto tokenIt = FindToken(ScriptTokenType::Delimiter, name);
     if (!tokenIt->IsEmpty()) {
         return;
     }
@@ -283,10 +283,10 @@ void ScriptToken::AddDelToken(TokenType type, const char* name, const char* valu
     _DelTokens.push_back(token);
 }
 
-void ScriptToken::AddSpecialCharToken(TokenType type, const char* name, const char* value)
+void ScriptToken::AddSpecialCharToken(ScriptTokenType type, const char* name, const char* value)
 {
     // Ensure we don't already have this symbol.
-    auto tokenIt = FindToken(TokenType::SpecialChar, name);
+    auto tokenIt = FindToken(ScriptTokenType::SpecialChar, name);
     if (!tokenIt->IsEmpty()) {
         return;
     }
@@ -300,11 +300,11 @@ void ScriptToken::AddSpecialCharToken(TokenType type, const char* name, const ch
     _SpecTokens.push_back(token);
 }
 
-TokenMeta* ScriptToken::FindToken(TokenType type, const char* token)
+TokenMeta* ScriptToken::FindToken(ScriptTokenType type, const char* token)
 {
     size_t size;
     switch ((int)type) {
-        case (int)TokenType::Delimiter:
+        case (int)ScriptTokenType::Delimiter:
             size = _DelTokens.size();
             for (unsigned i = 0; i < size; i++) {
                 if (strcmp(_DelTokens[i]->Name, token) == 0) {
@@ -312,7 +312,7 @@ TokenMeta* ScriptToken::FindToken(TokenType type, const char* token)
                 }
             }
             break;
-        case (int)TokenType::SpecialChar:
+        case (int)ScriptTokenType::SpecialChar:
             size = _SpecTokens.size();
             for (unsigned i = 0; i < size; i++) {
                 if (strcmp(_SpecTokens[i]->Name, token) == 0) {
@@ -331,11 +331,11 @@ TokenMeta* ScriptToken::FindToken(TokenType type, const char* token)
     return &ScriptToken::Empty;
 }
 
-TokenMeta* ScriptToken::FindToken(TokenType type, const char token)
+TokenMeta* ScriptToken::FindToken(ScriptTokenType type, const char token)
 {
     size_t size;
     switch ((int)type) {
-        case (int)TokenType::Delimiter:
+        case (int)ScriptTokenType::Delimiter:
             size = _DelTokens.size();
             for (unsigned i = 0; i < size; i++) {
                 if (*_DelTokens[i]->Name == token) {
@@ -343,7 +343,7 @@ TokenMeta* ScriptToken::FindToken(TokenType type, const char token)
                 }
             }
             break;
-        case (int)TokenType::SpecialChar:
+        case (int)ScriptTokenType::SpecialChar:
             size = _SpecTokens.size();
             for (unsigned i = 0; i < size; i++) {
                 if (*_SpecTokens[i]->Name == token) {

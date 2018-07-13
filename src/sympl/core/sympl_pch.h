@@ -26,6 +26,15 @@
 // CPP Core Files
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
+#pragma warning( disable : 4251 )
+#pragma warning( disable : 4715 )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4267 )
+
+#ifdef _WIN32_DISABLE_CONSOLE
+// https://stackoverflow.com/questions/2139637/hide-console-of-windows-application
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
 #endif
 
 #include <string>

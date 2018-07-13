@@ -72,15 +72,15 @@ void ScriptMethod::_CopyArgs(ScriptMethodArgs args)
 {
     int argIndex = 0;
 
-    auto size = _Args.Size();
-    for (unsigned i = 0; i < size; i++) {
+    int size = _Args.Size();
+    for (int i = 0; i < size; i++) {
         ScriptObject* argIt = nullptr;
         if (_Args[i].GetType() != VariantType::Object) {
             continue;
         }
         argIt = static_cast<ScriptObject*>(_Args[i].GetObject());
         // Ensure we have args.
-        if (argIndex >= args.Size()) {
+        if (argIndex >= size) {
             break;
         }
 

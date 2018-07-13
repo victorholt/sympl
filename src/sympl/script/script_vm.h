@@ -30,11 +30,11 @@
 #include <sympl/script/script_common.h>
 #include <sympl/script/script_context.h>
 #include <sympl/script/script_token.h>
+#include <sympl/script/method_registry.h>
 
 sympl_nsstart
 
 class Interpreter;
-class MethodRegistry;
 class AllocManager;
 class MemPool;
 class MemPoolRef;

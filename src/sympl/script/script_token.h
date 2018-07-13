@@ -34,7 +34,7 @@ sympl_nsstart
 class StringBuffer;
 
 /// Types of tokens read by the parser.
-enum class TokenType
+enum class ScriptTokenType: uint8_t
 {
     Empty,
     Operator,
@@ -53,17 +53,17 @@ struct TokenMeta
     /// The value of the symbol.
     char Value[5];
     /// The type of symbol.
-    TokenType Type;
+    ScriptTokenType Type;
 
     TokenMeta() noexcept {
         AltName = '\0';
-        Type = TokenType::Empty;
+        Type = ScriptTokenType::Empty;
         memset(Name, 0, 5);
         memset(Value, 0, 5);
     }
 
     bool IsEmpty() const {
-        return Type == TokenType::Empty;
+        return Type == ScriptTokenType::Empty;
     }
 };
 
@@ -90,31 +90,31 @@ private:
     //! \param type
     //! \param name
     //! \param value
-    void AddStdToken(TokenType type, const char* name, const char* value);
+    void AddStdToken(ScriptTokenType type, const char* name, const char* value);
 
     //! Adds a delimiter symbol to the helper.
     //! \param type
     //! \param name
     //! \param value
-    void AddDelToken(TokenType type, const char* name, const char* value);
+    void AddDelToken(ScriptTokenType type, const char* name, const char* value);
 
     //! Adds a special character symbol to the helper.
     //! \param type
     //! \param name
     //! \param value
-    void AddSpecialCharToken(TokenType type, const char* name, const char* value);
+    void AddSpecialCharToken(ScriptTokenType type, const char* name, const char* value);
 
     //! Finds a token.
     //! \param type
     //! \param token
     //! \return
-    TokenMeta* FindToken(TokenType type, const char* token);
+    TokenMeta* FindToken(ScriptTokenType type, const char* token);
 
     //! Finds a token.
     //! \param type
     //! \param token
     //! \return
-    TokenMeta* FindToken(TokenType type, const char token);
+    TokenMeta* FindToken(ScriptTokenType type, const char token);
 
 public:
     //! Constructor.

@@ -29,11 +29,11 @@
 #include <sympl/script/script_common.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_reader.h>
+#include <sympl/script/script_parser.h>
 
 sympl_nsstart
 
 class ScriptVM;
-class ScriptParser;
 class ScriptStatement;
 
 struct InterpretCommandEntry

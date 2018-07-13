@@ -70,8 +70,9 @@ void CallbackMethod::_CopyArgs(ScriptMethodArgs args)
     if (args.Empty()) return;
 
     int argIndex = 0;
+    int argSize = _Args.Size();
     for (auto& argIt : args) {
-        if (_Args.Size() <= argIndex) {
+        if (argSize <= argIndex) {
             auto arg = ScriptVMInstance->CreateObject(fmt::format("__arg__{0}", argIndex).c_str(),
                                                       ScriptObjectType::Object, _Scope.Ptr());
             arg->SetValue(argIt);
