@@ -306,6 +306,44 @@ void StringBuffer::Replace(const char *search, const char *replaceWith)
     */
 }
 
+bool StringBuffer::Contains(const char search)
+{
+    for (size_t i = 0; i < _Length; i++) {
+        if (static_cast<char>(_Buffer[i]) == search) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool StringBuffer::Contains(const char* search)
+{
+    if (strlen(search) > _Length) {
+        return false;
+    }
+
+    if (strlen(search) == 1) {
+        return Contains(*search);
+    }
+
+    size_t numChars = strlen(search);
+    int searchIndex = 0;
+
+    for (size_t i = 0; i < _Length; i++) {
+        if (static_cast<char>(_Buffer[i]) == search[searchIndex]) {
+            searchIndex++;
+        } else {
+            searchIndex = 0;
+        }
+
+        if (searchIndex == numChars) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void StringBuffer::Clear()
 {
     if (_Length == 0) return;

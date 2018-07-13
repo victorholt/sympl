@@ -106,6 +106,16 @@ public:
     //! \param replaceWith
     void Replace(const char *search, const char *replaceWith);
 
+    //! Attempts to find a single character in the string.
+    //! \param search
+    //! \return bool
+    bool Contains(const char search);
+
+    //! Attempts to find a string in the buffer.
+    //! \param search
+    //! \return bool
+    bool Contains(const char* search);
+
     //! Clears out the string buffer.
     void Clear();
 

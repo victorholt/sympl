@@ -31,7 +31,9 @@ sympl_namespaces
 
 Variant EvalResolver::GetEvalFromStatementBuffer(const char* stmtStr, ScriptObject* scriptObject)
 {
-    sympl_assert((strlen(stmtStr) > 0) && "Attempting to evaluate an invalid statement!");
+    if (strlen(stmtStr) <= 0 && scriptObject->GetType() != ScriptObjectType::Method) {
+        sympl_assert(false && "Attempting to evaluate an invalid statement!");
+    }
 
     // Create the statement and set the string.
     auto stmtResolver = SymplRegistry.Get<StatementResolver>();
@@ -529,7 +531,24 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                 if (stmtEntry->ConstantValue.IsEmpty()) {
                     ScriptObject* obj = nullptr;
                     if (varObject->GetType() == ScriptObjectType::Method) {
-                        obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
+                        // Check if our string is structured like a path.
+                        if (stmtEntryStr->Contains('.')) {
+                            obj = ScriptVMInstance->FindObjectByPath(stmtEntryStr->CStr());
+                        }
+
+                        if (IsNullObject(obj) || obj->IsEmpty()) {
+                            obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(stmtEntryStr->CStr(),
+                                                                                               true);
+                            // Check if we're an object.
+                            if (obj->IsEmpty()) {
+                                obj = to_method(varObject)->GetScope()->GetContext()->FindObject(stmtEntryStr->CStr(),
+                                                                                                 true);
+                            }
+                            // Check if we're a method.
+                            if (obj->IsEmpty()) {
+                                obj = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
+                            }
+                        }
                     } else {
                         obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
                     }
@@ -605,7 +624,14 @@ Variant StatementResolver::_ResolveStatements(const std::vector<StatementEntry*>
     if (stmtEntries.size() == 1) {
         auto entry = stmtEntries[0];
         if (entry->Op == StatementOperator::Equals) {
-            return (entry->ObjectValue.IsValid() ? entry->ObjectValue->GetValue() : entry->ConstantValue);
+            if (entry->ObjectValue.IsValid()) {
+                if (entry->ObjectValue->GetType() == ScriptObjectType::Object ||
+                    entry->ObjectValue->GetType() == ScriptObjectType::Method) {
+                    return entry->ObjectValue.Ptr();
+                }
+                return entry->ObjectValue->GetValue();
+            }
+            return entry->ConstantValue;
         }
     }
 

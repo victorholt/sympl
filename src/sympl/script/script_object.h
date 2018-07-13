@@ -165,7 +165,9 @@ public:
 
     //! Returns the child objects.
     //! \return std::unordered_map<string, ScriptObject*>
-    const std::vector<SharedPtr<ScriptObject>>& GetChildren() const { return _Children; }
+    inline const std::vector<SharedPtr<ScriptObject>>& GetChildren() const {
+        return _Children;
+    }
 
     //! Returns a string of the script object.
     //! \return

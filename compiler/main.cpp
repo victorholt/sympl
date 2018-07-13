@@ -8,8 +8,14 @@ int main()
 //    auto sb1 = alloc_ref(StringBuffer);
 //    sb1->Append("testing this out");
 //    cout << sb1->CStr() << endl;
-//    free_ref(sb1);
 //
+//    if (sb1->Contains("testing")) {
+//        cout << "String contains tested string" << endl;
+//    } else {
+//        cout << "String DOES NOT contain tested string" << endl;
+//    }
+//
+//    free_ref(sb1);
 //    return 0;
 
 //    mem_create_pool(StringBuffer, 50);
@@ -33,7 +39,7 @@ int main()
 //    return 0;
 
     sympl_profile_start("program_load");
-    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/arrays.sym");
+    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/class.sym");
 //    auto program = ScriptVMInstance->LoadString("");
     sympl_profile_stop_and_print("program_load");
 

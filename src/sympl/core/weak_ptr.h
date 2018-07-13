@@ -75,7 +75,7 @@ public:
     //! Returns whether or not the reference is valid.
     //! \return bool
     const bool IsValid() const {
-        return !IsNull() && (RefCount() > 0);
+        return !IsNull();
     }
 
     //! Returns the pointer.

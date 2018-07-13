@@ -22,7 +22,6 @@
  *
  **********************************************************/
 #include <sympl/script/script_method.h>
-#include <sympl/script/script_statement.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/statement_resolver.h>
@@ -111,8 +110,7 @@ void ScriptMethod::_ProcessArgStatements()
         if (value.GetType() == VariantType::StringBuffer) {
             auto resolver = SymplRegistry.Get<StatementResolver>();
 
-            Variant argValue = argIt->GetValue();
-            argValue = resolver->Resolve(argValue.GetStringBuffer()->CStr(), argIt);
+            Variant argValue = resolver->Resolve(argIt->GetValue().GetStringBuffer()->CStr(), argIt);
 
             // If this is a string we will need to replace the token.
             if (argValue.GetType() == VariantType::StringBuffer) {

@@ -69,7 +69,7 @@ void MethodRegistry::_Initialize()
         if (args.Size() > 1 && args[1].GetBool()) {
             std::cout << args[0].AsString() << " (" << args[0].GetTypeAsString() << ")" << std::endl;
         } else {
-            std::cout << args[0].AsString() << std::endl;;
+            std::cout << args[0].AsString() << std::endl;
         }
     });
 

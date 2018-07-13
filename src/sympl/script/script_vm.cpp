@@ -158,7 +158,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
 
     auto currentObject = &ScriptObject::Empty;
     auto resultObject = &ScriptObject::Empty;
-    auto& globalChildren = _GlobalObject->GetChildren();
+    auto globalChildren = _GlobalObject->GetChildren();
 
     // Check first if we have the path '.' delimeter. If not.
     // then we should look in the global scope.
@@ -180,10 +180,23 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
                 for (auto& entryIt : globalChildren) {
                     if (entryIt->GetPath() == currentPath) {
                         currentObject = entryIt.Ptr();
+
+                        // Check if we need to assign the current object
+                        // to the scope.
+                        auto objectType = currentObject->GetType();
+                        if (!currentObject->GetChildren().empty() &&
+                            (objectType == ScriptObjectType::Object ||
+                            objectType == ScriptObjectType::Method)) {
+                            currentObject = currentObject->GetChildren()[0].Ptr();
+                            currentPath.append(".");
+                            currentPath.append(SYMPL_SCOPE_NAME);
+                        }
                         break;
                     }
                 }
-                if (currentObject->IsEmpty()) break;
+                if (currentObject->IsEmpty()) {
+                    break;
+                }
             } else {
                 // Search the children.
                 currentPath.append(".");
@@ -192,6 +205,17 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
                 for (auto& entryIt : currentObject->GetChildren()) {
                     if (entryIt->GetPath() == currentPath) {
                         currentObject = entryIt.Ptr();
+
+                        // Check if we need to assign the current object
+                        // to the scope.
+                        auto objectType = currentObject->GetType();
+                        if (!currentObject->GetChildren().empty() &&
+                            (objectType == ScriptObjectType::Object ||
+                             objectType == ScriptObjectType::Method)) {
+                            currentObject = currentObject->GetChildren()[0].Ptr();
+                            currentPath.append(".");
+                            currentPath.append(SYMPL_SCOPE_NAME);
+                        }
                         break;
                     }
                 }
@@ -201,6 +225,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
 
         // Handle the last part of the path.
         if (!currentObject->IsEmpty()) {
+            currentPath.append(".");
             currentPath.append(parseStr);
             for (auto entryIt : currentObject->GetChildren()) {
                 if (entryIt->GetPath() == currentPath) {
@@ -262,7 +287,8 @@ ScriptObject* ScriptVM::GetGlobalObject()
 std::string ScriptVM::PrintObjects()
 {
     auto buffer = mem_alloc_ref(StringBuffer);
-    for (auto entryIt : _Context->GetScriptObject()->GetChildren()) {
+    auto children = _Context->GetScriptObject()->GetChildren();
+    for (auto entryIt : children) {
         // Don't print out objects with parents.
         if (entryIt->GetParent().IsValid()) {
             continue;

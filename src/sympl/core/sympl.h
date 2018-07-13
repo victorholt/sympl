@@ -51,7 +51,6 @@
 
 #include <sympl/script/script_common.h>
 #include <sympl/script/script_context.h>
-#include <sympl/script/script_statement.h>
 #include <sympl/script/statement_resolver.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/interpreter.h>

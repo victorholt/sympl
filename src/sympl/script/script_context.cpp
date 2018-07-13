@@ -49,6 +49,16 @@ void ScriptContext::AddVar(ScriptObject* varObject)
     _VarList.Push(varObject);
 }
 
+void ScriptContext::AddObject(ScriptObject* obj)
+{
+    // Check to ensure we don't already have this variable.
+    auto objIt = _ObjectList.Find(obj);
+    if (objIt != _ObjectList.End()) {
+        return;
+    }
+    _ObjectList.Push(obj);
+}
+
 ScriptObject* ScriptContext::FindVariable(const char* name, bool traverse)
 {
     auto varIt = _VarList.Begin();
@@ -75,6 +85,38 @@ ScriptObject* ScriptContext::FindVariable(const char* name, bool traverse)
         if (!var->IsEmpty()) {
             AddVar(var);
             return var;
+        }
+    }
+
+    return &ScriptObject::Empty;
+}
+
+ScriptObject* ScriptContext::FindObject(const char* name, bool traverse)
+{
+    auto objIt = _ObjectList.Begin();
+    while (objIt != _ObjectList.End()) {
+        if (strcmp((*objIt)->GetName().c_str(), name) == 0) {
+            return *objIt;
+        }
+        objIt++;
+    }
+    if (!traverse) return &ScriptObject::Empty;
+
+    // Search the context of the caller if we have one (methods).
+    if (_CallerContext.IsValid()) {
+        auto obj = _CallerContext->FindObject(name);
+        if (!obj->IsEmpty()) {
+            AddObject(obj);
+            return obj;
+        }
+    }
+
+    // Check if we have a parent scope and go up the chain.
+    if (_ParentContext.IsValid()) {
+        auto obj = _ParentContext->FindObject(name);
+        if (!obj->IsEmpty()) {
+            AddObject(obj);
+            return obj;
         }
     }
 

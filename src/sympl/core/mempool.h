@@ -391,7 +391,7 @@ public:
             return;
         }
 
-        if (ref->DecRef()) {
+        if (ref->DecRef() || ref->GetMemIndex() < 0) {
             return;
         }
         ref->Release();

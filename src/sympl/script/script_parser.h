@@ -30,7 +30,6 @@
 #include <sympl/script/script_reader.h>
 #include <sympl/script/script_token.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_statement.h>
 
 sympl_nsstart
 

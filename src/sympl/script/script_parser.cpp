@@ -24,7 +24,6 @@
 #include <sympl/script/script_parser.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_statement.h>
 #include <sympl/script/script_method.h>
 #include <sympl/script/interpreter.h>
 #include <sympl/script/method_registry.h>
@@ -139,13 +138,11 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
             continue;
         }
 
-        // Check if we're an array or object.
-        if (!_RecordingString && _ScanMode == ParserScanMode::Value && _CurrentObject->GetType() == ScriptObjectType::Variable) {
-            if (currentChar == '[') {
-                // Parse our array.
-            } else if (currentChar == '{') {
-                // Parse our object.
-            }
+        // Check if we're an array.
+        if (!_RecordingString && currentChar == '[' &&
+            _ScanMode == ParserScanMode::Value &&
+            _CurrentObject->GetType() == ScriptObjectType::Variable) {
+
         }
 
         // Attempt to close the current scope.
@@ -281,11 +278,15 @@ void ScriptParser::_BuildObject()
         _CurrentObject = ScriptVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type);
         if (type == ScriptObjectType::Variable) {
             ScriptVMInstance->GetContext()->AddVar(_CurrentObject.Ptr());
+        } else if (type == ScriptObjectType::Object) {
+            ScriptVMInstance->GetContext()->AddObject(_CurrentObject.Ptr());
         }
     } else {
         _CurrentObject = ScriptVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type, _CurrentScopeObject.Ptr());
         if (type == ScriptObjectType::Variable) {
             _CurrentScopeObject->GetContext()->AddVar(_CurrentObject.Ptr());
+        } else if (type == ScriptObjectType::Object) {
+            ScriptVMInstance->GetContext()->AddObject(_CurrentObject.Ptr());
         }
     }
 
@@ -406,6 +407,8 @@ void ScriptParser::_UpdateObjectValue()
         auto parent = _CurrentScopeObject->GetParent();
         if (parent->GetType() == ScriptObjectType::Method) {
             to_method(parent.Ptr())->AddStatement(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
+        } else if (parent->GetType() == ScriptObjectType::Object) {
+            _Interpreter->AddCommand(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
         }
     } else {
         _Interpreter->AddCommand(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
@@ -422,7 +425,8 @@ void ScriptParser::_UpdateScanMode()
 
             // Validate if this is a proper identifier.
             if (!_CurrentIdentifierBuffer->Equals("var") &&
-                !_CurrentIdentifierBuffer->Equals("func")) {
+                !_CurrentIdentifierBuffer->Equals("func") &&
+                !_CurrentIdentifierBuffer->Equals("class")) {
 
                 // Check if this object exists and we're attempting to
                 // assign it a value.

@@ -1,0 +1,19 @@
+// Class example.
+// profiler_start("class");
+
+class bar {
+    var name = "testing here";
+    //func test() : void {
+    //    printl(name);
+    //}
+}
+
+var foo = new bar();
+printl(foo.name);
+
+// var foo = new bar();
+// printl(foo.test());
+
+// print_vm_object_list();
+
+// profiler_stop("class");
