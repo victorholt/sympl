@@ -275,6 +275,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
     // We failed to exit the while loop early!
     sympl_assert(false && "Unclosed call to method!");
+    return Variant::Empty;
 }
 
 Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
@@ -394,6 +395,7 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
 
     // We failed to exit the while loop early!
     sympl_assert(false && "Unclosed parenthesis in statement found!");
+    return Variant::Empty;
 }
 
 

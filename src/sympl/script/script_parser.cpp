@@ -139,6 +139,15 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
             continue;
         }
 
+        // Check if we're an array or object.
+        if (!_RecordingString && _ScanMode == ParserScanMode::Value && _CurrentObject->GetType() == ScriptObjectType::Variable) {
+            if (currentChar == '[') {
+                // Parse our array.
+            } else if (currentChar == '{') {
+                // Parse our object.
+            }
+        }
+
         // Attempt to close the current scope.
         if (!_RecordingString && currentChar == '}') {
             _CloseScope();

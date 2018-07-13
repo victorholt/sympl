@@ -427,6 +427,7 @@ Variant ScriptStatement::_ResolveParenth(ScriptObject* varObject, StringBuffer* 
 
     // We failed to exit the while loop early!
     sympl_assert(false && "Unclosed parenthesis in statement found!");
+    return Variant::Empty;
 }
 
 Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* statementStr, StatementOperator op)
@@ -578,6 +579,7 @@ Variant ScriptStatement::_ResolveMethod(ScriptObject* varObject, StringBuffer* s
 
     // We failed to exit the while loop early!
     sympl_assert(false && "Unclosed call to method!");
+    return Variant::Empty;
 }
 
 Variant ScriptStatement::GetEvalFromStatementBuffer(ScriptObject* scriptObject)
