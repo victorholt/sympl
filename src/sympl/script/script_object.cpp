@@ -66,7 +66,7 @@ void ScriptObject::AddChild(ScriptObject* scriptObject)
     _Children.push_back(scriptObject);
 }
 
-Variant ScriptObject::Evaluate(const Urho3D::PODVector<Variant>& args)
+Variant ScriptObject::Evaluate(ScriptMethodArgs args)
 {
     return Variant::Empty;
 }

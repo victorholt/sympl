@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/script_context.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/statement_cache.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -31,11 +32,11 @@ ScriptContext ScriptContext::Empty;
 
 ScriptContext::ScriptContext()
 {
+    _StatementCache = mem_alloc_ref(StatementCache);
 }
 
 void ScriptContext::__Construct()
 {
-
 }
 
 void ScriptContext::AddVar(ScriptObject* varObject)
@@ -110,8 +111,22 @@ ScriptObject* ScriptContext::GetScriptObject()
     return _Object.IsValid() ? _Object.Ptr() : &ScriptObject::Empty;
 }
 
+ScriptContext* ScriptContext::GetParentContext() const { return _ParentContext.IsValid() ? _ParentContext.Ptr() : &ScriptContext::Empty; }
+
+ScriptContext* ScriptContext::GetCallerContext() const { return _CallerContext.IsValid() ? _CallerContext.Ptr() : &ScriptContext::Empty; }
+
+bool ScriptContext::IsEmpty() const { return !_Object.IsValid(); }
+
+StatementCache* ScriptContext::GetStatementCache() const {
+    if (!_StatementCache) {
+        return nullptr;
+    }
+    return _StatementCache;
+}
+
 bool ScriptContext::Release()
 {
+    mem_free_ref(StatementCache, _StatementCache);
     _VarList.Clear();
     return true;
 }

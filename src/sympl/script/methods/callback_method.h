@@ -42,7 +42,7 @@ protected:
 
     //! Copy over argument values from a list of arguments.
     //! \param args
-    void _CopyArgs(const Urho3D::PODVector<Variant>& args) override;
+    void _CopyArgs(ScriptMethodArgs args) override;
 
     //! Handles cloning the object and adding it to the VM.
     //! \param name
@@ -56,7 +56,7 @@ public:
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
-    Variant Evaluate(const Urho3D::PODVector<Variant>& args) override;
+    Variant Evaluate(ScriptMethodArgs args) override;
 
     //! Sets the callback for the method.
     //! \param callback

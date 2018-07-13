@@ -52,7 +52,7 @@ protected:
 
     /// Children added to the object in the order they
     /// were added.
-    std::vector<SharedPtr<ScriptObject>> _Children;
+    std::vector< SharedPtr<ScriptObject> > _Children;
 
     /// Name of the object.
     std::string _Name;
@@ -108,7 +108,7 @@ public:
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
-    virtual Variant Evaluate(const Urho3D::PODVector<Variant>& args);
+    virtual Variant Evaluate(ScriptMethodArgs args);
 
     //! Evaluates and returns the results of the object.
     //! \return

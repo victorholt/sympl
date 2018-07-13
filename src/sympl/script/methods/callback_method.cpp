@@ -47,19 +47,25 @@ void CallbackMethod::_Initialize(const char* name, const char* path, ScriptObjec
     ScriptMethod::_Initialize(name, path, parent);
 }
 
-Variant CallbackMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
+Variant CallbackMethod::Evaluate(ScriptMethodArgs args)
 {
     _CopyArgs(args);
     _ProcessArgStatements();
 
+    ScriptMethodArgList list;
+    auto argCount = _Args.Size();
+    for (size_t i = 0; i < argCount; i++) {
+        list.Push(dynamic_cast<ScriptObject*>(_Args[i].GetObject())->GetValue());
+    }
+
     if (_Callback) {
-        _Callback(_Args);
+        _Callback(list);
     }
 
     return Variant::Empty;
 }
 
-void CallbackMethod::_CopyArgs(const Urho3D::PODVector<Variant>& args)
+void CallbackMethod::_CopyArgs(ScriptMethodArgs args)
 {
     if (args.Empty()) return;
 
@@ -71,7 +77,9 @@ void CallbackMethod::_CopyArgs(const Urho3D::PODVector<Variant>& args)
             arg->SetValue(argIt);
             AddArg(arg);
         } else {
-            _Args[argIndex]->SetValue(argIt);
+            if (_Args[argIndex].GetType() == VariantType::Object) {
+                dynamic_cast<ScriptObject*>(_Args[argIndex].GetObject())->SetValue(argIt);
+            }
         }
         argIndex++;
     }

@@ -54,49 +54,49 @@ void MethodRegistry::_Initialize()
     AddMethod(whileMethod);
 
     // Prints text.
-    AddCallbackMethod("print", [](const Urho3D::PODVector<ScriptObject*>& args) {
+    AddCallbackMethod("print", [](ScriptMethodArgs args) {
         if (!args.Empty()) {
-            if (args.Size() > 1 && args[1]->GetValue().GetBool()) {
-                std::cout << args[0]->GetValue().AsString() << " (" << args[0]->GetValue().GetTypeAsString() << ")";
+            if (args.Size() > 1 && args[1].GetBool()) {
+                std::cout << args[0].AsString() << " (" << args[0].GetTypeAsString() << ")";
             } else {
-                std::cout << args[0]->GetValue().AsString();
+                std::cout << args[0].AsString();
             }
         }
     });
 
     // Prints text on a new line.
-    AddCallbackMethod("printl", [](const Urho3D::PODVector<ScriptObject*>& args) {
-        if (args.Size() > 1 && args[1]->GetValue().GetBool()) {
-            std::cout << args[0]->GetValue().AsString() << " (" << args[0]->GetValue().GetTypeAsString() << ")" << std::endl;
+    AddCallbackMethod("printl", [](ScriptMethodArgs args) {
+        if (args.Size() > 1 && args[1].GetBool()) {
+            std::cout << args[0].AsString() << " (" << args[0].GetTypeAsString() << ")" << std::endl;
         } else {
-            std::cout << args[0]->GetValue().AsString() << std::endl;;
+            std::cout << args[0].AsString() << std::endl;;
         }
     });
 
     // Prints the memory allocated currently.
-    AddCallbackMethod("print_memory", [](const Urho3D::PODVector<ScriptObject*>& args) {
+    AddCallbackMethod("print_memory", [](ScriptMethodArgs args) {
         std::cout << "Memory Allocated: " << MemPoolInstance.GetMemoryUsage() << std::endl;
     });
 
     // Prints the memory allocated reference list.
-    AddCallbackMethod("print_vm_refs", [](const Urho3D::PODVector<ScriptObject*>& args) {
+    AddCallbackMethod("print_vm_refs", [](ScriptMethodArgs args) {
         std::cout << AllocInstance.PrintExistingReferences() << std::endl;
     });
 
     // Prints the memory allocated reference list.
-    AddCallbackMethod("print_vm_object_list", [](const Urho3D::PODVector<ScriptObject*>& args) {
+    AddCallbackMethod("print_vm_object_list", [](ScriptMethodArgs args) {
         std::cout << ScriptVMInstance->PrintObjects() << std::endl;
     });
 
     // Prints the memory allocated reference list.
-    AddCallbackMethod("profiler_start", [](const Urho3D::PODVector<ScriptObject*>& args) {
-        sympl_profile_start(args[0]->GetValue().AsString());
+    AddCallbackMethod("profiler_start", [](ScriptMethodArgs args) {
+        sympl_profile_start(args[0].AsString());
     });
 
     // Prints the memory allocated reference list.
-    AddCallbackMethod("profiler_stop", [](const Urho3D::PODVector<ScriptObject*>& args) {
-        sympl_profile_stop(args[0]->GetValue().AsString());
-        sympl_profile_print(args[0]->GetValue().AsString());
+    AddCallbackMethod("profiler_stop", [](ScriptMethodArgs args) {
+        sympl_profile_stop(args[0].AsString());
+        sympl_profile_print(args[0].AsString());
     });
 }
 

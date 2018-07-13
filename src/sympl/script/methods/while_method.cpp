@@ -50,11 +50,15 @@ void WhileMethod::_Initialize(const char* name, const char* path, ScriptObject* 
     AddArg(arg);
 }
 
-Variant WhileMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
+Variant WhileMethod::Evaluate(ScriptMethodArgs args)
 {
     _CopyArgs(args);
     _ProcessArgStatements();
-    Variant value = _Args[0]->GetValue();
+    Variant value;
+    if (_Args[0].GetType() != VariantType::Object) {
+        return Variant::Empty;
+    }
+    value = dynamic_cast<ScriptObject*>(_Args[0].GetObject())->GetValue();
 
     // Process the statements.
     if (value.GetType() == VariantType::Bool && value.GetBool()) {

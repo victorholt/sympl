@@ -49,7 +49,7 @@ public:
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
-    Variant Evaluate(const Urho3D::PODVector<Variant>& args) override;
+    Variant Evaluate(ScriptMethodArgs args) override;
 };
 
 sympl_nsend

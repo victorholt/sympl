@@ -72,7 +72,7 @@ class SYMPL_API ScriptMethod : public ScriptObject
 
 protected:
     /// Variable paths for the arguments.
-    Urho3D::PODVector<ScriptObject*> _Args;
+    ScriptMethodArgList _Args;
 
     /// Stored method call statements to execute.
     std::vector<MethodCallStatement*> _CallStatements;
@@ -107,7 +107,7 @@ protected:
 
     //! Copy over argument values from a list of arguments.
     //! \param args
-    virtual void _CopyArgs(const Urho3D::PODVector<Variant>& args);
+    virtual void _CopyArgs(ScriptMethodArgs args);
 
     //! Process the argument statements.
     virtual void _ProcessArgStatements();
@@ -134,7 +134,7 @@ public:
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
-    Variant Evaluate(const Urho3D::PODVector<Variant>& args) override;
+    Variant Evaluate(ScriptMethodArgs args) override;
 
     //! Evaluates and returns the results of the object.
     //! \return
@@ -230,10 +230,10 @@ public:
     //! \param index
     //! \return SharedPtr<ScriptObject>
     inline ScriptObject* GetArg(unsigned index = 0) {
-        if (index > _Args.Size()) {
+        if (index > _Args.Size() || _Args[index].GetType() != VariantType::Object) {
             return &ScriptObject::Empty;
         }
-        return _Args[index];
+        return static_cast<ScriptObject*>(_Args[index].GetObject());
     }
 
     //! Returns the number of arguments this method takes.

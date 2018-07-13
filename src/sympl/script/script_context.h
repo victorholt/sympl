@@ -33,6 +33,7 @@
 sympl_nsstart
 
 class ScriptObject;
+class StatementCache;
 
 class SYMPL_API ScriptContext : public Object
 {
@@ -51,6 +52,9 @@ protected:
 
     /// Quick variable access list.
     Urho3D::PODVector<ScriptObject*> _VarList;
+
+    /// Cache for statements in the context.
+    StatementCache* _StatementCache;
 
 public:
     //! Constructor.
@@ -85,6 +89,10 @@ public:
     //! \return ScriptObject
     ScriptObject* GetScriptObject();
 
+    //! Returns the statement cache.
+    //! \return
+    StatementCache* GetStatementCache() const;
+
     //! Releases the object.
     bool Release() override;
 
@@ -94,7 +102,7 @@ public:
 
     //! Returns the parent context.
     //! \return
-    inline ScriptContext* GetParentContext() const { return _ParentContext.IsValid() ? _ParentContext.Ptr() : &ScriptContext::Empty; }
+    ScriptContext* GetParentContext() const;
 
     //! Sets the caller context.
     //! \param context
@@ -102,11 +110,11 @@ public:
 
     //! Returns the caller context.
     //! \return
-    inline ScriptContext* GetCallerContext() const { return _CallerContext.IsValid() ? _CallerContext.Ptr() : &ScriptContext::Empty; }
+    ScriptContext* GetCallerContext() const;
 
     //! Check for empty of this context.
     //! \return bool
-    inline bool IsEmpty() const { return !_Object.IsValid(); }
+    bool IsEmpty() const;
 
     /// Empty script context.
     static ScriptContext Empty;

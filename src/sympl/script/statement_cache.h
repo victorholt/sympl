@@ -23,33 +23,41 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/script/script_method.h>
+#include <sympl/core/variant.h>
+#include <sympl/core/object.h>
+
+#include <sympl/script/script_common.h>
 
 sympl_nsstart
 
-class SYMPL_API WhileMethod : public ScriptMethod
+class SYMPL_API StatementCache : public Object
 {
-    SYMPL_OBJECT(WhileMethod, ScriptMethod);
+    SYMPL_OBJECT(StatementCache, Object);
 
 protected:
-    //! Initializes the object.
-    //! \param name
-    //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent) override;
-
-    //! Handles cloning the object and adding it to the VM.
-    //! \param name
-    //! \param parent
-    ScriptObject* _OnCloneCreateObject(const std::string& name, ScriptObject* parent) override;
+    /// Quick variable access list.
+    std::vector<StatementCacheEntry*> _CacheEntries;
 
 public:
     //! Constructor.
-    WhileMethod();
+    StatementCache();
 
-    //! Evaluates and returns the results of the object.
-    //! \param args
-    //! \return
-    Variant Evaluate(ScriptMethodArgs args) override;
+    //! Called in place of the constructor.
+    void __Construct() override;
+
+    //! Cache a statement entry.
+    //! \param cache
+    //! \param entry
+    StatementCacheEntry* Cache(const char* cache, const std::vector<StatementEntry*>& entries);
+
+    //! Attempts to return a cache entry.
+    //! \param cache
+    //! \return StatementCacheEntry
+    StatementCacheEntry* GetEntry(const char* cache);
+
+    //! Release the object.
+    //! \return bool
+    bool Release() override;
 };
 
 sympl_nsend

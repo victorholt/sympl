@@ -41,7 +41,9 @@ class ScriptObject;
 #define SYMPL_METHOD_ARG_NAME "__arg__"
 #define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
 
-typedef std::function<void(const Urho3D::PODVector<ScriptObject*>&)> ScriptMethodCallback;
+#define ScriptMethodArgs Urho3D::PODVector<Variant>&
+#define ScriptMethodArgList Urho3D::PODVector<Variant>
+typedef std::function<void(ScriptMethodArgs)> ScriptMethodCallback;
 
 enum class ScriptObjectType : uint8_t {
     Empty = 0,
@@ -81,9 +83,15 @@ enum class StatementType {
 
 struct StatementEntry
 {
-    SharedPtr<ScriptObject> ObjectValue;
+    WeakPtr<ScriptObject> ObjectValue;
     Variant ConstantValue;
     StatementOperator Op;
+};
+
+struct StatementCacheEntry
+{
+    char Statement[256];
+    std::vector<StatementEntry*> Entries;
 };
 
 sympl_nsend

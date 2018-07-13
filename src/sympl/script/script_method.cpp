@@ -51,7 +51,7 @@ void ScriptMethod::_Initialize(const char* name, const char* path, ScriptObject*
     _Scope->GetContext()->SetParentContext(_Context.Ptr());
 }
 
-Variant ScriptMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
+Variant ScriptMethod::Evaluate(ScriptMethodArgs args)
 {
     _Exit = false;
 
@@ -68,13 +68,17 @@ Variant ScriptMethod::Evaluate()
     return Evaluate(args);
 }
 
-void ScriptMethod::_CopyArgs(const Urho3D::PODVector<Variant>& args)
+void ScriptMethod::_CopyArgs(ScriptMethodArgs args)
 {
     int argIndex = 0;
 
     auto size = _Args.Size();
     for (unsigned i = 0; i < size; i++) {
-        auto argIt = _Args[i];
+        ScriptObject* argIt = nullptr;
+        if (_Args[i].GetType() != VariantType::Object) {
+            continue;
+        }
+        argIt = static_cast<ScriptObject*>(_Args[i].GetObject());
         // Ensure we have args.
         if (argIndex >= args.Size()) {
             break;
@@ -97,7 +101,11 @@ void ScriptMethod::_ProcessArgStatements()
     // to execute their value.
     auto size = _Args.Size();
     for (unsigned i = 0; i < size; i++) {
-        auto argIt = _Args[i];
+        ScriptObject* argIt = nullptr;
+        if (_Args[i].GetType() != VariantType::Object) {
+            continue;
+        }
+        argIt = static_cast<ScriptObject*>(_Args[i].GetObject());
         Variant value = argIt->GetValue();
 
         if (value.GetType() == VariantType::StringBuffer) {
@@ -204,7 +212,13 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 
     // Add the arguments.
     for (auto entryIt : _Args) {
-        auto argObj = to_method(clone)->GetScope()->FindChildByName(entryIt->GetName().c_str(), false);
+        ScriptObject* obj = nullptr;
+        if (entryIt.GetType() != VariantType::Object) {
+            continue;
+        }
+        obj = static_cast<ScriptObject*>(entryIt.GetObject());
+
+        auto argObj = to_method(clone)->GetScope()->FindChildByName(obj->GetName().c_str(), false);
         if (!argObj->IsEmpty()) {
             to_method(clone)->AddArg(argObj);
         }

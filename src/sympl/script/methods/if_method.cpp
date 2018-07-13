@@ -49,12 +49,15 @@ void IfMethod::_Initialize(const char* name, const char* path, ScriptObject* par
     AddArg(arg);
 }
 
-Variant IfMethod::Evaluate(const Urho3D::PODVector<Variant>& args)
+Variant IfMethod::Evaluate(ScriptMethodArgs args)
 {
     _CopyArgs(args);
     _ProcessArgStatements();
 
-    Variant value = _Args[0]->GetValue();
+    Variant value;
+    if (_Args[0].GetType() == VariantType::Object) {
+        value = dynamic_cast<ScriptObject*>(_Args[0].GetObject())->GetValue();
+    }
 
     // Process the statements.
     if (value.GetType() == VariantType::Bool && value.GetBool()) {

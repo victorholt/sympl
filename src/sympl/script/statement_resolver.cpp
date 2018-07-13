@@ -26,6 +26,7 @@
 #include <sympl/script/method_registry.h>
 #include <sympl/util/number_helper.h>
 #include <sympl/util/string_helper.h>
+#include <sympl/script/statement_cache.h>
 sympl_namespaces
 
 Variant EvalResolver::GetEvalFromStatementBuffer(const char* stmtStr, ScriptObject* scriptObject)
@@ -409,8 +410,24 @@ void StatementResolver::__Construct()
 
 Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, bool cache)
 {
+    // Check if statement has a method.
+    bool statement_has_method = false;
+    StatementCacheEntry* stmtCache = nullptr;
+    ScriptContext* cacheContext = nullptr;
+
+    if (!varObject->GetContext()->IsEmpty()) {
+        cacheContext = varObject->GetContext();
+    } else {
+        cacheContext = varObject->GetContext()->GetParentContext();
+    }
+
+    if (!IsNullObject(cacheContext)) {
+        cacheContext = varObject->GetContext();
+        stmtCache = cacheContext->GetStatementCache()->GetEntry(str);
+    }
+
     // Clear out the previous statement and append the new statement.
-    if (_StmtEntries.empty()) {
+    if (IsNullObject(stmtCache) && _StmtEntries.empty()) {
         _StmtString->Clear();
         _StmtString->Append(str);
         if (_StmtString->LastByte() != ';') {
@@ -456,6 +473,7 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                     auto methodResolver = SymplRegistry.Get<MethodResolver>();
                     stmtEntryStr->Append(
                             methodResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
+                    statement_has_method = true;
                 } else {
                     // Determine if the current statement buffer is an existing method.
                     auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
@@ -463,6 +481,7 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                         auto methodResolver = SymplRegistry.Get<MethodResolver>();
                         stmtEntryStr->Append(
                                 methodResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
+                        statement_has_method = true;
                     } else {
                         auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
                         stmtEntryStr->Append(
@@ -552,8 +571,21 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
         mem_free_ref(StringBuffer, stmtEntryStr);
     }
 
+    // Cache if we haven't cached already.
+    if (!cache && !statement_has_method && IsNullObject(stmtCache) && !IsNullObject(cacheContext)) {
+        stmtCache = cacheContext->GetStatementCache()->Cache(
+                str,
+                _StmtEntries
+        );
+    }
+
     // Resolve the statements and update the value.
-    auto retVal = _ResolveStatements(_StmtEntries);
+    Variant retVal;
+    if (!IsNullObject(stmtCache) && !statement_has_method) {
+        retVal = _ResolveStatements(stmtCache->Entries);
+    } else {
+        retVal = _ResolveStatements(_StmtEntries);
+    }
 
     if (!cache) {
         ClearStatementEntries();
