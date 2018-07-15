@@ -42,7 +42,7 @@ class SYMPL_API MethodRegistry : public Object
 
 private:
     /// List of methods available.
-    std::unordered_map<std::string, ScriptMethod* >_Methods;
+    std::unordered_map<std::string, SharedPtr<ScriptMethod> >_Methods;
 
     //! Initializes the system methods.
     void _Initialize();
@@ -78,6 +78,10 @@ public:
 
     //! Releases the object.
     bool Release() override;
+
+    //! Returns the methods.
+    //! \return std::unordered_map<std::string, ScriptMethod* >
+    inline const std::unordered_map<std::string, SharedPtr<ScriptMethod> >& GetMethods() const { return _Methods; }
 
     // ScriptVM is a friend to this class.
     friend ScriptVM;

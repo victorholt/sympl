@@ -26,6 +26,7 @@
 #include <sympl/script/interpreter.h>
 #include <sympl/script/method_registry.h>
 #include <sympl/script/script_reader.h>
+#include <sympl/script/script_method.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -101,7 +102,10 @@ Interpreter* ScriptVM::LoadString(const char* str)
 ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent)
 {
     std::string path = _BuildPath(name, parent);
-    auto* searchObj = FindObjectByPath(path);
+    auto* searchObj = FindObjectByPath(
+            path,
+            !IsNullObject(parent) && parent->GetParent().IsValid() ? parent->GetParent().Ptr() : nullptr
+    );
 
     sympl_assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
 
@@ -112,8 +116,8 @@ ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, Sc
     } else {
         scriptObject = mem_alloc_ref(ScriptObject);
     }
-    scriptObject->_Initialize(name, path.c_str(), parent);
     scriptObject->_SetType(type);
+    scriptObject->_Initialize(name, path.c_str(), parent);
 
     if (!IsNullObject(parent) && !parent->IsEmpty()) {
         parent->AddChild(scriptObject);
@@ -132,7 +136,10 @@ ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObject* parent)
 bool ScriptVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
 {
     std::string path = _BuildPath(scriptObject->GetName().c_str(), parent);
-    auto* searchObj = FindObjectByPath(path);
+    auto* searchObj = FindObjectByPath(
+            path,
+            !IsNullObject(parent) && parent->GetParent().IsValid() ? parent->GetParent().Ptr() : nullptr
+    );
 
     sympl_assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
 
@@ -147,11 +154,17 @@ bool ScriptVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
     return true;
 }
 
-ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
+ScriptObject* ScriptVM::FindObjectByPath(const std::string& relPath, ScriptObject* scope)
 {
     std::string delimiter = ".";
 
     size_t pos = 0;
+
+    std::string path = relPath;
+    if (!IsNullObject(scope) && !scope->IsEmpty()) {
+        path = fmt::format("{0}.{1}", scope->GetPath(), relPath);
+    }
+
     std::string parseStr = path;
     std::string token;
     std::string currentPath;
@@ -186,7 +199,8 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
                         auto objectType = currentObject->GetType();
                         if (!currentObject->GetChildren().empty() &&
                             (objectType == ScriptObjectType::Object ||
-                            objectType == ScriptObjectType::Method)) {
+                            objectType == ScriptObjectType::Method ||
+                            currentObject->IsClass())) {
                             currentObject = currentObject->GetChildren()[0].Ptr();
                             currentPath.append(".");
                             currentPath.append(SYMPL_SCOPE_NAME);
@@ -199,8 +213,10 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
                 }
             } else {
                 // Search the children.
-                currentPath.append(".");
-                currentPath.append(token);
+                if (token != SYMPL_SCOPE_NAME) {
+                    currentPath.append(".");
+                    currentPath.append(token);
+                }
 
                 for (auto& entryIt : currentObject->GetChildren()) {
                     if (entryIt->GetPath() == currentPath) {
@@ -211,7 +227,8 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
                         auto objectType = currentObject->GetType();
                         if (!currentObject->GetChildren().empty() &&
                             (objectType == ScriptObjectType::Object ||
-                             objectType == ScriptObjectType::Method)) {
+                             objectType == ScriptObjectType::Method ||
+                             currentObject->IsClass())) { // variables could be references to classes.
                             currentObject = currentObject->GetChildren()[0].Ptr();
                             currentPath.append(".");
                             currentPath.append(SYMPL_SCOPE_NAME);
@@ -241,10 +258,13 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
 ScriptObject* ScriptVM::FindObjectByScope(ScriptObject* scopeObject, const std::string& objectName)
 {
     if (!IsNullObject(scopeObject) && !scopeObject->IsEmpty()) {
-        return FindObjectByPath(fmt::format("{0}.{1}", scopeObject->GetPath(), objectName));
+        return FindObjectByPath(
+                fmt::format("{0}.{1}", scopeObject->GetPath(), objectName),
+                nullptr
+        );
     }
 
-    return FindObjectByPath(fmt::format("{0}", objectName));
+    return FindObjectByPath(fmt::format("{0}", objectName), nullptr);
 }
 
 std::string ScriptVM::_BuildPath(const char* name, ScriptObject* parent)
@@ -255,7 +275,45 @@ std::string ScriptVM::_BuildPath(const char* name, ScriptObject* parent)
     return fmt::format("{0}", name);
 }
 
-void ScriptVM::RemoveObject(ScriptObject* scriptObject)
+void ScriptVM::UpdateDeleteQueue()
+{
+    if (_DeleteQueue.empty()) {
+        return;
+    }
+
+    std::vector<ScriptObject*> keep;
+    std::vector<ScriptObject*> remove;
+
+    for (auto& entryIt : _DeleteQueue) {
+        int numRefs = entryIt->RefCount();
+        if (numRefs == 2) {
+            remove.push_back(entryIt.Ptr());
+        } else {
+            keep.push_back(entryIt.Ptr());
+        }
+    }
+    _DeleteQueue.clear();
+
+    for (auto entryIt : keep) {
+        _DeleteQueue.push_back(entryIt);
+    }
+    for (auto entryIt : remove) {
+        _RemoveObject(entryIt);
+    }
+}
+
+void ScriptVM::QueueDelete(ScriptObject* scriptObject)
+{
+    // Check if we have already queued this object.
+    for (auto& entryIt : _DeleteQueue) {
+        if (entryIt.Ptr() == scriptObject) {
+            return;
+        }
+    }
+    _DeleteQueue.push_back(scriptObject);
+}
+
+void ScriptVM::_RemoveObject(ScriptObject* scriptObject)
 {
     if (IsNullObject(scriptObject) || scriptObject->IsEmpty()) {
         return;
@@ -265,13 +323,9 @@ void ScriptVM::RemoveObject(ScriptObject* scriptObject)
         auto parent = scriptObject->GetParent().Ptr();
         parent->RemoveChild(scriptObject->GetName().c_str());
     }
-    scriptObject->Release();
-}
 
-void ScriptVM::RemoveObject(const std::string& path)
-{
-    auto scriptObject = FindObjectByPath(path);
-    RemoveObject(scriptObject);
+    scriptObject->Release();
+    mem_free_ref(ScriptObject, scriptObject);
 }
 
 MethodRegistry* ScriptVM::GetMethodRegistry()
@@ -299,6 +353,24 @@ std::string ScriptVM::PrintObjects()
     std::string results = buffer->CStr();
     mem_free_ref(StringBuffer, buffer);
 
+    return results;
+}
+
+std::string ScriptVM::PrintMethods()
+{
+    SharedPtr<StringBuffer> buffer = mem_alloc_ref(StringBuffer);
+    auto methods = _MethodRegistry->GetMethods();
+    for (auto method : methods) {
+        buffer->Append(method.first);
+        buffer->Append(" (");
+        buffer->Append(method.second->GetCleanName());
+        buffer->Append(": ");
+        buffer->Append(method.second->GetPath());
+        buffer->Append(")");
+        buffer->Append("\n");
+    }
+
+    std::string results = buffer->CStr();
     return results;
 }
 

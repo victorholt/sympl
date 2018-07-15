@@ -160,7 +160,9 @@ public:
 
     //! Dereference access.
     T *operator->() {
-        sympl_assert(IsValid() && "Attempted to access empty pointer");
+        if (!IsValid()) {
+            sympl_assert(false && "Attempted to access empty pointer");
+        }
         return _Data;
     }
 

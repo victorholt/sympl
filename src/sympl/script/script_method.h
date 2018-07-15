@@ -46,7 +46,8 @@ enum class MethodReturnType : uint8_t
 
 struct MethodCallStatement
 {
-    SharedPtr<ScriptObject> Variable;
+    WeakPtr<ScriptObject> Variable;
+    SharedPtr<StringBuffer> VirtualObjectStr;
     SharedPtr<StringBuffer> StatementStr;
     SharedPtr<StatementResolver> Resolver;
 };
@@ -149,6 +150,11 @@ public:
     //! \param stmtStr
     void AddStatement(ScriptObject* variable, const char* stmtStr);
 
+    //! Adds a virtual statement to the method.
+    //! \param virtualObjectStr
+    //! \param stmtStr
+    void AddVirtualStatement(const char* virtualObjectStr, const char* stmtStr);
+
     //! Creates a clone of the object.
     //! \param parent
     //! \param uniqueName
@@ -236,20 +242,9 @@ public:
         return static_cast<ScriptObject*>(_Args[index].GetObject());
     }
 
-    //! Returns the number of arguments this method takes.
-    inline unsigned GetNumPotentialArgs() const {
-        return static_cast<unsigned>(_Args.Size());
-    }
-
-    //! Sets the number of arguments.
-    //! \param numArgs
-    inline void SetNumArgs(unsigned numArgs) {
-        _NumArgs = numArgs;
-    }
-
     //! Returns the number of arguments given to this method.
     inline unsigned GetNumArgs() const {
-        return _NumArgs;
+        return _Args.Size();
     }
 
     //! Sets the return type.

@@ -22,6 +22,7 @@
  *
  **********************************************************/
 #include <sympl/core/string_buffer.h>
+#include <sympl/core/shared_ptr.h>
 
 sympl_namespaces
 
@@ -342,6 +343,49 @@ bool StringBuffer::Contains(const char* search)
     }
 
     return false;
+}
+
+std::string StringBuffer::SubstrFirstOccurence(const char c)
+{
+    std::string ret;
+    for (size_t i = 0; i < _Length; i++) {
+        if (static_cast<char>(_Buffer[i]) == c) {
+            break;
+        }
+        ret.append(std::string(1, static_cast<char>(_Buffer[i])));
+    }
+
+    return ret;
+}
+
+std::string StringBuffer::SubstrFirstOccurence(const char* str)
+{
+    if (strlen(str) > _Length) {
+        return CStr();
+    }
+
+    if (strlen(str) == 1) {
+        return SubstrFirstOccurence(*str);
+    }
+
+    std::string ret;
+    size_t numChars = strlen(str);
+    int searchIndex = 0;
+
+    for (size_t i = 0; i < _Length; i++) {
+        if (static_cast<char>(_Buffer[i]) == str[searchIndex]) {
+            searchIndex++;
+        } else {
+            searchIndex = 0;
+        }
+
+        if (searchIndex == numChars) {
+            break;
+        }
+        ret.append(std::string(1, static_cast<char>(_Buffer[i])));
+    }
+
+    return ret;
 }
 
 void StringBuffer::Clear()

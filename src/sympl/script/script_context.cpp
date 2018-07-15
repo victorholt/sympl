@@ -39,42 +39,51 @@ void ScriptContext::__Construct()
 {
 }
 
-void ScriptContext::AddVar(ScriptObject* varObject)
-{
-    // Check to ensure we don't already have this variable.
-    auto varIt = _VarList.Find(varObject);
-    if (varIt != _VarList.End()) {
-        return;
-    }
-    _VarList.Push(varObject);
-}
-
-void ScriptContext::AddObject(ScriptObject* obj)
-{
-    // Check to ensure we don't already have this variable.
-    auto objIt = _ObjectList.Find(obj);
-    if (objIt != _ObjectList.End()) {
-        return;
-    }
-    _ObjectList.Push(obj);
-}
+//void ScriptContext::AddVar(ScriptObject* varObject)
+//{
+//    // Check to ensure we don't already have this variable.
+//    auto varIt = _VarList.Find(varObject);
+//    if (varIt != _VarList.End()) {
+//        return;
+//    }
+//    _VarList.Push(varObject);
+//}
+//
+//void ScriptContext::AddObject(ScriptObject* obj)
+//{
+//    // Check to ensure we don't already have this variable.
+//    auto objIt = _ObjectList.Find(obj);
+//    if (objIt != _ObjectList.End()) {
+//        return;
+//    }
+//    _ObjectList.Push(obj);
+//}
 
 ScriptObject* ScriptContext::FindVariable(const char* name, bool traverse)
 {
-    auto varIt = _VarList.Begin();
-    while (varIt != _VarList.End()) {
-        if (strcmp((*varIt)->GetName().c_str(), name) == 0) {
-            return *varIt;
+//    auto varIt = _VarList.Begin();
+//    while (varIt != _VarList.End()) {
+//        if (strcmp((*varIt)->GetName().c_str(), name) == 0) {
+//            return *varIt;
+//        }
+//        varIt++;
+//    }
+//    if (!traverse) return &ScriptObject::Empty;
+
+    // Check the children in this context's object.
+    auto children = _Object->GetChildren();
+    for (auto childIt : children) {
+        if (strcmp(childIt->GetName().c_str(), name) == 0) {
+//            AddVar(childIt.Ptr());
+            return childIt.Ptr();
         }
-        varIt++;
     }
-    if (!traverse) return &ScriptObject::Empty;
 
     // Search the context of the caller if we have one (methods).
     if (_CallerContext.IsValid()) {
         auto var = _CallerContext->FindVariable(name);
         if (!var->IsEmpty()) {
-            AddVar(var);
+//            AddVar(var);
             return var;
         }
     }
@@ -83,7 +92,7 @@ ScriptObject* ScriptContext::FindVariable(const char* name, bool traverse)
     if (_ParentContext.IsValid()) {
         auto var = _ParentContext->FindVariable(name);
         if (!var->IsEmpty()) {
-            AddVar(var);
+//            AddVar(var);
             return var;
         }
     }
@@ -93,20 +102,20 @@ ScriptObject* ScriptContext::FindVariable(const char* name, bool traverse)
 
 ScriptObject* ScriptContext::FindObject(const char* name, bool traverse)
 {
-    auto objIt = _ObjectList.Begin();
-    while (objIt != _ObjectList.End()) {
-        if (strcmp((*objIt)->GetName().c_str(), name) == 0) {
-            return *objIt;
-        }
-        objIt++;
-    }
-    if (!traverse) return &ScriptObject::Empty;
+//    auto objIt = _ObjectList.Begin();
+//    while (objIt != _ObjectList.End()) {
+//        if (strcmp((*objIt)->GetName().c_str(), name) == 0) {
+//            return *objIt;
+//        }
+//        objIt++;
+//    }
+//    if (!traverse) return &ScriptObject::Empty;
 
     // Search the context of the caller if we have one (methods).
     if (_CallerContext.IsValid()) {
         auto obj = _CallerContext->FindObject(name);
         if (!obj->IsEmpty()) {
-            AddObject(obj);
+//            AddObject(obj);
             return obj;
         }
     }
@@ -115,7 +124,7 @@ ScriptObject* ScriptContext::FindObject(const char* name, bool traverse)
     if (_ParentContext.IsValid()) {
         auto obj = _ParentContext->FindObject(name);
         if (!obj->IsEmpty()) {
-            AddObject(obj);
+//            AddObject(obj);
             return obj;
         }
     }
@@ -128,18 +137,18 @@ void ScriptContext::RemoveVariable(ScriptObject* scriptObject)
     if (scriptObject->GetType() != ScriptObjectType::Variable) {
         return;
     }
-    _VarList.Remove(scriptObject);
+//    _VarList.Remove(scriptObject);
 }
 
-void ScriptContext::CopyVarsTo(ScriptContext* context)
-{
-    for (auto var : _VarList) {
-        auto findVar = FindVariable(var->GetName().c_str(), false);
-        if (!findVar->IsEmpty()) {
-            context->AddVar(var);
-        }
-    }
-}
+//void ScriptContext::CopyVarsTo(ScriptContext* context)
+//{
+//    for (auto var : _VarList) {
+//        auto findVar = FindVariable(var->GetName().c_str(), false);
+//        if (!findVar->IsEmpty()) {
+//            context->AddVar(var);
+//        }
+//    }
+//}
 
 void ScriptContext::SetScriptObject(ScriptObject* scriptObject)
 {
@@ -169,7 +178,8 @@ StatementCache* ScriptContext::GetStatementCache() const {
 bool ScriptContext::Release()
 {
     mem_free_ref(StatementCache, _StatementCache);
-    _VarList.Clear();
+//    _VarList.Clear();
+//    _ObjectList.Clear();
     return true;
 }
 

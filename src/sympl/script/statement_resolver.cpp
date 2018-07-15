@@ -68,8 +68,17 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
     // Check if this is really a valid method object.
     ScriptObject* scriptObject = varObject;
+
+    // Check if we're attempting to allocate a new object.
     if (varObject->GetType() != ScriptObjectType::Method) {
-        scriptObject = ScriptVMInstance->GetMethodRegistry()->FindMethod(currentStr->CStr());
+        if (currentStr->Contains('.')) {
+            scriptObject = ScriptVMInstance->FindObjectByPath(
+                    currentStr->CStr(),
+                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+            );
+        } else {
+            scriptObject = ScriptVMInstance->GetMethodRegistry()->FindMethod(currentStr->CStr());
+        }
     }
 
     // Ensure this is a proper method to resolve.
@@ -78,10 +87,16 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     }
 
     // Remove the name of the method so it's not part of the statement value.
-    currentStr->Replace(scriptObject->GetCleanName().c_str(), "");
+    if (currentStr->Contains('.') && scriptObject->GetParent().IsValid() && scriptObject->GetParent()->GetParent().IsValid()) {
+        std::string methodName = scriptObject->GetParent()->GetParent()->GetCleanName();
+        methodName.append(".");
+        methodName.append(scriptObject->GetCleanName());
+        currentStr->Replace(methodName.c_str(), "");
+    } else {
+        currentStr->Replace(scriptObject->GetCleanName().c_str(), "");
+    }
 
     // Check if we have arguments cached.
-
     MethodArgCache* methodArgCache = to_method(scriptObject)->FindOrCreateArgCache(stmtResolver->GetStatementString()->CStr());
     if (!IsNullObject(methodArgCache) && methodArgCache->Args.size() == to_method(scriptObject)->GetNumArgs()) {
         for (auto& cacheArg: methodArgCache->Args) {
@@ -128,6 +143,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
         if (currentChar == '"') {
             resolveStr->Append(SYMPL_STRING_TOKEN);
             recording = !recording;
+            continue;
         }
 
         if (!recording && currentChar == '(') {
@@ -138,13 +154,20 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
                 resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr, varObject, op).AsString());
             } else {
                 // Determine if the current statement buffer is an existing method.
-                auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(resolveStr->CStr());
+                ScriptObject* existingMethod = nullptr;
+                if (resolveStr->Contains('.') && varObject->GetParent().IsValid()) {
+                    auto scope = varObject->GetParent();
+                    existingMethod = ScriptVMInstance->FindObjectByPath(resolveStr->CStr(), scope.Ptr());
+                } else {
+                    existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(resolveStr->CStr());
+                }
+
                 if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
                     auto methodResolver = SymplRegistry.Get<MethodResolver>();
-                    resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr, varObject, op).AsString());
+                    resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr, existingMethod, op).AsString());
                 } else {
                     auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
-                    resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr, existingMethod, op).AsString());
+                    resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr, varObject, op).AsString());
                 }
             }
             continue;
@@ -204,12 +227,33 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
             ScriptObject *obj = nullptr;
             if (objectValue.IsEmpty()) {
                 if (varObject->GetType() == ScriptObjectType::Method) {
-                    obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(resolveStr->CStr(), true);
+                    // Check if our string is structured like a path.
+                    if (resolveStr->Contains('.') && varObject->GetParent().IsValid()) {
+                        auto scope = varObject->GetParent();
+                        obj = ScriptVMInstance->FindObjectByPath(resolveStr->CStr(), scope.Ptr());
+                    } else {
+                        obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(resolveStr->CStr(), true);
+                    }
                 } else {
                     obj = varObject->GetContext()->FindVariable(resolveStr->CStr(), true);
                 }
+
                 if (!obj->IsEmpty()) {
-                    objectValue = obj->GetValue();
+//                    if (obj->GetType() == ScriptObjectType::Method) {
+//                        auto methodResolver = SymplRegistry.Get<MethodResolver>();
+
+                        // Exit immediately on the closing ).
+//                        stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() - 1);
+//                        objectValue = methodResolver->Resolve(stmtResolver, resolveStr, obj, op, true);
+//                    } else if (obj->GetType() == ScriptObjectType::Object) {
+//                        objectValue = obj;
+//                    } else {
+                        if (obj->GetType() == ScriptObjectType::Object || obj->GetType() == ScriptObjectType::Method || obj->IsClass()) {
+                            objectValue = obj;
+                        } else {
+                            objectValue = obj->GetValue();
+                        }
+//                    }
                 }
             }
 
@@ -310,18 +354,28 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
         if (currentChar == '"') {
             resolveStr->Append(SYMPL_STRING_TOKEN);
             recording = !recording;
+            continue;
         }
 
         // Resolve another contained value.
         if (!recording && currentChar == '(') {
             // Determine if the current statement buffer is an existing method.
-            auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(resolveStr->CStr());
+            ScriptObject* existingMethod = nullptr;
+            if (resolveStr->Contains('.')) {
+                existingMethod = ScriptVMInstance->FindObjectByPath(
+                        resolveStr->CStr(),
+                        varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+                );
+            } else {
+                existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(resolveStr->CStr());
+            }
+
             if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
                 auto methodResolver = SymplRegistry.Get<MethodResolver>();
                 resolveStr->Append(methodResolver->Resolve(stmtResolver, resolveStr, existingMethod, op).AsString());
             } else {
                 auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
-                resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr, existingMethod, op).AsString());
+                resolveStr->Append(parenthResolver->Resolve(stmtResolver, resolveStr, varObject, op).AsString());
             }
             continue;
         }
@@ -412,12 +466,17 @@ void StatementResolver::__Construct()
     _TokenHelper = ScriptVMInstance->GetScriptToken();
 }
 
-Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, bool cache)
+Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bool cache)
 {
     // Check if statement has a method.
     bool statement_has_method = false;
     StatementCacheEntry* stmtCache = nullptr;
     ScriptContext* cacheContext = nullptr;
+
+    SharedPtr<StringBuffer> cleanStr = mem_alloc_ref(StringBuffer);
+    cleanStr->Append(cstr);
+    cleanStr->Replace(SYMPL_STRING_TOKEN, "\"");
+    std::string str = cleanStr->CStr();
 
     if (!varObject->GetContext()->IsEmpty()) {
         cacheContext = varObject->GetContext();
@@ -427,7 +486,7 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
 
     if (!IsNullObject(cacheContext)) {
         cacheContext = varObject->GetContext();
-        stmtCache = cacheContext->GetStatementCache()->GetEntry(str);
+        stmtCache = cacheContext->GetStatementCache()->GetEntry(str.c_str());
     }
 
     // Clear out the previous statement and append the new statement.
@@ -466,7 +525,7 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
             // Save our current character.
             if (recording || (currentChar != '#' && currentChar != ';' &&
                               currentChar != '(' && currentChar != '{')) {
-                stmtEntryStr->Append(std::string(1, currentChar));
+                stmtEntryStr->AppendByte(currentChar);
             }
 
             // Check if we're in a parenth or method.
@@ -480,11 +539,76 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                     statement_has_method = true;
                 } else {
                     // Determine if the current statement buffer is an existing method.
-                    auto existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
+                    ScriptObject* existingMethod = nullptr;
+
+                    // Check if we're attempting to allocate or deallocate an object.
+                    if (currentOp == StatementOperator::NewObject) {
+                        std::string constructorPath = fmt::format("{0}.@{1}",
+                                                                  stmtEntryStr->CStr(),
+                                                                  stmtEntryStr->CStr()
+                        );
+
+                        existingMethod = ScriptVMInstance->FindObjectByPath(
+                                constructorPath.c_str(),
+                                nullptr
+                        );
+                        if (!existingMethod->IsEmpty()) {
+                            sympl_assert(existingMethod->GetParent()->GetParent()->IsClass() && "Illegal call to 'new' on non-class object!");
+
+                            varObject->SetIsClass(true);
+                            varObject->CopyChildrenFrom(existingMethod->GetParent()->GetParent().Ptr());
+
+                            // Call the constructor.
+                            auto constructor = varObject->GetChildren()[0].Ptr()->FindChildByName(
+                                    fmt::format("@{0}", varObject->GetName()).c_str()
+                            );
+                            if (!constructor->IsEmpty()) {
+                                constructor->Evaluate();
+                            }
+
+                            stmtEntryStr->Clear();
+                            continue;
+                        } else {
+                            // No constructor, so build the object without one.
+                            std::string nonConstructorPath = fmt::format("{0}", stmtEntryStr->CStr());
+                            existingMethod = ScriptVMInstance->FindObjectByPath(
+                                    nonConstructorPath.c_str(),
+                                    nullptr
+                            );
+                            sympl_assert(existingMethod->IsClass() && "Illegal call to 'new' on non-class object!");
+
+                            varObject->SetIsClass(true);
+                            varObject->CopyChildrenFrom(existingMethod);
+
+                            stmtEntryStr->Clear();
+                            continue;
+                        }
+                    } else if (currentOp == StatementOperator::DeleteObject) {
+                        std::string destructorPath = fmt::format("{0}.~{0}",
+                                                                 stmtEntryStr->CStr(),
+                                                                 stmtEntryStr->CStr()
+                        );
+
+                        existingMethod = ScriptVMInstance->FindObjectByPath(destructorPath.c_str(), nullptr);
+                    }
+
+                    // Check if this method is from an object path.
+                    if (IsNullObject(existingMethod) || existingMethod->IsEmpty()) {
+                        if (stmtEntryStr->Contains('.')) {
+                            existingMethod = ScriptVMInstance->FindObjectByPath(
+                                    stmtEntryStr->CStr(),
+                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+                            );
+                        } else {
+                            existingMethod = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
+                        }
+                    }
+
+                    // Resolve our method.
                     if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
                         auto methodResolver = SymplRegistry.Get<MethodResolver>();
                         stmtEntryStr->Append(
-                                methodResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
+                                methodResolver->Resolve(this, stmtEntryStr, existingMethod, currentOp).AsString());
                         statement_has_method = true;
                     } else {
                         auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
@@ -501,6 +625,13 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
 
                 // Skip if we don't have anything to check.
                 if (stmtEntryStr->Empty()) {
+                    continue;
+                }
+
+                // Check if we are attempting to allocate an object.
+                if (stmtEntryStr->Equals("new")) {
+                    currentOp = StatementOperator::NewObject;
+                    stmtEntryStr->Clear();
                     continue;
                 }
 
@@ -533,7 +664,10 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                     if (varObject->GetType() == ScriptObjectType::Method) {
                         // Check if our string is structured like a path.
                         if (stmtEntryStr->Contains('.')) {
-                            obj = ScriptVMInstance->FindObjectByPath(stmtEntryStr->CStr());
+                            obj = ScriptVMInstance->FindObjectByPath(
+                                    stmtEntryStr->CStr(),
+                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+                            );
                         }
 
                         if (IsNullObject(obj) || obj->IsEmpty()) {
@@ -550,7 +684,14 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
                             }
                         }
                     } else {
-                        obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
+                        if (stmtEntryStr->Contains('.')) {
+                            obj = ScriptVMInstance->FindObjectByPath(
+                                    stmtEntryStr->CStr(),
+                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+                            );
+                        } else {
+                            obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
+                        }
                     }
 
                     // If this is an empty then we will consider it as a string.
@@ -595,7 +736,7 @@ Variant StatementResolver::Resolve(const char* str, ScriptObject* varObject, boo
     // Cache if we haven't cached already.
     if (!cache && !statement_has_method && IsNullObject(stmtCache) && !IsNullObject(cacheContext)) {
         stmtCache = cacheContext->GetStatementCache()->Cache(
-                str,
+                str.c_str(),
                 _StmtEntries
         );
     }
@@ -748,6 +889,9 @@ void StatementResolver::_Solve(StatementEntry* entry, Variant& value)
             } else if (_Type == StatementType::String) {
                 value.Set(!value.GetStringBuffer()->Equals(evalValue.GetStringBuffer()));
             }
+            break;
+        default:
+            value.Set(evalValue);
             break;
     }
 }

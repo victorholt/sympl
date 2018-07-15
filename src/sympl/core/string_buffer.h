@@ -116,6 +116,16 @@ public:
     //! \return bool
     bool Contains(const char* search);
 
+    //! Returns a substr once it encounters the given string.
+    //! \param c
+    //! \return
+    std::string SubstrFirstOccurence(const char c);
+
+    //! Returns a substr once it encounters the given character.
+    //! \param str
+    //! \return
+    std::string SubstrFirstOccurence(const char* str);
+
     //! Clears out the string buffer.
     void Clear();
 

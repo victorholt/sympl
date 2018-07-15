@@ -35,21 +35,22 @@ MemPool::MemPool(const char* typeName, size_t blockSize, bool isRefCounter, size
     _IsRefCounter = isRefCounter;
     _BlockSize = blockSize;
     _Padding = padding;
-    _MaxMemBlocks = maxMemBlocks;
+    _MaxMemBlocks = 0;
+
+    Resize(maxMemBlocks);
 
     // Create our pool.
 //    _Pool = malloc((blockSize + padding) * maxMemBlocks);
 
     // Add our memory blocks.
-    for (size_t i = 0; i < _MaxMemBlocks; i++) {
-        auto block = new MemBlock();
-        block->Index = i;
-        block->Free = true;
-//        block->Data = ((char*)_Pool) + (i * (_BlockSize + _Padding));
-        block->Data = malloc(_BlockSize + _Padding);
-        _Blocks.push_back(block);
-        FillBlock(block->Index);
-    }
+//    for (size_t i = 0; i < _MaxMemBlocks; i++) {
+//        auto block = new MemBlock();
+//        block->Index = i;
+//        block->Free = true;
+//        block->Data = malloc(_BlockSize + _Padding);
+//        _Blocks.push_back(block);
+//        FillBlock(block->Index);
+//    }
 }
 
 MemPool::~MemPool()
@@ -71,8 +72,14 @@ MemPool::MemBlock* MemPool::FindAvailableBlock()
         }
     }
 
-    sympl_assert(false && "Unable to allocate memory block!");
-    return nullptr;
+    // Allocate more memory.
+    size_t newAmount = _MaxMemBlocks * 2;
+    Resize(newAmount);
+
+    return FindAvailableBlock();
+
+//    sympl_assert(false && "Unable to allocate memory block!");
+//    return nullptr;
 }
 
 MemPool::MemBlock* MemPool::FindBlock(void* ref)
@@ -92,9 +99,30 @@ void MemPool::ClearBlock(size_t index)
     memset(_Blocks[index]->Data, 0, _BlockSize + _Padding);
 }
 
+void MemPool::ClearAll()
+{
+    for (size_t i = 0; i < _MaxMemBlocks; i++) {
+        ClearBlock(i);
+    }
+}
+
 void MemPool::FillBlock(size_t index)
 {
     memset(_Blocks[index]->Data, 0xDD, _BlockSize + _Padding);
+}
+
+void MemPool::Resize(size_t amount)
+{
+    size_t newSize = _MaxMemBlocks + amount;
+    for (size_t i = _MaxMemBlocks; i < newSize; i++) {
+        auto block = new MemBlock();
+        block->Index = i;
+        block->Free = true;
+        block->Data = malloc(_BlockSize + _Padding);
+        _Blocks.push_back(block);
+        FillBlock(block->Index);
+    }
+    _MaxMemBlocks = newSize;
 }
 
 MemPoolRef::MemPoolRef(const char* typeName, size_t blockSize, bool isRefCounter, size_t padding, size_t maxMemBlocks)

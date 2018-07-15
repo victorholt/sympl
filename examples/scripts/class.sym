@@ -1,19 +1,33 @@
 // Class example.
-// profiler_start("class");
+profiler_start("class");
 
-class bar {
-    var name = "testing here";
-    //func test() : void {
-    //    printl(name);
-    //}
+// Generic animal class.
+class Animal {
+    var name = "generic";
+
+    func Animal() : void {
+        printl("Constructing a new animal!");
+    }
+
+    func ~Animal() : void {
+        printl("Destroying animal");
+    }
+
+    func printName() : void {
+        printl(name);
+    }
 }
 
-var foo = new bar();
-printl(foo.name);
+// Class that creates animals.
+class AnimalCreator {
+    func createAnimal() : void {
+        var wolf = new Animal();
+        wolf.name = "wolf";
+        printl(wolf.name);
+    }
+}
 
-// var foo = new bar();
-// printl(foo.test());
+var creator = new AnimalCreator();
+creator.createAnimal();
 
-// print_vm_object_list();
-
-// profiler_stop("class");
+profiler_stop("class");

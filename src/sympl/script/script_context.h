@@ -41,7 +41,7 @@ class SYMPL_API ScriptContext : public Object
 
 protected:
     /// Owner of the context.
-    SharedPtr<ScriptObject> _Object;
+    WeakPtr<ScriptObject> _Object;
 
     /// Reference to the parent context.
     WeakPtr<ScriptContext> _ParentContext;
@@ -51,10 +51,10 @@ protected:
     WeakPtr<ScriptContext> _CallerContext;
 
     /// Quick variable access list.
-    Urho3D::PODVector<ScriptObject*> _VarList;
+//    Urho3D::PODVector<ScriptObject*> _VarList;
 
     /// Quick object access list.
-    Urho3D::PODVector<ScriptObject*> _ObjectList;
+//    Urho3D::PODVector<ScriptObject*> _ObjectList;
 
     /// Cache for statements in the context.
     StatementCache* _StatementCache;
@@ -68,11 +68,11 @@ public:
 
     //! Adds a variable to the context.
     //! \param varObject
-    void AddVar(ScriptObject* varObject);
+//    void AddVar(ScriptObject* varObject);
 
     //! Adds a object to the context.
     //! \param obj
-    void AddObject(ScriptObject* obj);
+//    void AddObject(ScriptObject* obj);
 
     //! Finds an object within the scope.
     //! \param name
@@ -92,7 +92,7 @@ public:
 
     //! Copy our variable list for easy access.
     //! \param context
-    void CopyVarsTo(ScriptContext* context);
+//    void CopyVarsTo(ScriptContext* context);
 
     //! Sets the owner of the context.
     //! \param scriptObject

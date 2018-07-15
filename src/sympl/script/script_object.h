@@ -66,6 +66,9 @@ protected:
     /// Nesting level relevant to the parent.
     unsigned _NestLevel = 0;
 
+    /// Flag of whether or not this object is a class.
+    bool _IsClass = false;
+
     /// The script object type.
     ScriptObjectType _Type = ScriptObjectType::Empty;
 
@@ -117,6 +120,10 @@ public:
     //! Adds a child to the script object.
     //! \param obj
     void AddChild(ScriptObject* scriptObject);
+
+    //! Copies children from a given script object.
+    //! \param store
+    void CopyChildrenFrom(ScriptObject* scriptObject);
 
     //! Creates a clone of the object.
     //! \return SharedPtr<ScriptObject>
@@ -228,6 +235,14 @@ public:
     //! Returns the nest level.
     //! \return
     inline unsigned GetNestLevel() const { return _NestLevel; }
+
+    //! Sets whether or not the object is a class.
+    //! \param value
+    inline void SetIsClass(bool value) { _IsClass = value; }
+
+    //! Returns whether or not the object is a class.
+    //! \return
+    inline bool IsClass() const { return _IsClass; }
 
     //! Whether or not this is an empty object.
     //! \return

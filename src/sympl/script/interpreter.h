@@ -38,8 +38,9 @@ class ScriptStatement;
 
 struct InterpretCommandEntry
 {
-    SharedPtr<ScriptObject>       ObjectRef;
+    WeakPtr<ScriptObject>         ObjectRef;
     SharedPtr<StringBuffer>       StatementStr;
+    SharedPtr<StringBuffer>       VirtualObjectRef;
 };
 
 class SYMPL_API Interpreter : public Object
@@ -78,6 +79,11 @@ public:
     //! \param objectRef
     //! \param stmtStr
     void AddCommand(ScriptObject* objectRef, const char* stmtStr);
+
+    //! Adds a virtual command to the interpreter.
+    //! \param command
+    //! \param stmtStr
+    void AddVirtualCommand(const char* command, const char* stmtStr);
 
     //! Releases the object.
     bool Release() override;

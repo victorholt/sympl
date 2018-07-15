@@ -43,14 +43,22 @@ void Interpreter::__Construct()
 
 bool Interpreter::Run()
 {
-    SharedPtr<StatementResolver> resolver = alloc_ref(StatementResolver);
-
     for (auto entry : _CommandList) {
-        if (entry.ObjectRef->GetType() != ScriptObjectType::Method) {
+        SharedPtr<StatementResolver> resolver = alloc_ref(StatementResolver);
+        if (entry.VirtualObjectRef.IsValid()) {
+            // Attempt to find the object that should now exist.
+            auto scriptObject = ScriptVMInstance->FindObjectByPath(entry.VirtualObjectRef->CStr(), nullptr);
+            auto value = resolver->Resolve(entry.StatementStr->CStr(), scriptObject);
+            if (scriptObject->GetType() != ScriptObjectType::Method) {
+                scriptObject->SetValue(value);
+            }
+        } else if (entry.ObjectRef->GetType() != ScriptObjectType::Method) {
             entry.ObjectRef->SetValue(resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr()));
         } else {
             resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
         }
+
+        ScriptVMInstance->UpdateDeleteQueue();
     }
     return true;
 }
@@ -61,6 +69,18 @@ void Interpreter::AddCommand(ScriptObject* objectRef, const char* stmtStr)
     entry.ObjectRef     = objectRef;
     entry.StatementStr  = mem_alloc_ref(StringBuffer);
     entry.StatementStr->Append(stmtStr);
+    _CommandList.push_back(entry);
+}
+
+void Interpreter::AddVirtualCommand(const char* command, const char* stmtStr)
+{
+    InterpretCommandEntry entry;
+    entry.VirtualObjectRef  = mem_alloc_ref(StringBuffer);
+    entry.StatementStr      = mem_alloc_ref(StringBuffer);
+
+    entry.VirtualObjectRef->Append(command);
+    entry.StatementStr->Append(stmtStr);
+
     _CommandList.push_back(entry);
 }
 

@@ -149,6 +149,11 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
         if (!_RecordingString && currentChar == '}') {
             _CloseScope();
 
+            // Check if we are an object that needs a constructor/destructor.
+//            if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Object && _CurrentObject->IsClass()) {
+//                _RegisterObjectConstructs();
+//            }
+
             // Check if this is an immediate method.
             if (!_CurrentScopeObject.IsValid()) {
                 if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
@@ -248,17 +253,35 @@ void ScriptParser::_BuildObject()
     // and functions, thus, we'll never have a statement for them
     // and they should reset the scanner and update the scope.
     ScriptObjectType type = ScriptObjectType::Object;
+    bool isClass = false;
+    bool isGlobal = (!_CurrentObject.IsValid() || !_CurrentObject->GetParent().IsValid() ||
+                    _CurrentObject->GetParent().Ptr() != ScriptVMInstance->GetGlobalObject());
+
     if (_CurrentIdentifierBuffer->Equals("var")) {
         type = ScriptObjectType::Variable;
     } else if (_CurrentIdentifierBuffer->Equals("func")) {
         type = ScriptObjectType::Method;
     } else if (_CurrentIdentifierBuffer->Equals("class")) {
         type = ScriptObjectType::Object;
+        isClass = true;
+    }
+
+    // Classes must be global.
+    if (isClass && !isGlobal) {
+        sympl_assert(false && "Classes must be global!");
     }
 
     // Attempt to find the object if it already exists and we're just wanting
     // to assign it a new value.
     ScriptObject* existingObject = _FindObject(_CurrentObjectBuffer->CStr());
+
+    // Ensure we're not a constructor by checking if this existing object
+    // is a class and we're looking for a method.
+    if (!existingObject->IsEmpty() && existingObject->IsClass() && type == ScriptObjectType::Method) {
+        _CurrentObjectBuffer->PrependByte('@');
+        existingObject = _FindObject(_CurrentObjectBuffer->CStr());
+    }
+
     if (!existingObject->IsEmpty()) {
         _CurrentObject = existingObject;
 
@@ -277,16 +300,18 @@ void ScriptParser::_BuildObject()
     if (!_CurrentScopeObject.IsValid()) {
         _CurrentObject = ScriptVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type);
         if (type == ScriptObjectType::Variable) {
-            ScriptVMInstance->GetContext()->AddVar(_CurrentObject.Ptr());
+//            ScriptVMInstance->GetContext()->AddVar(_CurrentObject.Ptr());
         } else if (type == ScriptObjectType::Object) {
-            ScriptVMInstance->GetContext()->AddObject(_CurrentObject.Ptr());
+            _CurrentObject->SetIsClass(isClass);
+//            ScriptVMInstance->GetContext()->AddObject(_CurrentObject.Ptr());
         }
     } else {
         _CurrentObject = ScriptVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), type, _CurrentScopeObject.Ptr());
         if (type == ScriptObjectType::Variable) {
-            _CurrentScopeObject->GetContext()->AddVar(_CurrentObject.Ptr());
+//            _CurrentScopeObject->GetContext()->AddVar(_CurrentObject.Ptr());
         } else if (type == ScriptObjectType::Object) {
-            ScriptVMInstance->GetContext()->AddObject(_CurrentObject.Ptr());
+            _CurrentObject->SetIsClass(isClass);
+//            ScriptVMInstance->GetContext()->AddObject(_CurrentObject.Ptr());
         }
     }
 
@@ -302,10 +327,7 @@ void ScriptParser::_BuildMethodArgs()
     _CurrentIdentifierBuffer->Append("var");
 
     char currentChar = '\0';
-    char previousChar = '\0';
-    char nextChar = '\0';
     bool searchReturnType = false;
-    unsigned numArgs = 0;
 
     _CurrentObjectBuffer->Clear();
 
@@ -313,9 +335,7 @@ void ScriptParser::_BuildMethodArgs()
     _OpenScope();
 
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
-        previousChar = currentChar;
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
-        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
         _CharLocation++;
 
         // Skip spaces.
@@ -331,8 +351,6 @@ void ScriptParser::_BuildMethodArgs()
 
         // Attempt to save an argument.
         if (!searchReturnType && !_RecordingString && (currentChar == ',' || currentChar == ')')) {
-            numArgs++;
-
             // Check to see if we need to create an argument object.
             if (_CurrentObjectBuffer->Length() > 0) {
                 auto argObj = ScriptVMInstance->CreateObject(_CurrentObjectBuffer->CStr(), ScriptObjectType::Variable, _CurrentScopeObject.Ptr());
@@ -341,7 +359,6 @@ void ScriptParser::_BuildMethodArgs()
             }
 
             if (currentChar == ')') {
-                to_method(_CurrentObject.Ptr())->SetNumArgs(numArgs);
                 _CloseScope();
                 continue;
             }
@@ -390,14 +407,15 @@ void ScriptParser::_UpdateObjectValue()
 
     // Check if this is an immediate method.
     if (!_CurrentScopeObject.IsValid()) {
-        if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
+        if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method) {
             // We're setting the value buffer as this was a build-in method.
             _CurrentValueBuffer->PrependByte('(');
             _Interpreter->AddCommand(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
+            _IsVirtualCommand = false;
             return;
         }
     } else if (_CurrentScopeObject.IsValid()) {
-        if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method && to_method(_CurrentObject.Ptr())->IsImmediate()) {
+        if (_CurrentObject.IsValid() && _CurrentObject->GetType() == ScriptObjectType::Method) {
             _CurrentValueBuffer->PrependByte('(');
         }
     }
@@ -406,12 +424,57 @@ void ScriptParser::_UpdateObjectValue()
     if (_CurrentScopeObject.IsValid()) {
         auto parent = _CurrentScopeObject->GetParent();
         if (parent->GetType() == ScriptObjectType::Method) {
-            to_method(parent.Ptr())->AddStatement(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
+            if (_IsVirtualCommand) {
+                to_method(parent.Ptr())->AddVirtualStatement(_CurrentObjectBuffer->CStr(), _CurrentValueBuffer->CStr());
+            } else {
+                to_method(parent.Ptr())->AddStatement(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
+            }
         } else if (parent->GetType() == ScriptObjectType::Object) {
             _Interpreter->AddCommand(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
         }
     } else {
-        _Interpreter->AddCommand(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
+        if (_IsVirtualCommand) {
+            _Interpreter->AddVirtualCommand(_CurrentObjectBuffer->CStr(), _CurrentValueBuffer->CStr());
+        } else {
+            _Interpreter->AddCommand(_CurrentObject.Ptr(), _CurrentValueBuffer->CStr());
+        }
+    }
+    _IsVirtualCommand = false;
+}
+
+void ScriptParser::_RegisterObjectConstructs()
+{
+    // Get the scope.
+    if (_CurrentObject->GetChildren().empty()) {
+        return;
+    }
+
+    auto scope = _CurrentObject->GetChildren()[0].Ptr();
+    if (scope->GetName() != SYMPL_SCOPE_NAME) {
+        return;
+    }
+
+    SharedPtr<StringBuffer> constructorName = mem_alloc_ref(StringBuffer);
+    SharedPtr<StringBuffer> destructorName = mem_alloc_ref(StringBuffer);
+
+    constructorName->Append(_CurrentObject->GetCleanName());
+
+    destructorName->Append("~");
+    destructorName->Append(_CurrentObject->GetCleanName());
+
+    auto methodRegistry = ScriptVMInstance->GetMethodRegistry();
+
+    // Register our constructor.
+    ScriptObject* scriptMethod = nullptr;
+    if (!methodRegistry->TryFindMethod(constructorName->CStr(), scriptMethod)) {
+        scriptMethod = ScriptVMInstance->CreateObject(constructorName->CStr(), ScriptObjectType::Method, scope);
+        to_method(scriptMethod)->SetReturnType(MethodReturnType::Void);
+    }
+
+    // Register our destructor.
+    if (!methodRegistry->TryFindMethod(destructorName->CStr(), scriptMethod)) {
+        scriptMethod = ScriptVMInstance->CreateObject(destructorName->CStr(), ScriptObjectType::Method, scope);
+        to_method(scriptMethod)->SetReturnType(MethodReturnType::Void);
     }
 }
 
@@ -431,6 +494,29 @@ void ScriptParser::_UpdateScanMode()
                 // Check if this object exists and we're attempting to
                 // assign it a value.
                 ScriptObject* existingObject = _FindObject(_CurrentIdentifierBuffer->CStr());
+                if (existingObject->IsEmpty() && _CurrentIdentifierBuffer->Contains('.')) {
+                    // Calling a method from a variable(object).
+                    existingObject = _FindObject(_CurrentIdentifierBuffer->SubstrFirstOccurence('.').c_str());
+                    if (!existingObject->IsEmpty()) {
+                        // If our string is structured like a method, we should append a (.
+                        char currentChar = _Reader->GetBuffer()->Get(_CharLocation - 1);
+                        if (currentChar == '(') {
+                            _CurrentValueBuffer->Append(_CurrentIdentifierBuffer->CStr());
+                            _CurrentValueBuffer->AppendByte('(');
+                        } else {
+                            _CurrentObjectBuffer->Append(_CurrentIdentifierBuffer->CStr());
+
+                            // This object doesn't exist yet and won't exist until after the
+                            // 'new' operator has ran. Therefore we should tell the interpreter
+                            // that this is a virtual command that won't really exist as valid
+                            // at this time.
+                            _IsVirtualCommand = true;
+                        }
+                        _ScanMode = ParserScanMode::Value;
+                        return;
+                    }
+                }
+
                 if (existingObject->IsEmpty()) {
                     sympl_assert(!existingObject->IsEmpty() && "Unknown variable assignment attempt!");
                 }
@@ -510,7 +596,8 @@ ScriptObject* ScriptParser::_FindObject(const char* objectName)
     ScriptObject* output = &ScriptObject::Empty;
     if (!_CurrentScopeObject.IsValid()) {
         output = ScriptVMInstance->FindObjectByPath(
-                fmt::format("{0}", objectName)
+                fmt::format("{0}", objectName),
+                nullptr
         );
         return output;
     }

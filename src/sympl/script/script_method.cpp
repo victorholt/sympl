@@ -58,6 +58,18 @@ Variant ScriptMethod::Evaluate(ScriptMethodArgs args)
     _ProcessArgStatements();
     _ProcessCallStatements();
 
+    // Delete anything created in the scope.
+//    for (auto& child : GetScope()->GetChildren()) {
+//        if (child->GetType() == ScriptObjectType::Method) {
+//            continue;
+//        }
+//        if (child->RefCount() == 1) {
+//            for (auto childEntry : child->GetChildren()) {
+//                ScriptVMInstance->QueueDelete(childEntry.Ptr());
+//            }
+//        }
+//    }
+
     return _Value;
 }
 
@@ -71,6 +83,7 @@ void ScriptMethod::_CopyArgs(ScriptMethodArgs args)
 {
     int argIndex = 0;
 
+    unsigned asize = args.Size();
     int size = _Args.Size();
     for (int i = 0; i < size; i++) {
         ScriptObject* argIt = nullptr;
@@ -83,7 +96,12 @@ void ScriptMethod::_CopyArgs(ScriptMethodArgs args)
             break;
         }
 
-        Variant argValue = args[argIndex];
+        Variant argValue;
+        if (asize <= argIndex) {
+            argValue = _Args[argIndex];
+        } else {
+            argValue = args[argIndex];
+        }
 
         auto argObj = GetScope()->TraverseUpFindChildByName(argIt->GetName().c_str(), false);
         sympl_assert(!argObj->IsEmpty() && "Invalid argument given for method");
@@ -129,16 +147,25 @@ void ScriptMethod::_ProcessCallStatements()
         auto entryIt = _CallStatements[i];
         if (_Exit) return;
 
-        entryIt->Variable->GetContext()->SetCallerContext(GetScope()->GetContext());
-        auto val = entryIt->Resolver->Resolve(entryIt->StatementStr->CStr(), entryIt->Variable.Ptr());
+        auto varObject = entryIt->Variable;
+        if (varObject.IsValid()) {
+            varObject->GetContext()->SetCallerContext(GetScope()->GetContext());
+        } else if (entryIt->VirtualObjectStr.IsValid()) {
+            varObject = ScriptVMInstance->FindObjectByPath(
+                    entryIt->VirtualObjectStr->CStr(),
+                    GetScope()
+            );
+        }
+
+        auto val = entryIt->Resolver->Resolve(entryIt->StatementStr->CStr(), varObject.Ptr());
 
         if (!val.IsEmpty()) {
             _Value = val;
-            entryIt->Variable->SetValue(_Value);
+            varObject->SetValue(_Value);
         }
 
         // Check if we're attempting to return out of the method.
-        if (entryIt->Variable->GetName() == "return") {
+        if (varObject->GetName() == "return") {
             Exit();
             return;
         }
@@ -179,7 +206,7 @@ void ScriptMethod::AddArg(ScriptObject* arg)
     _Args.Push(arg);
 
     // Add arg as a variable in the context.
-    GetScope()->GetContext()->AddVar(arg);
+//    GetScope()->GetContext()->AddVar(arg);
 }
 
 void ScriptMethod::AddStatement(ScriptObject* variable, const char* stmtStr)
@@ -187,6 +214,18 @@ void ScriptMethod::AddStatement(ScriptObject* variable, const char* stmtStr)
     auto callStatement = alloc_bytes(MethodCallStatement);
     callStatement->Resolver = mem_alloc_ref(StatementResolver);
     callStatement->Variable = variable;
+    callStatement->StatementStr = mem_alloc_ref(StringBuffer);
+    callStatement->StatementStr->Append(stmtStr);
+
+    _CallStatements.push_back(callStatement);
+}
+
+void ScriptMethod::AddVirtualStatement(const char* virtualObjectStr, const char* stmtStr)
+{
+    auto callStatement = alloc_bytes(MethodCallStatement);
+    callStatement->Resolver = mem_alloc_ref(StatementResolver);
+    callStatement->VirtualObjectStr = mem_alloc_ref(StringBuffer);
+    callStatement->VirtualObjectStr->Append(virtualObjectStr);
     callStatement->StatementStr = mem_alloc_ref(StringBuffer);
     callStatement->StatementStr->Append(stmtStr);
 
@@ -224,9 +263,14 @@ ScriptObject* ScriptMethod::Clone(ScriptObject* parent, bool uniqueName)
 
     // Add the statements.
     for (auto entryIt : _CallStatements) {
-        auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str(), false);
-        if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
-            to_method(clone)->AddStatement(callObj, entryIt->StatementStr->CStr());
+        if (entryIt->Variable.IsValid()) {
+            auto callObj = to_method(clone)->GetScope()->TraverseUpFindChildByName(entryIt->Variable->GetName().c_str(),
+                                                                                   false);
+            if (!IsNullObject(callObj) && !callObj->IsEmpty()) {
+                to_method(clone)->AddStatement(callObj, entryIt->StatementStr->CStr());
+            }
+        } else if (entryIt->VirtualObjectStr.IsValid()) {
+            to_method(clone)->AddVirtualStatement(entryIt->VirtualObjectStr->CStr(), entryIt->StatementStr->CStr());
         }
     }
 

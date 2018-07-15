@@ -1,40 +1,6 @@
 // Example of a hello world program that will run
 // in a console environment.
 
-func add(a, b) : int {
-    return a + b;
-}
-
-var z = add(1, 1) + ((8 * 2) -  7) == 11; // Should return true.
-
-if (z) {
-    // Print out the 'z' value
-    printl(z);
-}
-
-// Testing strings.
-var str1 = "Michael";
-var str2 = "Victor";
-if (str1 != str2) {
-    printl("These are not equal strings!");
-
-    if (str1 == str1) {
-        printl("These strings are equal however!");
-    }
-}
-
-var r = 2;
-func fib(n) : int {
-    if (r < 5) {
-        r = r + 1;
-        printl(r);
-        //return fib(15);
-    }
-    return n;
-}
-
-var x = fib(1);
-printl(x);
-
-
-// EOF;
+var name = "Jim";
+print("Hello! How are you ");
+printl(name);

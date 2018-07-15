@@ -55,10 +55,10 @@ private:
     Interpreter* _Interpreter;
 
     /// Current object we're building.
-    SharedPtr<ScriptObject> _CurrentObject;
+    WeakPtr<ScriptObject> _CurrentObject;
 
     /// Current scope object.
-    SharedPtr<ScriptObject> _CurrentScopeObject;
+    WeakPtr<ScriptObject> _CurrentScopeObject;
 
     /// Current operator for the object.
     char _CurrentOperator[3];
@@ -81,6 +81,9 @@ private:
     /// Flag for whether or not the parser is recording a string.
     bool _RecordingString = false;
 
+    /// Flag for if we should store a virtual command.
+    bool _IsVirtualCommand = false;
+
     /// Current line we're parsing.
     size_t _CurrentLine = 0;
 
@@ -98,6 +101,9 @@ private:
 
     //! Updates the object's value.
     void _UpdateObjectValue();
+
+    //! Registers an objects constructor/destructor method.
+    void _RegisterObjectConstructs();
 
     //! Attempts to update the scan mode.
     void _UpdateScanMode();

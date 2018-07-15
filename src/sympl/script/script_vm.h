@@ -63,11 +63,18 @@ private:
     /// Symbol token checker.
     SharedPtr<ScriptToken> _Symbol;
 
+    /// Objects queued for delete.
+    std::vector< SharedPtr<ScriptObject> > _DeleteQueue;
+
     //! Builds a path based on the given name/parent.
     //! \param name
     //! \param parent
     //! \return
     std::string _BuildPath(const char* name, ScriptObject* parent);
+
+    //! Remove object from the object map.
+    //! \param scriptObject
+    void _RemoveObject(ScriptObject* scriptObject);
 
     //! Constructor.
     ScriptVM();
@@ -129,7 +136,7 @@ public:
     //! Attempts to find an object.
     //! \param path
     //! \return ScriptObject
-    ScriptObject* FindObjectByPath(const std::string& path);
+    ScriptObject* FindObjectByPath(const std::string& relPath, ScriptObject* scope);
 
     //! Attempts to find an object with a given scope.
     //! \param scopeObject
@@ -137,13 +144,12 @@ public:
     //! \return ScriptObject
     ScriptObject* FindObjectByScope(ScriptObject* scopeObject, const std::string& objectName);
 
-    //! Remove object from the object map.
-    //! \param scriptObject
-    void RemoveObject(ScriptObject* scriptObject);
+    //! Updates the delete queue.
+    void UpdateDeleteQueue();
 
-    //! Remove object from the object map.
-    //! \param path
-    void RemoveObject(const std::string& path);
+    //! Queues an object for deletion.
+    //! \param scriptObject
+    void QueueDelete(ScriptObject* scriptObject);
 
     //! Returns the method registry.
     //! \return SharedPtr<MethodRegistry>
@@ -156,6 +162,10 @@ public:
     //! Returns a string representing objects in the vm.
     //! \return string
     std::string PrintObjects();
+
+    //! Returns a string representing methods in the vm.
+    //! \return string
+    std::string PrintMethods();
 
     //! Releases the object.
     bool Release() override;

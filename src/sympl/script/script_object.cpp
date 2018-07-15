@@ -53,6 +53,16 @@ void ScriptObject::_Initialize(const char* name, const char* path, ScriptObject*
     _Path = path;
     _Parent = parent;
 
+    // Update the name if we're a method inside of a class.
+    if (_Type == ScriptObjectType::Method && !IsNullObject(parent)) {
+        auto scopeParent = parent->GetParent();
+        if (scopeParent.IsValid() && scopeParent->IsClass()) {
+            _Name = scopeParent->GetName();
+            _Name.append("@");
+            _Name.append(name);
+        }
+    }
+
     if (_Parent.IsValid()) {
         CreateContext(parent->GetContext());
     } else {
@@ -76,6 +86,18 @@ Variant ScriptObject::Evaluate()
     return Variant::Empty;
 }
 
+void ScriptObject::CopyChildrenFrom(ScriptObject* scriptObject)
+{
+    sympl_assert(_Children.empty() && "Unable to copy children from another object if the current object already has children!");
+
+    auto children = scriptObject->GetChildren();
+
+    // Clone the children!
+    for (auto entryIt : children) {
+        entryIt->Clone(this, false);
+    }
+}
+
 ScriptObject* ScriptObject::Clone()
 {
     return Clone(_Parent.Ptr(), true);
@@ -85,12 +107,45 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
 {
     // Generate a random name for the object.
     std::string name = _Name;
+    std::string cleanName = _Name;
+
+    // Check if we're copying a method from an object. We
+    // will need to remove the origin <name>@ part.
+    if (!IsNullObject(parent) && !parent->IsEmpty()) {
+        std::string methodPart = "@";
+        methodPart.append(GetCleanName());
+        if (name.find(methodPart) != std::string::npos) {
+            // Check if we have a scope whose parent is a class.
+            auto scope = GetParent();
+            if (scope.IsValid() && scope->GetName() == SYMPL_SCOPE_NAME && scope->GetParent()->IsClass()) {
+                // We have a scope whose parent is a class, so we should modify the the name
+                // if the method is a constructor/destructor.
+                auto constructor = fmt::format("@@{0}", scope->GetParent()->GetName());
+                auto destructor = fmt::format("@~{0}", scope->GetParent()->GetName());
+
+                if (methodPart == constructor) {
+                    name = fmt::format("@{0}", parent->GetParent()->GetName());
+                    cleanName = name;
+                } else if (methodPart == destructor) {
+                    name = fmt::format("~{0}", parent->GetParent()->GetName());
+                    cleanName = name;
+                } else {
+                    name = _CleanName;
+                    cleanName = name;
+                }
+            } else {
+                name = _CleanName;
+                cleanName = name;
+            }
+        }
+    }
+
     if (uniqueName) {
-        name = fmt::format("{0}:{1}", _Name, StringHelper::GenerateRandomStr(5));
+        name = fmt::format("{0}:{1}", name, StringHelper::GenerateRandomStr(5));
     }
 
     auto clone = _OnCloneCreateObject(name, parent);
-    clone->SetCleanName(_Name);
+    clone->SetCleanName(cleanName);
 
     clone->SetValue(_Value);
 
@@ -158,7 +213,10 @@ ScriptObject* ScriptObject::TraverseUpFindChildByName(const char* name, bool use
     }
 
     // Find in the main scope.
-    return ScriptVMInstance->FindObjectByPath(fmt::format("{0}", name));
+    return ScriptVMInstance->FindObjectByPath(
+            fmt::format("{0}", name),
+            _Parent.IsValid() ? _Parent.Ptr() : nullptr
+    );
 }
 
 ScriptObject* ScriptObject::FindCalledByMethod()
@@ -196,9 +254,20 @@ void ScriptObject::RemoveChild(const char* name)
 
 bool ScriptObject::Release()
 {
-    // Attempt to release the object reference.
-    if (!Object::Release()) {
-        return false;
+    // If we're a class check if we need to call the destructor.
+    if (_Name == SYMPL_SCOPE_NAME && GetParent().IsValid() && GetParent()->IsClass()) {
+        auto destructor = FindChildByName(fmt::format("~{0}", _Parent->GetCleanName()).c_str());
+        if (!destructor->IsEmpty()) {
+            destructor->Evaluate();
+        }
+    }
+
+    if (GetParent()->IsClass()) {
+        auto scope = GetChildren()[0].Ptr();
+        auto destructor = scope->FindChildByName(fmt::format("~{0}", GetName()).c_str());
+        if (!destructor->IsEmpty()) {
+            destructor->Evaluate();
+        }
     }
 
     // Update the parent context (if we have one).

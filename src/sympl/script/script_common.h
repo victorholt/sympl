@@ -67,7 +67,9 @@ enum class StatementOperator {
     GreaterThan,
     LessThan,
     GreaterEqualThan,
-    LessEqualThan
+    LessEqualThan,
+    NewObject,
+    DeleteObject,
 };
 
 enum class StatementType {

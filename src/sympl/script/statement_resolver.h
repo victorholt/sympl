@@ -163,7 +163,7 @@ public:
     //! \param str
     //! \param varObject
     //! \param cache
-    Variant Resolve(const char* str, ScriptObject* varObject, bool cache = false);
+    Variant Resolve(const char* cstr, ScriptObject* varObject, bool cache = false);
 
     //! Clears the statement entries.
     void ClearStatementEntries();

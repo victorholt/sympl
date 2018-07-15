@@ -186,6 +186,7 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
                 }
                 //pBuffer->AppendByte(';');
             }
+            _Buffer->AppendByte('"');
             previousChar = currentChar;
             previousValidChar = currentChar;
             recording = !recording;

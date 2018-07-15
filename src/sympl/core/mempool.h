@@ -71,9 +71,16 @@ protected:
     //! \param index
     void ClearBlock(size_t index);
 
+    //! Clear all blocks.
+    void ClearAll();
+
     //! Fills the block with junk data.
     //! \param index
     void FillBlock(size_t index);
+
+    //! Resizes the memory pool.
+    //! \param amount
+    void Resize(size_t amount);
 public:
     //! Constructor.
     MemPool();

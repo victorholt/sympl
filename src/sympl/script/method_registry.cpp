@@ -89,6 +89,11 @@ void MethodRegistry::_Initialize()
     });
 
     // Prints the memory allocated reference list.
+    AddCallbackMethod("print_vm_method_list", [](ScriptMethodArgs args) {
+        std::cout << ScriptVMInstance->PrintMethods() << std::endl;
+    });
+
+    // Prints the memory allocated reference list.
     AddCallbackMethod("profiler_start", [](ScriptMethodArgs args) {
         sympl_profile_start(args[0].AsString());
     });
@@ -127,7 +132,7 @@ ScriptObject* MethodRegistry::FindMethod(const char* name)
 {
     for (auto& method : _Methods) {
         if (strcmp(method.second->GetName().c_str(), name) == 0) {
-            return method.second;
+            return method.second.Ptr();
         }
     }
     return &ScriptObject::Empty;
