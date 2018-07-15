@@ -29,7 +29,7 @@
 sympl_nsstart
 
 typedef unsigned char uchar;
-#define SYMPL_STRING_BUFFER_CAPACITY 512
+#define SYMPL_STRING_BUFFER_CAPACITY 256
 
 class SYMPL_API StringBuffer : public Object
 {
@@ -96,15 +96,18 @@ public:
     //! \param newCapacity
     void Resize(size_t newCapacity);
 
-    // Sets/replaces a given set of characters at the given location
-    //! \param pos
-    //! \param str
-    void ReplaceAt(size_t pos, const char* str);
+    //! Copy text from a given point.
+    void ReplaceStringAt(const char* str, size_t startIndex, size_t length = 0);
 
     //! Replaces occurances in the string.
     //! \param search
     //! \param replaceWith
     void Replace(const char *search, const char *replaceWith);
+
+    //! Replaces occurances in the string.
+    //! \param search
+    //! \param replaceWith
+    void Replace2(const char *search, const char *replaceWith);
 
     //! Attempts to find a single character in the string.
     //! \param search
@@ -126,8 +129,18 @@ public:
     //! \return
     std::string SubstrFirstOccurence(const char* str);
 
+    //! Test peek to see if a string is a match.
+    //! \param search
+    //! \param startIndex
+    //! \param endIndex
+    //! \return bool
+    bool PeekSearch(const char* search, size_t startIndex);
+
     //! Clears out the string buffer.
     void Clear();
+
+    //! Clears the buffer from a given point to its length.
+    void ClearAt(size_t startIndex = 0);
 
     //! Releases the object.
     bool Release() override;

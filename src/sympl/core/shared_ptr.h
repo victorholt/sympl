@@ -24,6 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
+#include <sympl/core/mempool.h>
 #include <sympl/core/ref.h>
 
 sympl_nsstart

@@ -176,10 +176,23 @@ void StringBuffer::Resize(size_t newCapacity)
     _UseDynamicBuffer = true;
 }
 
-void StringBuffer::ReplaceAt(size_t pos, const char* str)
+void StringBuffer::ReplaceStringAt(const char* str, size_t startIndex, size_t length)
 {
-    memset(_Buffer + pos, 0, _Capacity - pos);
-    memcpy(_Buffer + pos, str, strlen(str));
+    size_t len = length == 0 ? strlen(str) : length;
+    size_t end = len + startIndex;
+    if (end >= _Capacity) {
+        Resize(_Capacity);
+    }
+
+    if (len == 0) {
+        memset(_Buffer + startIndex, 0, _Length);
+    } else {
+        memcpy(_Buffer + startIndex, str, len);
+    }
+
+    if (_Length < end) {
+        _Length = end;
+    }
 }
 
 void StringBuffer::Replace(const char *search, const char *replaceWith)
@@ -187,7 +200,6 @@ void StringBuffer::Replace(const char *search, const char *replaceWith)
     if (_Length == 0) return;
 
     std::string buffer;
-    //buffer.reserve(_Capacity);
     buffer = CStr();
 
     for (std::string::size_type i = 0; (i = buffer.find(search, i)) != std::string::npos;)
@@ -198,113 +210,65 @@ void StringBuffer::Replace(const char *search, const char *replaceWith)
 
     Clear();
     Append(buffer);
+}
 
-//
-//     StringBuffer findBuffer;
-//     findBuffer.Resize(_Capacity);
-//
-//     StringBuffer tmpBuffer;
-//
-//     long long tmpBufferIndex = 0;
-//     long long capacity = _Capacity;
-//     size_t strLen = strlen(search);
-//     if (strLen > _Length) {
-//         return;
-//     }
-//
-//     for (size_t i = 0; i < _Length; i++) {
-//         tmpBuffer.AppendByte(Get(i));
-//         tmpBufferIndex++;
-//
-//         // Ensure we've copied over enough character to check the sequence.
-//         if (i < (strLen - 1)) {
-//             findBuffer.AppendByte(Get(i));
-//             continue;
-//         }
-//
-//         // Shift the characters to the right.
-//         for (size_t j = 0; j < strLen - 1; j++) {
-//             findBuffer.SetByte(j, Get((i - (strLen - 1)) + j));
-//         }
-//         findBuffer.SetByte(strLen - 1, Get(i));
-//
-//         // Compare the current sequence of strings.
-//         if (strcmp(findBuffer.CStr(), search) == 0) {
-//             size_t replaceIndex = (tmpBufferIndex - strLen);
-//             tmpBufferIndex = replaceIndex + strlen(replaceWith);
-//
-//             // Check if we need to resize the buffer.
-//             if ((capacity - tmpBufferIndex) < 0) {
-//                 capacity += (tmpBufferIndex * 2) + (capacity * 2);
-//                 tmpBuffer.Resize(capacity);
-//             }
-//
-//             tmpBuffer.ReplaceAt(replaceIndex, replaceWith);
-//         }
-//     }
-//
-//     Clear();
-//     Append(&tmpBuffer);
+void StringBuffer::Replace2(const char *search, const char *replaceWith)
+{
+    if (_Length == 0) return;
 
-    /*
-    long long capacity = _Capacity;
-    size_t strLen = strlen(search);
-    if (strLen > _Length) {
+    if (!Contains(search)) {
         return;
     }
 
-    char8* findBuffer = new char8[strLen + 1];
-    memset(findBuffer, 0, strLen + 1);
+    size_t bufferIndex = 0;
+    size_t searchIndex = 0;
 
-    char8* tmpStr = new char8[capacity];
-    memset(tmpStr, 0, capacity);
+    size_t replaceLength = strlen(replaceWith);
+    size_t searchLength = strlen(search);
+    size_t searchPos = 0;
+    int replaceLenDiff = (int)searchLength - (int)replaceLength;
 
-    long long tmpBufferIndex = 0;
-    long long currentFindBufferIndex = strLen;
+    StringBuffer tmpBuffer;
 
-    for (size_t i = 0; i < _Length; i++) {
-        tmpStr[tmpBufferIndex++] = Get(i);
-
-        // Ensure we've copied over enough character to check the sequence.
-        if (i < (strLen - 1)) {
-            findBuffer[i] = Get(i);
-            continue;
+    while (searchIndex < _Length) {
+        if (Get(searchIndex) == search[searchPos]) {
+            searchPos++;
+        } else {
+            searchPos = 0;
         }
 
-        // Shift the characters to the right.
-        for (size_t j = 0; j < strLen - 1; j++) {
-            findBuffer[j] = Get((i - (strLen - 1)) + j);
-        }
-        findBuffer[strLen - 1] = Get(i);
-
-        // Compare the current sequence of strings.
-        if (strcmp(findBuffer, search) == 0) {
-            size_t replaceIndex = (tmpBufferIndex - strLen);
-            tmpBufferIndex = replaceIndex + strlen(replaceWith);
-
-            // Check if we need to resize the buffer.
-            if ((capacity - tmpBufferIndex) < 0) {
-                capacity += (tmpBufferIndex * 2) + (capacity * 2);
-
-                char8* newBuffer = new char8[capacity];
-                memset(newBuffer, 0, capacity);
-                memcpy(newBuffer, tmpStr, strlen(tmpStr) + 1);
-
-                delete [] tmpStr;
-                tmpStr = newBuffer;
+        // Replace our string.
+        if (searchPos == searchLength) {
+            tmpBuffer.ReplaceStringAt(replaceWith, (bufferIndex - searchPos + 1), replaceLength);
+            if (replaceLenDiff > 0) {
+//                searchIndex += replaceLenDiff - 1;
+                bufferIndex -= replaceLenDiff - 1;
+                tmpBuffer.ClearAt(bufferIndex);
             }
+            searchIndex++;
 
-            memset(tmpStr + replaceIndex, 0, capacity - replaceIndex);
-            memcpy(tmpStr + replaceIndex, replaceWith, strlen(replaceWith));
+            bufferIndex = tmpBuffer.Length();
+            searchPos = 0;
         }
+
+        // Ensure our search index hasn't gone over the length.
+        if (searchIndex >= _Length) {
+            break;
+        }
+
+        tmpBuffer.AppendByte(Get(searchIndex));
+
+        searchIndex++;
+        bufferIndex++;
     }
 
-    Clear();
-    Append(tmpStr);
+    // Replace the remainder.
+//    if (tmpBuffer)
 
-    delete [] tmpStr;
-    delete [] findBuffer;
-    */
+    ClearAt(tmpBuffer.Length());
+
+    _Length = 0;
+    ReplaceStringAt(tmpBuffer.CStr(), 0, tmpBuffer.Length());
 }
 
 bool StringBuffer::Contains(const char search)
@@ -388,12 +352,38 @@ std::string StringBuffer::SubstrFirstOccurence(const char* str)
     return ret;
 }
 
+bool StringBuffer::PeekSearch(const char* search, size_t startIndex)
+{
+    size_t endIndex = strlen(search);
+    if (endIndex == 0 || startIndex > _Length || (startIndex + endIndex) > _Length) {
+        return false;
+    }
+
+    size_t searchIndex = 0;
+    for (size_t i = startIndex; i < endIndex; i++) {
+        if (_Buffer[i] != search[searchIndex]) {
+            return false;
+        }
+        searchIndex++;
+    }
+
+    return true;
+}
+
 void StringBuffer::Clear()
 {
     if (_Length == 0) return;
 
     _Length = 0;
     memset(_Buffer, 0, _Capacity);
+}
+
+void StringBuffer::ClearAt(size_t startIndex)
+{
+    if (_Length == 0) return;
+
+    _Length = startIndex;
+    memset(_Buffer + startIndex, 0, _Length);
 }
 
 bool StringBuffer::Release()

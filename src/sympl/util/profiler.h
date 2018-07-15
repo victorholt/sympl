@@ -24,6 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
+#include <sympl/core/mempool.h>
 #include <sympl/core/object.h>
 
 sympl_nsstart
@@ -37,6 +38,11 @@ struct ProfileRecord
 //    std::chrono::steady_clock::time_point End;
     bool HasStarted;
 };
+
+class MemPool;
+class MemPoolRef;
+class MemPoolObject;
+class MemPoolManager;
 
 class SYMPL_API Profiler : public Object
 {
@@ -63,7 +69,7 @@ public:
 
             // Double-delete... our Alloc class should cache this
             // and disregard attempting to remove it.
-             free_ref(_Instance);
+            mem_free_ref(Profiler, _Instance);
         }
     }
 
@@ -74,7 +80,7 @@ public:
     //! \return Profiler
     static Profiler* GetInstance() {
         if (IsNullObject(_Instance)) {
-            _Instance = alloc_ref(Profiler);
+            _Instance = mem_alloc_ref(Profiler);
         }
         return _Instance;
     }
@@ -111,8 +117,10 @@ public:
         _Enabled = enabled;
     }
 
-    /// Ensure the alloc class can access this object properly.
-    friend AllocManager;
+    friend MemPool;
+    friend MemPoolRef;
+    friend MemPoolObject;
+    friend MemPoolManager;
 };
 
 #define SymplProfiler Sympl::Profiler::GetInstance()

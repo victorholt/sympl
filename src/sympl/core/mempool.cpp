@@ -38,19 +38,6 @@ MemPool::MemPool(const char* typeName, size_t blockSize, bool isRefCounter, size
     _MaxMemBlocks = 0;
 
     Resize(maxMemBlocks);
-
-    // Create our pool.
-//    _Pool = malloc((blockSize + padding) * maxMemBlocks);
-
-    // Add our memory blocks.
-//    for (size_t i = 0; i < _MaxMemBlocks; i++) {
-//        auto block = new MemBlock();
-//        block->Index = i;
-//        block->Free = true;
-//        block->Data = malloc(_BlockSize + _Padding);
-//        _Blocks.push_back(block);
-//        FillBlock(block->Index);
-//    }
 }
 
 MemPool::~MemPool()
@@ -65,14 +52,26 @@ MemPool::~MemPool()
 
 MemPool::MemBlock* MemPool::FindAvailableBlock()
 {
+    // First Scan.
     auto size = _Blocks.size();
-    for (unsigned i = 0; i < size; i++) {
+    for (unsigned i = _LastFreeIndex; i < size; i++) {
         if (_Blocks[i]->Free) {
+            _LastFreeIndex = _Blocks[i]->Index + 1;
+            return _Blocks[i];
+        }
+    }
+
+    // Second scan from the beginning.
+    _LastFreeIndex = 0;
+    for (unsigned i = _LastFreeIndex; i < size; i++) {
+        if (_Blocks[i]->Free) {
+            _LastFreeIndex = _Blocks[i]->Index + 1;
             return _Blocks[i];
         }
     }
 
     // Allocate more memory.
+    _LastFreeIndex = _MaxMemBlocks;
     size_t newAmount = _MaxMemBlocks * 2;
     Resize(newAmount);
 
@@ -133,4 +132,10 @@ MemPoolRef::MemPoolRef(const char* typeName, size_t blockSize, bool isRefCounter
 MemPoolObject::MemPoolObject(const char* typeName, size_t blockSize, bool isRefCounter, size_t padding, size_t maxMemBlocks)
         : MemPool(typeName, blockSize, isRefCounter, padding, maxMemBlocks)
 {
+}
+
+MemPoolBytes::MemPoolBytes(const char* typeName, size_t blockSize, bool isRefCounter, size_t padding, size_t maxMemBlocks)
+        : MemPool(typeName, blockSize, isRefCounter, padding, maxMemBlocks)
+{
+
 }

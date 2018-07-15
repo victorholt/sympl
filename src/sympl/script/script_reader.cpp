@@ -186,7 +186,7 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
                 }
                 //pBuffer->AppendByte(';');
             }
-            _Buffer->AppendByte('"');
+//            _Buffer->AppendByte('"');
             previousChar = currentChar;
             previousValidChar = currentChar;
             recording = !recording;
@@ -196,23 +196,29 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
 
         // Check if we have a whitespace character.
         if (!IsSpaceChar(currentChar, loc) || recording) {
-            // Append the # before an operator.
-            if (!recording && !_ScriptToken->IsOperator(previousChar) &&
-                (_ScriptToken->IsOperator(previousChar) ||
-                 _ScriptToken->IsIdentifier(previousChar)
-                )) {
-                if (_Buffer->Get(_Buffer->Length() - 1) != '#') {
+            // First check if we're recording a special character.
+            std::string encodedString = "";
+            if (recording && _ScriptToken->EncodeSpecialChar(currentChar, encodedString)) {
+                _Buffer->Append(encodedString);
+            } else {
+                // Append the # before an operator.
+                if (!recording && !_ScriptToken->IsOperator(previousChar) &&
+                    (_ScriptToken->IsOperator(previousChar) ||
+                     _ScriptToken->IsIdentifier(previousChar)
+                    )) {
+                    if (_Buffer->Get(_Buffer->Length() - 1) != '#') {
+                        _Buffer->AppendByte('#');
+                    }
+                }
+                _Buffer->AppendByte(currentChar);
+
+                // Append the # after an operator.
+                if (!recording && !_ScriptToken->IsOperator(nextChar) &&
+                    (_ScriptToken->IsOperator(nextChar) ||
+                     _ScriptToken->IsIdentifier(nextChar)
+                    )) {
                     _Buffer->AppendByte('#');
                 }
-            }
-            _Buffer->AppendByte(currentChar);
-
-            // Append the # after an operator.
-            if (!recording && !_ScriptToken->IsOperator(nextChar) &&
-                (_ScriptToken->IsOperator(nextChar) ||
-                 _ScriptToken->IsIdentifier(nextChar)
-                )) {
-                _Buffer->AppendByte('#');
             }
         }
 
@@ -230,17 +236,6 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
                 _Buffer->AppendByte('#');
             }
         }
-
-        // if (!recording &&
-        //     (_ScriptToken->IsOperator(nextChar) ||
-        //     _ScriptToken->IsIdentifier(nextChar) ||
-        //     _ScriptToken->IsOperator(previousChar) ||
-        //     _ScriptToken->IsIdentifier(previousChar)
-        // )) {
-        //     if (_Buffer->Get(_Buffer->Length() - 1) != '#') {
-        //         _Buffer->AppendByte('#');
-        //     }
-        // }
 
         previousChar = currentChar;
     }

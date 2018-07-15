@@ -35,7 +35,6 @@
 sympl_nsstart
 
 class Interpreter;
-class AllocManager;
 class MemPool;
 class MemPoolRef;
 class MemPoolObject;
@@ -66,6 +65,9 @@ private:
     /// Objects queued for delete.
     std::vector< SharedPtr<ScriptObject> > _DeleteQueue;
 
+    /// Cached lookup paths in the VM.
+    std::unordered_map<std::string, ScriptObject*> _CachedPaths;
+
     //! Builds a path based on the given name/parent.
     //! \param name
     //! \param parent
@@ -75,6 +77,9 @@ private:
     //! Remove object from the object map.
     //! \param scriptObject
     void _RemoveObject(ScriptObject* scriptObject);
+
+    //! Updates the delete queue.
+    void _UpdateDeleteQueue();
 
     //! Constructor.
     ScriptVM();
@@ -144,9 +149,6 @@ public:
     //! \return ScriptObject
     ScriptObject* FindObjectByScope(ScriptObject* scopeObject, const std::string& objectName);
 
-    //! Updates the delete queue.
-    void UpdateDeleteQueue();
-
     //! Queues an object for deletion.
     //! \param scriptObject
     void QueueDelete(ScriptObject* scriptObject);
@@ -178,7 +180,6 @@ public:
     //! \return ScriptToken
     inline ScriptToken* GetScriptToken() const { return _Symbol.Ptr(); }
 
-    friend AllocManager;
     friend MemPool;
     friend MemPoolRef;
     friend MemPoolObject;

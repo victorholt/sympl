@@ -79,9 +79,9 @@ void MethodRegistry::_Initialize()
     });
 
     // Prints the memory allocated reference list.
-    AddCallbackMethod("print_vm_refs", [](ScriptMethodArgs args) {
-        std::cout << AllocInstance.PrintExistingReferences() << std::endl;
-    });
+//    AddCallbackMethod("print_vm_refs", [](ScriptMethodArgs args) {
+//        std::cout << AllocInstance.PrintExistingReferences() << std::endl;
+//    });
 
     // Prints the memory allocated reference list.
     AddCallbackMethod("print_vm_object_list", [](ScriptMethodArgs args) {

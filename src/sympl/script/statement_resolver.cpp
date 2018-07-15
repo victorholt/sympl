@@ -135,16 +135,19 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
     // Build out the argument statements.
     auto stmtLen = statementStr->Length();
+    int argCacheLength = 0;
     while (stmtResolver->GetCurrentCharLocation() < stmtLen) {
         currentChar = statementStr->Get(stmtResolver->GetCurrentCharLocation());
         nextChar = statementStr->Get(stmtResolver->GetCurrentCharLocation() + 1);
         stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + 1);
+        argCacheLength++;
 
-        if (currentChar == '"') {
-            resolveStr->Append(SYMPL_STRING_TOKEN);
-            recording = !recording;
-            continue;
-        }
+//        if (currentChar == '%' && statementStr->PeekSearch(SYMPL_STRING_TOKEN, stmtResolver->GetCurrentCharLocation() - 1)) {
+//            resolveStr->Append(SYMPL_STRING_TOKEN);
+//            stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
+//            recording = !recording;
+//            continue;
+//        }
 
         if (!recording && currentChar == '(') {
             // Check to see if the varObject we have give is a method. If it's coming from
@@ -239,27 +242,18 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
                 }
 
                 if (!obj->IsEmpty()) {
-//                    if (obj->GetType() == ScriptObjectType::Method) {
-//                        auto methodResolver = SymplRegistry.Get<MethodResolver>();
-
-                        // Exit immediately on the closing ).
-//                        stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() - 1);
-//                        objectValue = methodResolver->Resolve(stmtResolver, resolveStr, obj, op, true);
-//                    } else if (obj->GetType() == ScriptObjectType::Object) {
-//                        objectValue = obj;
-//                    } else {
-                        if (obj->GetType() == ScriptObjectType::Object || obj->GetType() == ScriptObjectType::Method || obj->IsClass()) {
-                            objectValue = obj;
-                        } else {
-                            objectValue = obj->GetValue();
-                        }
-//                    }
+                    if (obj->GetType() == ScriptObjectType::Object || obj->GetType() == ScriptObjectType::Method || obj->IsClass()) {
+                        objectValue = obj;
+                    } else {
+                        objectValue = obj->GetValue();
+                    }
                 }
             }
 
             // Check if we were able to find an object value.
             MethodArgCacheValue cacheValue;
-            cacheValue.ArgStringLength = resolveStr->Length();
+            cacheValue.ArgStringLength = argCacheLength;
+            argCacheLength = 0;
 
             if (!objectValue.IsEmpty()) {
                 args.Push(objectValue);
@@ -351,11 +345,12 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
         nextChar = statementStr->Get(stmtResolver->GetCurrentCharLocation() + 1);
         stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + 1);
 
-        if (currentChar == '"') {
-            resolveStr->Append(SYMPL_STRING_TOKEN);
-            recording = !recording;
-            continue;
-        }
+//        if (currentChar == '%' && statementStr->PeekSearch(SYMPL_STRING_TOKEN, stmtResolver->GetCurrentCharLocation() - 1)) {
+//            resolveStr->Append(SYMPL_STRING_TOKEN);
+//            stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
+//            recording = !recording;
+//            continue;
+//        }
 
         // Resolve another contained value.
         if (!recording && currentChar == '(') {
@@ -473,10 +468,11 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
     StatementCacheEntry* stmtCache = nullptr;
     ScriptContext* cacheContext = nullptr;
 
-    SharedPtr<StringBuffer> cleanStr = mem_alloc_ref(StringBuffer);
-    cleanStr->Append(cstr);
-    cleanStr->Replace(SYMPL_STRING_TOKEN, "\"");
-    std::string str = cleanStr->CStr();
+//    SharedPtr<StringBuffer> cleanStr = mem_alloc_ref(StringBuffer);
+//    cleanStr->Append(cstr);
+//    cleanStr->Replace(SYMPL_STRING_TOKEN, "\"");
+//    std::string str = cleanStr->CStr();
+    std::string str = cstr;
 
     if (!varObject->GetContext()->IsEmpty()) {
         cacheContext = varObject->GetContext();
@@ -516,15 +512,17 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
             _CurrentCharLocation++;
 
             // Check if we're starting a string.
-            if (currentChar == '"') {
-                stmtEntryStr->Append(SYMPL_STRING_TOKEN);
-                recording = !recording;
-                continue;
-            }
+//            if (currentChar == '%' && stmtEntryStr->PeekSearch(SYMPL_STRING_TOKEN, GetCurrentCharLocation() - 1)) {
+//                stmtEntryStr->Append(SYMPL_STRING_TOKEN);
+//                SetCurrentCharLocation(GetCurrentCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
+//                recording = !recording;
+//                continue;
+//            }
 
             // Save our current character.
             if (recording || (currentChar != '#' && currentChar != ';' &&
-                              currentChar != '(' && currentChar != '{')) {
+                              currentChar != '(' && currentChar != '{' &&
+                              currentChar != ')')) {
                 stmtEntryStr->AppendByte(currentChar);
             }
 

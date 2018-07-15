@@ -59,16 +59,16 @@ Variant ScriptMethod::Evaluate(ScriptMethodArgs args)
     _ProcessCallStatements();
 
     // Delete anything created in the scope.
-//    for (auto& child : GetScope()->GetChildren()) {
-//        if (child->GetType() == ScriptObjectType::Method) {
-//            continue;
-//        }
-//        if (child->RefCount() == 1) {
-//            for (auto childEntry : child->GetChildren()) {
-//                ScriptVMInstance->QueueDelete(childEntry.Ptr());
-//            }
-//        }
-//    }
+    for (auto& child : GetScope()->GetChildren()) {
+        if (child->GetType() == ScriptObjectType::Method) {
+            continue;
+        }
+        if (child->RefCount() == 1) {
+            for (auto childEntry : child->GetChildren()) {
+                ScriptVMInstance->QueueDelete(childEntry.Ptr());
+            }
+        }
+    }
 
     return _Value;
 }
@@ -133,6 +133,11 @@ void ScriptMethod::_ProcessArgStatements()
             // If this is a string we will need to replace the token.
             if (argValue.GetType() == VariantType::StringBuffer) {
                 argValue.GetStringBuffer()->Replace(SYMPL_STRING_TOKEN, "");
+                std::string specStr = argValue.GetStringBuffer()->CStr();
+                if (ScriptVMInstance->GetScriptToken()->DecodeSpecialCharString(specStr.c_str(), specStr)) {
+                    argValue.GetStringBuffer()->Clear();
+                    argValue.GetStringBuffer()->Append(specStr);
+                }
             }
 
             argIt->SetValue(argValue);

@@ -56,6 +56,9 @@ protected:
     /// Max memory blocks to allocate.
     size_t _Padding = 0;
 
+    /// Last free index.
+    size_t _LastFreeIndex = 0;
+
     /// Whether or not this pool manages a ref counter object.
     bool _IsRefCounter = false;
 
@@ -174,6 +177,7 @@ public:
         ref->~T();
 
         _Blocks[blockIndex]->Free = true;
+        _LastFreeIndex = _LastFreeIndex > blockIndex ? blockIndex : _LastFreeIndex;
     }
 };
 
@@ -208,6 +212,40 @@ public:
         auto block = FindBlock(reinterpret_cast<void*>(ref));
         ref->~T();
         block->Free = true;
+        _LastFreeIndex = _LastFreeIndex > block->Index ? block->Index : _LastFreeIndex;
+    }
+};
+
+// Dynamic byte pool.
+class MemPoolBytes : public MemPool
+{
+public:
+    //! Constructor.
+    //! \param typeName
+    //! \param blockSize
+    //! \param isRefCounter
+    //! \param padding
+    //! \param maxMemBlocks
+    MemPoolBytes(const char* typeName, size_t blockSize, bool isRefCounter, size_t padding, size_t maxMemBlocks);
+
+    //! Allocate new memory.
+    //! \return T
+    template<class T>
+    T* Allocate()
+    {
+        auto block = FindAvailableBlock();
+        block->Free = false;
+        return block->Data;
+    }
+
+    //! Deallocate memory.
+    //! \param ref
+    template<class T>
+    void Deallocate(T* ref)
+    {
+        auto block = FindBlock(reinterpret_cast<void*>(ref));
+        block->Free = true;
+        _LastFreeIndex = _LastFreeIndex > block->Index ? block->Index : _LastFreeIndex;
     }
 };
 
@@ -435,5 +473,10 @@ public:
 #define mem_free_ref(type, ref) MemPoolInstance.DeallocateRef<type>(ref)
 #define mem_alloc_object(type) MemPoolInstance.AllocateObject<type>(#type)
 #define mem_free_object(type, ref) MemPoolInstance.DeallocateObject<type>(#type, ref)
+
+#define alloc_bytes(type) new type()
+#define alloc_bytes_array(type, amount) (type*)calloc(amount, sizeof(type))
+#define free_bytes(ref) delete ref; ref = nullptr
+#define free_bytes_array(ref) free(ref); ref = nullptr
 
 sympl_nsend

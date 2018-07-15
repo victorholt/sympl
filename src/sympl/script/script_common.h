@@ -36,7 +36,7 @@ sympl_nsstart
 class ScriptObject;
 
 #define GLOBAL_SCRIPT_OBJECT "__global__"
-#define SYMPL_STRING_TOKEN "@__STRING__@"
+#define SYMPL_STRING_TOKEN "%dq%"
 #define SYMPL_SCOPE_NAME "__scope__"
 #define SYMPL_METHOD_ARG_NAME "__arg__"
 #define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())

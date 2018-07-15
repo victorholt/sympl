@@ -6,7 +6,7 @@ class Animal {
     var name = "generic";
 
     func Animal() : void {
-        printl("Constructing a new animal!");
+        printl("Constructing a new animal");
     }
 
     func ~Animal() : void {

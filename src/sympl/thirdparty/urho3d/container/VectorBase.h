@@ -21,7 +21,7 @@
 //
 #pragma once
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/alloc_manager.h>
+#include <sympl/core/mempool.h>
 #include <sympl/thirdparty/urho3d/container/Swap.h>
 
 namespace Urho3D

@@ -181,7 +181,7 @@ public:
     //! Returns a string where any special characters have been converted.
     //! \param input
     //! \return
-    const std::string DecodeSpecialCharString(const char* input);
+    bool DecodeSpecialCharString(const char* input, std::string& output);
 
     //! Releases the object.
     bool Release() override;

@@ -25,7 +25,6 @@
 
 #include <sympl/core/sympl_pch.h>
 
-#include <sympl/core/sympl_pch.h>
 #include <sympl/core/object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/shared_ptr.h>

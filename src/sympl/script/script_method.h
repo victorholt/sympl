@@ -195,13 +195,13 @@ public:
         if (_ArgString.IsValid()) {
             _ArgString->Clear();
         } else {
-            _ArgString = alloc_ref(StringBuffer);
+            _ArgString = mem_alloc_ref(StringBuffer);
         }
 
         if (_ArgStringNoParenth.IsValid()) {
             _ArgStringNoParenth->Clear();
         } else {
-            _ArgStringNoParenth = alloc_ref(StringBuffer);
+            _ArgStringNoParenth = mem_alloc_ref(StringBuffer);
         }
 
         _ArgString->Append(argString);

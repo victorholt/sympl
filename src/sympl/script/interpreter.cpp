@@ -44,7 +44,7 @@ void Interpreter::__Construct()
 bool Interpreter::Run()
 {
     for (auto entry : _CommandList) {
-        SharedPtr<StatementResolver> resolver = alloc_ref(StatementResolver);
+        SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
         if (entry.VirtualObjectRef.IsValid()) {
             // Attempt to find the object that should now exist.
             auto scriptObject = ScriptVMInstance->FindObjectByPath(entry.VirtualObjectRef->CStr(), nullptr);
@@ -58,7 +58,7 @@ bool Interpreter::Run()
             resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
         }
 
-        ScriptVMInstance->UpdateDeleteQueue();
+        ScriptVMInstance->GC();
     }
     return true;
 }

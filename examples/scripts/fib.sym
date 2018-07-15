@@ -1,6 +1,7 @@
 // Simple fibonacci method.
 profiler_start("fib");
 func fib(previous, current) : int {
+    printl(current);
     if (current < 1000) {
         return fib(current, previous + current);
     }

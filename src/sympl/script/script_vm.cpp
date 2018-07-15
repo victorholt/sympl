@@ -73,6 +73,7 @@ void ScriptVM::Shutdown()
 
 void ScriptVM::GC()
 {
+    _UpdateDeleteQueue();
 }
 
 Interpreter* ScriptVM::LoadFile(const char* filePath)
@@ -156,6 +157,10 @@ bool ScriptVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
 
 ScriptObject* ScriptVM::FindObjectByPath(const std::string& relPath, ScriptObject* scope)
 {
+    if (relPath.find("%") != std::string::npos) {
+        return &ScriptObject::Empty;
+    }
+
     std::string delimiter = ".";
 
     size_t pos = 0;
@@ -275,7 +280,7 @@ std::string ScriptVM::_BuildPath(const char* name, ScriptObject* parent)
     return fmt::format("{0}", name);
 }
 
-void ScriptVM::UpdateDeleteQueue()
+void ScriptVM::_UpdateDeleteQueue()
 {
     if (_DeleteQueue.empty()) {
         return;
@@ -324,8 +329,8 @@ void ScriptVM::_RemoveObject(ScriptObject* scriptObject)
         parent->RemoveChild(scriptObject->GetName().c_str());
     }
 
-    scriptObject->Release();
-    mem_free_ref(ScriptObject, scriptObject);
+//    scriptObject->Release();
+//    mem_free_ref(ScriptObject, scriptObject);
 }
 
 MethodRegistry* ScriptVM::GetMethodRegistry()

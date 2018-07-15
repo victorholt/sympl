@@ -31,7 +31,6 @@
 
 #include <sympl/core/sympl_pch.h>
 
-#include <sympl/core/alloc_manager.h>
 #include <sympl/core/mempool.h>
 #include <sympl/core/registry.h>
 #include <sympl/core/ref.h>

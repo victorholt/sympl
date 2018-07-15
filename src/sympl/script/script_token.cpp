@@ -66,10 +66,11 @@ void ScriptToken::__Construct()
     AddDelToken(ScriptTokenType::Delimiter, ",", ",");
     AddDelToken(ScriptTokenType::Delimiter, ";", ";");
 
-    AddSpecialCharToken(ScriptTokenType::SpecialChar, ",", "#c#");
-    AddSpecialCharToken(ScriptTokenType::SpecialChar, ";", "#sc#");
-    AddSpecialCharToken(ScriptTokenType::SpecialChar, "\'", "#q#");
-    AddSpecialCharToken(ScriptTokenType::SpecialChar, "\"", "\"");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, ",", "%c%");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, "!", "%em%");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, ";", "%sc%");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, "\'", "%sq%");
+    AddSpecialCharToken(ScriptTokenType::SpecialChar, "\"", "%dq%");
 
     _TranslateBuffer = mem_alloc_ref(StringBuffer);
     _ResultBuffer = mem_alloc_ref(StringBuffer);
@@ -179,76 +180,24 @@ bool ScriptToken::DecodeSpecialChar(const char* input, char& output)
     return false;
 }
 
-const std::string ScriptToken::DecodeSpecialCharString(const char* input)
+bool ScriptToken::DecodeSpecialCharString(const char* input, std::string& output)
 {
-    bool record = false;
-    int recordCount = 1;
-    size_t strLen = strlen(input);
+    bool found = false;
+    _TranslateBuffer->Append(input);
 
-    for (size_t i = 0; i < strLen; i++) {
-        char c = input[i];
-        char peek = '\0';
-
-        if ((i + 1) < strLen) {
-            peek = input[i + 1];
+    auto numTokens = _SpecTokens.size();
+    for (int i = 0; i < numTokens; i++) {
+        auto token = _SpecTokens[i];
+        if (_TranslateBuffer->Contains(token->Value)) {
+            found = true;
+            _TranslateBuffer->Replace(token->Value, std::string(1, token->AltName).c_str());
         }
-
-        // Check if we need to record.
-        if (!record && c == '#') {
-            record = !record;
-            if (!record) {
-                recordCount = 1;
-                _TranslateBuffer->Clear();
-            }
-
-            // Save our value.
-            _TranslateBuffer->AppendByte(c);
-            continue;
-        }
-
-        // If record is greater than 4 we are probably
-        // not inside of a special char.
-        if (record) {
-            _TranslateBuffer->AppendByte(c);
-            recordCount++;
-
-            // Clear our options.
-            if (recordCount == 4 && c !=  '#') {
-                record = false;
-                recordCount = 1;
-                _ResultBuffer->Append(_TranslateBuffer->CStr());
-                _TranslateBuffer->Clear();
-                continue;
-            }
-
-            // Try to decode our string.
-            if (c == '#') {
-                // Attempt to translate our string.
-                char dc;
-                std::string tranStr = _TranslateBuffer->CStr();
-
-                if (!DecodeSpecialChar(tranStr.c_str(), dc)) {
-                    _ResultBuffer->Append(tranStr.c_str());
-                } else {
-                    _ResultBuffer->AppendByte(dc);
-                }
-
-                _TranslateBuffer->Clear();
-                recordCount = 1;
-                record = false;
-            }
-            continue;
-        }
-
-        // Save our value.
-        _ResultBuffer->AppendByte(c);
     }
 
-    const std::string result = _ResultBuffer->CStr();
-    _ResultBuffer->Clear();
+    output = _TranslateBuffer->CStr();
     _TranslateBuffer->Clear();
 
-    return result;
+    return found;
 }
 
 void ScriptToken::AddStdToken(ScriptTokenType type, const char* name, const char* value)
@@ -315,7 +264,7 @@ TokenMeta* ScriptToken::FindToken(ScriptTokenType type, const char* token)
         case (int)ScriptTokenType::SpecialChar:
             size = _SpecTokens.size();
             for (unsigned i = 0; i < size; i++) {
-                if (strcmp(_SpecTokens[i]->Name, token) == 0) {
+                if (_SpecTokens[i]->AltName == *token) {
                     return _SpecTokens[i];
                 }
             }

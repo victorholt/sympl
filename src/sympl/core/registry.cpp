@@ -21,40 +21,5 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
-
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/ref.h>
-#include <sympl/core/variant.h>
-
-#include <sympl/thirdparty/urho3d/container/Vector.h>
-
-sympl_nsstart
-
-class SYMPL_API Object : public RefCounter {
-protected:
-    /// Meta keys for the object.
-    Urho3D::PODVector<char*> _MetaKeys;
-
-    /// Meta values for the object.
-    Urho3D::PODVector<Variant> _MetaValues;
-
-public:
-    //! Destructor.
-    ~Object();
-
-    //! Sets meta data for the object.
-    //! \param key
-    //! \param value
-    void SetMeta(const char* key, const Variant& value);
-
-    //! Returns meta data for the object.
-    //! \return Variant
-    Variant GetMeta(const char* key);
-
-    //! Returns whether or not the meta key exists.
-    //! \return bool
-    bool HasMeta(const char* key);
-};
-
-sympl_nsend
+#include <sympl/core/registry.h>
+sympl_namespaces
