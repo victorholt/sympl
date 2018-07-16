@@ -256,9 +256,20 @@ void ScriptParser::_BuildObject()
     bool isClass = false;
     bool isGlobal = (!_CurrentObject.IsValid() || !_CurrentObject->GetParent().IsValid() ||
                     _CurrentObject->GetParent().Ptr() != ScriptVMInstance->GetGlobalObject());
+    bool isArray = false;
+
+    // Check if we're an array.
+    auto bracketIndex = _Reader->GetBuffer()->FirstOccurrence('[', _CharLocation, 5);
+    if (bracketIndex != -1) {
+        auto semiColonIndex = _Reader->GetBuffer()->FirstOccurrence(';', _CharLocation, 15);
+        auto quoteIndex = _Reader->GetBuffer()->FirstOccurrence(SYMPL_STRING_TOKEN, _CharLocation, 15);
+        if ((semiColonIndex == -1 || semiColonIndex > quoteIndex) && quoteIndex != -1 && bracketIndex < quoteIndex) {
+            isArray = true;
+        }
+    }
 
     if (_CurrentIdentifierBuffer->Equals("var")) {
-        type = ScriptObjectType::Variable;
+        type = isArray ? ScriptObjectType::Array : ScriptObjectType::Variable;
     } else if (_CurrentIdentifierBuffer->Equals("func")) {
         type = ScriptObjectType::Method;
     } else if (_CurrentIdentifierBuffer->Equals("class")) {
@@ -496,7 +507,7 @@ void ScriptParser::_UpdateScanMode()
                 ScriptObject* existingObject = _FindObject(_CurrentIdentifierBuffer->CStr());
                 if (existingObject->IsEmpty() && _CurrentIdentifierBuffer->Contains('.')) {
                     // Calling a method from a variable(object).
-                    existingObject = _FindObject(_CurrentIdentifierBuffer->SubstrFirstOccurence('.').c_str());
+                    existingObject = _FindObject(_CurrentIdentifierBuffer->SubstrFirstOccurrence('.').c_str());
                     if (!existingObject->IsEmpty()) {
                         // If our string is structured like a method, we should append a (.
                         char currentChar = _Reader->GetBuffer()->Get(_CharLocation - 1);

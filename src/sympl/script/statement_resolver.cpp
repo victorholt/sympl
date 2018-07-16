@@ -455,6 +455,11 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
     return Variant::Empty;
 }
 
+Variant ArrayResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                        ScriptObject* varObject, StatementOperator op)
+{
+    return Variant::Empty;
+}
 
 StatementResolver::StatementResolver()
 {
@@ -530,6 +535,13 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                               currentChar != '(' && currentChar != '{' &&
                               currentChar != ')')) {
                 stmtEntryStr->AppendByte(currentChar);
+            }
+
+            // Check if we're in an array.
+            if (!recording && currentChar == '[') {
+                auto arrayResolver = SymplRegistry.Get<ArrayResolver>();
+                stmtEntryStr->Append(
+                        arrayResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
             }
 
             // Check if we're in a parenth or method.

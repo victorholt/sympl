@@ -27,6 +27,7 @@
 #include <sympl/script/method_registry.h>
 #include <sympl/script/script_reader.h>
 #include <sympl/script/script_method.h>
+#include <sympl/script/script_array.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -114,6 +115,8 @@ ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, Sc
 
     if (type == ScriptObjectType::Method) {
         scriptObject = mem_alloc_ref(ScriptMethod);
+    } else if (type == ScriptObjectType::Array) {
+        scriptObject = mem_alloc_ref(ScriptArray);
     } else {
         scriptObject = mem_alloc_ref(ScriptObject);
     }

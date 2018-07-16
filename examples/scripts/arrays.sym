@@ -1,13 +1,22 @@
 // Array examples.
-profiler_start("array");
+//profiler_start("array");
 
-var arr1 = ["one", "two", "three"];
-var arr2 = [2, 4, 6];
+//var notArr = "[not, an, array]";
+var arr1=["one", "two", "three"];
+//var arr2 = [2, 4, 6];
 
-printl(arr1);
-printl(arr2);
+//printl(notArr, true);
+printl(arr1, true);
+//printl(arr2, true);
 
-printl(arr1[0]);
-printl(arr2[2]);
+//arr1[0] = "one and some";
+//arr1.remove(0);
+//var arrayLen = arr1.length();
+//printl(arrayLen);
 
-profiler_stop("array");
+//printl(arr2);
+
+//printl(arr1[0]);
+//printl(arr2[2]);
+
+//profiler_stop("array");

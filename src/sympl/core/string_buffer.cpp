@@ -212,6 +212,7 @@ void StringBuffer::Replace(const char *search, const char *replaceWith)
     Append(buffer);
 }
 
+// TODO: Fails on following case: Replace2("add", "")
 void StringBuffer::Replace2(const char *search, const char *replaceWith)
 {
     if (_Length == 0) return;
@@ -309,7 +310,7 @@ bool StringBuffer::Contains(const char* search)
     return false;
 }
 
-std::string StringBuffer::SubstrFirstOccurence(const char c)
+std::string StringBuffer::SubstrFirstOccurrence(const char c)
 {
     std::string ret;
     for (size_t i = 0; i < _Length; i++) {
@@ -322,18 +323,19 @@ std::string StringBuffer::SubstrFirstOccurence(const char c)
     return ret;
 }
 
-std::string StringBuffer::SubstrFirstOccurence(const char* str)
+std::string StringBuffer::SubstrFirstOccurrence(const char* str)
 {
-    if (strlen(str) > _Length) {
+    auto strLen = strlen(str);
+    if (strLen > _Length) {
         return CStr();
     }
 
-    if (strlen(str) == 1) {
-        return SubstrFirstOccurence(*str);
+    if (strLen == 1) {
+        return SubstrFirstOccurrence(*str);
     }
 
     std::string ret;
-    size_t numChars = strlen(str);
+    size_t numChars = strLen;
     int searchIndex = 0;
 
     for (size_t i = 0; i < _Length; i++) {
@@ -350,6 +352,67 @@ std::string StringBuffer::SubstrFirstOccurence(const char* str)
     }
 
     return ret;
+}
+
+long long StringBuffer::FirstOccurrence(const char c, size_t startIndex, size_t limit)
+{
+    if (startIndex >= _Length) {
+        return -1;
+    }
+
+    long long index = 0;
+    size_t curLimit = 0;
+
+    for (size_t i = startIndex; i < _Length; i++) {
+        if (static_cast<char>(_Buffer[i]) == c) {
+            return (index + startIndex);
+        }
+        index++;
+        curLimit++;
+
+        if (limit != 0 && curLimit >= limit) {
+            break;
+        }
+    }
+
+    return -1;
+}
+
+long long StringBuffer::FirstOccurrence(const char* str, size_t startIndex, size_t limit)
+{
+    auto strLen = strlen(str);
+    if (strLen > _Length || startIndex >= _Length) {
+        return -1;
+    }
+
+    if (strLen == 1) {
+        return FirstOccurrence(*str);
+    }
+
+    long long index = 0;
+    size_t curLimit = 0;
+    size_t numChars = strLen;
+    int searchIndex = 0;
+
+    for (size_t i = startIndex; i < _Length; i++) {
+        if (static_cast<char>(_Buffer[i]) == str[searchIndex]) {
+            searchIndex++;
+        } else {
+            searchIndex = 0;
+        }
+
+        if (searchIndex == numChars) {
+            return ((index + startIndex) - searchIndex + 1);
+        }
+        index++;
+        curLimit++;
+
+        if (limit != 0 && curLimit >= limit) {
+            break;
+        }
+    }
+
+    return -1;
 }
 
 bool StringBuffer::PeekSearch(const char* search, size_t startIndex)

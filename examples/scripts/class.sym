@@ -20,6 +20,10 @@ class Animal {
 
 // Class that creates animals.
 class AnimalCreator {
+    func ~AnimalCreator() : void {
+        printl("Destroying animal creator");
+    }
+
     func createAnimal() : void {
         var wolf = new Animal();
         wolf.name = "wolf";
@@ -27,7 +31,10 @@ class AnimalCreator {
     }
 }
 
-var creator = new AnimalCreator();
-creator.createAnimal();
+func createAnimalCreator() : void {
+    var creator = new AnimalCreator();
+    creator.createAnimal();
+}
+createAnimalCreator();
 
 profiler_stop("class");

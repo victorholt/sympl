@@ -103,6 +103,26 @@ public:
                             ScriptObject* varObject, StatementOperator op);
 };
 
+class SYMPL_API ArrayResolver : public Object
+{
+SYMPL_OBJECT(ArrayResolver, Object);
+
+public:
+    ArrayResolver() = default;
+
+    //! Called in place of the constructor.
+    void __Construct() override {}
+
+    //! Resolves the parentheses.
+    //! \param stmtResolver
+    //! \param currentStr
+    //! \param varObject
+    //! \param op
+    //! \return
+    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                            ScriptObject* varObject, StatementOperator op);
+};
+
 class SYMPL_API StatementResolver : public Object
 {
     SYMPL_OBJECT(StatementResolver, Object);

@@ -17,6 +17,15 @@ int main()
     SymplRegistry.Register(mem_alloc_ref(EvalResolver));
     SymplRegistry.Register(mem_alloc_ref(MethodResolver));
     SymplRegistry.Register(mem_alloc_ref(ParenthResolver));
+    SymplRegistry.Register(mem_alloc_ref(ArrayResolver));
+
+//    auto occurSb = mem_alloc_ref(StringBuffer);
+//    occurSb->Append("arr = [\"one\", \"two\"];");
+//    auto osb1Index = occurSb->FirstOccurrence('[');
+//    auto osb2Index = occurSb->FirstOccurrence("\"two\"", 11, 25);
+//    char c = occurSb->Get(osb2Index);
+//    mem_free_ref(StringBuffer, occurSb);
+//    return 0;
 
 //    auto sb = mem_alloc_ref(StringBuffer);
 //    sb->Append("Testing the replacement string");
@@ -66,8 +75,9 @@ int main()
 //    return 0;
 
     sympl_profile_start("program_load");
-    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/class.sym");
-//    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/hello.sym");
+    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/arrays.sym");
+//    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/class.sym");
+//    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/math.sym");
 //    auto program = ScriptVMInstance->LoadString("");
     sympl_profile_stop_and_print("program_load");
 

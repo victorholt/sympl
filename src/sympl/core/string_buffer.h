@@ -122,12 +122,26 @@ public:
     //! Returns a substr once it encounters the given string.
     //! \param c
     //! \return
-    std::string SubstrFirstOccurence(const char c);
+    std::string SubstrFirstOccurrence(const char c);
 
     //! Returns a substr once it encounters the given character.
     //! \param str
     //! \return
-    std::string SubstrFirstOccurence(const char* str);
+    std::string SubstrFirstOccurrence(const char* str);
+
+    //! Returns the index of the first occurence of a character.
+    //! \param c
+    //! \param startIndex
+    //! \param limit
+    //! \return long long
+    long long FirstOccurrence(const char c, size_t startIndex = 0, size_t limit  = 0);
+
+    //! Returns the index of the first occurence of a string.
+    //! \param str
+    //! \param startIndex
+    //! \param limit
+    //! \return long long
+    long long FirstOccurrence(const char* str, size_t startIndex = 0, size_t limit = 0);
 
     //! Test peek to see if a string is a match.
     //! \param search
