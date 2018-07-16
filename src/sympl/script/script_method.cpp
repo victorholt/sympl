@@ -162,6 +162,14 @@ void ScriptMethod::_ProcessCallStatements()
             );
         }
 
+        // Recursive check.
+        // First we traverse up to see if we are inside of a method
+        // that isn't an immediate method (if, while, etc...).
+        auto methodParent = FindCalledByMethod();
+        if (!methodParent->IsEmpty() && varObject->GetName() == "return" && entryIt->StatementStr->Contains(methodParent->GetCleanName().c_str())) {
+            to_method(methodParent)->SetIsRecursive(true);
+        }
+
         auto val = entryIt->Resolver->Resolve(entryIt->StatementStr->CStr(), varObject.Ptr());
 
         if (!val.IsEmpty()) {

@@ -66,7 +66,7 @@ int main()
 //    return 0;
 
     sympl_profile_start("program_load");
-    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/fib.sym");
+    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/class.sym");
 //    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/hello.sym");
 //    auto program = ScriptVMInstance->LoadString("");
     sympl_profile_stop_and_print("program_load");

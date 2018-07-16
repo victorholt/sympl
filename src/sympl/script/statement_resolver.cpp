@@ -97,7 +97,13 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     }
 
     // Check if we have arguments cached.
-    MethodArgCache* methodArgCache = to_method(scriptObject)->FindOrCreateArgCache(stmtResolver->GetStatementString()->CStr());
+    MethodArgCache* methodArgCache = nullptr;
+
+    // Attempt to detect a recursive function, which can't utilize
+    // method caching.
+    if (!to_method(scriptObject)->GetIsRecursive()) {
+        methodArgCache = to_method(scriptObject)->FindOrCreateArgCache(stmtResolver->GetStatementString()->CStr());
+    }
     if (!IsNullObject(methodArgCache) && methodArgCache->Args.size() == to_method(scriptObject)->GetNumArgs()) {
         for (auto& cacheArg: methodArgCache->Args) {
             if (cacheArg.ArgValue.GetType() == VariantType::Object) {

@@ -97,6 +97,10 @@ protected:
     /// Immediate methods are called the moment they are defined (if, while, etc).
     bool _IsImmediate = false;
 
+    /// Flag set on the return to determine whether or not this
+    /// is a recursive method.
+    bool _IsRecursive = false;
+
     /// Flag to ignore the return type check.
     bool _IgnoreReturnTypeCheck = false;
 
@@ -166,7 +170,7 @@ public:
     ScriptObject* GetScope();
 
     //! Returns the parent of the current scope.
-    //! \return ScriptObject.
+    //! \return ScriptObject
     ScriptObject* GetScopeParent();
 
     //! Adds an argument cache entry.
@@ -269,6 +273,18 @@ public:
     //! \return bool
     inline bool IsImmediate() const {
         return _IsImmediate;
+    }
+
+    //! Sets whether or not this method is recursive.
+    //! \param value
+    inline void SetIsRecursive(bool value) {
+        _IsRecursive = value;
+    }
+
+    //! Returns whether or not this method is recursive.
+    //! \return bool
+    inline bool GetIsRecursive() const {
+        return _IsRecursive;
     }
 
     //! Sets the arguments string.
