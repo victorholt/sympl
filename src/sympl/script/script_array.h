@@ -49,6 +49,9 @@ public:
     //! \param index
     void RemoveItem(size_t index);
 
+    //! Returns a string representation of the array.
+    std::string GetArrayString();
+
     //! Returns an item from the array.
     //! \param index
     //! \return Variant

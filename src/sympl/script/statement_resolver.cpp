@@ -24,6 +24,7 @@
 #include <sympl/script/statement_resolver.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/method_registry.h>
+#include <sympl/script/script_array.h>
 #include <sympl/util/number_helper.h>
 #include <sympl/util/string_helper.h>
 #include <sympl/script/statement_cache.h>
@@ -458,6 +459,67 @@ Variant ParenthResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* 
 Variant ArrayResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
                         ScriptObject* varObject, StatementOperator op)
 {
+    currentStr->Clear();
+
+    auto statementStr = stmtResolver->GetStatementString();
+
+    // Parse out the object value.
+    char currentChar = '\0';
+    bool recording = false;
+
+    // String to resolve.
+    auto resolveStr = mem_alloc_ref(StringBuffer);
+//    SharedPtr<StringBuffer> arrayValue = mem_alloc_ref(StringBuffer);
+//    arrayValue->AppendByte('[');
+
+    // Current/last concatenating condition.
+    std::string currentConcatConditionStr;
+    std::string lastConcatConditionStr;
+
+    // Current argument value.
+    Variant argValue;
+
+    // Build out the argument statements.
+    while (true) {
+        currentChar = statementStr->Get(stmtResolver->GetCurrentCharLocation());
+        stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + 1);
+
+        // Check if we've reached the end.
+        if (currentChar == '\0') {
+            break;
+        }
+
+        // Check if we've encountered a quote.
+        if (currentChar == '%' && statementStr->PeekSearch(SYMPL_STRING_TOKEN, stmtResolver->GetCurrentCharLocation() - 1)) {
+            stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
+            recording = !recording;
+//            arrayValue->Append(SYMPL_STRING_TOKEN);
+            continue;
+        }
+
+        if (!recording && (currentChar == ']' || currentChar == ',')) {
+//            arrayValue->AppendByte(currentChar);
+
+            // Save our array entry.
+            if (!resolveStr->Empty()) {
+                EvalResolver evalResolver;
+                Variant value = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), varObject);
+                to_array(varObject)->AddItem(value);
+                resolveStr->Clear();
+            }
+        } else if (currentChar == ';') {
+//            arrayValue->AppendByte(currentChar);
+            stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() - 1);
+//            to_array(varObject)->SetValue(arrayValue->CStr());
+            to_array(varObject)->SetValue(varObject);
+            return Variant(varObject->GetCleanName().c_str());
+        } else {
+            resolveStr->AppendByte(currentChar);
+//            arrayValue->AppendByte(currentChar);
+        }
+    }
+
+    sympl_assert(false && "Unclosed array found!");
     return Variant::Empty;
 }
 
@@ -523,12 +585,12 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
             _CurrentCharLocation++;
 
             // Check if we're starting a string.
-//            if (currentChar == '%' && stmtEntryStr->PeekSearch(SYMPL_STRING_TOKEN, GetCurrentCharLocation() - 1)) {
+            if (currentChar == '%' && _StmtString->PeekSearch(SYMPL_STRING_TOKEN, GetCurrentCharLocation() - 1)) {
 //                stmtEntryStr->Append(SYMPL_STRING_TOKEN);
-//                SetCurrentCharLocation(GetCurrentCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
-//                recording = !recording;
-//                continue;
-//            }
+                SetCurrentCharLocation(GetCurrentCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
+                recording = !recording;
+                continue;
+            }
 
             // Save our current character.
             if (recording || (currentChar != '#' && currentChar != ';' &&
@@ -538,10 +600,11 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
             }
 
             // Check if we're in an array.
-            if (!recording && currentChar == '[') {
+            if (!recording && currentChar == '[' && varObject->GetType() == ScriptObjectType::Array) {
                 auto arrayResolver = SymplRegistry.Get<ArrayResolver>();
                 stmtEntryStr->Append(
                         arrayResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
+                continue;
             }
 
             // Check if we're in a parenth or method.

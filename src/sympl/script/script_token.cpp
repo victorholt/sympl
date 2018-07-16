@@ -60,8 +60,8 @@ void ScriptToken::__Construct()
 
     AddStdToken(ScriptTokenType::Identifier, "{", "{");
     AddStdToken(ScriptTokenType::Identifier, "}", "}");
-    AddStdToken(ScriptTokenType::Identifier, "[", "[");
-    AddStdToken(ScriptTokenType::Identifier, "]", "]");
+//    AddStdToken(ScriptTokenType::Identifier, "[", "[");
+//    AddStdToken(ScriptTokenType::Identifier, "]", "]");
 
     AddDelToken(ScriptTokenType::Delimiter, ",", ",");
     AddDelToken(ScriptTokenType::Delimiter, ";", ";");

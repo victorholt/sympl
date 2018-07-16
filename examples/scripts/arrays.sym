@@ -6,7 +6,7 @@ var arr1=["one", "two", "three"];
 //var arr2 = [2, 4, 6];
 
 //printl(notArr, true);
-printl(arr1, true);
+printl(arr1[0], true);
 //printl(arr2, true);
 
 //arr1[0] = "one and some";

@@ -417,8 +417,8 @@ long long StringBuffer::FirstOccurrence(const char* str, size_t startIndex, size
 
 bool StringBuffer::PeekSearch(const char* search, size_t startIndex)
 {
-    size_t endIndex = strlen(search);
-    if (endIndex == 0 || startIndex > _Length || (startIndex + endIndex) > _Length) {
+    size_t endIndex = startIndex + strlen(search);
+    if (endIndex == 0 || startIndex > _Length || endIndex > _Length) {
         return false;
     }
 

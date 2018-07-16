@@ -47,6 +47,22 @@ void ScriptArray::RemoveItem(size_t index)
     _Items.erase(_Items.begin() + index);
 }
 
+std::string ScriptArray::GetArrayString()
+{
+    std::string value = "[";
+    auto numItems = _Items.size();
+    for (size_t i = 0; i < numItems; i++) {
+        if (i > 0) {
+            value.append(",");
+        }
+
+        auto entry = _Items[i];
+        value.append(entry.AsString());
+    }
+    value.append("]");
+    return value;
+}
+
 const Variant& ScriptArray::GetItem(size_t index)
 {
     if (index >= _Items.size()) {
