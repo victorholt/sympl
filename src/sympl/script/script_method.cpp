@@ -59,16 +59,16 @@ Variant ScriptMethod::Evaluate(ScriptMethodArgs args)
     _ProcessCallStatements();
 
     // Delete anything created in the scope.
-//    for (auto& child : GetScope()->GetChildren()) {
-//        if (child->GetType() == ScriptObjectType::Method) {
-//            continue;
-//        }
-//        if (child->RefCount() == 1) {
-//            for (auto childEntry : child->GetChildren()) {
-//                ScriptVMInstance->QueueDelete(childEntry.Ptr());
-//            }
-//        }
-//    }
+    for (auto& child : GetScope()->GetChildren()) {
+        if (child->GetType() == ScriptObjectType::Method) {
+            continue;
+        }
+        if (child->RefCount() == 1) {
+            for (auto childEntry : child->GetChildren()) {
+                ScriptVMInstance->QueueDelete(childEntry.Ptr());
+            }
+        }
+    }
 
     return _Value;
 }
