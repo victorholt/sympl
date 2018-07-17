@@ -24,16 +24,19 @@ class AnimalCreator {
         printl("Destroying animal creator");
     }
 
-    func createAnimal() : void {
+    func createAnimal() : object {
         var wolf = new Animal();
         wolf.name = "wolf";
         printl(wolf.name);
+
+        return wolf;
     }
 }
 
 func createAnimalCreator() : void {
     var creator = new AnimalCreator();
-    creator.createAnimal();
+    var wolf = creator.createAnimal();
+    printl(wolf);
 }
 createAnimalCreator();
 

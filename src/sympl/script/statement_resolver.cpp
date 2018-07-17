@@ -551,7 +551,7 @@ Variant ArrayResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* cu
     bool valueAssignment = _CheckValueAssignment(stmtResolver, varObject, valueIndex);
     bool isAssocArray = false;
 
-    size_t arrayIndex = 0;
+    int arrayIndex = 0;
 
     // Current/last concatenating condition.
     std::string currentConcatConditionStr;

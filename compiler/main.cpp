@@ -77,13 +77,13 @@ int main()
 //    return 0;
 
     sympl_profile_start("program_load");
-    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/arrays.sym");
+//    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/arrays.sym");
 //    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/loops.sym");
-//    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/class.sym");
+    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/class.sym");
 //    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/math.sym");
 //    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/fib.sym");
 //    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/hello.sym");
-    program = ScriptVMInstance->LoadString("var n = arr1[1]; printl(n);");
+//    program = ScriptVMInstance->LoadString("var n = arr1[1]; printl(n);");
     sympl_profile_stop_and_print("program_load");
 
 //    sympl_profile_start("program_run");
