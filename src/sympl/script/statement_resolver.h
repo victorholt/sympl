@@ -105,7 +105,13 @@ public:
 
 class SYMPL_API ArrayResolver : public Object
 {
-SYMPL_OBJECT(ArrayResolver, Object);
+    SYMPL_OBJECT(ArrayResolver, Object);
+
+protected:
+    //! Checks if this is a value assignment and returns the assignment address.
+    //! \param index
+    //! \return
+    bool _CheckValueAssignment(StatementResolver* stmtResolver, ScriptObject* varObject, Variant& index);
 
 public:
     ArrayResolver() = default;
@@ -113,7 +119,7 @@ public:
     //! Called in place of the constructor.
     void __Construct() override {}
 
-    //! Resolves the parentheses.
+    //! Resolves the array.
     //! \param stmtResolver
     //! \param currentStr
     //! \param varObject
@@ -121,6 +127,14 @@ public:
     //! \return
     virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
                             ScriptObject* varObject, StatementOperator op);
+
+    //! Resolves the value for an array.
+    //! \param stmtResolver
+    //! \param currentStr
+    //! \param varObject
+    //! \param op
+    //! \return
+    virtual Variant ResolveValue(StatementResolver* stmtResolver, StringBuffer* currentStr, ScriptObject* varObject);
 };
 
 class SYMPL_API StatementResolver : public Object
@@ -142,6 +156,9 @@ private:
 
     // Statement entries.
     std::vector<StatementEntry*> _StmtEntries;
+
+    /// Flag that lets us know this resolver is in use (for Registry checks).
+    bool _InUse = false;
 
     //! Attempts to resolve a given statement.
     //! \param stmtEntries
@@ -211,6 +228,10 @@ public:
     //! Returns the statement type.
     //! \return StatementType
     inline StatementType GetType() const { return _Type; }
+
+    //! Returns whether or not the resolver is in use.
+    //! \return bool
+    inline bool GetInUse() const { return _InUse; }
 
     friend EvalResolver;
     friend MethodResolver;

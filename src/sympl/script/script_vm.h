@@ -62,6 +62,9 @@ private:
     /// Symbol token checker.
     SharedPtr<ScriptToken> _Symbol;
 
+    /// Reference to the interpreter.
+    SharedPtr<Interpreter> _Interpreter;
+
     /// Objects queued for delete.
     std::vector< SharedPtr<ScriptObject> > _DeleteQueue;
 

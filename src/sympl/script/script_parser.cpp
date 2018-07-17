@@ -138,11 +138,11 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
             continue;
         }
 
-        // Check if we're an array.
+        // Check if we need to scan an array statement
         if (!_RecordingString && currentChar == '[' &&
-            _ScanMode == ParserScanMode::Value &&
-            _CurrentObject->GetType() == ScriptObjectType::Variable) {
-
+            _ScanMode == ParserScanMode::Type) {
+            _ScanArrayStatement();
+            continue;
         }
 
         // Attempt to close the current scope.
@@ -260,10 +260,19 @@ void ScriptParser::_BuildObject()
 
     // Check if we're an array.
     auto bracketIndex = _Reader->GetBuffer()->FirstOccurrence('[', _CharLocation, 5);
+    auto equalsIndex = _Reader->GetBuffer()->FirstOccurrence('=', _CharLocation - 3, 5);
+
     if (bracketIndex != -1) {
         auto semiColonIndex = _Reader->GetBuffer()->FirstOccurrence(';', _CharLocation, 15);
         auto quoteIndex = _Reader->GetBuffer()->FirstOccurrence(SYMPL_STRING_TOKEN, _CharLocation, 15);
+
+        // Test if a potential array has strings as values.
         if ((semiColonIndex == -1 || semiColonIndex > quoteIndex) && quoteIndex != -1 && bracketIndex < quoteIndex) {
+            isArray = true;
+        }
+
+        // Test array that may not have strings.
+        if (quoteIndex == -1 && equalsIndex < bracketIndex) {
             isArray = true;
         }
     }
@@ -410,6 +419,66 @@ void ScriptParser::_BuildMethodArgs()
 
     // The while loop should quit before we reach this call.
     sympl_assert(_CharLocation < _Reader->GetBuffer()->Length() && "Invalid method parsing error!");
+}
+
+void ScriptParser::_ScanArrayStatement()
+{
+    // Attempt to find the object from our identifier.
+    auto arrayObj = _FindObject(_CurrentIdentifierBuffer->CStr());
+    sympl_assert(!arrayObj->IsEmpty() && arrayObj->GetType() == ScriptObjectType::Array && "Illegal assignment to an invalid array");
+
+    _CurrentObject = arrayObj;
+    _CurrentObjectBuffer->Clear();
+    _CurrentObjectBuffer->Append(arrayObj->GetName());
+
+    _CurrentIdentifierBuffer->Clear();
+    _CurrentValueBuffer->Clear();
+
+    char currentChar = '\0';
+    bool findValue = false;
+    bool recording = false;
+
+    auto buffer = _Reader->GetBuffer();
+    auto bufferSize = buffer->Length();
+
+    // Step the location back one so we can capture the '[' character.
+    _CharLocation--;
+    while (_CharLocation < bufferSize) {
+        currentChar = buffer->Get(_CharLocation);
+        _CharLocation++;
+
+        // Check if we're starting a string.
+        if (currentChar == '%' && buffer->PeekSearch(SYMPL_STRING_TOKEN, _CharLocation - 1)) {
+            _CharLocation = _CharLocation + strlen(SYMPL_STRING_TOKEN) - 1;
+            recording = !recording;
+            _CurrentValueBuffer->Append(SYMPL_STRING_TOKEN);
+            continue;
+        }
+
+        // Check if we need to record.
+        if (currentChar == ']') {
+            _CurrentValueBuffer->AppendByte(currentChar);
+            findValue = true;
+            continue;
+        }
+
+        // Skip spaces.
+        if (!currentChar == '#' && !findValue) {
+            continue;
+        }
+
+        _CurrentValueBuffer->AppendByte(currentChar);
+
+        // Check if we've reached the end.
+        if (!recording && currentChar == ';') {
+            _UpdateObjectValue();
+            _CurrentObjectBuffer->Clear();
+            _CurrentValueBuffer->Clear();
+            return;
+        }
+    }
+
+    sympl_assert(false && "Invalid array attempt in parser!");
 }
 
 void ScriptParser::_UpdateObjectValue()

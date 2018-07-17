@@ -82,11 +82,13 @@ Interpreter* ScriptVM::LoadFile(const char* filePath)
     SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
     reader->ReadFile(filePath);
 
-    auto interpret = mem_alloc_ref(Interpreter);
-    interpret->_SetReader(reader.Ptr());
-    interpret->_Parse();
+    if (!_Interpreter.IsValid()) {
+        _Interpreter = mem_alloc_ref(Interpreter);
+    }
+    _Interpreter->_SetReader(reader.Ptr());
+    _Interpreter->_Parse();
 
-    return interpret;
+    return _Interpreter.Ptr();
 }
 
 Interpreter* ScriptVM::LoadString(const char* str)
@@ -94,11 +96,13 @@ Interpreter* ScriptVM::LoadString(const char* str)
     SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
     reader->ReadString(str);
 
-    auto interpret = mem_alloc_ref(Interpreter);
-    interpret->_SetReader(reader.Ptr());
-    interpret->_Parse();
+    if (!_Interpreter.IsValid()) {
+        _Interpreter = mem_alloc_ref(Interpreter);
+    }
+    _Interpreter->_SetReader(reader.Ptr());
+    _Interpreter->_Parse();
 
-    return interpret;
+    return _Interpreter.Ptr();
 }
 
 ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent)

@@ -99,6 +99,9 @@ private:
     //! Build out the method arguments with the current buffer.
     void _BuildMethodArgs();
 
+    //! Scan a potential array statement.
+    void _ScanArrayStatement();
+
     //! Updates the object's value.
     void _UpdateObjectValue();
 

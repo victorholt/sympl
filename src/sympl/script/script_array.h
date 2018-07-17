@@ -35,19 +35,24 @@ class SYMPL_API ScriptArray : public ScriptObject
 
 protected:
     /// Items in the array.
-    std::vector<Variant> _Items;
+    std::unordered_map<std::string, Variant> _Items;
 
 public:
     //! Constructor.
     ScriptArray();
 
-    //! Adds an item to the array.
+    //! Sets an item to the array.
+    //! \param index
     //! \param item
-    void AddItem(const Variant& item);
+    void SetItem(const char* index, const Variant& item);
 
     //! Removes an item from the array.
     //! \param index
     void RemoveItem(size_t index);
+
+    //! Removes an item from the array.
+    //! \param index
+    void RemoveItem(const char* index);
 
     //! Returns a string representation of the array.
     std::string GetArrayString();
@@ -57,6 +62,11 @@ public:
     //! \return Variant
     const Variant& GetItem(size_t index);
 
+    //! Returns an item from the array.
+    //! \param index
+    //! \return Variant
+    const Variant& GetItem(const char* index);
+
     //! Called in place of the constructor.
     void __Construct() override;
 
@@ -65,7 +75,7 @@ public:
 
     //! Returns items in the array.
     //! \return std::vector<Variant>
-    inline const std::vector<Variant>& GetItems() const { return _Items; }
+    inline const std::unordered_map<std::string, Variant>& GetItems() const { return _Items; }
 
     //! Returns the length of the array.
     //! \return size_t

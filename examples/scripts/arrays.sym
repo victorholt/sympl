@@ -1,22 +1,25 @@
 // Array examples.
 //profiler_start("array");
 
-//var notArr = "[not, an, array]";
-var arr1=["one", "two", "three"];
-//var arr2 = [2, 4, 6];
+var notArr = "[not, an, array]";
+var arr1 = [
+    "one",
+    "two",
+    "three"
+];
+var arr2 = [2, 4, 6];
+var arr3 = [
+    "name": "test",
+    "color": "red"
+];
 
-//printl(notArr, true);
+arr1[0] = "one and some";
+
+printl(notArr, true);
 printl(arr1[0], true);
-//printl(arr2, true);
+printl(arr2[2], true);
 
-//arr1[0] = "one and some";
-//arr1.remove(0);
-//var arrayLen = arr1.length();
-//printl(arrayLen);
-
-//printl(arr2);
-
-//printl(arr1[0]);
-//printl(arr2[2]);
+arr3["name"] = "jim";
+printl(arr3["name"], true);
 
 //profiler_stop("array");

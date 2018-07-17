@@ -12,6 +12,8 @@ int main()
     mem_create_pool(ScriptObject, 50);
     mem_create_pool(ScriptMethod, 50);
 
+    mem_create_pool(EvalResolver, 25);
+
     SymplRegistry.Register(mem_alloc_ref(ScriptToken));
     SymplRegistry.Register(mem_alloc_ref(StatementResolver));
     SymplRegistry.Register(mem_alloc_ref(EvalResolver));
@@ -76,9 +78,12 @@ int main()
 
     sympl_profile_start("program_load");
     auto program = ScriptVMInstance->LoadFile("../../examples/scripts/arrays.sym");
+//    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/loops.sym");
 //    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/class.sym");
 //    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/math.sym");
-//    auto program = ScriptVMInstance->LoadString("");
+//    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/fib.sym");
+//    auto program = ScriptVMInstance->LoadFile("../../examples/scripts/hello.sym");
+    program = ScriptVMInstance->LoadString("var n = arr1[1]; printl(n);");
     sympl_profile_stop_and_print("program_load");
 
 //    sympl_profile_start("program_run");
