@@ -102,15 +102,6 @@ ScriptObject* ScriptContext::FindVariable(const char* name, bool traverse)
 
 ScriptObject* ScriptContext::FindObject(const char* name, bool traverse)
 {
-//    auto objIt = _ObjectList.Begin();
-//    while (objIt != _ObjectList.End()) {
-//        if (strcmp((*objIt)->GetName().c_str(), name) == 0) {
-//            return *objIt;
-//        }
-//        objIt++;
-//    }
-//    if (!traverse) return &ScriptObject::Empty;
-
     // Search the context of the caller if we have one (methods).
     if (_CallerContext.IsValid()) {
         auto obj = _CallerContext->FindObject(name);

@@ -74,7 +74,7 @@ public:
     //! \param obj
 //    void AddObject(ScriptObject* obj);
 
-    //! Finds an object within the scope.
+    //! Finds an object within the scope (does not matter if the type is variable, array, method, etc).
     //! \param name
     //! \param traverse
     //! \return ScriptObject

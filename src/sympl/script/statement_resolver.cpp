@@ -939,12 +939,12 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                     ScriptObject* obj = nullptr;
                     if (varObject->GetType() == ScriptObjectType::Method) {
                         // Check if our string is structured like a path.
-                        if (stmtEntryStr->Contains('.')) {
-                            obj = ScriptVMInstance->FindObjectByPath(
-                                    stmtEntryStr->CStr(),
-                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
-                            );
-                        }
+//                        if (stmtEntryStr->Contains('.')) {
+//                            obj = ScriptVMInstance->FindObjectByPath(
+//                                    stmtEntryStr->CStr(),
+//                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+//                            );
+//                        }
 
                         if (IsNullObject(obj) || obj->IsEmpty()) {
                             obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(stmtEntryStr->CStr(),
@@ -960,14 +960,14 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                             }
                         }
                     } else {
-                        if (stmtEntryStr->Contains('.')) {
-                            obj = ScriptVMInstance->FindObjectByPath(
-                                    stmtEntryStr->CStr(),
-                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
-                            );
-                        } else {
+//                        if (stmtEntryStr->Contains('.')) {
+//                            obj = ScriptVMInstance->FindObjectByPath(
+//                                    stmtEntryStr->CStr(),
+//                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+//                            );
+//                        } else {
                             obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
-                        }
+//                        }
                     }
 
                     // If this is an empty then we will consider it as a string.
