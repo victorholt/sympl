@@ -253,6 +253,14 @@ public:
     //! \return
     inline bool IsClass() const { return _IsClass; }
 
+    //! Returns whether or not this object is a reference.
+    //! \return
+    inline bool IsReference() { return HasMeta("RefAddress"); }
+
+    //! Returns the object's reference address.
+    //! \return
+    std::string GetReferenceAddress();
+
     //! Whether or not this is an empty object.
     //! \return
     inline bool IsEmpty() const { return _Type == ScriptObjectType::Empty; }

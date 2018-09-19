@@ -248,7 +248,17 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& relPath, ScriptObjec
                             currentObject = currentObject->GetChildren()[0].Ptr();
                             currentPath.append(".");
                             currentPath.append(SYMPL_SCOPE_NAME);
+                        } else if (currentObject->IsReference()) {
+                            currentObject = SymplRefRegistry.FindObject(currentObject->GetMeta("RefAddress").GetStringBuffer()->CStr());
+                            currentPath = currentObject->GetPath();
+
+                            if (!currentObject->GetChildren().empty() && currentObject->IsClass()) {
+                                currentObject = currentObject->GetChildren()[0].Ptr();
+                                currentPath.append(".");
+                                currentPath.append(SYMPL_SCOPE_NAME);
+                            }
                         }
+
                         break;
                     }
                 }

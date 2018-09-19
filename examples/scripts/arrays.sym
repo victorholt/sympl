@@ -21,5 +21,6 @@ printl(arr2[2], true);
 
 arr3["name"] = "jim";
 printl(arr3["name"], true);
+printl(arr3["color"], true);
 
 profiler_stop("array");

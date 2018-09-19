@@ -92,10 +92,11 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
     // Remove the name of the method so it's not part of the statement value.
     if (currentStr->Contains('.') && scriptObject->GetParent().IsValid() && scriptObject->GetParent()->GetParent().IsValid()) {
-        std::string methodName = scriptObject->GetParent()->GetParent()->GetCleanName();
-        methodName.append(".");
-        methodName.append(scriptObject->GetCleanName());
-        currentStr->Replace(methodName.c_str(), "");
+//        std::string methodName = scriptObject->GetCleanName(); //scriptObject->GetParent()->GetParent()->GetCleanName();
+//        methodName.append(".");
+//        methodName.append(scriptObject->GetCleanName());
+//        currentStr->Replace(methodName.c_str(), "");
+        currentStr->Clear();
     } else {
         currentStr->Replace(scriptObject->GetCleanName().c_str(), "");
     }
@@ -131,8 +132,8 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
         if (!methodRetVal.IsEmpty() && methodRetVal.GetType() == VariantType::Object) {
             auto objectRetVal = dynamic_cast<ScriptObject *>(methodRetVal.GetObject());
 
-            if (objectRetVal->IsClass() && objectRetVal->HasMeta("RefAddress")) {
-                retVal = fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, objectRetVal->GetPath());
+            if (objectRetVal->IsClass() && objectRetVal->IsReference()) {
+                retVal = fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, objectRetVal->GetReferenceAddress());
             } else {
                 retVal = objectRetVal->GetCleanName();
             }
@@ -171,13 +172,6 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
         nextChar = statementStr->Get(stmtResolver->GetCurrentCharLocation() + 1);
         stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + 1);
         argCacheLength++;
-
-//        if (currentChar == '%' && statementStr->PeekSearch(SYMPL_STRING_TOKEN, stmtResolver->GetCurrentCharLocation() - 1)) {
-//            resolveStr->Append(SYMPL_STRING_TOKEN);
-//            stmtResolver->SetCurrentCharLocation(stmtResolver->GetCurrentCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
-//            recording = !recording;
-//            continue;
-//        }
 
         if (!recording && currentChar == '(') {
             // Check to see if the varObject we have give is a method. If it's coming from
@@ -337,17 +331,11 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
                 if (!methodRetVal.IsEmpty() && methodRetVal.GetType() == VariantType::Object) {
                     auto objectRetVal = dynamic_cast<ScriptObject *>(methodRetVal.GetObject());
 
-                    if (objectRetVal->IsClass() && objectRetVal->HasMeta("RefAddress")) {
-                        retVal = fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, objectRetVal->GetPath());
+                    if (objectRetVal->IsClass() && objectRetVal->IsReference()) {
+                        retVal = fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, objectRetVal->GetReferenceAddress());
                     } else {
                         retVal = objectRetVal->GetCleanName();
                     }
-
-                    // If we're returning a referenced object (created by 'new')
-                    // we should change the scope.
-//                    if (objectRetVal->IsClass()) {
-//                        retVal = objectRetVal->Clone(varObject, false);
-//                    }
                 } else {
                     retVal = methodRetVal;
                 }
@@ -871,21 +859,18 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                         if (!existingMethod->IsEmpty()) {
                             sympl_assert(existingMethod->GetParent()->GetParent()->IsClass() && "Illegal call to 'new' on non-class object!");
 
-                            auto refObject = existingMethod->CreateReference();
-//                            varObject->SetIsClass(true);
-//                            varObject->CopyChildrenFrom(existingMethod->GetParent()->GetParent().Ptr());
-//                            SymplRefRegistry.Register(varObject);
+                            auto refObject = existingMethod->GetParent()->GetParent()->CreateReference();
 
                             // Call the constructor.
-                            auto constructor = varObject->GetChildren()[0].Ptr()->FindChildByName(
-                                    fmt::format("@{0}", varObject->GetName()).c_str()
+                            auto constructor = refObject->GetChildren()[0].Ptr()->FindChildByName(
+                                    fmt::format("@{0}", refObject->GetName()).c_str()
                             );
                             if (!constructor->IsEmpty()) {
                                 constructor->Evaluate();
                             }
 
                             stmtEntryStr->Clear();
-                            stmtEntryStr->Append(refObject->GetPath());
+                            stmtEntryStr->Append(fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, refObject->GetReferenceAddress()));
                             continue;
                         } else {
                             // No constructor, so build the object without one.
@@ -897,12 +882,9 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                             sympl_assert(existingMethod->IsClass() && "Illegal call to 'new' on non-class object!");
 
                             auto refObject = existingMethod->CreateReference();
-//                            varObject->SetIsClass(true);
-//                            varObject->CopyChildrenFrom(existingMethod);
-//                            SymplRefRegistry.Register(varObject);
 
                             stmtEntryStr->Clear();
-                            stmtEntryStr->Append(refObject->GetPath());
+                            stmtEntryStr->Append(fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, refObject->GetReferenceAddress()));
                             continue;
                         }
                     } else if (currentOp == StatementOperator::DeleteObject) {
@@ -984,37 +966,44 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                 if (stmtEntry->ConstantValue.IsEmpty()) {
                     ScriptObject* obj = nullptr;
 
-                    // Remove any SYMPL_STRING_TOKEN and mark as a class.
-                    if (varObject->GetType() == ScriptObjectType::Method) {
-                        // Check if our string is structured like a path.
-                        if (stmtEntryStr->Contains('.')) {
-                            obj = ScriptVMInstance->FindObjectByPath(
-                                    stmtEntryStr->CStr(),
-                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
-                            );
-                        }
+                    // Remove any SYMPL_CLASS_TOKEN and mark as a class.
+                    if (stmtEntryStr->StartsWith(SYMPL_CLASS_TOKEN)) {
+                        obj = SymplRefRegistry.FindObject(stmtEntryStr->CStr());
+                    }
 
-                        if (IsNullObject(obj) || obj->IsEmpty()) {
-                            obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(stmtEntryStr->CStr(),
-                                                                                               true);
-                            // Check if we're an object.
-                            if (obj->IsEmpty()) {
-                                obj = to_method(varObject)->GetScope()->GetContext()->FindObject(stmtEntryStr->CStr(),
-                                                                                                 true);
+                    if (IsNullObject(obj) || obj->IsEmpty()) {
+                        if (varObject->GetType() == ScriptObjectType::Method) {
+                            // Check if our string is structured like a path.
+                            if (stmtEntryStr->Contains('.')) {
+                                obj = ScriptVMInstance->FindObjectByPath(
+                                        stmtEntryStr->CStr(),
+                                        varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+                                );
                             }
-                            // Check if we're a method.
-                            if (obj->IsEmpty()) {
-                                obj = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
+
+                            if (IsNullObject(obj) || obj->IsEmpty()) {
+                                obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(stmtEntryStr->CStr(),
+                                                                                                   true);
+                                // Check if we're an object.
+                                if (obj->IsEmpty()) {
+                                    obj = to_method(varObject)->GetScope()->GetContext()->FindObject(
+                                            stmtEntryStr->CStr(),
+                                            true);
+                                }
+                                // Check if we're a method.
+                                if (obj->IsEmpty()) {
+                                    obj = ScriptVMInstance->GetMethodRegistry()->FindMethod(stmtEntryStr->CStr());
+                                }
                             }
-                        }
-                    } else {
-                        if (stmtEntryStr->Contains('.')) {
-                            obj = ScriptVMInstance->FindObjectByPath(
-                                    stmtEntryStr->CStr(),
-                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
-                            );
                         } else {
-                            obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
+                            if (stmtEntryStr->Contains('.')) {
+                                obj = ScriptVMInstance->FindObjectByPath(
+                                        stmtEntryStr->CStr(),
+                                        varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+                                );
+                            } else {
+                                obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
+                            }
                         }
                     }
 
@@ -1028,6 +1017,7 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                         if (obj->GetType() == ScriptObjectType::Method && !to_method(obj)->IsImmediate()) {
                             auto retType = to_method(obj)->GetReturnType();
                             switch ((int) retType) {
+                                case (int) MethodReturnType::Class:
                                 case (int) MethodReturnType::Object:
                                     SetType(StatementType::Object);
                                     break;
@@ -1091,7 +1081,7 @@ Variant StatementResolver::_ResolveStatements(const std::vector<StatementEntry*>
     // Evaluate if we only have 1 statement entry.
     if (stmtEntries.size() == 1) {
         auto entry = stmtEntries[0];
-        if (entry->Op == StatementOperator::Equals) {
+        if (entry->Op == StatementOperator::Equals || entry->Op == StatementOperator::NewObject) {
             if (entry->ObjectValue.IsValid()) {
                 if (entry->ObjectValue->GetType() == ScriptObjectType::Object ||
                     entry->ObjectValue->GetType() == ScriptObjectType::Method) {

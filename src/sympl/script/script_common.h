@@ -77,12 +77,10 @@ enum class StatementOperator {
 enum class StatementType {
     None = 0,
     Object,
-    Method,
     String,
     Bool,
     Integer,
     Float,
-    Void
 };
 
 struct StatementEntry

@@ -59,16 +59,16 @@ Variant ScriptMethod::Evaluate(ScriptMethodArgs args)
     _ProcessCallStatements();
 
     // Delete anything created in the scope.
-//    for (auto& child : GetScope()->GetChildren()) {
-//        if (child->GetType() == ScriptObjectType::Method) {
-//            continue;
-//        }
-//        if (child->RefCount() == 1) {
-//            for (auto childEntry : child->GetChildren()) {
-//                ScriptVMInstance->QueueDelete(childEntry.Ptr());
-//            }
-//        }
-//    }
+    for (auto& child : GetScope()->GetChildren()) {
+        if (child->GetType() == ScriptObjectType::Method) {
+            continue;
+        }
+        if (child->RefCount() == 1) {
+            for (auto childEntry : child->GetChildren()) {
+                ScriptVMInstance->QueueDelete(childEntry.Ptr());
+            }
+        }
+    }
 
     return _Value;
 }
@@ -175,6 +175,12 @@ void ScriptMethod::_ProcessCallStatements()
         if (!val.IsEmpty()) {
 //            _Value = val;
             varObject->SetValue(val);
+            if (val.GetType() == VariantType::Object) {
+                auto valObject = dynamic_cast<ScriptObject*>(val.GetObject());
+                if (valObject->IsReference()) {
+                    varObject->SetMeta("RefAddress", valObject->GetMeta("RefAddress"));
+                }
+            }
         }
 
         // Check if we're attempting to return out of the method.

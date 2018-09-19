@@ -14,6 +14,9 @@ class Animal {
     }
 
     func printName() : void {
+        if (name == "sympl") {
+            printl("Sympl is a great name!");
+        }
         printl(name);
     }
 }
@@ -27,8 +30,7 @@ class AnimalCreator {
     func createAnimal() : Animal {
         var wolf = new Animal();
         wolf.name = "wolf";
-        printl(wolf.name);
-
+        wolf.printName();
         return wolf;
     }
 }
@@ -36,7 +38,8 @@ class AnimalCreator {
 func createAnimalCreator() : void {
     var creator = new AnimalCreator();
     var wolf = creator.createAnimal();
-    printl(wolf.name);
+    wolf.name = "sympl";
+    wolf.printName();
 }
 createAnimalCreator();
 

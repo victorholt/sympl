@@ -100,11 +100,13 @@ void ScriptObject::CopyChildrenFrom(ScriptObject* scriptObject)
 
 ScriptObject* ScriptObject::CreateReference()
 {
-    sympl_assert(IsClass() && "Illegal attempt to create reference from a non-class object!");
+    if (!IsClass()) {
+        sympl_assert(IsClass() && "Illegal attempt to create reference from a non-class object!");
+    }
 
     auto clone = Clone();
-    auto address = SymplRefRegistry.Register(clone);
-    clone->SetPath(fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, address));
+    SymplRefRegistry.Register(clone);
+
     return clone;
 }
 
@@ -295,14 +297,19 @@ bool ScriptObject::Release()
     }
     _Children.clear();
 
-    SymplRefRegistry.Remove(this);
-
     return true;
 }
 
 WeakPtr<ScriptObject> ScriptObject::GetParent() const
 {
     return _Parent;
+}
+
+std::string ScriptObject::GetReferenceAddress() {
+    if (!IsReference()) {
+        return "";
+    }
+    return GetMeta("RefAddress").GetStringBuffer()->CStr();
 }
 
 void ScriptObject::_SetPath(const char* path)

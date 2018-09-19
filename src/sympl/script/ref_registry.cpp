@@ -42,6 +42,9 @@ std::string RefRegistry::Register(ScriptObject* entry)
 
 ScriptObject* RefRegistry::FindObject(std::string address)
 {
+    // Remove any tokens.
+    address = StringHelper::Replace(SYMPL_CLASS_TOKEN, "", address);
+
     auto entry = _AddressMap.find(address);
     if (entry == _AddressMap.end()) {
         return &ScriptObject::Empty;
