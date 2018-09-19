@@ -174,7 +174,11 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& relPath, ScriptObjec
 
     std::string path = relPath;
     if (!IsNullObject(scope) && !scope->IsEmpty()) {
-        path = fmt::format("{0}.{1}", scope->GetPath(), relPath);
+        if (scope->GetType() == ScriptObjectType::Method) {
+            path = fmt::format("{0}.{1}.{2}", scope->GetPath(), SYMPL_SCOPE_NAME, relPath);
+        } else {
+            path = fmt::format("{0}.{1}", scope->GetPath(), relPath);
+        }
     }
 
     std::string parseStr = path;

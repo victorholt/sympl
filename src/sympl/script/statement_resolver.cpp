@@ -105,7 +105,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
     // Attempt to detect a recursive function, which can't utilize
     // method caching.
-    if (!to_method(scriptObject)->GetIsRecursive()) {
+    if (!to_method(scriptObject)->GetIsRecursive() && to_method(scriptObject)->GetReturnType() != MethodReturnType::Object) {
         methodArgCache = to_method(scriptObject)->FindOrCreateArgCache(stmtResolver->GetStatementString()->CStr());
     }
     if (!IsNullObject(methodArgCache) && methodArgCache->Args.size() == to_method(scriptObject)->GetNumArgs()) {
@@ -124,7 +124,20 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
             }
         }
 
-        auto retVal = to_method(scriptObject)->Evaluate(args);
+//        auto retVal = to_method(scriptObject)->Evaluate(args);
+        Variant retVal;
+        auto methodRetVal = to_method(scriptObject)->Evaluate(args);
+
+        if (!methodRetVal.IsEmpty()) {
+            auto objectRetVal = dynamic_cast<ScriptObject *>(methodRetVal.GetObject());
+            retVal = objectRetVal;
+
+            // If we're returning a referenced object (created by 'new')
+            // we should change the scope.
+            if (objectRetVal->IsClass()) {
+                retVal = objectRetVal->Clone(varObject, false);
+            }
+        }
         return retVal;
     }
 
@@ -311,7 +324,19 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
                 // Restore the statement buffer.
                 //_StatementBuffer->Append(savedStatementStr);
-                auto retVal = to_method(scriptObject)->Evaluate(args);
+                Variant retVal;
+                auto methodRetVal = to_method(scriptObject)->Evaluate(args);
+
+                if (!methodRetVal.IsEmpty()) {
+                    auto objectRetVal = dynamic_cast<ScriptObject *>(methodRetVal.GetObject());
+                    retVal = objectRetVal;
+
+                    // If we're returning a referenced object (created by 'new')
+                    // we should change the scope.
+                    if (objectRetVal->IsClass()) {
+                        retVal = objectRetVal->Clone(varObject, false);
+                    }
+                }
 
                 args.Clear();
                 return retVal;
@@ -939,12 +964,12 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                     ScriptObject* obj = nullptr;
                     if (varObject->GetType() == ScriptObjectType::Method) {
                         // Check if our string is structured like a path.
-//                        if (stmtEntryStr->Contains('.')) {
-//                            obj = ScriptVMInstance->FindObjectByPath(
-//                                    stmtEntryStr->CStr(),
-//                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
-//                            );
-//                        }
+                        if (stmtEntryStr->Contains('.')) {
+                            obj = ScriptVMInstance->FindObjectByPath(
+                                    stmtEntryStr->CStr(),
+                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+                            );
+                        }
 
                         if (IsNullObject(obj) || obj->IsEmpty()) {
                             obj = to_method(varObject)->GetScope()->GetContext()->FindVariable(stmtEntryStr->CStr(),
@@ -960,14 +985,14 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                             }
                         }
                     } else {
-//                        if (stmtEntryStr->Contains('.')) {
-//                            obj = ScriptVMInstance->FindObjectByPath(
-//                                    stmtEntryStr->CStr(),
-//                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
-//                            );
-//                        } else {
+                        if (stmtEntryStr->Contains('.')) {
+                            obj = ScriptVMInstance->FindObjectByPath(
+                                    stmtEntryStr->CStr(),
+                                    varObject->GetParent().IsValid() ? varObject->GetParent().Ptr() : nullptr
+                            );
+                        } else {
                             obj = varObject->GetContext()->FindVariable(stmtEntryStr->CStr(), true);
-//                        }
+                        }
                     }
 
                     // If this is an empty then we will consider it as a string.
@@ -1010,7 +1035,8 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
     }
 
     // Cache if we haven't cached already.
-    if (!cache && !statement_has_method && IsNullObject(stmtCache) && !IsNullObject(cacheContext)) {
+    // We cannot cache 'new' class objects.
+    if (!varObject->IsClass() && !cache && !statement_has_method && IsNullObject(stmtCache) && !IsNullObject(cacheContext)) {
         stmtCache = cacheContext->GetStatementCache()->Cache(
                 str.c_str(),
                 _StmtEntries
@@ -1025,7 +1051,7 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
         retVal = _ResolveStatements(_StmtEntries);
     }
 
-    if (!cache) {
+    if (varObject->IsClass() || !cache) {
         ClearStatementEntries();
     }
 

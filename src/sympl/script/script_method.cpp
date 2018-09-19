@@ -175,6 +175,8 @@ void ScriptMethod::_ProcessCallStatements()
         if (!val.IsEmpty()) {
             _Value = val;
             varObject->SetValue(_Value);
+        } else if (varObject->IsClass()) {
+            val = varObject.Ptr();
         }
 
         // Check if we're attempting to return out of the method.

@@ -36,7 +36,7 @@ class AnimalCreator {
 func createAnimalCreator() : void {
     var creator = new AnimalCreator();
     var wolf = creator.createAnimal();
-    printl(wolf.name);
+    //printl(wolf.name);
 }
 createAnimalCreator();
 
