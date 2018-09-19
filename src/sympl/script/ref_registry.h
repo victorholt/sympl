@@ -22,82 +22,63 @@
  *
  **********************************************************/
 #pragma once
+
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/registry.h>
+
 #include <sympl/core/object.h>
 #include <sympl/core/variant.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/script/ref_registry.h>
-#include <sympl/util/profiler.h>
-
-#include <sympl/thirdparty/urho3d/container/Vector.h>
+#include <sympl/core/shared_ptr.h>
 
 sympl_nsstart
 
 class ScriptObject;
 
-#define GLOBAL_SCRIPT_OBJECT "__global__"
-#define SYMPL_CLASS_TOKEN "class@@"
-#define SYMPL_STRING_TOKEN "%dq%"
-#define SYMPL_SCOPE_NAME "__scope__"
-#define SYMPL_METHOD_ARG_NAME "__arg__"
-#define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
+#define SYMPL_MAX_REFERENCES 100000
 
-#define ScriptMethodArgs Urho3D::PODVector<Variant>&
-#define ScriptMethodArgList Urho3D::PODVector<Variant>
-typedef std::function<void(ScriptMethodArgs)> ScriptMethodCallback;
-
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Variable,
-    Array,
-    Method,
-    Statement
-};
-
-enum class StatementOperator {
-    None = 0,
-    Equals,
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
-    Mod,
-    IsEqual2,
-    NotIsEqual2,
-    GreaterThan,
-    LessThan,
-    GreaterEqualThan,
-    LessEqualThan,
-    NewObject,
-    DeleteObject,
-};
-
-enum class StatementType {
-    None = 0,
-    Object,
-    Method,
-    String,
-    Bool,
-    Integer,
-    Float,
-    Void
-};
-
-struct StatementEntry
+class SYMPL_API RefRegistry
 {
-    WeakPtr<ScriptObject> ObjectValue;
-    Variant ConstantValue;
-    StatementOperator Op;
+protected:
+    /// Address map for the entries.
+    std::unordered_map<std::string, ScriptObject*> _AddressMap;
+
+    //! Constructor.
+    RefRegistry() {
+        _AddressMap.reserve(SYMPL_MAX_REFERENCES);
+    }
+
+public:
+    //! Destructor.
+    ~RefRegistry() {
+        Clear();
+    }
+
+    //! Returns the singleton for our class.
+    //! \return RefRegistry
+    static RefRegistry& GetInstance() {
+        static RefRegistry instance;
+        return instance;
+    }
+
+    //! Registers an object and returns the address (used for scriptobject paths).
+    //! \param entry
+    //! \return
+    std::string Register(ScriptObject* entry);
+
+    //! Attempts to find an address.
+    //! \param address
+    //! \return ScriptObject
+    ScriptObject* FindObject(std::string address);
+
+    //! Removes a referenced object.
+    //! \param entry
+    void Remove(ScriptObject* entry);
+
+    //! Clears the address map.
+    inline void Clear() {
+        _AddressMap.clear();
+    }
 };
 
-struct StatementCacheEntry
-{
-    char Statement[256];
-    std::vector<StatementEntry*> Entries;
-};
+#define SymplRefRegistry RefRegistry::GetInstance()
 
 sympl_nsend
-
-

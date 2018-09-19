@@ -98,6 +98,16 @@ void ScriptObject::CopyChildrenFrom(ScriptObject* scriptObject)
     }
 }
 
+ScriptObject* ScriptObject::CreateReference()
+{
+    sympl_assert(IsClass() && "Illegal attempt to create reference from a non-class object!");
+
+    auto clone = Clone();
+    auto address = SymplRefRegistry.Register(clone);
+    clone->SetPath(fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, address));
+    return clone;
+}
+
 ScriptObject* ScriptObject::Clone()
 {
     return Clone(_Parent.Ptr(), true);
@@ -148,6 +158,7 @@ ScriptObject* ScriptObject::Clone(ScriptObject* parent, bool uniqueName)
     clone->SetCleanName(cleanName);
 
     clone->SetValue(_Value);
+    clone->SetIsClass(IsClass());
 
     // Clone the children!
     for (auto entryIt : _Children) {
@@ -283,6 +294,8 @@ bool ScriptObject::Release()
         childIt->Release();
     }
     _Children.clear();
+
+    SymplRefRegistry.Remove(this);
 
     return true;
 }

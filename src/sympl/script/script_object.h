@@ -125,6 +125,11 @@ public:
     //! \param store
     void CopyChildrenFrom(ScriptObject* scriptObject);
 
+    //! Creates a reference from the current object.
+    //! \param scriptObject
+    //! \return ScriptObject
+    ScriptObject* CreateReference();
+
     //! Creates a clone of the object.
     //! \return SharedPtr<ScriptObject>
     ScriptObject* Clone();
@@ -219,6 +224,10 @@ public:
     //! Returns the clean name of the object.
     //! \return string
     inline const std::string& GetCleanName() const { return _CleanName; }
+
+    //! Sets the path for the object.
+    //! \param path
+    inline void SetPath(std::string path) { _Path = path; }
 
     //! Returns the path of the object.
     //! \return
