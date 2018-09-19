@@ -29,6 +29,24 @@ int main()
 //    mem_free_ref(StringBuffer, occurSb);
 //    return 0;
 
+//    auto buffertest = mem_alloc_ref(StringBuffer);
+//    buffertest->Append("@@Hello there--");
+//    cout << buffertest->CStr() << endl;
+//    if (buffertest->StartsWith("@@")) {
+//        cout << "You start with @@" << endl;
+//    }
+//    if (!buffertest->StartsWith("--")) {
+//        cout << "You DO NOT start with --" << endl;
+//    }
+//
+//    if (buffertest->EndsWith("--")) {
+//        cout << "You end with --" << endl;
+//    }
+//    if (!buffertest->EndsWith("@@")) {
+//        cout << "You DO NOT end with @@" << endl;
+//    }
+//    return 0;
+
 //    auto sb = mem_alloc_ref(StringBuffer);
 //    sb->Append("Testing the replacement string");
 //    sb->ReplaceStringAt(" on", 4);

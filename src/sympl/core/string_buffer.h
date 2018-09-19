@@ -150,6 +150,16 @@ public:
     //! \return bool
     bool PeekSearch(const char* search, size_t startIndex);
 
+    //! Returns whether or not the buffer begins with a given string.
+    //! \param search
+    //! \return bool
+    bool StartsWith(const char* search);
+
+    //! Returns whether or not the buffer ends with a given string.
+    //! \param search
+    //! \return bool
+    bool EndsWith(const char* search);
+
     //! Clears out the string buffer.
     void Clear();
 

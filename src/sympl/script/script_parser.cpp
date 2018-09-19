@@ -404,7 +404,13 @@ void ScriptParser::_BuildMethodArgs()
             } else if (_CurrentObjectBuffer->Equals("void")) {
                 to_method(_CurrentObject.Ptr())->SetReturnType(MethodReturnType::Void);
             } else {
-                sympl_assert(false && "Unknown method return type!");
+                // Check if we're a valid class type.
+                auto classObj = ScriptVMInstance->FindObjectByPath(_CurrentObjectBuffer->CStr(), nullptr);
+                if (!classObj->IsEmpty()) {
+                    to_method(_CurrentObject.Ptr())->SetReturnType(MethodReturnType::Class);
+                } else {
+                    sympl_assert(false && "Unknown method return type!");
+                }
             }
             _CurrentObjectBuffer->Clear();
             return;

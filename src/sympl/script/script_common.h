@@ -36,6 +36,7 @@ sympl_nsstart
 class ScriptObject;
 
 #define GLOBAL_SCRIPT_OBJECT "__global__"
+#define SYMPL_CLASS_TOKEN "@@"
 #define SYMPL_STRING_TOKEN "%dq%"
 #define SYMPL_SCOPE_NAME "__scope__"
 #define SYMPL_METHOD_ARG_NAME "__arg__"

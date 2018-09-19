@@ -59,16 +59,16 @@ Variant ScriptMethod::Evaluate(ScriptMethodArgs args)
     _ProcessCallStatements();
 
     // Delete anything created in the scope.
-    for (auto& child : GetScope()->GetChildren()) {
-        if (child->GetType() == ScriptObjectType::Method) {
-            continue;
-        }
-        if (child->RefCount() == 1) {
-            for (auto childEntry : child->GetChildren()) {
-                ScriptVMInstance->QueueDelete(childEntry.Ptr());
-            }
-        }
-    }
+//    for (auto& child : GetScope()->GetChildren()) {
+//        if (child->GetType() == ScriptObjectType::Method) {
+//            continue;
+//        }
+//        if (child->RefCount() == 1) {
+//            for (auto childEntry : child->GetChildren()) {
+//                ScriptVMInstance->QueueDelete(childEntry.Ptr());
+//            }
+//        }
+//    }
 
     return _Value;
 }
@@ -173,14 +173,13 @@ void ScriptMethod::_ProcessCallStatements()
         auto val = entryIt->Resolver->Resolve(entryIt->StatementStr->CStr(), varObject.Ptr());
 
         if (!val.IsEmpty()) {
-            _Value = val;
-            varObject->SetValue(_Value);
-        } else if (varObject->IsClass()) {
-            val = varObject.Ptr();
+//            _Value = val;
+            varObject->SetValue(val);
         }
 
         // Check if we're attempting to return out of the method.
         if (varObject->GetName() == "return") {
+            _Value = val;
             Exit();
             return;
         }

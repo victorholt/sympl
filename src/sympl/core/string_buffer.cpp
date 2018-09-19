@@ -433,6 +433,40 @@ bool StringBuffer::PeekSearch(const char* search, size_t startIndex)
     return true;
 }
 
+bool StringBuffer::StartsWith(const char* search)
+{
+    auto strLen = strlen(search);
+    if (strLen > _Length) {
+        return false;
+    }
+
+    for (size_t i = 0; i < strLen; i++) {
+        if (_Buffer[i] != search[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool StringBuffer::EndsWith(const char* search)
+{
+    auto strLen = strlen(search);
+    if (strLen > _Length) {
+        return false;
+    }
+
+    for (size_t i = 0; i < strLen; i++) {
+        size_t checkIndex = _Length - (strLen - i);
+        char c = _Buffer[checkIndex];
+        if (_Buffer[checkIndex] != search[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void StringBuffer::Clear()
 {
     if (_Length == 0) return;

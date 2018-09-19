@@ -110,10 +110,13 @@ ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, Sc
     std::string path = _BuildPath(name, parent);
     auto* searchObj = FindObjectByPath(
             path,
-            !IsNullObject(parent) && parent->GetParent().IsValid() ? parent->GetParent().Ptr() : nullptr
+            nullptr
+            //!IsNullObject(parent) && parent->GetParent().IsValid() ? parent->GetParent().Ptr() : nullptr
     );
 
-    sympl_assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
+    if (!searchObj->IsEmpty()) {
+        sympl_assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
+    }
 
     ScriptObject* scriptObject = nullptr;
 
@@ -146,7 +149,8 @@ bool ScriptVM::AddObject(ScriptObject* scriptObject, ScriptObject* parent)
     std::string path = _BuildPath(scriptObject->GetName().c_str(), parent);
     auto* searchObj = FindObjectByPath(
             path,
-            !IsNullObject(parent) && parent->GetParent().IsValid() ? parent->GetParent().Ptr() : nullptr
+            nullptr
+            //!IsNullObject(parent) && parent->GetParent().IsValid() ? parent->GetParent().Ptr() : nullptr
     );
 
     sympl_assert(searchObj->IsEmpty() && "Attempted to create duplicate object in the VM!");
@@ -174,11 +178,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& relPath, ScriptObjec
 
     std::string path = relPath;
     if (!IsNullObject(scope) && !scope->IsEmpty()) {
-        if (scope->GetType() == ScriptObjectType::Method) {
-            path = fmt::format("{0}.{1}.{2}", scope->GetPath(), SYMPL_SCOPE_NAME, relPath);
-        } else {
-            path = fmt::format("{0}.{1}", scope->GetPath(), relPath);
-        }
+        path = fmt::format("{0}.{1}", scope->GetPath(), relPath);
     }
 
     std::string parseStr = path;

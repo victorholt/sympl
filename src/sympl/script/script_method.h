@@ -36,6 +36,7 @@ class StatementResolver;
 enum class MethodReturnType : uint8_t
 {
     Object = 0,
+    Class,
     String,
     Int,
     Float,

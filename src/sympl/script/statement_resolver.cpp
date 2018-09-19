@@ -105,7 +105,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
 
     // Attempt to detect a recursive function, which can't utilize
     // method caching.
-    if (!to_method(scriptObject)->GetIsRecursive() && to_method(scriptObject)->GetReturnType() != MethodReturnType::Object) {
+    if (!to_method(scriptObject)->GetIsRecursive()) {
         methodArgCache = to_method(scriptObject)->FindOrCreateArgCache(stmtResolver->GetStatementString()->CStr());
     }
     if (!IsNullObject(methodArgCache) && methodArgCache->Args.size() == to_method(scriptObject)->GetNumArgs()) {
@@ -128,15 +128,17 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
         Variant retVal;
         auto methodRetVal = to_method(scriptObject)->Evaluate(args);
 
-        if (!methodRetVal.IsEmpty()) {
+        if (!methodRetVal.IsEmpty() && methodRetVal.GetType() == VariantType::Object) {
             auto objectRetVal = dynamic_cast<ScriptObject *>(methodRetVal.GetObject());
-            retVal = objectRetVal;
+            retVal = fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, objectRetVal->GetCleanName());
 
             // If we're returning a referenced object (created by 'new')
             // we should change the scope.
-            if (objectRetVal->IsClass()) {
-                retVal = objectRetVal->Clone(varObject, false);
-            }
+//            if (objectRetVal->IsClass()) {
+//                retVal = objectRetVal->Clone(varObject, false);
+//            }
+        } else {
+            retVal = methodRetVal;
         }
         return retVal;
     }
@@ -327,15 +329,17 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
                 Variant retVal;
                 auto methodRetVal = to_method(scriptObject)->Evaluate(args);
 
-                if (!methodRetVal.IsEmpty()) {
+                if (!methodRetVal.IsEmpty() && methodRetVal.GetType() == VariantType::Object) {
                     auto objectRetVal = dynamic_cast<ScriptObject *>(methodRetVal.GetObject());
-                    retVal = objectRetVal;
+                    retVal = fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, objectRetVal->GetCleanName());
 
                     // If we're returning a referenced object (created by 'new')
                     // we should change the scope.
-                    if (objectRetVal->IsClass()) {
-                        retVal = objectRetVal->Clone(varObject, false);
-                    }
+//                    if (objectRetVal->IsClass()) {
+//                        retVal = objectRetVal->Clone(varObject, false);
+//                    }
+                } else {
+                    retVal = methodRetVal;
                 }
 
                 args.Clear();
@@ -800,7 +804,8 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
 
             // Check if we're starting a string.
             if (currentChar == '%' && _StmtString->PeekSearch(SYMPL_STRING_TOKEN, GetCurrentCharLocation() - 1)) {
-//                stmtEntryStr->Append(SYMPL_STRING_TOKEN);
+                stmtEntryStr->Append(SYMPL_STRING_TOKEN); // We need to append the token so that we don't look for
+                                                          // a class with the same name on object lookup.
                 SetCurrentCharLocation(GetCurrentCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
                 recording = !recording;
                 continue;
@@ -962,6 +967,14 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                 // Check to see if we're an object or string.
                 if (stmtEntry->ConstantValue.IsEmpty()) {
                     ScriptObject* obj = nullptr;
+
+                    // Remove any SYMPL_STRING_TOKEN and mark as a class.
+                    bool is_class = false;
+                    if (stmtEntryStr->StartsWith(SYMPL_CLASS_TOKEN)) {
+                        stmtEntryStr->Replace(SYMPL_CLASS_TOKEN, "");
+                        is_class = true;
+                    }
+
                     if (varObject->GetType() == ScriptObjectType::Method) {
                         // Check if our string is structured like a path.
                         if (stmtEntryStr->Contains('.')) {
@@ -999,6 +1012,7 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
                     if (obj->IsEmpty()) {
                         stmtEntry->ConstantValue = stmtEntryStr->CStr();
                     } else {
+                        obj->SetIsClass(is_class);
                         stmtEntry->ObjectValue = obj;
 
                         // Update our statement type if this object is a method.
@@ -1036,7 +1050,7 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
 
     // Cache if we haven't cached already.
     // We cannot cache 'new' class objects.
-    if (!varObject->IsClass() && !cache && !statement_has_method && IsNullObject(stmtCache) && !IsNullObject(cacheContext)) {
+    if (!cache && !statement_has_method && IsNullObject(stmtCache) && !IsNullObject(cacheContext)) {
         stmtCache = cacheContext->GetStatementCache()->Cache(
                 str.c_str(),
                 _StmtEntries
@@ -1051,7 +1065,7 @@ Variant StatementResolver::Resolve(const char* cstr, ScriptObject* varObject, bo
         retVal = _ResolveStatements(_StmtEntries);
     }
 
-    if (varObject->IsClass() || !cache) {
+    if (!cache) {
         ClearStatementEntries();
     }
 
@@ -1074,7 +1088,14 @@ Variant StatementResolver::_ResolveStatements(const std::vector<StatementEntry*>
                     entry->ObjectValue->GetType() == ScriptObjectType::Method) {
                     return entry->ObjectValue.Ptr();
                 }
-                return entry->ObjectValue->GetValue();
+
+                // If we're a variable with no value, than we're just returning
+                // the object.
+                if (entry->ObjectValue->GetValue().IsEmpty()) {
+                    return entry->ObjectValue.Ptr();
+                } else {
+                    return entry->ObjectValue->GetValue();
+                }
             }
             return entry->ConstantValue;
         }

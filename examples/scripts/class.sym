@@ -24,7 +24,7 @@ class AnimalCreator {
         printl("Destroying animal creator");
     }
 
-    func createAnimal() : object {
+    func createAnimal() : Animal {
         var wolf = new Animal();
         wolf.name = "wolf";
         printl(wolf.name);
@@ -36,7 +36,7 @@ class AnimalCreator {
 func createAnimalCreator() : void {
     var creator = new AnimalCreator();
     var wolf = creator.createAnimal();
-    //printl(wolf.name);
+    printl(wolf.name);
 }
 createAnimalCreator();
 
