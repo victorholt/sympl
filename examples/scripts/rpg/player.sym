@@ -1,0 +1,39 @@
+// Player class.
+class Player {
+    var maxHp = 10;
+    var maxMana = 10;
+
+    var hp = 10;
+    var mana = 10;
+
+    // Player gets hit.
+    func hit() : void {
+        hp = hp - 1;
+    }
+
+    // Player casts spell.
+    func cast(amount) : void {
+        mana = mana - amount;
+    }
+
+    // Regenerate.
+    func regen() : void {
+        if (mana < maxMana) {
+            mana = mana + 1;
+        }
+        if (hp < maxHp) {
+            hp = hp + 1;
+        }
+    }
+
+    // Print our stats.
+    func printStats() : void {
+        // TODO: Fix concat bug!
+        print("HP: ");
+        printl(hp);
+
+        print("Mana: ");
+        printl(mana);
+    }
+}
+printl("Player file loaded");

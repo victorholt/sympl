@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/method_registry.h>
 #include <sympl/script/script_vm.h>
+#include <sympl/script/interpreter.h>
 
 #include <sympl/script/methods/if_method.h>
 #include <sympl/script/methods/while_method.h>
@@ -102,6 +103,12 @@ void MethodRegistry::_Initialize()
     AddCallbackMethod("profiler_stop", [](ScriptMethodArgs args) {
         sympl_profile_stop(args[0].AsString());
         sympl_profile_print(args[0].AsString());
+    });
+
+    // Import a file.
+    AddCallbackMethod("import", [](ScriptMethodArgs args) {
+        auto program = ScriptVMInstance->LoadFile(args[0].AsString().c_str());
+        program->Run();
     });
 }
 

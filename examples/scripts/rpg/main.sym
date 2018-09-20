@@ -1,0 +1,26 @@
+// Include our files.
+import("./../../examples/scripts/rpg/player.sym");
+
+// Entry file for the game.
+func main() : void {
+    printl("Simple RPG Game");
+
+    var player = new Player();
+    player.printStats();
+
+    player.hit();
+    player.hit();
+    player.printStats();
+
+    player.cast(5);
+    player.printStats();
+
+    var i = 0;
+    while (i < 100) {
+        //player.regen();
+        i = i + 1;
+    }
+    player.printStats();
+}
+
+main();

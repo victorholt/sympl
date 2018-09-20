@@ -79,30 +79,32 @@ void ScriptVM::GC()
 
 Interpreter* ScriptVM::LoadFile(const char* filePath)
 {
+    SharedPtr<Interpreter> interpreter = mem_alloc_ref(Interpreter);
     SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
-    reader->ReadFile(filePath);
+    sympl_assert(reader->ReadFile(filePath) && "Failed to find import file!");
 
-    if (!_Interpreter.IsValid()) {
-        _Interpreter = mem_alloc_ref(Interpreter);
+    if (!interpreter.IsValid()) {
+        interpreter = mem_alloc_ref(Interpreter);
     }
-    _Interpreter->_SetReader(reader.Ptr());
-    _Interpreter->_Parse();
+    interpreter->_SetReader(reader.Ptr());
+    interpreter->_Parse();
 
-    return _Interpreter.Ptr();
+    return interpreter.Ptr();
 }
 
 Interpreter* ScriptVM::LoadString(const char* str)
 {
+    SharedPtr<Interpreter> interpreter = mem_alloc_ref(Interpreter);
     SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
     reader->ReadString(str);
 
-    if (!_Interpreter.IsValid()) {
-        _Interpreter = mem_alloc_ref(Interpreter);
+    if (!interpreter.IsValid()) {
+        interpreter = mem_alloc_ref(Interpreter);
     }
-    _Interpreter->_SetReader(reader.Ptr());
-    _Interpreter->_Parse();
+    interpreter->_SetReader(reader.Ptr());
+    interpreter->_Parse();
 
-    return _Interpreter.Ptr();
+    return interpreter.Ptr();
 }
 
 ScriptObject* ScriptVM::CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent)

@@ -82,7 +82,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
     // Add an EOF var at the end. Dirty hack to figure out
     // that we're really at the end.
-    _Reader->GetBuffer()->Append("#var#___EOF___#;");
+    //_Reader->GetBuffer()->Append("#var#___EOF___#;");
 
     // Go through the buffer and parse out the script.
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
