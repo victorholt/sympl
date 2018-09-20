@@ -106,9 +106,9 @@ int main()
     auto program = ScriptVMInstance->LoadFile("../../examples/scripts/rpg/main.sym");
 //    sympl_profile_stop_and_print("program_load");
 
-//    sympl_profile_start("program_run");
+    sympl_profile_start("program_run");
     program->Run();
-//    sympl_profile_stop_and_print("program_run");
+    sympl_profile_stop_and_print("program_run");
 
     cout << "Memory Usage: " << MemPoolInstance.GetMemoryUsage() << endl;
     return 0;

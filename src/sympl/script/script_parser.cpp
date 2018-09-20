@@ -421,8 +421,6 @@ void ScriptParser::_BuildMethodArgs()
         }
     }
 
-    std::cout << _CurrentObjectBuffer->CStr() << std::endl;
-
     // The while loop should quit before we reach this call.
     sympl_assert(_CharLocation < _Reader->GetBuffer()->Length() && "Invalid method parsing error!");
 }
