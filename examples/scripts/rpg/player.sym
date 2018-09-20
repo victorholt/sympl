@@ -6,6 +6,15 @@ class Player {
     var hp = 10;
     var mana = 10;
 
+    var data = [];
+
+    func Player() : void {
+        printl("Player constructor");
+        data = [
+            "name": "Steve"
+        ];
+    }
+
     // Player gets hit.
     func hit() : void {
         hp = hp - 1;

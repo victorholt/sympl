@@ -6,6 +6,9 @@ func main() : void {
     printl("Simple RPG Game");
 
     var player = new Player();
+
+    //print("Hello player ");
+    //printl(player.data["name"]); // BUSTED
     player.printStats();
 
     player.hit();
