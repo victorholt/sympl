@@ -83,17 +83,25 @@ void Variant::Set(const Variant& value)
     // a segment fault situation when passing the pointer
     // around.
     if (_Type == VariantType::StringBuffer) {
-        GetStringBuffer()->AddRef();
+        auto obj = GetStringBuffer();
+        if (obj->GetManagedRef()) {
+            GetStringBuffer()->AddRef();
+        }
     }
     if (_Type == VariantType::Object) {
-        GetObject()->AddRef();
+        auto obj = GetObject();
+        if (obj->GetManagedRef()) {
+            GetObject()->AddRef();
+        }
     }
 }
 
 void Variant::Set(StringBuffer* value) {
     Clear();
 
-    value->AddRef();
+    if (value->GetManagedRef()) {
+        value->AddRef();
+    }
 
     SetType(VariantType::StringBuffer);
     _Value.Ptr = value;
@@ -173,15 +181,17 @@ void Variant::Clear() {
     // Free our string buffer.
     if (_Type == VariantType::StringBuffer) {
         auto buffer = GetStringBuffer();
-        mem_free_ref(StringBuffer, buffer);
+        if (buffer->GetManagedRef()) {
+            mem_free_ref(StringBuffer, buffer);
+        }
         _Value.Ptr = nullptr;
     }
 
-    // Free our script object.
+    // Free our object.
     if (_Type == VariantType::Object) {
         auto sobj = GetObject();
 
-        if (sobj->GetTypeName() == "") {
+        if (sobj->GetTypeName() != "") {
             mem_free_ref(Object, sobj);
         }
 

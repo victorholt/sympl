@@ -57,7 +57,6 @@ bool Interpreter::Run()
         } else {
             resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
         }
-
         ScriptVMInstance->GC();
     }
     return true;

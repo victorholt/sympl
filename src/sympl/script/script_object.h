@@ -69,6 +69,9 @@ protected:
     /// Flag of whether or not this object is a class.
     bool _IsClass = false;
 
+    /// Flag for whether or not this object is a reference in the RefRegistry.
+    bool _IsReference = false;
+
     /// The script object type.
     ScriptObjectType _Type = ScriptObjectType::Empty;
 
@@ -161,6 +164,10 @@ public:
     //! Remove a child object.
     //! \param name.
     void RemoveChild(const char* name);
+
+    //! Remove a child by a given path.
+    //! \param path
+    void RemoveChildByPath(const char* path);
 
     //! Releases the object.
     bool Release() override;
@@ -255,7 +262,15 @@ public:
 
     //! Returns whether or not this object is a reference.
     //! \return
-    inline bool IsReference() { return HasMeta("RefAddress"); }
+    inline bool HasReferencedValue() { return HasMeta("RefAddress"); }
+
+    //! Sets the reference flag.
+    //! \param value
+    inline void SetIsReference(bool value) { _IsReference = value; }
+
+    //! Returns whether or not this is a referenced object.
+    //! \return
+    inline bool IsReference() const { return _IsReference; }
 
     //! Returns the object's reference address.
     //! \return

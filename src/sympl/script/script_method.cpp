@@ -64,9 +64,16 @@ Variant ScriptMethod::Evaluate(ScriptMethodArgs args)
             continue;
         }
         if (child->RefCount() == 1) {
-            for (auto childEntry : child->GetChildren()) {
+            for (auto& childEntry : child->GetChildren()) {
+                if (childEntry.Ptr()->HasReferencedValue()) {
+                    ScriptVMInstance->QueueDelete((SymplRefRegistry.FindObject(childEntry.Ptr()->GetReferenceAddress())));
+                }
                 ScriptVMInstance->QueueDelete(childEntry.Ptr());
             }
+            if (child.Ptr()->HasReferencedValue()) {
+                ScriptVMInstance->QueueDelete((SymplRefRegistry.FindObject(child.Ptr()->GetReferenceAddress())));
+            }
+            ScriptVMInstance->QueueDelete(child.Ptr());
         }
     }
 
@@ -177,7 +184,7 @@ void ScriptMethod::_ProcessCallStatements()
             varObject->SetValue(val);
             if (val.GetType() == VariantType::Object) {
                 auto valObject = dynamic_cast<ScriptObject*>(val.GetObject());
-                if (valObject->IsReference()) {
+                if (valObject->HasReferencedValue()) {
                     varObject->SetMeta("RefAddress", valObject->GetMeta("RefAddress"));
                 }
             }

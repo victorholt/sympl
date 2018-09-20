@@ -132,7 +132,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
         if (!methodRetVal.IsEmpty() && methodRetVal.GetType() == VariantType::Object) {
             auto objectRetVal = dynamic_cast<ScriptObject *>(methodRetVal.GetObject());
 
-            if (objectRetVal->IsClass() && objectRetVal->IsReference()) {
+            if (objectRetVal->IsClass() && objectRetVal->HasReferencedValue()) {
                 retVal = fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, objectRetVal->GetReferenceAddress());
             } else {
                 retVal = objectRetVal->GetCleanName();
@@ -250,9 +250,16 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
                 objectValue = stmtResolver->_IsBoolean(resolveStr->CStr());
             }
 
+            // Check if our argument is a string.
+            bool is_string_arg = false;
+            if (resolveStr->StartsWith(SYMPL_STRING_TOKEN)) {
+                is_string_arg = true;
+                objectValue = resolveStr->CStr();
+            }
+
             // Check to see if we're an object or string.
             ScriptObject *obj = nullptr;
-            if (objectValue.IsEmpty()) {
+            if (!is_string_arg && objectValue.IsEmpty()) {
                 if (varObject->GetType() == ScriptObjectType::Method) {
                     // Check if our string is structured like a path.
                     if (resolveStr->Contains('.') && varObject->GetParent().IsValid()) {
@@ -331,7 +338,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
                 if (!methodRetVal.IsEmpty() && methodRetVal.GetType() == VariantType::Object) {
                     auto objectRetVal = dynamic_cast<ScriptObject *>(methodRetVal.GetObject());
 
-                    if (objectRetVal->IsClass() && objectRetVal->IsReference()) {
+                    if (objectRetVal->IsClass() && objectRetVal->HasReferencedValue()) {
                         retVal = fmt::format("{0}{1}", SYMPL_CLASS_TOKEN, objectRetVal->GetReferenceAddress());
                     } else {
                         retVal = objectRetVal->GetCleanName();

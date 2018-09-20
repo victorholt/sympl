@@ -248,7 +248,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& relPath, ScriptObjec
                             currentObject = currentObject->GetChildren()[0].Ptr();
                             currentPath.append(".");
                             currentPath.append(SYMPL_SCOPE_NAME);
-                        } else if (currentObject->IsReference()) {
+                        } else if (currentObject->HasReferencedValue()) {
                             currentObject = SymplRefRegistry.FindObject(currentObject->GetMeta("RefAddress").GetStringBuffer()->CStr());
                             currentPath = currentObject->GetPath();
 
@@ -345,13 +345,19 @@ void ScriptVM::_RemoveObject(ScriptObject* scriptObject)
         return;
     }
 
-    if (scriptObject->GetParent().IsValid()) {
-        auto parent = scriptObject->GetParent().Ptr();
-        parent->RemoveChild(scriptObject->GetName().c_str());
+    if (scriptObject->IsReference()) {
+        if (SymplRefRegistry.RemoveAddress(scriptObject->GetReferenceAddress())) {
+            scriptObject->Release(); // Release before removing from the global object. THIS MAY BE A BUG! This
+                                     // is necessary because the GlobalObject is needed for FindObjectByPath
+                                     // to not end up in an infinite loop...
+            GetGlobalObject()->RemoveChildByPath(scriptObject->GetPath().c_str());
+        }
+    } else {
+        if (scriptObject->GetParent().IsValid()) {
+            auto parent = scriptObject->GetParent().Ptr();
+            parent->RemoveChild(scriptObject->GetName().c_str());
+        }
     }
-
-//    scriptObject->Release();
-//    mem_free_ref(ScriptObject, scriptObject);
 }
 
 MethodRegistry* ScriptVM::GetMethodRegistry()

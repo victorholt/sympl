@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/ref_registry.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_vm.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/util/string_helper.h>
 #include <fmt/format.h>
@@ -34,7 +35,6 @@ std::string RefRegistry::Register(ScriptObject* entry)
 
     auto address = StringHelper::GenerateRandomStr(64);
     entry->SetMeta("RefAddress", address.c_str());
-
     _AddressMap[address] = entry;
 
     return address;
@@ -52,12 +52,22 @@ ScriptObject* RefRegistry::FindObject(std::string address)
     return entry->second;
 }
 
-void RefRegistry::Remove(ScriptObject* entry)
+bool RefRegistry::RemoveAddress(std::string address)
 {
-    if (!entry->HasMeta("RefAddress")) {
-        return;
+    auto entry = FindObject(address);
+    if (entry->IsEmpty()) {
+        return false;
     }
 
-    auto address = entry->GetMeta("RefAddress").GetStringBuffer()->CStr();
-    _AddressMap.erase(address);
+    if (entry->RefCount() == 1) { // GlobalContext
+//        _AddressMap.erase(address);
+        return true;
+    }
+
+    return false;
+}
+
+void RefRegistry::Clear()
+{
+    _AddressMap.clear();
 }

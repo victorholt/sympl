@@ -57,7 +57,7 @@ private:
     //! Adds to the reference count.
     void _AddRef()
     {
-        if (!IsNull()) {
+        if (!IsNull() && _Data->GetManagedRef()) {
             _Data->AddRef();
         }
     }
@@ -110,7 +110,7 @@ public:
     //! Attempts to release the object.
     void Release()
     {
-        if (IsNull()) {
+        if (IsNull() || !_Data->GetManagedRef()) {
             return;
         }
         mem_free_ref(T, _Data);

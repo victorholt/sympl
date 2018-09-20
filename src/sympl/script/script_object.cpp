@@ -105,7 +105,10 @@ ScriptObject* ScriptObject::CreateReference()
     }
 
     auto clone = Clone();
+    clone->SetIsReference(true);
+//    clone->SetManagedRef(false);
     SymplRefRegistry.Register(clone);
+//    ScriptVMInstance->GetGlobalObject()->RemoveChildByPath(clone->GetPath().c_str());
 
     return clone;
 }
@@ -265,21 +268,39 @@ void ScriptObject::RemoveChild(const char* name)
     }
 }
 
+void ScriptObject::RemoveChildByPath(const char* path)
+{
+    ScriptObject* child = &ScriptObject::Empty;
+    for (auto& entryIt : _Children) {
+        if (strcmp(entryIt.Ptr()->GetPath().c_str(), path) == 0) {
+            child = entryIt.Ptr();
+            break;
+        }
+    }
+    if (child->IsEmpty()) {
+        return;
+    }
+
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr() == child) {
+            _Children.erase(childIt);
+            break;
+        }
+        ++childIt;
+    }
+}
+
 bool ScriptObject::Release()
 {
     // If we're a class check if we need to call the destructor.
-    if (_Name == SYMPL_SCOPE_NAME && GetParent().IsValid() && GetParent()->IsClass()) {
-        auto destructor = FindChildByName(fmt::format("~{0}", _Parent->GetCleanName()).c_str());
-        if (!destructor->IsEmpty()) {
-            destructor->Evaluate();
-        }
-    }
-
-    if (GetParent()->IsClass()) {
+    if (IsReference()) {
         auto scope = GetChildren()[0].Ptr();
-        auto destructor = scope->FindChildByName(fmt::format("~{0}", GetName()).c_str());
-        if (!destructor->IsEmpty()) {
-            destructor->Evaluate();
+        if (scope && !scope->GetChildren().empty()) {
+            auto destructor = scope->FindChildByName(fmt::format("~{0}", GetName()).c_str());
+            if (!destructor->IsEmpty()) {
+                destructor->Evaluate();
+            }
         }
     }
 
@@ -306,7 +327,7 @@ WeakPtr<ScriptObject> ScriptObject::GetParent() const
 }
 
 std::string ScriptObject::GetReferenceAddress() {
-    if (!IsReference()) {
+    if (!HasReferencedValue()) {
         return "";
     }
     return GetMeta("RefAddress").GetStringBuffer()->CStr();

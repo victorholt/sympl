@@ -70,13 +70,11 @@ public:
     ScriptObject* FindObject(std::string address);
 
     //! Removes a referenced object.
-    //! \param entry
-    void Remove(ScriptObject* entry);
+    //! \param address
+    bool RemoveAddress(std::string address);
 
     //! Clears the address map.
-    inline void Clear() {
-        _AddressMap.clear();
-    }
+    void Clear();
 };
 
 #define SymplRefRegistry RefRegistry::GetInstance()
