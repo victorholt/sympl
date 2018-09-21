@@ -21,43 +21,59 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#pragma once
+#include <sympl/script/script_object_ref.h>
+#include <sympl/script/script_vm.h>
+#include <sympl/core/string_buffer.h>
+#include <sympl/util/string_helper.h>
 
-#include <sympl/core/variant.h>
-#include <sympl/core/object.h>
+#include <fmt/format.h>
+sympl_namespaces
 
-#include <sympl/script/script_common.h>
+ScriptObjectRef ScriptObjectRef::Empty;
 
-sympl_nsstart
-
-class SYMPL_API StatementCache : public Object
+ScriptObjectRef::ScriptObjectRef()
 {
-    SYMPL_OBJECT(StatementCache, Object);
+    __Construct();
+}
 
-protected:
-    /// Quick variable access list.
-    std::vector<StatementCacheEntry*> _CacheEntries;
+void ScriptObjectRef::__Construct()
+{
+    _Name = "";
+    _Path = "";
+    _Parent = nullptr;
+    _Type = ScriptObjectType::Empty;
+}
 
-public:
-    //! Constructor.
-    StatementCache();
+void ScriptObjectRef::Initialize(const std::string& name, const std::string& path, ScriptObjectType type, ScriptObjectRef* parent)
+{
+    _Name = name;
+    _CleanName = name;
+    _Path = path;
+    _Type = type;
+    _Parent = parent;
+}
 
-    //! Called in place of the constructor.
-    void __Construct() override;
+std::string ScriptObjectRef::GetTypeAsString() const
+{
+    if (_Type == ScriptObjectType::Object) {
+        return "object";
+    }
+    if (_Type == ScriptObjectType::Reference) {
+        return "object (reference)";
+    }
+    if (_Type == ScriptObjectType::Variable) {
+        return "var";
+    }
+    if (_Type == ScriptObjectType::Array) {
+        return "array";
+    }
+    if (_Type == ScriptObjectType::Method) {
+        return "method";
+    }
+    return "empty";
+}
 
-    //! Cache a statement entry.
-    //! \param cache
-    //! \param entry
-    StatementCacheEntry* Cache(const char* cache, const std::vector<StatementEntry*>& entries);
-
-    //! Attempts to return a cache entry.
-    //! \param cache
-    //! \return StatementCacheEntry
-    StatementCacheEntry* GetEntry(const char* cache);
-
-    //! Release the object.
-    //! \return bool
-    bool Release() override;
-};
-
-sympl_nsend
+bool ScriptObjectRef::Release()
+{
+    return true;
+}

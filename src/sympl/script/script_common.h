@@ -27,21 +27,19 @@
 #include <sympl/core/object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/weak_ptr.h>
-#include <sympl/script/ref_registry.h>
 #include <sympl/util/profiler.h>
-
-#include <sympl/thirdparty/urho3d/container/Vector.h>
 
 sympl_nsstart
 
-class ScriptObject;
+class ScriptObjectRef;
 
 #define GLOBAL_SCRIPT_OBJECT "__global__"
 #define SYMPL_CLASS_TOKEN "class@@"
 #define SYMPL_STRING_TOKEN "%dq%"
 #define SYMPL_SCOPE_NAME "__scope__"
 #define SYMPL_METHOD_ARG_NAME "__arg__"
-#define variant_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
+#define to_script_object_ref(var) dynamic_cast<ScriptObjectRef*>(var.GetObject())
+#define to_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
 
 #define ScriptMethodArgs Urho3D::PODVector<Variant>&
 #define ScriptMethodArgList Urho3D::PODVector<Variant>
@@ -50,10 +48,10 @@ typedef std::function<void(ScriptMethodArgs)> ScriptMethodCallback;
 enum class ScriptObjectType : uint8_t {
     Empty = 0,
     Object,
+    Reference,
     Variable,
     Array,
     Method,
-    Statement
 };
 
 enum class StatementOperator {
@@ -74,18 +72,9 @@ enum class StatementOperator {
     DeleteObject,
 };
 
-enum class StatementType {
-    None = 0,
-    Object,
-    String,
-    Bool,
-    Integer,
-    Float,
-};
-
 struct StatementEntry
 {
-    WeakPtr<ScriptObject> ObjectValue;
+    SharedPtr<ScriptObjectRef> ObjectValue;
     Variant ConstantValue;
     StatementOperator Op;
 };

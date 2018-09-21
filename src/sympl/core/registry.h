@@ -28,9 +28,6 @@
 #include <sympl/core/object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/shared_ptr.h>
-#include <sympl/script/script_common.h>
-#include <sympl/script/script_context.h>
-#include <sympl/script/script_token.h>
 
 sympl_nsstart
 

@@ -57,9 +57,7 @@ private:
     //! Adds to the reference count.
     void _AddRef()
     {
-        if (!IsNull() && _Data->GetManagedRef()) {
-            _Data->AddRef();
-        }
+        _Data->AddRef();
     }
 
 public:
@@ -110,7 +108,7 @@ public:
     //! Attempts to release the object.
     void Release()
     {
-        if (IsNull() || !_Data->GetManagedRef()) {
+        if (IsNull()) {
             return;
         }
         mem_free_ref(T, _Data);
@@ -149,27 +147,27 @@ public:
 
     //! Dereference access.
     const T *operator->() const {
-        sympl_assert(IsValid() && "Attempted to access empty pointer");
+        sympl_assert(IsValid(), "Attempted to access empty pointer");
         return _Data;
     }
 
     //! Dereference object.
     const T &operator*() const {
-        sympl_assert(IsValid() && "Attempted to access empty pointer");
+        sympl_assert(IsValid(), "Attempted to access empty pointer");
         return *_Data;
     }
 
     //! Dereference access.
     T *operator->() {
         if (!IsValid()) {
-            sympl_assert(false && "Attempted to access empty pointer");
+            sympl_assert(false, "Attempted to access empty pointer");
         }
         return _Data;
     }
 
     //! Dereference object.
     T &operator*() {
-        sympl_assert(IsValid() && "Attempted to access empty pointer");
+        sympl_assert(IsValid(), "Attempted to access empty pointer");
         return *_Data;
     }
 };

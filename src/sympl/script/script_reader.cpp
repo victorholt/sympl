@@ -24,7 +24,6 @@
 #include <sympl/script/script_reader.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/core/registry.h>
-#include <sympl/script/script_object.h>
 #include <fmt/format.h>
 sympl_namespaces
 
@@ -43,16 +42,6 @@ void ScriptReader::__Construct()
 
 bool ScriptReader::ReadFile(const char* filePath)
 {
-//    DIR *dir;
-//    dirent *pdir;
-//    dir=opendir(".");
-//    while((pdir=readdir(dir)))
-//    {
-//        std::cout<< pdir->d_name << std::endl;
-////        break;
-//    }
-//    closedir(dir);
-
     _FilePath = filePath;
 
     std::ifstream inputStream (filePath, std::ifstream::in);
@@ -61,7 +50,7 @@ bool ScriptReader::ReadFile(const char* filePath)
     }
 
     inputStream.seekg(0, inputStream.end);
-    size_t fileLength = static_cast<size_t>(inputStream.tellg());
+    auto fileLength = static_cast<size_t>(inputStream.tellg());
     inputStream.seekg(0, inputStream.beg);
 
     ProcessScript(inputStream, fileLength);
@@ -77,7 +66,7 @@ bool ScriptReader::ReadString(const char* scriptString)
     std::istringstream inputStream (_ScriptString.c_str());
 
     inputStream.seekg(0, inputStream.end);
-    size_t fileLength = static_cast<size_t>(inputStream.tellg());
+    auto fileLength = static_cast<size_t>(inputStream.tellg());
     inputStream.seekg(0, inputStream.beg);
 
     ProcessScript(inputStream, fileLength);
@@ -98,16 +87,11 @@ StringBuffer* ScriptReader::GetBuffer() const
 
 void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
 {
-    int nestLevel = 0;
     int currentLine = 1;
     char previousChar = '\0';
-    char previousValidChar = '\0';
     bool recording = false;
-    bool newWord = false;
     bool isComment = false;
     bool isBlockComment = false;
-    bool valueMode = false;
-    bool inArray = false;
     std::locale loc;
 
     // Open the file.
@@ -125,7 +109,6 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
         _Buffer->Append(fmt::format("[|{0}|]", currentLine).c_str());
     }
 
-    //while ((currentChar = getc(fp)) != EOF) {
     while (fileStream.get(currentChar)) {
         char nextChar = static_cast<char>(fileStream.peek());
 
@@ -170,7 +153,7 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
 
         // Check if we need to start recording.
         if (currentChar == '"') {
-            std::string encodedString = "";
+            std::string encodedString;
             if (!recording && _ScriptToken->EncodeSpecialChar(currentChar, encodedString)) {
                 _Buffer->Append(encodedString.c_str());
             }
@@ -184,20 +167,16 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
                 if (_ScriptToken->EncodeSpecialChar(currentChar, encodedString)) {
                     _Buffer->Append(encodedString.c_str());
                 }
-                //pBuffer->AppendByte(';');
             }
-//            _Buffer->AppendByte('"');
             previousChar = currentChar;
-            previousValidChar = currentChar;
             recording = !recording;
-            newWord = false;
             continue;
         }
 
         // Check if we have a whitespace character.
         if (!IsSpaceChar(currentChar, loc) || recording) {
             // First check if we're recording a special character.
-            std::string encodedString = "";
+            std::string encodedString;
             if (recording && _ScriptToken->EncodeSpecialChar(currentChar, encodedString)) {
                 _Buffer->Append(encodedString);
             } else {

@@ -24,7 +24,6 @@
 #include <sympl/core/variant.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/core/object.h>
-#include <sympl/script/script_object.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -84,24 +83,18 @@ void Variant::Set(const Variant& value)
     // around.
     if (_Type == VariantType::StringBuffer) {
         auto obj = GetStringBuffer();
-        if (obj->GetManagedRef()) {
-            GetStringBuffer()->AddRef();
-        }
+        GetStringBuffer()->AddRef();
     }
     if (_Type == VariantType::Object) {
         auto obj = GetObject();
-        if (obj->GetManagedRef()) {
-            GetObject()->AddRef();
-        }
+        GetObject()->AddRef();
     }
 }
 
 void Variant::Set(StringBuffer* value) {
     Clear();
 
-    if (value->GetManagedRef()) {
-        value->AddRef();
-    }
+    value->AddRef();
 
     SetType(VariantType::StringBuffer);
     _Value.Ptr = value;
@@ -181,9 +174,7 @@ void Variant::Clear() {
     // Free our string buffer.
     if (_Type == VariantType::StringBuffer) {
         auto buffer = GetStringBuffer();
-        if (buffer->GetManagedRef()) {
-            mem_free_ref(StringBuffer, buffer);
-        }
+        mem_free_ref(StringBuffer, buffer);
         _Value.Ptr = nullptr;
     }
 

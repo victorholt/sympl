@@ -77,7 +77,7 @@ MemPool::MemBlock* MemPool::FindAvailableBlock()
 
     return FindAvailableBlock();
 
-//    sympl_assert(false && "Unable to allocate memory block!");
+//    sympl_assert(false, "Unable to allocate memory block!");
 //    return nullptr;
 }
 

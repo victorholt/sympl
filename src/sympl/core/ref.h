@@ -84,10 +84,6 @@ protected:
     /// Memory address for the reference.
     long long _MemIndex = -1;
 
-    /// Whether or not this object should be managed when using SharedPtr.
-    /// You can force the ref count to not increment by setting to false.
-    bool _ManagedRef = true;
-
 public:
     // Attempts to dec the reference count.
     virtual ~RefCounter() { Release(); }
@@ -98,14 +94,6 @@ public:
 
     //! Returns the block memory index for the object.
     inline const long long GetMemIndex() const { return _MemIndex; }
-
-    //! Sets the managed flag.
-    //! \param value
-    inline void SetManagedRef(bool value) { _ManagedRef = value; }
-
-    //! Returns the managed flag.
-    //! \return
-    inline bool GetManagedRef() const { return _ManagedRef; }
 
     //! Adds to the reference count.
     inline void AddRef() { _RefCount++; }

@@ -151,7 +151,7 @@
 
 #ifdef SYMPL_DEBUG
 #include <assert.h>
-#define sympl_assert(stmt) assert(stmt)
+#define sympl_assert(condition, msg) assert(condition && msg)
 #else
 #define sympl_assert(stmt)
 #endif

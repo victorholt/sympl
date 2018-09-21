@@ -25,9 +25,6 @@
 
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/object.h>
-#include <sympl/core/mutex.h>
-
-#include <sympl/thirdparty/urho3d/container/Vector.h>
 
 sympl_nsstart
 

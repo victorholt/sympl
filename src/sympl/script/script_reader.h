@@ -33,7 +33,7 @@ class StringBuffer;
 
 class SYMPL_API ScriptReader : public Object
 {
-    SYMPL_OBJECT(ScriptReader, Object);
+SYMPL_OBJECT(ScriptReader, Object);
 
 private:
     /// Buffer holding the script data.

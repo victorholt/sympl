@@ -22,67 +22,39 @@
  *
  **********************************************************/
 #pragma once
-
 #include <sympl/core/sympl_pch.h>
+
 #include <sympl/core/object.h>
 #include <sympl/core/variant.h>
 #include <sympl/core/shared_ptr.h>
-#include <sympl/script/script_common.h>
-#include <sympl/script/script_context.h>
-#include <sympl/script/script_token.h>
-#include <sympl/script/method_registry.h>
 
 sympl_nsstart
 
-class Interpreter;
 class MemPool;
 class MemPoolRef;
 class MemPoolObject;
 class MemPoolManager;
-class ScriptToken;
-class ScriptObject;
+class ScriptObjectRef;
 
 class SYMPL_API ScriptVM : public Object
 {
     SYMPL_OBJECT(ScriptVM, Object);
 
-private:
-    /// Instance for the vm.
-    static ScriptVM* _Instance;
+protected:
+    /// Max available addresses.
+    size_t _MaxObjectAddresses = 1000000;
 
-    /// Reference to the method registry.
-    SharedPtr<MethodRegistry> _MethodRegistry;
+    /// Available object addresses.
+    std::vector<std::string> _AvailableObjectAddresses;
 
-    /// Reference to the global script object.
-    ScriptObject* _GlobalObject;
+    /// Object mapping with given addresses.
+    std::unordered_map< std::string, SharedPtr<ScriptObjectRef> > _ObjectMap;
 
-    /// The primary scope containing the global variables.
-    SharedPtr<ScriptContext> _Context;
+    /// Root reference object.
+    SharedPtr<ScriptObjectRef> _GlobalObject;
 
-    /// Symbol token checker.
-    SharedPtr<ScriptToken> _Symbol;
-
-    /// Reference to the interpreter.
-    SharedPtr<Interpreter> _Interpreter;
-
-    /// Objects queued for delete.
-    std::vector< SharedPtr<ScriptObject> > _DeleteQueue;
-
-    /// Cached lookup paths in the VM.
-    std::unordered_map<std::string, ScriptObject*> _CachedPaths;
-
-    //! Builds a path based on the given name/parent.
-    //! \param name
-    //! \param parent
-    //! \return
-    std::string _BuildPath(const char* name, ScriptObject* parent);
-
-    //! Remove object from the object map.
-    //! \param scriptObject
-    void _RemoveObject(ScriptObject* scriptObject);
-
-    //! Updates the delete queue.
-    void _UpdateDeleteQueue();
+    //! Build the available object addresses.
+    void _BuildAddresses();
 
     //! Constructor.
     ScriptVM();
@@ -94,101 +66,53 @@ public:
     //! Called in place of the constructor.
     void __Construct() override;
 
-    //! Returns the instance.
+    //! Returns the singleton for our class.
     //! \return ScriptVM
-    static ScriptVM* GetInstance() {
-        if (IsNullObject(_Instance)) {
-            _Instance = mem_alloc_ref(ScriptVM);
-            _Instance->Startup();
-        }
-        return _Instance;
+    static ScriptVM& GetInstance() {
+        static ScriptVM instance;
+        return instance;
     }
 
-    //! Starts up the vm.
-    void Startup();
+    //! Creates an empty object and attaches it to the global object.
+    //! \return ScriptObjectRef
+    ScriptObjectRef* CreateObject();
 
-    //! Shuts down the vm.
-    void Shutdown();
+    //! Reserves an object address.
+    //! \return std::string
+    std::string ReserveObjectAddress();
 
-    //! Attempts to garbage collect objects.
-    void GC();
+    //! Releases an object address.
+    //! \param address
+    void ReleaseObjectAddress(const std::string& address);
 
-    //! Loads a file into the vm.
-    //! \param filePath
-    //! \return Interpreter
-    Interpreter* LoadFile(const char* filePath);
-
-    //! Loads a string into the vm.
-    //! \param str
-    //! \return Interpreter
-    Interpreter* LoadString(const char* str);
-
-    //! Creates a new script object.
-    //! \param name
-    //! \param parent
-    //! \return
-    ScriptObject* CreateObject(const char* name, ScriptObjectType type, ScriptObject* parent = nullptr);
-
-    //! Creates a new script object.
-    //! \param name
-    //! \param parent
-    //! \return
-    ScriptObject* CreateObject(const char* name, ScriptObject* parent = nullptr);
-
-    //! Adds an object to the VM.
-    //! \param scriptObject
-    //! \param parent
+    //! Checks if an address is available.
+    //! \param address
     //! \return bool
-    bool AddObject(ScriptObject* scriptObject, ScriptObject* parent = nullptr);
+    bool IsAvailableObjectAddress(const std::string& address);
 
-    //! Attempts to find an object.
-    //! \param path
-    //! \return ScriptObject
-    ScriptObject* FindObjectByPath(const std::string& relPath, ScriptObject* scope);
+    //! Sets the max number object addresses.
+    //! \param value
+    inline void SetMaxObjectAddresses(size_t value) { _MaxObjectAddresses = value; }
 
-    //! Attempts to find an object with a given scope.
-    //! \param scopeObject
-    //! \param objectName
-    //! \return ScriptObject
-    ScriptObject* FindObjectByScope(ScriptObject* scopeObject, const std::string& objectName);
+    //! Returns the max number object addresses.
+    //! \return
+    inline size_t GetMaxObjectAddresses() const { return _MaxObjectAddresses; }
 
-    //! Queues an object for deletion.
-    //! \param scriptObject
-    void QueueDelete(ScriptObject* scriptObject);
+    //! Returns the object map.
+    //! \return
+    inline const std::unordered_map< std::string, SharedPtr<ScriptObjectRef> >& GetObjectMap() const { return _ObjectMap; }
 
-    //! Returns the method registry.
-    //! \return SharedPtr<MethodRegistry>
-    MethodRegistry* GetMethodRegistry();
+    //! Returns the global object.
+    //! \return ScriptObjectRef
+    inline ScriptObjectRef* GetGlobalObject() const { return _GlobalObject.Ptr(); }
 
-    //! Returns the global script object.
-    //! \return ScriptObject
-    ScriptObject* GetGlobalObject();
-
-    //! Returns a string representing objects in the vm.
-    //! \return string
-    std::string PrintObjects();
-
-    //! Returns a string representing methods in the vm.
-    //! \return string
-    std::string PrintMethods();
-
-    //! Releases the object.
-    bool Release() override;
-
-    //! Returns the main context.
-    //! \return ScriptContext
-    inline ScriptContext* GetContext() const { return _Context.Ptr(); }
-
-    //! Returns the script token.
-    //! \return ScriptToken
-    inline ScriptToken* GetScriptToken() const { return _Symbol.Ptr(); }
-
+public:
     friend MemPool;
     friend MemPoolRef;
     friend MemPoolObject;
     friend MemPoolManager;
 };
 
-#define ScriptVMInstance Sympl::ScriptVM::GetInstance()
+#define ScriptVMInstance ScriptVM::GetInstance()
 
 sympl_nsend
