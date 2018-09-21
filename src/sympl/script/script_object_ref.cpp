@@ -40,7 +40,6 @@ void ScriptObjectRef::__Construct()
 {
     _Name = "";
     _Path = "";
-    _Parent = nullptr;
     _Type = ScriptObjectType::Empty;
 }
 
@@ -51,6 +50,72 @@ void ScriptObjectRef::Initialize(const std::string& name, const std::string& pat
     _Path = path;
     _Type = type;
     _Parent = parent;
+}
+
+void ScriptObjectRef::AddChild(ScriptObjectRef* ref)
+{
+    ref->SetParent(this);
+    _Children.emplace_back(ref);
+}
+
+void ScriptObjectRef::RemoveChild(ScriptObjectRef* ref)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr() == ref) {
+            _Children.erase(childIt);
+            break;
+        }
+        ++childIt;
+    }
+}
+
+bool ScriptObjectRef::IsChild(ScriptObjectRef* ref)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr() == ref) {
+            return true;
+        }
+        ++childIt;
+    }
+    return false;
+}
+
+ScriptObjectRef* ScriptObjectRef::FindChildByName(const std::string& name)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr()->GetName() == name) {
+            return childIt->Ptr();
+        }
+        ++childIt;
+    }
+    return &ScriptObjectRef::Empty;
+}
+
+ScriptObjectRef* ScriptObjectRef::FindChildByPath(const std::string& path)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr()->GetPath() == path) {
+            return childIt->Ptr();
+        }
+        ++childIt;
+    }
+    return &ScriptObjectRef::Empty;
+}
+
+ScriptObjectRef* ScriptObjectRef::FindChildByAddress(const std::string& address)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr()->GetObjectAddress() == address) {
+            return childIt->Ptr();
+        }
+        ++childIt;
+    }
+    return &ScriptObjectRef::Empty;
 }
 
 std::string ScriptObjectRef::GetTypeAsString() const

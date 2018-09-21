@@ -39,7 +39,6 @@ class ScriptObjectRef;
 #define SYMPL_SCOPE_NAME "__scope__"
 #define SYMPL_METHOD_ARG_NAME "__arg__"
 #define to_script_object_ref(var) dynamic_cast<ScriptObjectRef*>(var.GetObject())
-#define to_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
 
 #define ScriptMethodArgs Urho3D::PODVector<Variant>&
 #define ScriptMethodArgList Urho3D::PODVector<Variant>

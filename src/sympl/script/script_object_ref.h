@@ -74,6 +74,34 @@ public:
     //! \param parent
     void Initialize(const std::string& name, const std::string& path, ScriptObjectType type, ScriptObjectRef* parent = nullptr);
 
+    //! Adds a child to the object.
+    //! \param ref
+    void AddChild(ScriptObjectRef* ref);
+
+    //! Removes a child from the object.
+    //! \param ref
+    void RemoveChild(ScriptObjectRef* ref);
+
+    //! Returns whether or not a reference is a child.
+    //! \param ref
+    //! \return bool
+    bool IsChild(ScriptObjectRef* ref);
+
+    //! Attempts to find a child by a given name.
+    //! \param name
+    //! \return ScriptObjectRef
+    ScriptObjectRef* FindChildByName(const std::string& name);
+
+    //! Attempts to find a child by a given path name.
+    //! \param path
+    //! \return ScriptObjectRef
+    ScriptObjectRef* FindChildByPath(const std::string& path);
+
+    //! Attempts to find a child by a given address.
+    //! \param address
+    //! \return ScriptObjectRef
+    ScriptObjectRef* FindChildByAddress(const std::string& address);
+
     //! Returns the type as a string.
     //! \return string
     std::string GetTypeAsString() const;

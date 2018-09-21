@@ -41,7 +41,9 @@ void ScriptVM::__Construct()
     _BuildAddresses();
 
     // Create the global object.
-    _GlobalObject = CreateObject();
+    _GlobalObject = mem_alloc_ref(ScriptObjectRef);
+    _GlobalObject->SetObjectAddress(ReserveObjectAddress());
+    _ObjectMap[_GlobalObject->GetObjectAddress()] = _GlobalObject;
     _GlobalObject->Initialize("root", "root", ScriptObjectType::Object);
 }
 
@@ -50,6 +52,8 @@ ScriptObjectRef* ScriptVM::CreateObject()
     auto ref = mem_alloc_ref(ScriptObjectRef);
     ref->SetObjectAddress(ReserveObjectAddress());
     _ObjectMap[ref->GetObjectAddress()] = ref;
+
+    _GlobalObject->AddChild(ref);
 
     return ref;
 }

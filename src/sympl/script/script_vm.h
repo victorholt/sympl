@@ -16,7 +16,17 @@
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+
+
+total war warhammer 2 alarielle trailer
+
+
+
+
+
+
+
+Recommended*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
@@ -42,7 +52,7 @@ class SYMPL_API ScriptVM : public Object
 
 protected:
     /// Max available addresses.
-    size_t _MaxObjectAddresses = 1000000;
+    size_t _MaxObjectAddresses = 100000;
 
     /// Available object addresses.
     std::vector<std::string> _AvailableObjectAddresses;

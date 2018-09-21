@@ -57,6 +57,7 @@ private:
     //! Adds to the reference count.
     void _AddRef()
     {
+        if (IsNull()) return;
         _Data->AddRef();
     }
 
