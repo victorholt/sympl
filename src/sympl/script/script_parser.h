@@ -81,9 +81,6 @@ private:
     /// Flag for whether or not the parser is recording a string.
     bool _RecordingString = false;
 
-    /// Flag for if we should store a virtual command.
-    bool _IsVirtualCommand = false;
-
     /// Current line we're parsing.
     size_t _CurrentLine = 0;
 
@@ -96,30 +93,11 @@ private:
     //! Builds the current object.
     void _BuildObject();
 
-    //! Build out the method arguments with the current buffer.
-    void _BuildMethodArgs();
-
-    //! Scan a potential array statement.
-    void _ScanArrayStatement();
-
-    //! Updates the object's value.
-    void _UpdateObjectValue();
-
-    //! Registers an objects constructor/destructor method.
-    void _RegisterObjectConstructs();
-
-    //! Attempts to update the scan mode.
-    void _UpdateScanMode();
-
     //! Opens a new scope based on the current object.
     void _OpenScope();
 
     //! Closes the current scope.
     void _CloseScope();
-
-    //! Checks if an object exists based on the current scope.
-    //! \return bool
-    bool _ObjectExists(const char* objectName);
 
     //! Checks if an object exists based on the current scope.
     //! \param objectName

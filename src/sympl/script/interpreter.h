@@ -34,7 +34,6 @@
 sympl_nsstart
 
 class ScriptVM;
-class ScriptStatement;
 
 struct InterpretCommandEntry
 {

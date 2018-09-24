@@ -2,7 +2,4 @@
 // in a console environment.
 
 var name = "Jim";
-print("Hello! How are you ");
-
-// TODO: Bug where the object can't concat with a string...
-printl(name + "?");
+// printl("Hello! How are you ");
