@@ -25,6 +25,8 @@
 #include <sympl/script/script_vm.h>
 #include <sympl/script/interpreter.h>
 
+#include <sympl/util/number_helper.h>
+
 #include <fmt/format.h>
 sympl_namespaces
 
@@ -58,43 +60,88 @@ void ScriptParser::Parse(Interpreter* interpreter)
 
 void ScriptParser::_ParseBuffer(ScriptReader* reader)
 {
-    int _CurrentLine = 0;
-    unsigned bufferIndex = 0;
-    char currentChar = '\0';
-    char previousChar = '\0';
-    char nextChar = '\0';
-    bool valueMode = false;
-    bool inArray = false;
-    bool grabbingLineNumber = false;
-
     _Reader = reader;
     _RecordingString = false;
     _CharLocation = 0;
 
     // Go through the buffer and parse out the script.
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
-        previousChar = currentChar;
-        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
-        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
-        _CharLocation++;
+        _ParseLineNumber();
 
         switch ((int)_ScanMode) {
             case (int)ParserScanMode::Type: {
+                _ParseType();
+                _ScanMode = ParserScanMode::VarName;
             }
             break;
             case (int)ParserScanMode::VarName: {
+                _ParseName();
+                _ScanMode = ParserScanMode::Value;
             }
             break;
             case (int)ParserScanMode::Value: {
+                _ParseValue();
+                _ScanMode = ParserScanMode::Type;
             }
             break;
         }
     }
 }
 
+void ScriptParser::_ParseLineNumber()
+{
+    char previousChar = '\0';
+    char currentChar = '\0';
+    char nextChar = '\0';
+    bool grabbingLineNumber = false;
+
+    while (_CharLocation < _Reader->GetBuffer()->Length()) {
+        previousChar = currentChar;
+        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
+        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
+        _CharLocation++;
+
+        // Grab the current line number.
+        if (currentChar == '[' && nextChar == '|') {
+            grabbingLineNumber = true;
+            continue;
+        }
+        if (grabbingLineNumber) {
+            if (previousChar == '|') {
+                _CurrentLine = static_cast<size_t>(currentChar);
+            }
+            if (currentChar == ']') {
+                return;
+            }
+        }
+        // End grabbing the line number.
+    }
+
+    sympl_assert(false, "Failed to parse line number!");
+}
+
 void ScriptParser::_ParseType()
 {
+    int _CurrentLine = 0;
+    unsigned bufferIndex = 0;
+    char currentChar = '\0';
+    char nextChar = '\0';
+    bool valueMode = false;
+    bool inArray = false;
+    bool grabbingLineNumber = false;
 
+    while (_CharLocation < _Reader->GetBuffer()->Length()) {
+        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
+        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
+        _CharLocation++;
+
+        // Store the value.
+        if (currentChar == '#') {
+
+        }
+    }
+
+    sympl_assert(false, "Missing type for declared variable!");
 }
 
 void ScriptParser::_ParseName()

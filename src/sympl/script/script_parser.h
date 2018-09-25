@@ -89,6 +89,9 @@ private:
     //! Parses the current buffer.
     void _ParseBuffer(ScriptReader* reader);
 
+    //! Parse out the line number.
+    void _ParseLineNumber();
+
     //! Parse out the type of the object.
     void _ParseType();
 

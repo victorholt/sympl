@@ -155,6 +155,44 @@ public:
         return output.c_str();
     }
 
+    static bool IsNumber(const char* str)
+    {
+        char firstChar = *str;
+        if (firstChar == '0' || firstChar == '1' || firstChar == '2' ||
+            firstChar == '3' || firstChar == '4' || firstChar == '5' ||
+            firstChar == '6' || firstChar == '7' || firstChar == '8' ||
+            firstChar == '9') {
+
+            long long intVal;
+            float floatVal;
+
+            if (NumberHelper::TryParseLong(str, &intVal)) {
+                return true;
+            } else if (NumberHelper::TryParseFloat(str, &floatVal)) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    static bool IsNumber(const char c)
+    {
+        return (c == '0' || c == '1' || c == '2' ||
+            c == '3' || c == '4' || c == '5' ||
+            c == '6' || c == '7' || c == '8' ||
+            c == '9');
+    }
+
+    static bool StartsWithNumber(const char* str)
+    {
+        char firstChar = *str;
+        return (firstChar == '0' || firstChar == '1' || firstChar == '2' ||
+            firstChar == '3' || firstChar == '4' || firstChar == '5' ||
+            firstChar == '6' || firstChar == '7' || firstChar == '8' ||
+            firstChar == '9');
+    }
+
     static unsigned lastSeed_;
 };
 
