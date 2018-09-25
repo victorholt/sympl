@@ -82,7 +82,7 @@ bool ScriptObject::IsChild(ScriptObject* ref)
     return false;
 }
 
-ScriptObject* ScriptObject::FindChildByName(const std::string& name)
+ScriptObject* ScriptObject::FindChildByName(const std::string& name, bool traverseUp)
 {
     auto childIt = std::begin(_Children);
     while (childIt != std::end(_Children)) {
@@ -91,10 +91,19 @@ ScriptObject* ScriptObject::FindChildByName(const std::string& name)
         }
         ++childIt;
     }
+
+    // If we have not found the child, check if we want to traverse up the tree.
+    if (traverseUp && _Parent.IsValid()) {
+        auto child = _Parent->FindChildByName(name, traverseUp);
+        if (!child->IsEmpty()) {
+            return child;
+        }
+    }
+
     return &ScriptObject::Empty;
 }
 
-ScriptObject* ScriptObject::FindChildByPath(const std::string& path)
+ScriptObject* ScriptObject::FindChildByPath(const std::string& path, bool traverseUp)
 {
     auto childIt = std::begin(_Children);
     while (childIt != std::end(_Children)) {
@@ -103,10 +112,19 @@ ScriptObject* ScriptObject::FindChildByPath(const std::string& path)
         }
         ++childIt;
     }
+
+    // If we have not found the child, check if we want to traverse up the tree.
+    if (traverseUp && _Parent.IsValid()) {
+        auto child = _Parent->FindChildByPath(path, traverseUp);
+        if (!child->IsEmpty()) {
+            return child;
+        }
+    }
+
     return &ScriptObject::Empty;
 }
 
-ScriptObject* ScriptObject::FindChildByAddress(const std::string& address)
+ScriptObject* ScriptObject::FindChildByAddress(const std::string& address, bool traverseUp)
 {
     auto childIt = std::begin(_Children);
     while (childIt != std::end(_Children)) {
@@ -115,6 +133,15 @@ ScriptObject* ScriptObject::FindChildByAddress(const std::string& address)
         }
         ++childIt;
     }
+
+    // If we have not found the child, check if we want to traverse up the tree.
+    if (traverseUp && _Parent.IsValid()) {
+        auto child = _Parent->FindChildByAddress(address, traverseUp);
+        if (!child->IsEmpty()) {
+            return child;
+        }
+    }
+
     return &ScriptObject::Empty;
 }
 

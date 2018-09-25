@@ -92,18 +92,21 @@ public:
 
     //! Attempts to find a child by a given name.
     //! \param name
+    //! \param traverseUp
     //! \return ScriptObjectRef
-    ScriptObject* FindChildByName(const std::string& name);
+    ScriptObject* FindChildByName(const std::string& name, bool traverseUp = true);
 
     //! Attempts to find a child by a given path name.
     //! \param path
+    //! \param traverseUp
     //! \return ScriptObjectRef
-    ScriptObject* FindChildByPath(const std::string& path);
+    ScriptObject* FindChildByPath(const std::string& path, bool traverseUp = true);
 
     //! Attempts to find a child by a given address.
     //! \param address
+    //! \param traverseUp
     //! \return ScriptObjectRef
-    ScriptObject* FindChildByAddress(const std::string& address);
+    ScriptObject* FindChildByAddress(const std::string& address, bool traverseUp = true);
 
     //! Returns the type as a string.
     //! \return string

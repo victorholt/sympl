@@ -70,6 +70,10 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
         switch ((int)_ScanMode) {
             case (int)ParserScanMode::Type: {
+                _CurrentIdentifierBuffer->Clear();
+                _CurrentObjectBuffer->Clear();
+                _CurrentValueBuffer->Clear();
+
                 _ParseType();
                 _ScanMode = ParserScanMode::VarName;
             }
@@ -81,6 +85,7 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
             break;
             case (int)ParserScanMode::Value: {
                 _ParseValue();
+                _BuildObject();
                 _ScanMode = ParserScanMode::Type;
             }
             break;
@@ -122,23 +127,37 @@ void ScriptParser::_ParseLineNumber()
 
 void ScriptParser::_ParseType()
 {
-    int _CurrentLine = 0;
-    unsigned bufferIndex = 0;
     char currentChar = '\0';
     char nextChar = '\0';
-    bool valueMode = false;
-    bool inArray = false;
-    bool grabbingLineNumber = false;
 
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
         nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
         _CharLocation++;
 
-        // Store the value.
         if (currentChar == '#') {
+            // Determine if we're defining a type, or using an existing object.
+            if (!_CurrentIdentifierBuffer->Equals("var") &&
+                !_CurrentIdentifierBuffer->Equals("func") &&
+                !_CurrentIdentifierBuffer->Equals("class") &&
+                !_CurrentIdentifierBuffer->Equals("return") &&
+                !_CurrentIdentifierBuffer->Equals("break") &&
+                !_CurrentIdentifierBuffer->Equals("continue")) {
+                auto obj = _FindObject(_CurrentIdentifierBuffer->CStr());
+                sympl_assert(obj->IsEmpty(), "Illegal declaration of an object!");
 
+                if (nextChar == ';') {
+                    _CharLocation++;
+                    _ScanMode = ParserScanMode::Type;
+                } else {
+                    _CurrentObjectBuffer = _CurrentIdentifierBuffer;
+                    _ScanMode = ParserScanMode::Value;
+                }
+            }
+            return;
         }
+
+        _CurrentIdentifierBuffer->AppendByte(currentChar);
     }
 
     sympl_assert(false, "Missing type for declared variable!");
@@ -146,17 +165,63 @@ void ScriptParser::_ParseType()
 
 void ScriptParser::_ParseName()
 {
+    char currentChar = '\0';
+    char nextChar = '\0';
 
+    while (_CharLocation < _Reader->GetBuffer()->Length()) {
+        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
+        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
+        _CharLocation++;
+
+        if (currentChar == '#') {
+            return;
+        }
+
+        // Methods or arrays will need to process as part of the 'value'.
+        if (nextChar == '(' || nextChar == '[') {
+            // Arrays should be marked as arrays in the type.
+            if (currentChar == '[') {
+                _CurrentIdentifierBuffer->Clear();
+                _CurrentIdentifierBuffer->Append("array");
+            }
+            return;
+        }
+
+        _CurrentObjectBuffer->AppendByte(currentChar);
+    }
+
+    sympl_assert(false, "Incomplete object detected during parsing!");
 }
 
 void ScriptParser::_ParseValue()
 {
+    char currentChar = '\0';
 
+    while (_CharLocation < _Reader->GetBuffer()->Length()) {
+        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
+        _CharLocation++;
+
+        if (currentChar == ';') {
+            return;
+        }
+
+        _CurrentValueBuffer->AppendByte(currentChar);
+    }
+
+    sympl_assert(false, "Missing ';' detected for object value during parsing!");
 }
 
 void ScriptParser::_BuildObject()
 {
+    // Check if our object exists.
 
+    // Determine the object type.
+
+    // Build our object.
+
+    // Check if our object is part of a 'scoped' method (if, else, while, etc).
+
+    // Add object processing to our interpreter for the current scope.
 }
 
 void ScriptParser::_OpenScope()
