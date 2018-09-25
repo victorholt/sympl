@@ -28,13 +28,15 @@
 #include <sympl/core/variant.h>
 #include <sympl/core/shared_ptr.h>
 
+#include <sympl/script/script_common.h>
+
 sympl_nsstart
 
 class MemPool;
 class MemPoolRef;
 class MemPoolObject;
 class MemPoolManager;
-class ScriptObjectRef;
+class ScriptObject;
 
 class SYMPL_API ScriptVM : public Object
 {
@@ -48,10 +50,10 @@ protected:
     std::vector<std::string> _AvailableObjectAddresses;
 
     /// Object mapping with given addresses.
-    std::unordered_map< std::string, SharedPtr<ScriptObjectRef> > _ObjectMap;
+    std::unordered_map< std::string, SharedPtr<ScriptObject> > _ObjectMap;
 
     /// Root reference object.
-    SharedPtr<ScriptObjectRef> _GlobalObject;
+    SharedPtr<ScriptObject> _GlobalObject;
 
     //! Build the available object addresses.
     void _BuildAddresses();
@@ -74,8 +76,20 @@ public:
     }
 
     //! Creates an empty object and attaches it to the global object.
-    //! \return ScriptObjectRef
-    ScriptObjectRef* CreateObject();
+    //! \return ScriptObject
+    ScriptObject* CreateObject(ScriptObject* parent = nullptr);
+
+    //! Creates and initializes an object.
+    //! \param name
+    //! \param path
+    //! \param type
+    //! \param parent
+    //! \return ScriptObject
+    ScriptObject* CreateObjectAndInitialize(const std::string& name, ScriptObjectType type = ScriptObjectType::Object, ScriptObject* parent = nullptr);
+
+    //! Creates an object with the purpose of being passed by reference.
+    //! \return ScriptObject
+    ScriptObject* CreateObjectReference();
 
     //! Reserves an object address.
     //! \return std::string
@@ -90,6 +104,11 @@ public:
     //! \return bool
     bool IsAvailableObjectAddress(const std::string& address);
 
+    //! Attempts to find an object.
+    //! \param path
+    //! \return ScriptObject
+    ScriptObject* FindObjectByPath(const std::string& path);
+
     //! Sets the max number object addresses.
     //! \param value
     inline void SetMaxObjectAddresses(size_t value) { _MaxObjectAddresses = value; }
@@ -100,11 +119,11 @@ public:
 
     //! Returns the object map.
     //! \return
-    inline const std::unordered_map< std::string, SharedPtr<ScriptObjectRef> >& GetObjectMap() const { return _ObjectMap; }
+    inline const std::unordered_map< std::string, SharedPtr<ScriptObject> >& GetObjectMap() const { return _ObjectMap; }
 
     //! Returns the global object.
-    //! \return ScriptObjectRef
-    inline ScriptObjectRef* GetGlobalObject() const { return _GlobalObject.Ptr(); }
+    //! \return ScriptObject
+    inline ScriptObject* GetGlobalObject() const { return _GlobalObject.Ptr(); }
 
 public:
     friend MemPool;

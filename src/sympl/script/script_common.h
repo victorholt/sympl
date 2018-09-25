@@ -31,7 +31,7 @@
 
 sympl_nsstart
 
-class ScriptObjectRef;
+class ScriptObject;
 
 #define GLOBAL_SCRIPT_OBJECT "__global__"
 #define SYMPL_CLASS_TOKEN "class@@"
@@ -73,7 +73,7 @@ enum class StatementOperator {
 
 struct StatementEntry
 {
-    SharedPtr<ScriptObjectRef> ObjectValue;
+    SharedPtr<ScriptObject> ObjectValue;
     Variant ConstantValue;
     StatementOperator Op;
 };

@@ -45,7 +45,6 @@ private:
         Type = 0,
         VarName,
         Value,
-        MethodArgs
     };
 
     /// Symbol token checker.
@@ -89,6 +88,15 @@ private:
 
     //! Parses the current buffer.
     void _ParseBuffer(ScriptReader* reader);
+
+    //! Parse out the type of the object.
+    void _ParseType();
+
+    //! Parse out the name of the object.
+    void _ParseName();
+
+    //! Parse out the value of the object.
+    void _ParseValue();
 
     //! Builds the current object.
     void _BuildObject();

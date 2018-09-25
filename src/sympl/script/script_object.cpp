@@ -22,3 +22,123 @@
  *
  **********************************************************/
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_vm.h>
+#include <sympl/core/string_buffer.h>
+#include <sympl/util/string_helper.h>
+
+#include <fmt/format.h>
+sympl_namespaces
+
+ScriptObject ScriptObject::Empty;
+
+ScriptObject::ScriptObjectRef()
+{
+    __Construct();
+}
+
+void ScriptObject::__Construct()
+{
+    _Name = "";
+    _Path = "";
+    _Type = ScriptObjectType::Empty;
+}
+
+void ScriptObject::Initialize(const std::string& name, const std::string& path, ScriptObjectType type, ScriptObject* parent)
+{
+    _Name = name;
+    _CleanName = name;
+    _Path = path;
+    _Type = type;
+    _Parent = parent;
+}
+
+void ScriptObject::AddChild(ScriptObject* ref)
+{
+    ref->SetParent(this);
+    _Children.emplace_back(ref);
+}
+
+void ScriptObject::RemoveChild(ScriptObject* ref)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr() == ref) {
+            _Children.erase(childIt);
+            break;
+        }
+        ++childIt;
+    }
+}
+
+bool ScriptObject::IsChild(ScriptObject* ref)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr() == ref) {
+            return true;
+        }
+        ++childIt;
+    }
+    return false;
+}
+
+ScriptObject* ScriptObject::FindChildByName(const std::string& name)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr()->GetName() == name) {
+            return childIt->Ptr();
+        }
+        ++childIt;
+    }
+    return &ScriptObject::Empty;
+}
+
+ScriptObject* ScriptObject::FindChildByPath(const std::string& path)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr()->GetPath() == path) {
+            return childIt->Ptr();
+        }
+        ++childIt;
+    }
+    return &ScriptObject::Empty;
+}
+
+ScriptObject* ScriptObject::FindChildByAddress(const std::string& address)
+{
+    auto childIt = std::begin(_Children);
+    while (childIt != std::end(_Children)) {
+        if (childIt->Ptr()->GetObjectAddress() == address) {
+            return childIt->Ptr();
+        }
+        ++childIt;
+    }
+    return &ScriptObject::Empty;
+}
+
+std::string ScriptObject::GetTypeAsString() const
+{
+    if (_Type == ScriptObjectType::Object) {
+        return "object";
+    }
+    if (_Type == ScriptObjectType::Reference) {
+        return "object (reference)";
+    }
+    if (_Type == ScriptObjectType::Variable) {
+        return "var";
+    }
+    if (_Type == ScriptObjectType::Array) {
+        return "array";
+    }
+    if (_Type == ScriptObjectType::Method) {
+        return "method";
+    }
+    return "empty";
+}
+
+bool ScriptObject::Release()
+{
+    return true;
+}

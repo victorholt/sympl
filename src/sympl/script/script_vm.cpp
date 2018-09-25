@@ -22,7 +22,7 @@
  *
  **********************************************************/
 #include <sympl/script/script_vm.h>
-#include <sympl/script/script_object_ref.h>
+#include <sympl/script/script_object.h>
 
 #include <sympl/util/string_helper.h>
 sympl_namespaces
@@ -41,20 +41,49 @@ void ScriptVM::__Construct()
     _BuildAddresses();
 
     // Create the global object.
-    _GlobalObject = mem_alloc_ref(ScriptObjectRef);
+    _GlobalObject = mem_alloc_ref(ScriptObject);
     _GlobalObject->SetObjectAddress(ReserveObjectAddress());
     _ObjectMap[_GlobalObject->GetObjectAddress()] = _GlobalObject;
     _GlobalObject->Initialize("root", "root", ScriptObjectType::Object);
 }
 
-ScriptObjectRef* ScriptVM::CreateObject()
+ScriptObject* ScriptVM::CreateObject(ScriptObject* parent)
 {
-    auto ref = mem_alloc_ref(ScriptObjectRef);
+    auto ref = mem_alloc_ref(ScriptObject);
     ref->SetObjectAddress(ReserveObjectAddress());
     _ObjectMap[ref->GetObjectAddress()] = ref;
 
-    _GlobalObject->AddChild(ref);
+    if (parent) {
+        parent->AddChild(ref);
+    } else {
+        _GlobalObject->AddChild(ref);
+    }
 
+    return ref;
+}
+
+ScriptObject* ScriptVM::CreateObjectAndInitialize(const std::string& name, ScriptObjectType type, ScriptObject* parent)
+{
+    std::string path;
+    if (parent) {
+        path = fmt::format("{0}.{1}", parent->GetPath(), name);
+    } else {
+        path = fmt::format("{0}", name);
+    }
+
+    // Check for collision.
+    auto searchObj = FindObjectByPath(path);
+    sympl_assert(!searchObj, "Collision detected with paths in an attempt to create a new object!");
+
+    auto ref = CreateObject(parent);
+    ref->Initialize(name, path, type);
+    return ref;
+}
+
+ScriptObject* ScriptVM::CreateObjectReference()
+{
+    auto ref = CreateObject();
+    ref->Initialize(ref->GetObjectAddress(), ref->GetObjectAddress(), ScriptObjectType::Object);
     return ref;
 }
 
@@ -96,4 +125,105 @@ bool ScriptVM::IsAvailableObjectAddress(const std::string& address)
         ++addressIt;
     }
     return true;
+}
+
+ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
+{
+    if (path.find("%") != std::string::npos) {
+        return &ScriptObject::Empty;
+    }
+
+    std::string delimiter = ".";
+
+    size_t pos = 0;
+
+    std::string parseStr = path;
+    std::string token;
+    std::string currentPath;
+
+    auto currentObject = &ScriptObject::Empty;
+    auto resultObject = &ScriptObject::Empty;
+    auto globalChildren = _GlobalObject->GetChildren();
+
+    // Check first if we have the path '.' delimeter. If not.
+    // then we should look in the global scope.
+    if ((pos = parseStr.find(delimiter)) == std::string::npos) {
+        for (auto& entryIt : globalChildren) {
+            if (entryIt->GetPath() == path) {
+                resultObject = entryIt.Ptr();
+                break;
+            }
+        }
+    } else {
+        while ((pos = parseStr.find(delimiter)) != std::string::npos) {
+            token = parseStr.substr(0, pos);
+            parseStr.erase(0, pos + delimiter.length());
+
+            // Search through the object map and the children.
+            if (currentObject->IsEmpty()) {
+                currentPath.append(token);
+                for (auto& entryIt : globalChildren) {
+                    if (entryIt->GetPath() == currentPath) {
+                        currentObject = entryIt.Ptr();
+
+                        // Check if we need to assign the current object
+                        // to the scope.
+                        auto objectType = currentObject->GetType();
+                        if (!currentObject->GetChildren().empty() &&
+                            (objectType == ScriptObjectType::Object ||
+                             objectType == ScriptObjectType::Method)
+                         ) {
+                            currentObject = currentObject->GetChildren()[0].Ptr();
+                            currentPath.append(".");
+                            currentPath.append(SYMPL_SCOPE_NAME);
+                        }
+                        break;
+                    }
+                }
+                if (currentObject->IsEmpty()) {
+                    break;
+                }
+            } else {
+                // Search the children.
+                if (token != SYMPL_SCOPE_NAME) {
+                    currentPath.append(".");
+                    currentPath.append(token);
+                }
+
+                for (auto& entryIt : currentObject->GetChildren()) {
+                    if (entryIt->GetPath() == currentPath) {
+                        currentObject = entryIt.Ptr();
+
+                        // Check if we need to assign the current object
+                        // to the scope.
+                        auto objectType = currentObject->GetType();
+                        if (!currentObject->GetChildren().empty() &&
+                            (objectType == ScriptObjectType::Object ||
+                             objectType == ScriptObjectType::Method)
+                         ) { // variables could be references to classes.
+                            currentObject = currentObject->GetChildren()[0].Ptr();
+                            currentPath.append(".");
+                            currentPath.append(SYMPL_SCOPE_NAME);
+                        }
+
+                        break;
+                    }
+                }
+                if (currentObject->IsEmpty()) break;
+            }
+        }
+
+        // Handle the last part of the path.
+        if (!currentObject->IsEmpty()) {
+            currentPath.append(".");
+            currentPath.append(parseStr);
+            for (auto entryIt : currentObject->GetChildren()) {
+                if (entryIt->GetPath() == currentPath) {
+                    resultObject = entryIt.Ptr();
+                    break;
+                }
+            }
+        }
+    }
+    return resultObject;
 }
