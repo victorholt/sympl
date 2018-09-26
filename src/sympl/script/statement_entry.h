@@ -31,9 +31,9 @@
 
 sympl_nsstart
 
-class SYMPL_API StatementResolver : public Object
+class SYMPL_API StatementEntry : public Object
 {
-    SYMPL_OBJECT(StatementResolver, Object);
+    SYMPL_OBJECT(StatementEntry, Object);
 };
 
 sympl_nsend
