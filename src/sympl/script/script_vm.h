@@ -37,6 +37,7 @@ class MemPoolRef;
 class MemPoolObject;
 class MemPoolManager;
 class ScriptObject;
+class Interpreter;
 
 class SYMPL_API ScriptVM : public Object
 {
@@ -108,6 +109,16 @@ public:
     //! \param path
     //! \return ScriptObject
     ScriptObject* FindObjectByPath(const std::string& path);
+
+    //! Loads a file into the vm.
+    //! \param filePath
+    //! \return Interpreter
+    Interpreter* LoadFile(const char* filePath);
+
+    //! Loads a string into the vm.
+    //! \param str
+    //! \return Interpreter
+    Interpreter* LoadString(const char* str);
 
     //! Sets the max number object addresses.
     //! \param value

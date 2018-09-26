@@ -82,7 +82,11 @@ public:
                 return dynamic_cast<T*>(_Entries[i].Ptr());
             }
         }
-        return nullptr;
+
+        T* obj = mem_alloc_ref(T);
+        Register(obj);
+
+        return obj;
     }
 
     void Clear() {

@@ -24,6 +24,7 @@
 #include <sympl/script/interpreter.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/script_parser.h>
+#include <sympl/core/string_buffer.h>
 #include <sympl/util/number_helper.h>
 
 #include <fmt/format.h>
@@ -39,9 +40,19 @@ void Interpreter::__Construct()
 
 }
 
-bool Interpreter::Run()
+bool Interpreter::Run(std::string scopeObjectAddress)
 {
-//    for (auto entry : _CommandList) {
+    if (scopeObjectAddress.empty()) {
+        scopeObjectAddress = ScriptVMInstance.GetGlobalObject()->GetObjectAddress();
+    }
+
+    auto commandList = _CommandList.find(scopeObjectAddress);
+    if (commandList == _CommandList.end()) {
+        return false;
+    }
+
+    for (auto& entry : commandList->second) {
+        entry.ObjectRef->SetValue(entry.StatementStr->CStr());
 //        SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
 //        if (entry.VirtualObjectRef.IsValid()) {
 //            // Attempt to find the object that should now exist.
@@ -56,20 +67,20 @@ bool Interpreter::Run()
 //            resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
 //        }
 //        ScriptVMInstance->GC();
-//    }
+    }
     return true;
 }
 
-void Interpreter::AddCommand(ScriptObject* objectRef, const char* stmtStr)
+void Interpreter::AddCommand(const std::string& scopeObjectAddress, ScriptObject* objectRef, const char* stmtStr)
 {
     InterpretCommandEntry entry;
     entry.ObjectRef     = objectRef;
     entry.StatementStr  = mem_alloc_ref(StringBuffer);
     entry.StatementStr->Append(stmtStr);
-    _CommandList.push_back(entry);
+    _CommandList[scopeObjectAddress].push_back(entry);
 }
 
-void Interpreter::AddVirtualCommand(const char* command, const char* stmtStr)
+void Interpreter::AddVirtualCommand(const std::string& scopeObjectAddress, const char* command, const char* stmtStr)
 {
     InterpretCommandEntry entry;
     entry.VirtualObjectRef  = mem_alloc_ref(StringBuffer);
@@ -78,7 +89,7 @@ void Interpreter::AddVirtualCommand(const char* command, const char* stmtStr)
     entry.VirtualObjectRef->Append(command);
     entry.StatementStr->Append(stmtStr);
 
-    _CommandList.push_back(entry);
+    _CommandList[scopeObjectAddress].push_back(entry);
 }
 
 void Interpreter::_SetReader(ScriptReader* reader)
@@ -98,8 +109,8 @@ void Interpreter::_Parse()
 bool Interpreter::Release()
 {
     for (auto entryIt : _CommandList) {
-        entryIt.StatementStr.Release();
-        entryIt.ObjectRef.Release();
+//        entryIt.StatementStr.Release();
+//        entryIt.ObjectRef.Release();
     }
     _CommandList.clear();
 

@@ -47,8 +47,8 @@ class SYMPL_API Interpreter : public Object
     SYMPL_OBJECT(Interpreter, Object);
 
 private:
-    /// Command list for the program.
-    std::vector<InterpretCommandEntry> _CommandList;
+    /// Command list for the program based on an object address.
+    std::unordered_map< std::string, std::vector<InterpretCommandEntry> > _CommandList;
 
     /// Reference to the script parser.
     SharedPtr<ScriptParser> _Parser;
@@ -71,18 +71,20 @@ public:
     void __Construct() override;
 
     //! Attempts to run the program.
+    //! \return scopeObjectAddress
     //! \return bool
-    bool Run();
+    bool Run(std::string scopeObjectAddress = "");
 
     //! Adds a command to the interpreter.
+    //! \param scopeObjectAddress
     //! \param objectRef
     //! \param stmtStr
-    void AddCommand(ScriptObject* objectRef, const char* stmtStr);
+    void AddCommand(const std::string& scopeObjectAddress, ScriptObject* objectRef, const char* stmtStr);
 
     //! Adds a virtual command to the interpreter.
     //! \param command
     //! \param stmtStr
-    void AddVirtualCommand(const char* command, const char* stmtStr);
+    void AddVirtualCommand(const std::string& scopeObjectAddress, const char* command, const char* stmtStr);
 
     //! Releases the object.
     bool Release() override;

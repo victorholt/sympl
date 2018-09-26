@@ -66,14 +66,15 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
 
     // Go through the buffer and parse out the script.
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
-        _ParseLineNumber();
-
         switch ((int)_ScanMode) {
             case (int)ParserScanMode::Type: {
                 _CurrentIdentifierBuffer->Clear();
                 _CurrentObjectBuffer->Clear();
                 _CurrentValueBuffer->Clear();
 
+                // Check for a line number.
+                _ParseLineNumber();
+                // Parse our type.
                 _ParseType();
                 _ScanMode = ParserScanMode::VarName;
             }
@@ -116,8 +117,10 @@ void ScriptParser::_ParseLineNumber()
                 _CurrentLine = static_cast<size_t>(currentChar);
             }
             if (currentChar == ']') {
-                return;
+                grabbingLineNumber = false;
             }
+        } else {
+            return;
         }
         // End grabbing the line number.
     }
@@ -160,6 +163,9 @@ void ScriptParser::_ParseType()
         _CurrentIdentifierBuffer->AppendByte(currentChar);
     }
 
+    if (nextChar == '\0') { // EOF
+        return;
+    }
     sympl_assert(false, "Missing type for declared variable!");
 }
 
@@ -214,14 +220,42 @@ void ScriptParser::_ParseValue()
 void ScriptParser::_BuildObject()
 {
     // Check if our object exists.
+    auto scriptObject = _FindObject(_CurrentObjectBuffer->CStr());
 
     // Determine the object type.
+    ScriptObjectType type = ScriptObjectType::Object;
+    if (scriptObject->IsEmpty()) {
+        if (_CurrentIdentifierBuffer->Equals("var")) {
+            type = ScriptObjectType::Variable;
+        } else if (_CurrentIdentifierBuffer->Equals("array")) {
+            type = ScriptObjectType::Array;
+        } else if (_CurrentIdentifierBuffer->Equals("func")) {
+            type = ScriptObjectType::Method;
+        } else if (_CurrentIdentifierBuffer->Equals("class")) {
+            type = ScriptObjectType::Object;
+        }
 
-    // Build our object.
+        // Build our object.
+        auto parentObject = _CurrentScopeObject.IsValid() ? _CurrentScopeObject.Ptr() : nullptr;
+        _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize(_CurrentObjectBuffer->CStr(), type, parentObject);
+    }
 
     // Check if our object is part of a 'scoped' method (if, else, while, etc).
 
     // Add object processing to our interpreter for the current scope.
+    if (_CurrentScopeObject.IsValid()) {
+        _Interpreter->AddCommand(
+                _CurrentScopeObject->GetObjectAddress(),
+                _CurrentObject.Ptr(),
+                _CurrentValueBuffer->CStr()
+        );
+    } else {
+        _Interpreter->AddCommand(
+                ScriptVMInstance.GetGlobalObject()->GetObjectAddress(),
+                _CurrentObject.Ptr(),
+                _CurrentValueBuffer->CStr()
+        );
+    }
 }
 
 void ScriptParser::_OpenScope()
@@ -254,6 +288,15 @@ void ScriptParser::_CloseScope()
 ScriptObject* ScriptParser::_FindObject(const char* objectName)
 {
     ScriptObject* output = &ScriptObject::Empty;
+
+    if (_CurrentObject.IsValid()) {
+        if (_CurrentScopeObject.IsValid()) {
+            output = _CurrentScopeObject->FindChildByName(objectName, false);
+        } else {
+            output = _CurrentObject->FindChildByName(objectName, false);
+        }
+    }
+
     return output;
 }
 

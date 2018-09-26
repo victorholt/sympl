@@ -23,6 +23,8 @@
  **********************************************************/
 #include <sympl/script/script_vm.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_reader.h>
+#include <sympl/script/interpreter.h>
 
 #include <sympl/util/string_helper.h>
 sympl_namespaces
@@ -73,7 +75,7 @@ ScriptObject* ScriptVM::CreateObjectAndInitialize(const std::string& name, Scrip
 
     // Check for collision.
     auto searchObj = FindObjectByPath(path);
-    sympl_assert(!searchObj, "Collision detected with paths in an attempt to create a new object!");
+    sympl_assert(searchObj->IsEmpty(), "Collision detected with paths in an attempt to create a new object!");
 
     auto ref = CreateObject(parent);
     ref->Initialize(name, path, type);
@@ -226,4 +228,34 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
         }
     }
     return resultObject;
+}
+
+Interpreter* ScriptVM::LoadFile(const char* filePath)
+{
+    SharedPtr<Interpreter> interpreter = mem_alloc_ref(Interpreter);
+    SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
+    sympl_assert(reader->ReadFile(filePath), "Failed to find import file!");
+
+    if (!interpreter.IsValid()) {
+        interpreter = mem_alloc_ref(Interpreter);
+    }
+    interpreter->_SetReader(reader.Ptr());
+    interpreter->_Parse();
+
+    return interpreter.Ptr();
+}
+
+Interpreter* ScriptVM::LoadString(const char* str)
+{
+    SharedPtr<Interpreter> interpreter = mem_alloc_ref(Interpreter);
+    SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
+    reader->ReadString(str);
+
+    if (!interpreter.IsValid()) {
+        interpreter = mem_alloc_ref(Interpreter);
+    }
+    interpreter->_SetReader(reader.Ptr());
+    interpreter->_Parse();
+
+    return interpreter.Ptr();
 }

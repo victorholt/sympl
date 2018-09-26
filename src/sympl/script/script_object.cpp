@@ -31,7 +31,7 @@ sympl_namespaces
 
 ScriptObject ScriptObject::Empty;
 
-ScriptObject::ScriptObjectRef()
+ScriptObject::ScriptObject()
 {
     __Construct();
 }

@@ -6,13 +6,19 @@ sympl_namespaces
 int main()
 {
     mem_create_pool(StringBuffer, 25);
-    sympl_profile_start("program_run");
+    auto global = ScriptVMInstance.GetGlobalObject();
+    cout << "Global Object: " << global->GetObjectAddress() << endl;
 
-    auto maxObjects = ScriptVMInstance.GetMaxObjectAddresses();
-//    cout << "Global Object: " << ScriptVMInstance.GetGlobalObject()->GetObjectAddress() << endl;
+    sympl_profile_start("program_run");
+    auto program = ScriptVMInstance.LoadFile("../../examples/scripts/hello.sym");
+    program->Run();
+    sympl_profile_stop_and_print("program_run");
+
+    // Find the variable and print it out.
+    auto nameVar = ScriptVMInstance.FindObjectByPath("name");
+    cout << "name = " << nameVar->GetValue().AsString() << endl;
 
     cout << "Memory Usage: " << MemPoolInstance.GetMemoryUsage() << endl;
-    sympl_profile_stop_and_print("program_run");
 
     return 0;
 }
