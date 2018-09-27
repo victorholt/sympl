@@ -34,6 +34,27 @@ sympl_nsstart
 class SYMPL_API StatementResolver : public Object
 {
     SYMPL_OBJECT(StatementResolver, Object);
+
+protected:
+    /// String for the statement.
+    SharedPtr<StringBuffer> _StmtStr;
+    /// Entries for the statement.
+    std::string< SharedPtr<StatementEntry> > _Entries;
+
+public:
+    //! Constructor.
+    StatementResolver();
+
+    //! Called in place of the constructor.
+    void __Construct() override;
+
+    //! Resolves a given statement into the destination object.
+    //! \param destObject
+    //! \param stmtStr
+    void Resolve(ScriptObject* destObject, const std::string& stmtStr);
+
+    //! Releases the object.
+    bool Release() override;
 };
 
 sympl_nsend
