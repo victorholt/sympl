@@ -22,6 +22,9 @@
  *
  **********************************************************/
 #include <sympl/script/statement_resolver.h>
+#include <sympl/util/string_helper.h>
+#include <sympl/util/number_helper.h>
+
 sympl_namespaces
 
 StatementResolver::StatementResolver()
@@ -31,14 +34,353 @@ StatementResolver::StatementResolver()
 
 void StatementResolver::__Construct()
 {
+    _TokenHelper = SymplRegistry.Get<ScriptToken>();
 }
 
-void StatementResolver::Resolve(ScriptObject* destObject, const std::string& stmtStr)
+Variant StatementResolver::Resolve(ScriptObject* destObject, const std::string& stmtStr)
 {
+    _StmtString = mem_alloc_ref(StringBuffer);
+    _StmtString->Append(stmtStr);
 
+    if (_StmtString->LastByte() != ';') {
+        _StmtString->AppendByte(';');
+    }
+
+    auto stmtEntryStr = mem_alloc_ref(StringBuffer);
+    char currentChar = '\0';
+    char nextChar = '\0';
+
+    bool recording = false;
+    bool isString = false;
+
+    StatementOperator currentOp = StatementOperator::Equals;
+
+    while (_CharLocation < _StmtString->Length()) {
+        currentChar = _StmtString->Get(_CharLocation);
+        nextChar = _StmtString->Get(_CharLocation + 1);
+        _CharLocation++;
+
+        // Check if we're starting a string.
+        if (currentChar == '%' && _StmtString->PeekSearch(SYMPL_STRING_TOKEN, _CharLocation - 1)) {
+            stmtEntryStr->Append(SYMPL_STRING_TOKEN); // We need to append the token so that we don't look for
+            // a class with the same name on object lookup.
+            SetCharLocation(_CharLocation + strlen(SYMPL_STRING_TOKEN) - 1);
+            recording = !recording;
+            isString = true;
+            _Type = StatementType::String;
+            continue;
+        }
+
+        // Save our current character.
+        if (recording || (currentChar != '#' && currentChar != ';' &&
+                          currentChar != '(' && currentChar != '{' &&
+                          currentChar != ')')) {
+            stmtEntryStr->AppendByte(currentChar);
+        }
+
+        // Skip processing if we're current recording.
+        if (recording) { continue; }
+
+        // Check if we need to create the statement entry.
+        if (currentChar == '#' || currentChar == ';' ||
+           _TokenHelper->IsOperator(currentChar) || _TokenHelper->IsOperator(nextChar)) {
+
+            // Skip if we don't have anything to check.
+            if (stmtEntryStr->Empty()) {
+                continue;
+            }
+
+            // Check/save the operator.
+            if (stmtEntryStr->Length() <= 2 && _TokenHelper->IsOperator(stmtEntryStr->CStr())) {
+                // Check if we're a double operator.
+                if (_TokenHelper->IsOperator(nextChar)) {
+                    stmtEntryStr->AppendByte(nextChar);
+                    _CharLocation++;
+                }
+
+                currentOp = _SymbolToOp(stmtEntryStr->CStr());
+                stmtEntryStr->Clear();
+                continue;
+            }
+
+            // Create our entry.
+            auto stmtEntry = mem_alloc_object(StatementEntry);
+            stmtEntry->Op = currentOp;
+
+            // Handle case if this is a string.
+            if (isString) {
+                _Type = StatementType::String;
+
+                // Constants will be decoded.
+                stmtEntryStr->Replace(SYMPL_STRING_TOKEN, "");
+
+                std::string decodedStr;
+                if (_TokenHelper->DecodeSpecialCharString(stmtEntryStr->CStr(), decodedStr)) {
+                    stmtEntryStr->Clear();
+                    stmtEntryStr->Append(decodedStr);
+                }
+
+
+                stmtEntry->ConstantValue = stmtEntryStr->CStr();
+            } else {
+                NumberHelper::IsNumber(stmtEntryStr->CStr(), stmtEntry->ConstantValue);
+
+                // Check if the value is a boolean value.
+                if (stmtEntry->ConstantValue.IsEmpty()) {
+                    stmtEntry->ConstantValue = _IsBoolean(stmtEntryStr->CStr());
+                }
+            }
+
+            // Handle case if this is an object.
+            if (!isString && stmtEntry->ConstantValue.IsEmpty()) {
+                // Attempt to find the object we're looking for.
+                auto scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
+                sympl_assert(!scopeObj->IsEmpty(), "Undefined variable detected!");
+
+                stmtEntry->ObjectValue = scopeObj;
+            }
+
+            // Save our entry.
+            _StmtEntries.emplace_back(stmtEntry);
+            stmtEntryStr->Clear();
+            isString = false;
+        }
+    }
+
+    mem_free_ref(StringBuffer, stmtEntryStr);
+
+    // Resolve the statements and update the value.
+    Variant retVal;
+    retVal = _ResolveStatements(_StmtEntries);
+    ClearStatementEntries();
+    return retVal;
+}
+
+Variant StatementResolver::_ResolveStatements(const std::vector<StatementEntry*>& stmtEntries)
+{
+    if (stmtEntries.empty()) {
+        return Variant::Empty;
+    }
+
+    // Evaluate if we only have 1 statement entry.
+    if (stmtEntries.size() == 1) {
+        auto entry = stmtEntries[0];
+        if (entry->Op == StatementOperator::Equals || entry->Op == StatementOperator::NewObject) {
+            if (entry->ObjectValue.IsValid()) {
+                if (entry->ObjectValue->GetType() == ScriptObjectType::Object ||
+                    entry->ObjectValue->GetType() == ScriptObjectType::Method) {
+                    return entry->ObjectValue.Ptr();
+                }
+
+                // If we're a variable with no value, than we're just returning
+                // the object.
+                if (entry->ObjectValue->GetValue().IsEmpty()) {
+                    return entry->ObjectValue.Ptr();
+                } else {
+                    return entry->ObjectValue->GetValue();
+                }
+            }
+            return entry->ConstantValue;
+        }
+    }
+
+    // Set the type.
+    if (_Type == StatementType::None) {
+        Variant firstVal = stmtEntries[0]->ObjectValue.IsValid() ?
+                           stmtEntries[0]->ObjectValue->GetValue() : stmtEntries[0]->ConstantValue;
+
+        auto type = _FindType(firstVal);
+        _Type = type;
+    }
+
+    Variant value;
+    auto size = stmtEntries.size();
+    for (unsigned i = 0; i < size; i++) {
+        _Solve(stmtEntries[i], value);
+    }
+
+    return value;
+}
+
+void StatementResolver::_Solve(StatementEntry* entry, Variant& value)
+{
+    Variant evalValue;
+    if (entry->ObjectValue.IsValid()) {
+        evalValue = entry->ObjectValue->GetValue();
+    } else {
+        // We're dealing with a constant value.
+        evalValue = entry->ConstantValue;
+    }
+
+    // Check to see if we are just assigning an empty value.
+    if (value.GetType() == VariantType::Empty) {
+        value = evalValue;
+        return;
+    }
+
+    switch ((int)entry->Op) {
+        case (int)StatementOperator::Add:
+            if (_Type == StatementType::String) {
+                value.GetStringBuffer()->Append(evalValue.GetStringBuffer()->CStr());
+            } else if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() + evalValue.GetInt());
+            }
+            break;
+        case (int)StatementOperator::Subtract:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() - evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() - evalValue.GetFloat());
+            }
+            break;
+        case (int)StatementOperator::Divide:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() / evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() / evalValue.GetFloat());
+            }
+            break;
+        case (int)StatementOperator::Multiply:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() * evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() * evalValue.GetFloat());
+            }
+            break;
+        case (int)StatementOperator::Mod:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() % evalValue.GetInt());
+            }
+            break;
+        case (int)StatementOperator::GreaterThan:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() > evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() > evalValue.GetFloat());
+            }
+            break;
+        case (int)StatementOperator::LessThan:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() < evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() < evalValue.GetFloat());
+            }
+            break;
+        case (int)StatementOperator::GreaterEqualThan:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() >= evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() >= evalValue.GetFloat());
+            }
+            break;
+        case (int)StatementOperator::LessEqualThan:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() <= evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() <= evalValue.GetFloat());
+            }
+            break;
+        case (int)StatementOperator::IsEqual2:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() == evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() == evalValue.GetFloat());
+            } else if (_Type == StatementType::String) {
+                value.Set(value.GetStringBuffer()->Equals(evalValue.GetStringBuffer()));
+            }
+            break;
+        case (int)StatementOperator::NotIsEqual2:
+            if (_Type == StatementType::Integer) {
+                value.Set(value.GetInt() != evalValue.GetInt());
+            } else if (_Type == StatementType::Float) {
+                value.Set(value.GetFloat() != evalValue.GetFloat());
+            } else if (_Type == StatementType::String) {
+                value.Set(!value.GetStringBuffer()->Equals(evalValue.GetStringBuffer()));
+            }
+            break;
+        default:
+            value.Set(evalValue);
+            break;
+    }
+}
+
+StatementOperator StatementResolver::_SymbolToOp(const char* symbol)
+{
+    if (strcmp(symbol, "=") == 0) {
+        return StatementOperator::Equals;
+    }
+    if (strcmp(symbol, "+") == 0) {
+        return StatementOperator::Add;
+    }
+    if (strcmp(symbol, "-") == 0) {
+        return StatementOperator::Subtract;
+    }
+    if (strcmp(symbol, "/") == 0) {
+        return StatementOperator::Divide;
+    }
+    if (strcmp(symbol, "*") == 0) {
+        return StatementOperator::Multiply;
+    }
+    if (strcmp(symbol, ">") == 0) {
+        return StatementOperator::GreaterThan;
+    }
+    if (strcmp(symbol, "<") == 0) {
+        return StatementOperator::LessThan;
+    }
+    if (strcmp(symbol, ">=") == 0) {
+        return StatementOperator::GreaterEqualThan;
+    }
+    if (strcmp(symbol, "<=") == 0) {
+        return StatementOperator::LessEqualThan;
+    }
+    if (strcmp(symbol, "==") == 0) {
+        return StatementOperator::IsEqual2;
+    }
+    if (strcmp(symbol, "!=") == 0) {
+        return StatementOperator::NotIsEqual2;
+    }
+
+    return StatementOperator::None;
+}
+
+Variant StatementResolver::_IsBoolean(const char* str)
+{
+    if (strcmp(str, "true") == 0 || strcmp(str, "false") == 0) {
+        _Type = StatementType::Bool;
+        return strcmp(str, "true") == 0;
+    }
+    return Variant::Empty;
+}
+
+StatementType StatementResolver::_FindType(const Variant& value)
+{
+    if (value.GetType() == VariantType::Bool) {
+        return StatementType::Bool;
+    }
+    if (value.GetType() == VariantType::Int) {
+        return StatementType::Integer;
+    }
+    if (value.GetType() == VariantType::Float) {
+        return StatementType::Float;
+    }
+    if (value.GetType() == VariantType::StringBuffer) {
+        return StatementType::String;
+    }
+
+    return StatementType::Object;
+}
+
+void StatementResolver::ClearStatementEntries()
+{
+    for (auto stmtEntry : _StmtEntries) {
+        mem_free_object(StatementEntry, stmtEntry);
+    }
+    _StmtEntries.clear();
 }
 
 bool StatementResolver::Release()
 {
-
+    mem_free_ref(StringBuffer, _StmtString);
+    ClearStatementEntries();
+    return true;
 }

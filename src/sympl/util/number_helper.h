@@ -24,6 +24,7 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
+#include <sympl/core/variant.h>
 
 #include <fmt/format.h>
 
@@ -155,7 +156,7 @@ public:
         return output.c_str();
     }
 
-    static bool IsNumber(const char* str)
+    static bool IsNumber(const char* str, Variant& output)
     {
         char firstChar = *str;
         if (firstChar == '0' || firstChar == '1' || firstChar == '2' ||
@@ -167,21 +168,24 @@ public:
             float floatVal;
 
             if (NumberHelper::TryParseLong(str, &intVal)) {
-                return true;
+                output = intVal;
             } else if (NumberHelper::TryParseFloat(str, &floatVal)) {
-                return true;
+                output = floatVal;
             }
 
         }
-        return false;
+        return !output.IsEmpty();
     }
 
-    static bool IsNumber(const char c)
+    static Variant IsNumber(const char c, Variant& output)
     {
-        return (c == '0' || c == '1' || c == '2' ||
+        if (c == '0' || c == '1' || c == '2' ||
             c == '3' || c == '4' || c == '5' ||
             c == '6' || c == '7' || c == '8' ||
-            c == '9');
+            c == '9') {
+            output = (int)c;
+        }
+        return !output.IsEmpty();
     }
 
     static bool StartsWithNumber(const char* str)

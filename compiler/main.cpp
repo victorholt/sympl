@@ -15,8 +15,8 @@ int main()
     sympl_profile_stop_and_print("program_run");
 
     // Find the variable and print it out.
-    auto nameVar = ScriptVMInstance.FindObjectByPath("name");
-    cout << "name = " << nameVar->GetValue().AsString() << endl;
+    auto greetingVar = ScriptVMInstance.FindObjectByPath("greeting");
+    cout << greetingVar->GetValue().AsString() << endl;
 
     cout << "Memory Usage: " << MemPoolInstance.GetMemoryUsage() << endl;
 

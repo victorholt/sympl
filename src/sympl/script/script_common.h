@@ -71,6 +71,15 @@ enum class StatementOperator {
     DeleteObject,
 };
 
+enum class StatementType {
+    None = 0,
+    Object,
+    String,
+    Bool,
+    Integer,
+    Float,
+};
+
 struct StatementEntry
 {
     SharedPtr<ScriptObject> ObjectValue;

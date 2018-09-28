@@ -28,6 +28,7 @@
 #include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_token.h>
 
 sympl_nsstart
 
@@ -37,9 +38,43 @@ class SYMPL_API StatementResolver : public Object
 
 protected:
     /// String for the statement.
-    SharedPtr<StringBuffer> _StmtStr;
+    StringBuffer* _StmtString;
+
     /// Entries for the statement.
-    std::string< SharedPtr<StatementEntry> > _Entries;
+    std::vector<StatementEntry*> _StmtEntries;
+
+    /// Reference to the token helper.
+    ScriptToken* _TokenHelper;
+
+    /// Current character location.
+    size_t _CharLocation = 0;
+
+    /// Type of statement.
+    StatementType _Type = StatementType::None;
+
+    //! Attempts to resolve a given statement.
+    //! \param stmtEntries
+    //! \return Variant
+    Variant _ResolveStatements(const std::vector<StatementEntry*>& stmtEntries);
+
+    //! Solves a statement entry with a current value.
+    //! \param entry
+    //! \param value
+    void _Solve(StatementEntry* entry, Variant& value);
+
+    //! Converts a symbol to a statement operator.
+    //! \param symbol
+    StatementOperator _SymbolToOp(const char* symbol);
+
+    //! Checks if a given string is a boolean value.
+    //! \param str
+    //! \return Variant
+    Variant _IsBoolean(const char* str);
+
+    //! Finds the statement type.
+    //! \param value
+    //! \return StatementType
+    StatementType _FindType(const Variant& value);
 
 public:
     //! Constructor.
@@ -51,10 +86,21 @@ public:
     //! Resolves a given statement into the destination object.
     //! \param destObject
     //! \param stmtStr
-    void Resolve(ScriptObject* destObject, const std::string& stmtStr);
+    Variant Resolve(ScriptObject* destObject, const std::string& stmtStr);
+
+    //! Clears the statement entries.
+    void ClearStatementEntries();
 
     //! Releases the object.
     bool Release() override;
+
+    //! Sets the current char location.
+    //! \param value
+    inline void SetCharLocation(size_t value) { _CharLocation = value; }
+
+    //! Returns the current character location.
+    //! \return size_t
+    inline size_t GetCharLocation() const { return _CharLocation; }
 };
 
 sympl_nsend

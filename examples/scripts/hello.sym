@@ -1,5 +1,7 @@
 // Example of a hello world program that will run
 // in a console environment.
 
-var name = "Jim";
+var name = "John" + " " + "Doe";
+var greeting = "Hello, " + name + "!";
+
 // printl("Hello! How are you ");

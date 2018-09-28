@@ -24,6 +24,7 @@
 #include <sympl/script/interpreter.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/script_parser.h>
+#include <sympl/script/statement_resolver.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/util/number_helper.h>
 
@@ -53,7 +54,10 @@ bool Interpreter::Run(std::string scopeObjectAddress)
 
     for (auto& entry : commandList->second) {
         entry.ObjectRef->SetValue(entry.StatementStr->CStr());
-//        SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
+        SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
+        auto value = resolver->Resolve(entry.ObjectRef.Ptr(), entry.StatementStr->CStr());
+        entry.ObjectRef->SetValue(value);
+
 //        if (entry.VirtualObjectRef.IsValid()) {
 //            // Attempt to find the object that should now exist.
 //            auto scriptObject = ScriptVMInstance->FindObjectByPath(entry.VirtualObjectRef->CStr(), nullptr);
