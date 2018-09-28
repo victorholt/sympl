@@ -28,27 +28,29 @@
 #include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/statement_resolver.h>
 
 sympl_nsstart
 
-class SYMPL_API StatementEntry : public Object
+class SYMPL_API ObjectResolver : public Object
 {
-    SYMPL_OBJECT(StatementEntry, Object);
+    SYMPL_OBJECT(ObjectResolver, Object);
 
 public:
     //! Constructor.
-    StatementEntry();
+    ObjectResolver();
 
     //! Called in place of the constructor.
     void __Construct() override;
 
-    //! Resolves a given statement into the destination object.
-    //! \param destObject
-    //! \param stmtStr
-    void Resolve(ScriptObject* destObject, const std::string& stmtStr);
-
-    //! Releases the object.
-    bool Release() override;
+    //! Resolves the method.
+    //! \param stmtResolver
+    //! \param currentStr
+    //! \param varObject
+    //! \param op
+    //! \return
+    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                            ScriptObject* varObject, StatementOperator op);
 };
 
 sympl_nsend
