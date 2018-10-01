@@ -51,6 +51,11 @@ void ScriptVM::__Construct()
 
 ScriptObject* ScriptVM::CreateObject(ScriptObject* parent)
 {
+    return CreateObject(ScriptObjectType::Object, parent);
+}
+
+ScriptObject* ScriptVM::CreateObject(ScriptObjectType type, ScriptObject* parent)
+{
     auto ref = mem_alloc_ref(ScriptObject);
     ref->SetObjectAddress(ReserveObjectAddress());
     _ObjectMap[ref->GetObjectAddress()] = ref;

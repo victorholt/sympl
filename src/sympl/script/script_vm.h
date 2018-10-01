@@ -80,6 +80,11 @@ public:
     //! \return ScriptObject
     ScriptObject* CreateObject(ScriptObject* parent = nullptr);
 
+    //! Creates an empty object and attaches it to the global object.
+    //! \return type
+    //! \return ScriptObject
+    ScriptObject* CreateObject(ScriptObjectType type = ScriptObjectType::Object, ScriptObject* parent = nullptr);
+
     //! Creates and initializes an object.
     //! \param name
     //! \param path
