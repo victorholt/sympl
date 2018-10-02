@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/script_vm.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/script_array.h>
 #include <sympl/script/script_reader.h>
 #include <sympl/script/interpreter.h>
 
@@ -56,7 +57,14 @@ ScriptObject* ScriptVM::CreateObject(ScriptObject* parent)
 
 ScriptObject* ScriptVM::CreateObject(ScriptObjectType type, ScriptObject* parent)
 {
-    auto ref = mem_alloc_ref(ScriptObject);
+    ScriptObject* ref;
+
+    if (type == ScriptObjectType::Array) {
+        ref = mem_alloc_ref(ScriptArray);
+    } else {
+        ref = mem_alloc_ref(ScriptObject);
+    }
+
     ref->SetObjectAddress(ReserveObjectAddress());
     _ObjectMap[ref->GetObjectAddress()] = ref;
 
@@ -82,14 +90,14 @@ ScriptObject* ScriptVM::CreateObjectAndInitialize(const std::string& name, Scrip
     auto searchObj = FindObjectByPath(path);
     sympl_assert(searchObj->IsEmpty(), "Collision detected with paths in an attempt to create a new object!");
 
-    auto ref = CreateObject(parent);
+    auto ref = CreateObject(type, parent);
     ref->Initialize(name, path, type);
     return ref;
 }
 
 ScriptObject* ScriptVM::CreateObjectReference()
 {
-    auto ref = CreateObject();
+    auto ref = CreateObject(ScriptObjectType::Object);
     ref->Initialize(ref->GetObjectAddress(), ref->GetObjectAddress(), ScriptObjectType::Object);
     return ref;
 }

@@ -24,30 +24,64 @@
 #pragma once
 
 #include <sympl/core/sympl_pch.h>
-#include <sympl/core/string_buffer.h>
-#include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/statement_resolver.h>
 
 sympl_nsstart
 
-class SYMPL_API ObjectResolver : public Object
+class SYMPL_API ScriptArray : public ScriptObject
 {
-    SYMPL_OBJECT(ObjectResolver, Object);
+    SYMPL_OBJECT(ScriptArray, ScriptObject);
+
+protected:
+    /// Items in the array.
+    std::unordered_map<std::string, Variant> _Items;
 
 public:
     //! Constructor.
-    ObjectResolver() = default;
+    ScriptArray();
 
-    //! Resolves the method.
-    //! \param stmtResolver
-    //! \param currentStr
-    //! \param varObject
-    //! \param op
-    //! \return
-    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
-                            ScriptObject* varObject, StatementOperator op) {}
+    //! Sets an item to the array.
+    //! \param index
+    //! \param item
+    void SetItem(const char* index, const Variant& item);
+
+    //! Removes an item from the array.
+    //! \param index
+    void RemoveItem(size_t index);
+
+    //! Removes an item from the array.
+    //! \param index
+    void RemoveItem(const char* index);
+
+    //! Returns a string representation of the array.
+    std::string GetArrayString();
+
+    //! Returns an item from the array.
+    //! \param index
+    //! \return Variant
+    const Variant& GetItem(size_t index);
+
+    //! Returns an item from the array.
+    //! \param index
+    //! \return Variant
+    const Variant& GetItem(const char* index);
+
+    //! Called in place of the constructor.
+    void __Construct() override;
+
+    //! Releases the object.
+    bool Release() override;
+
+    //! Returns items in the array.
+    //! \return std::vector<Variant>
+    inline const std::unordered_map<std::string, Variant>& GetItems() const { return _Items; }
+
+    //! Returns the length of the array.
+    //! \return size_t
+    inline size_t Length() const { return _Items.size(); }
 };
+
+#define to_array(obj) dynamic_cast<ScriptArray*>(obj)
 
 sympl_nsend
