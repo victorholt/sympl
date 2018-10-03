@@ -47,7 +47,7 @@ public:
     //! \param op
     //! \return
     virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
-                            ScriptObject* varObject, StatementOperator op) {}
+                            ScriptObject* varObject, StatementOperator op) { return Variant::Empty; }
 };
 
 sympl_nsend

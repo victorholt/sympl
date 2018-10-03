@@ -34,9 +34,15 @@ void ScriptArray::__Construct()
 
 }
 
-void ScriptArray::SetItem(const char* index, const Variant& item)
+void ScriptArray::SetItem(const char* index, const Variant& item, const Variant& rawItem)
 {
     _Items[index] = item;
+
+    if (rawItem.IsEmpty()) {
+        _RawItems[index] = item;
+    } else {
+        _RawItems[index] = rawItem;
+    }
 }
 
 void ScriptArray::RemoveItem(size_t index)
@@ -52,6 +58,7 @@ void ScriptArray::RemoveItem(const char* index)
         return;
     }
     _Items.erase(index);
+    _RawItems.erase(index);
 }
 
 std::string ScriptArray::GetArrayString()
@@ -83,6 +90,21 @@ const Variant& ScriptArray::GetItem(const std::string& index)
         return Variant::Empty;
     }
     return _Items[index];
+}
+
+const Variant& ScriptArray::GetRawItem(size_t index)
+{
+    return GetRawItem(std::to_string(index).c_str());
+}
+
+const Variant& ScriptArray::GetRawItem(const std::string& index)
+{
+    auto item = _RawItems.find(index);
+    if (item == _RawItems.end()) {
+        sympl_assert(false, "Index outside of array bounds!");
+        return Variant::Empty;
+    }
+    return _RawItems[index];
 }
 
 bool ScriptArray::Release()

@@ -107,7 +107,6 @@ Variant ArrayResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* cu
 
     // Find where the brackets land.
     auto statementStr = stmtResolver->GetStatementString();
-    currentStr->Clear();
 
     // Check to see if the equal sign occurs before or after our brackets.
     // This will determine whether we're assigning a value to an array item.
@@ -115,12 +114,12 @@ Variant ArrayResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* cu
     auto opIndex = statementStr->FirstOccurrence('=', 0);
 
     // We have a problem if we can't find an index for either of these.
-    if (bracketIndex == -1 || opIndex == -1) {
+    if (bracketIndex == -1) {
         sympl_assert(false, "Invalid array statement found!");
     }
 
     // Modifying an existing array.
-    if (bracketIndex < opIndex) {
+    if (opIndex != -1 && bracketIndex < opIndex) {
         return _ModifyExistingArray(stmtResolver, currentStr, destObject, op);
     }
 
@@ -137,6 +136,8 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
                       ScriptObject* destObject, StatementOperator op)
 {
     sympl_assert(destObject->GetType() == ScriptObjectType::Array, "Attempted to resolve non-array object as an array!");
+
+    currentStr->Clear();
 
     auto statementStr = stmtResolver->GetStatementString();
     char currentChar = '\0';
@@ -193,7 +194,7 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
                     valueIndex.Set(arrayAssocKey->CStr());
                 }
 
-                to_array(destObject)->SetItem(valueIndex.AsString().c_str(), value);
+                to_array(destObject)->SetItem(valueIndex.AsString().c_str(), value, resolveStr->CStr());
 
                 resolveStr->Clear();
                 arrayAssocKey->Clear();
@@ -205,7 +206,7 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
             if (valueAssignment) {
                 EvalResolver evalResolver;
                 Variant value = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), destObject);
-                to_array(destObject)->SetItem(valueIndex.AsString().c_str(), value);
+                to_array(destObject)->SetItem(valueIndex.AsString().c_str(), value, resolveStr->CStr());
 
                 return value;
             } else {
@@ -226,11 +227,131 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
 Variant ArrayResolver::_ResolveArrayValue(StatementResolver* stmtResolver, StringBuffer* currentStr,
                                      ScriptObject* destObject, StatementOperator op)
 {
+    // Find our array object.
+    auto arrayObj = destObject->FindChildByName(currentStr->SubstrFirstOccurrence('['));
+    if (arrayObj->IsEmpty() || arrayObj->GetType() != ScriptObjectType::Array) {
+        sympl_assert(false, "Illegal call to a non-existent array variable!");
+    }
+    currentStr->Clear();
+
+    auto statementStr = stmtResolver->GetStatementString();
+    SharedPtr<StringBuffer> resolveStr = mem_alloc_ref(StringBuffer);
+
+    // Quick check to see if the equal sign occurs before or after our brackets.
+    // This will determine whether we're assigning a value to an array item.
+    auto bracketIndex = statementStr->FirstOccurrence('[', 0, 10);
+    auto opIndex = statementStr->FirstOccurrence('=');
+
+    // If opIndex does not = -1, fast forward the string.
+    if (opIndex != -1) {
+        stmtResolver->SetCharLocation(bracketIndex);
+    }
+
+    // We have a problem if we can't find an index for either of these.
+    if (bracketIndex == -1) {
+        sympl_assert(false, "Invalid array statement found in attempting to retrieve array value!");
+    }
+
+    // Find the index of the array we want to modify.
+    char currentChar = '\0';
+    bool recording = false;
+
+    while (true) {
+        currentChar = statementStr->Get(stmtResolver->GetCharLocation());
+        stmtResolver->SetCharLocation(stmtResolver->GetCharLocation() + 1);
+
+        // Break when we reach the value assignment.
+        if (currentChar == '=') {
+            break;
+        }
+
+        // Skip bracket beginning.
+        if (currentChar == '[') {
+            continue;
+        }
+
+        // Check if we've reached the end.
+        if (currentChar == '\0') {
+            sympl_assert(false, "Detected unclosed bracket in array assignment!");
+        }
+
+        // Check if we've encountered a quote.
+        if (currentChar == '%' &&
+            statementStr->PeekSearch(SYMPL_STRING_TOKEN, stmtResolver->GetCharLocation() - 1)) {
+            resolveStr->Append(SYMPL_STRING_TOKEN);
+            stmtResolver->SetCharLocation(
+                    stmtResolver->GetCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
+            recording = !recording;
+            continue;
+        }
+
+        // Skip spaces if we're not recording.
+        if (!recording && currentChar == '#') {
+            continue;
+        }
+
+        // Check if we need to solve the value inside the bracket.
+        if (currentChar == ']') {
+            EvalResolver evalResolver;
+            auto value = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), destObject);
+            return to_array(arrayObj)->GetRawItem(value.AsString().c_str());
+        }
+
+        // Record our string.
+        resolveStr->AppendByte(currentChar);
+    }
+
     return Variant::Empty;
 }
 
 Variant ArrayResolver::_ModifyExistingArray(StatementResolver* stmtResolver, StringBuffer* currentStr,
                              ScriptObject* destObject, StatementOperator op)
 {
+    sympl_assert(destObject->GetType() == ScriptObjectType::Array, "Attempted to modify a non-array object as an array!");
+
+    currentStr->Clear();
+
+    auto resolveStr = mem_alloc_ref(StringBuffer);
+    auto statementStr = stmtResolver->GetStatementString();
+    char currentChar = '\0';
+    bool recording = false;
+
+    Variant valueIndex;
+    bool valueAssignment = _CheckValueAssignment(stmtResolver, destObject, valueIndex);
+    sympl_assert(valueAssignment, "Illegal attempt to assign an array value!");
+
+    // Build out the argument statements.
+    while (true) {
+        currentChar = statementStr->Get(stmtResolver->GetCharLocation());
+        stmtResolver->SetCharLocation(stmtResolver->GetCharLocation() + 1);
+
+        // Check if we've reached the end.
+        if (currentChar == '\0') {
+            break;
+        }
+
+        // Check if we've encountered a quote.
+        if (currentChar == '%' && statementStr->PeekSearch(SYMPL_STRING_TOKEN, stmtResolver->GetCharLocation() - 1)) {
+            resolveStr->Append(SYMPL_STRING_TOKEN);
+            stmtResolver->SetCharLocation(stmtResolver->GetCharLocation() + strlen(SYMPL_STRING_TOKEN) - 1);
+            recording = !recording;
+            continue;
+        }
+
+        if (currentChar == ';') {
+            stmtResolver->SetCharLocation(stmtResolver->GetCharLocation() - 1);
+
+            EvalResolver evalResolver;
+            Variant value = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), destObject);
+            to_array(destObject)->SetItem(valueIndex.AsString().c_str(), value, resolveStr->CStr());
+
+            return destObject->GetName().c_str();
+        } else {
+            if (recording || (!recording && currentChar != '#')) {
+                resolveStr->AppendByte(currentChar);
+            }
+        }
+    }
+
     return Variant::Empty;
 }

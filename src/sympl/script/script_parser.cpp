@@ -260,6 +260,8 @@ void ScriptParser::_BuildObject()
         // Build our object.
         auto parentObject = _CurrentScopeObject.IsValid() ? _CurrentScopeObject.Ptr() : nullptr;
         _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize(_CurrentObjectBuffer->CStr(), type, parentObject);
+    } else {
+        _CurrentObject = scriptObject;
     }
 
     // Check if our object is part of a 'scoped' method (if, else, while, etc).

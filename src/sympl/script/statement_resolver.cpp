@@ -87,14 +87,6 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
             continue;
         }
 
-        // Attempt to resolve value from an array that's being passed to a non-array (i.e. method: printl).
-//        if (!recording && nextChar == '[' && destObject->GetType() != ScriptObjectType::Array) {
-//            auto arrayResolver = SymplRegistry.Get<ArrayResolver>();
-//            stmtEntryStr->Append(
-//                    arrayResolver->ResolveValue(this, stmtEntryStr, destObject).AsString());
-//            continue;
-//        }
-
         // Skip processing if we're current recording.
         if (recording) { continue; }
 
@@ -125,7 +117,7 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
             stmtEntry->Op = currentOp;
 
             // Handle case if this is a string.
-            if (isString) {
+            if (isString || stmtEntryStr->StartsWith(SYMPL_STRING_TOKEN)) {
                 _Type = StatementType::String;
 
                 // Constants will be decoded.

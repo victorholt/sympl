@@ -7,14 +7,14 @@ var arr1 = [
     "two",
     "three"
 ];
-#var arr2 = [2, 4, 6];
+var arr2 = [2, 4, 6];
 #var arr3 = [
 #    "name": "test",
 #    "color": "red"
 #];
 
-arr1[0] = "one and some";
-# arr1[0] = arr1[2]; #"one and some";
+arr1[0] = "one and some" + " " + " fix me!";
+#arr1[0] = arr2[2]; #"one and some";
 
 #printl(notArr, true);
 #printl(arr1[0], true);

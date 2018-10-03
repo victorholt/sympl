@@ -36,6 +36,8 @@ class SYMPL_API ScriptArray : public ScriptObject
 protected:
     /// Items in the array.
     std::unordered_map<std::string, Variant> _Items;
+    /// Raw value of items in the array (non-decoded if a string).
+    std::unordered_map<std::string, Variant> _RawItems;
 
 public:
     //! Constructor.
@@ -44,7 +46,8 @@ public:
     //! Sets an item to the array.
     //! \param index
     //! \param item
-    void SetItem(const char* index, const Variant& item);
+    //! \param rawItem
+    void SetItem(const char* index, const Variant& item, const Variant& rawItem = Variant::Empty);
 
     //! Removes an item from the array.
     //! \param index
@@ -66,6 +69,16 @@ public:
     //! \param index
     //! \return Variant
     const Variant& GetItem(const std::string& index);
+
+    //! Returns a raw item from the array.
+    //! \param index
+    //! \return Variant
+    const Variant& GetRawItem(size_t index);
+
+    //! Returns a raw item from the array.
+    //! \param index
+    //! \return Variant
+    const Variant& GetRawItem(const std::string& index);
 
     //! Called in place of the constructor.
     void __Construct() override;
