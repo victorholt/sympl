@@ -72,22 +72,21 @@ void ScriptParser::_ParseBuffer(ScriptReader* reader)
                 _CurrentObjectBuffer->Clear();
                 _CurrentValueBuffer->Clear();
 
-                // Check for a line number.
-                _ParseLineNumber();
+                // Parse our line number.
+//                _ParseLineNumber();
+
                 // Parse our type.
                 _ParseType();
-                _ScanMode = ParserScanMode::VarName;
             }
             break;
             case (int)ParserScanMode::VarName: {
                 _ParseName();
-                _ScanMode = ParserScanMode::Value;
             }
             break;
             case (int)ParserScanMode::Value: {
                 _ParseValue();
                 _BuildObject();
-                _ScanMode = ParserScanMode::Type;
+                _ClearBuffers();
             }
             break;
         }
@@ -120,6 +119,7 @@ void ScriptParser::_ParseLineNumber()
                 grabbingLineNumber = false;
             }
         } else {
+            _CharLocation--; // Rewind as we didn't find a line number.
             return;
         }
         // End grabbing the line number.
@@ -132,13 +132,14 @@ void ScriptParser::_ParseType()
 {
     char currentChar = '\0';
     char nextChar = '\0';
+    _ScanMode = ParserScanMode::VarName;
 
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
         nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
         _CharLocation++;
 
-        if (currentChar == '#') {
+        if (currentChar == '#' && _CurrentIdentifierBuffer->Length() > 0) {
             // Determine if we're defining a type, or using an existing object.
             if (!_CurrentIdentifierBuffer->Equals("var") &&
                 !_CurrentIdentifierBuffer->Equals("func") &&
@@ -160,7 +161,19 @@ void ScriptParser::_ParseType()
             return;
         }
 
-        _CurrentIdentifierBuffer->AppendByte(currentChar);
+        if (currentChar != '#') {
+            _CurrentIdentifierBuffer->AppendByte(currentChar);
+        }
+
+        // Methods or arrays will need to process as part of the 'value'.
+        // We need to ensure that the buffer already has the current char
+        // added since we're testing the 'nextChar' value.
+        if (nextChar == '(' || nextChar == '[') {
+            _CurrentObjectBuffer->Clear();
+            _CurrentObjectBuffer->Append(_CurrentIdentifierBuffer);
+            _ScanMode = ParserScanMode::Value;
+            return;
+        }
     }
 
     if (nextChar == '\0') { // EOF
@@ -173,6 +186,7 @@ void ScriptParser::_ParseName()
 {
     char currentChar = '\0';
     char nextChar = '\0';
+    _ScanMode = ParserScanMode::Value;
 
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
@@ -190,6 +204,7 @@ void ScriptParser::_ParseName()
                 _CurrentIdentifierBuffer->Clear();
                 _CurrentIdentifierBuffer->Append("array");
             }
+            _ScanMode = ParserScanMode::Value;
             return;
         }
 
@@ -202,6 +217,7 @@ void ScriptParser::_ParseName()
 void ScriptParser::_ParseValue()
 {
     char currentChar = '\0';
+    _ScanMode = ParserScanMode::Type;
 
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
@@ -209,6 +225,12 @@ void ScriptParser::_ParseValue()
 
         if (currentChar == ';') {
             return;
+        }
+
+        // Arrays should be marked as arrays in the type.
+        if (currentChar == '[' && !_CurrentValueBuffer->Contains(SYMPL_STRING_TOKEN)) {
+            _CurrentIdentifierBuffer->Clear();
+            _CurrentIdentifierBuffer->Append("array");
         }
 
         _CurrentValueBuffer->AppendByte(currentChar);
@@ -289,12 +311,21 @@ ScriptObject* ScriptParser::_FindObject(const char* objectName)
 {
     ScriptObject* output = &ScriptObject::Empty;
 
+    if (_CurrentObject.IsValid() && _CurrentObject->GetName() == objectName) {
+        return _CurrentObject.Ptr();
+    }
+
     if (_CurrentObject.IsValid()) {
         if (_CurrentScopeObject.IsValid()) {
             output = _CurrentScopeObject->FindChildByName(objectName, false);
         } else {
             output = _CurrentObject->FindChildByName(objectName, false);
         }
+    }
+
+    // If this is still empty, and we don't have a parent, check the global object.
+    if (output->IsEmpty() && !_CurrentScopeObject.IsValid()) {
+        output = ScriptVMInstance.GetGlobalObject()->FindChildByName(objectName, false);
     }
 
     return output;

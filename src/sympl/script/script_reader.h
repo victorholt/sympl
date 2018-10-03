@@ -49,7 +49,7 @@ private:
     ScriptToken* _ScriptToken;
 
     /// Adds the line numbers to the compiler's output (for debugging).
-    bool _AddLineNumbers = true;
+    bool _AddLineNumbers = false;
 
     //! Processes the script file/string.
     //! \param fileStream

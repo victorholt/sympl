@@ -22,6 +22,7 @@
  *
  **********************************************************/
 #include <sympl/script/statement_resolver.h>
+#include <sympl/script/resolvers/array_resolver.h>
 #include <sympl/util/string_helper.h>
 #include <sympl/util/number_helper.h>
 
@@ -37,7 +38,7 @@ void StatementResolver::__Construct()
     _TokenHelper = SymplRegistry.Get<ScriptToken>();
 }
 
-Variant StatementResolver::Resolve(ScriptObject* destObject, const std::string& stmtStr)
+Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* destObject)
 {
     _StmtString = mem_alloc_ref(StringBuffer);
     _StmtString->Append(stmtStr);
@@ -77,6 +78,22 @@ Variant StatementResolver::Resolve(ScriptObject* destObject, const std::string& 
                           currentChar != ')')) {
             stmtEntryStr->AppendByte(currentChar);
         }
+
+        // Check if we're in an array.
+        if (!recording && currentChar == '[') {
+            auto arrayResolver = SymplRegistry.Get<ArrayResolver>();
+            stmtEntryStr->Append(
+                    arrayResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
+            continue;
+        }
+
+        // Attempt to resolve value from an array that's being passed to a non-array (i.e. method: printl).
+//        if (!recording && nextChar == '[' && destObject->GetType() != ScriptObjectType::Array) {
+//            auto arrayResolver = SymplRegistry.Get<ArrayResolver>();
+//            stmtEntryStr->Append(
+//                    arrayResolver->ResolveValue(this, stmtEntryStr, destObject).AsString());
+//            continue;
+//        }
 
         // Skip processing if we're current recording.
         if (recording) { continue; }
@@ -120,7 +137,6 @@ Variant StatementResolver::Resolve(ScriptObject* destObject, const std::string& 
                     stmtEntryStr->Append(decodedStr);
                 }
 
-
                 stmtEntry->ConstantValue = stmtEntryStr->CStr();
             } else {
                 NumberHelper::IsNumber(stmtEntryStr->CStr(), stmtEntry->ConstantValue);
@@ -135,9 +151,15 @@ Variant StatementResolver::Resolve(ScriptObject* destObject, const std::string& 
             if (!isString && stmtEntry->ConstantValue.IsEmpty()) {
                 // Attempt to find the object we're looking for.
                 auto scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
-                sympl_assert(!scopeObj->IsEmpty(), "Undefined variable detected!");
+                sympl_assert(!scopeObj->IsEmpty(), "Attempt to assign non-declared object!");
 
-                stmtEntry->ObjectValue = scopeObj;
+                // If we cannot discover the object treat it as a string.
+//                if (scopeObj->IsEmpty()) {
+//                    _Type = StatementType::String;
+//                    stmtEntry->ConstantValue = stmtEntryStr->CStr();
+//                } else {
+//                    stmtEntry->ObjectValue = scopeObj;
+//                }
             }
 
             // Save our entry.

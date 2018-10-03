@@ -65,7 +65,7 @@ public:
     //! Returns an item from the array.
     //! \param index
     //! \return Variant
-    const Variant& GetItem(const char* index);
+    const Variant& GetItem(const std::string& index);
 
     //! Called in place of the constructor.
     void __Construct() override;

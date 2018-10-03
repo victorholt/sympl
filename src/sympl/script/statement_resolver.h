@@ -84,9 +84,9 @@ public:
     void __Construct() override;
 
     //! Resolves a given statement into the destination object.
-    //! \param destObject
     //! \param stmtStr
-    Variant Resolve(ScriptObject* destObject, const std::string& stmtStr);
+    //! \param destObject
+    Variant Resolve(const std::string& stmtStr, ScriptObject* destObject);
 
     //! Clears the statement entries.
     void ClearStatementEntries();
@@ -97,6 +97,10 @@ public:
     //! Sets the current char location.
     //! \param value
     inline void SetCharLocation(size_t value) { _CharLocation = value; }
+
+    //! Returns the statement string buffer.
+    //! \return StringBuffer
+    inline StringBuffer* GetStatementString() const { return _StmtString; }
 
     //! Returns the current character location.
     //! \return size_t

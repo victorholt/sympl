@@ -55,7 +55,7 @@ bool Interpreter::Run(std::string scopeObjectAddress)
     for (auto& entry : commandList->second) {
         entry.ObjectRef->SetValue(entry.StatementStr->CStr());
         SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
-        auto value = resolver->Resolve(entry.ObjectRef.Ptr(), entry.StatementStr->CStr());
+        auto value = resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
         entry.ObjectRef->SetValue(value);
 
 //        if (entry.VirtualObjectRef.IsValid()) {

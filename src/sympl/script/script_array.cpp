@@ -48,7 +48,7 @@ void ScriptArray::RemoveItem(const char* index)
 {
     auto item = _Items.find(index);
     if (item == _Items.end()) {
-        sympl_assert(false && "Index outside of array bounds in removal attempt!");
+        sympl_assert(false, "Index outside of array bounds in removal attempt!");
         return;
     }
     _Items.erase(index);
@@ -58,14 +58,14 @@ std::string ScriptArray::GetArrayString()
 {
     std::string value = "[";
     auto numItems = _Items.size();
-    for (size_t i = 0; i < numItems; i++) {
-        if (i > 0) {
-            value.append(",");
-        }
-
-        auto entry = _Items[i];
-        value.append(entry.AsString());
-    }
+//    for (size_t i = 0; i < numItems; i++) {
+//        if (i > 0) {
+//            value.append(",");
+//        }
+//
+//        auto entry = _Items[i];
+//        value.append(entry.AsString());
+//    }
     value.append("]");
     return value;
 }
@@ -75,11 +75,11 @@ const Variant& ScriptArray::GetItem(size_t index)
     return GetItem(std::to_string(index).c_str());
 }
 
-const Variant& ScriptArray::GetItem(const char* index)
+const Variant& ScriptArray::GetItem(const std::string& index)
 {
     auto item = _Items.find(index);
     if (item == _Items.end()) {
-        sympl_assert(false && "Index outside of array bounds!");
+        sympl_assert(false, "Index outside of array bounds!");
         return Variant::Empty;
     }
     return _Items[index];
