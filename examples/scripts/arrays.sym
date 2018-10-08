@@ -1,20 +1,20 @@
 // Array examples.
 #profiler_start("array");
 
-#var notArr = "[not, an, array]";
+var notArr = "[not, an, array]";
 var arr1 = [
     "one",
     "two",
     "three"
 ];
 var arr2 = [2, 4, 6];
-#var arr3 = [
-#    "name": "test",
-#    "color": "red"
-#];
+var arr3 = [
+    "name": "test",
+    "color": "red"
+];
 
-arr1[0] = "one and some" + " " + " fix me!";
-#arr1[0] = arr2[2]; #"one and some";
+arr1[0] = arr2[0];
+//arr1[0] = arr3["color"];// + arr2[1];
 
 #printl(notArr, true);
 #printl(arr1[0], true);

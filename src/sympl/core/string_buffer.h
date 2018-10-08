@@ -119,6 +119,17 @@ public:
     //! \return bool
     bool Contains(const char* search);
 
+    //! Returns a substring of the current string.
+    //! \param start
+    //! \param end
+    //! \return string
+    std::string Substr(size_t start, size_t end = 0);
+
+    //! Replaces the current string based on the start/end indexes.
+    //! \param start
+    //! \param end
+    void SubstrReplace(size_t start, size_t end = 0);
+
     //! Returns a substr once it encounters the given string.
     //! \param c
     //! \return

@@ -145,6 +145,8 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
                 auto scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
                 sympl_assert(!scopeObj->IsEmpty(), "Attempt to assign non-declared object!");
 
+                stmtEntry->ObjectValue = scopeObj;
+
                 // If we cannot discover the object treat it as a string.
 //                if (scopeObj->IsEmpty()) {
 //                    _Type = StatementType::String;

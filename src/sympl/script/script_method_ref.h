@@ -23,39 +23,21 @@
  **********************************************************/
 #pragma once
 
-#include <fmt/format.h>
-
-#include <urho3d/container/Swap.h>
-#include <urho3d/container/VectorBase.h>
-#include <urho3d/container/Vector.h>
-
 #include <sympl/core/sympl_pch.h>
-
-#include <sympl/core/mempool.h>
-#include <sympl/core/registry.h>
-#include <sympl/core/ref.h>
-#include <sympl/core/object.h>
-#include <sympl/core/shared_ptr.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/core/string_buffer.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/thread.h>
-#include <sympl/core/mutex.h>
-
-#include <sympl/util/profiler.h>
-
-#include <sympl/script/script_token.h>
-#include <sympl/script/script_reader.h>
-#include <sympl/script/script_parser.h>
-
-#include <sympl/script/script_common.h>
-//#include <sympl/script/script_context.h>
-//#include <sympl/script/statement_resolver.h>
-#include <sympl/script/script_vm.h>
-#include <sympl/script/interpreter.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_array.h>
-#include <sympl/script/script_method.h>
-//#include <sympl/script/methods/callback_method.h>
-//#include <sympl/script/methods/if_method.h>
-//#include <sympl/script/methods/while_method.h>
+
+sympl_nsstart
+
+class SYMPL_API ScriptMethodRef : public ScriptObject
+{
+    SYMPL_OBJECT(ScriptMethodRef, ScriptObject);
+
+public:
+    //! Constructor.
+    ScriptMethodRef();
+
+    //! Called in place of the constructor.
+    void __Construct() override;
+};
+
+sympl_nsend

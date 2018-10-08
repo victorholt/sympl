@@ -23,39 +23,63 @@
  **********************************************************/
 #pragma once
 
-#include <fmt/format.h>
-
-#include <urho3d/container/Swap.h>
-#include <urho3d/container/VectorBase.h>
-#include <urho3d/container/Vector.h>
-
 #include <sympl/core/sympl_pch.h>
-
-#include <sympl/core/mempool.h>
-#include <sympl/core/registry.h>
-#include <sympl/core/ref.h>
-#include <sympl/core/object.h>
 #include <sympl/core/shared_ptr.h>
 #include <sympl/core/weak_ptr.h>
 #include <sympl/core/string_buffer.h>
-#include <sympl/core/variant.h>
-#include <sympl/core/thread.h>
-#include <sympl/core/mutex.h>
-
-#include <sympl/util/profiler.h>
-
-#include <sympl/script/script_token.h>
-#include <sympl/script/script_reader.h>
-#include <sympl/script/script_parser.h>
-
-#include <sympl/script/script_common.h>
-//#include <sympl/script/script_context.h>
-//#include <sympl/script/statement_resolver.h>
-#include <sympl/script/script_vm.h>
-#include <sympl/script/interpreter.h>
 #include <sympl/script/script_object.h>
-#include <sympl/script/script_array.h>
-#include <sympl/script/script_method.h>
-//#include <sympl/script/methods/callback_method.h>
-//#include <sympl/script/methods/if_method.h>
-//#include <sympl/script/methods/while_method.h>
+
+sympl_nsstart
+
+class StatementResolver;
+
+struct MethodCallStatement
+{
+    WeakPtr<ScriptObject> Variable;
+    SharedPtr<StringBuffer> VirtualObjectStr;
+    SharedPtr<StringBuffer> StatementStr;
+    SharedPtr<StatementResolver> Resolver;
+};
+
+struct MethodArgCacheValue
+{
+    Variant                 ArgValue;
+
+    // Need to know how many characters to advance
+    // when parsing the statement string.
+    size_t                  ArgStringLength;
+};
+
+struct MethodArgCache
+{
+    char ArgString[256];
+    std::vector<MethodArgCacheValue> Args;
+};
+
+class SYMPL_API ScriptMethod : public ScriptObject
+{
+    SYMPL_OBJECT(ScriptMethod, ScriptObject);
+
+public:
+    //! Constructor.
+    ScriptMethod();
+
+    //! Called in place of the constructor.
+    void __Construct() override;
+
+    //! Initializes the object.
+    //! \param name
+    //! \param path
+    void _Initialize(const char* name, const char* path, ScriptObject* parent);
+
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(ScriptMethodArgs args);
+
+    //! Evaluates and returns the results of the object.
+    //! \return
+    Variant Evaluate();
+};
+
+sympl_nsend

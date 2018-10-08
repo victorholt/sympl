@@ -310,6 +310,30 @@ bool StringBuffer::Contains(const char* search)
     return false;
 }
 
+std::string StringBuffer::Substr(size_t start, size_t end)
+{
+    if (start >= _Length) {
+        start = 0;
+    }
+    if (end >= _Length || end == 0) {
+        end = _Length;
+    }
+
+    std::string ret;
+    for (size_t i = start; i < end; i++) {
+        ret.append(std::string(1, static_cast<char>(_Buffer[i])));
+    }
+
+    return ret;
+}
+
+void StringBuffer::SubstrReplace(size_t start, size_t end)
+{
+    auto str = Substr(start, end);
+    Clear();
+    Append(str);
+}
+
 std::string StringBuffer::SubstrFirstOccurrence(const char c)
 {
     std::string ret;

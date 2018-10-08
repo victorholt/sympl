@@ -110,6 +110,7 @@ Variant ArrayResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* cu
 
     // Check to see if the equal sign occurs before or after our brackets.
     // This will determine whether we're assigning a value to an array item.
+//    auto bracketIndex = statementStr->FirstOccurrence(currentStr->CStr(), 0);
     auto bracketIndex = statementStr->FirstOccurrence('[', 0);
     auto opIndex = statementStr->FirstOccurrence('=', 0);
 
@@ -174,6 +175,8 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
         if (!recording && currentChar == ':') {
             isAssocArray = true;
             arrayAssocKey->Append(resolveStr);
+            arrayAssocKey->Replace("#", "");
+            arrayAssocKey->Replace(SYMPL_STRING_TOKEN, "");
             resolveStr->Clear();
             continue;
         }
@@ -194,6 +197,13 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
                     valueIndex.Set(arrayAssocKey->CStr());
                 }
 
+                if (resolveStr->Get(0) == '#') {
+                    resolveStr->SubstrReplace(1);
+                }
+                if (resolveStr->LastByte() == '#') {
+                    resolveStr->SubstrReplace(0, resolveStr->Length() - 1);
+                }
+
                 to_array(destObject)->SetItem(valueIndex.AsString().c_str(), value, resolveStr->CStr());
 
                 resolveStr->Clear();
@@ -206,6 +216,13 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
             if (valueAssignment) {
                 EvalResolver evalResolver;
                 Variant value = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), destObject);
+
+                if (resolveStr->Get(0) == '#') {
+                    resolveStr->SubstrReplace(1);
+                }
+                if (resolveStr->LastByte() == '#') {
+                    resolveStr->SubstrReplace(0, resolveStr->Length() - 1);
+                }
                 to_array(destObject)->SetItem(valueIndex.AsString().c_str(), value, resolveStr->CStr());
 
                 return value;
@@ -214,9 +231,7 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
                 return Variant(destObject->GetCleanName().c_str());
             }
         } else {
-            if (recording || (!recording && currentChar != '#')) {
-                resolveStr->AppendByte(currentChar);
-            }
+            resolveStr->AppendByte(currentChar);
         }
     }
 
@@ -343,13 +358,18 @@ Variant ArrayResolver::_ModifyExistingArray(StatementResolver* stmtResolver, Str
 
             EvalResolver evalResolver;
             Variant value = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), destObject);
+
+            if (resolveStr->Get(0) == '#') {
+                resolveStr->SubstrReplace(1);
+            }
+            if (resolveStr->LastByte() == '#') {
+                resolveStr->SubstrReplace(0, resolveStr->Length() - 1);
+            }
             to_array(destObject)->SetItem(valueIndex.AsString().c_str(), value, resolveStr->CStr());
 
             return destObject->GetName().c_str();
         } else {
-            if (recording || (!recording && currentChar != '#')) {
-                resolveStr->AppendByte(currentChar);
-            }
+            resolveStr->AppendByte(currentChar);
         }
     }
 
