@@ -24,6 +24,7 @@
 #include <sympl/script/script_vm.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_array.h>
+#include <sympl/script/script_method.h>
 #include <sympl/script/script_reader.h>
 #include <sympl/script/interpreter.h>
 
@@ -61,6 +62,8 @@ ScriptObject* ScriptVM::CreateObject(ScriptObjectType type, ScriptObject* parent
 
     if (type == ScriptObjectType::Array) {
         ref = mem_alloc_ref(ScriptArray);
+    } else if (type == ScriptObjectType::Method) {
+        ref = mem_alloc_ref(ScriptMethod);
     } else {
         ref = mem_alloc_ref(ScriptObject);
     }

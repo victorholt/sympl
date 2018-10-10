@@ -38,6 +38,9 @@ class SYMPL_API ScriptObject : public Object
     SYMPL_OBJECT(ScriptObject, Object);
 
 protected:
+    /// Reference object this used by this object.
+    SharedPtr<ScriptObject> _Reference;
+
     /// Object address for the VM.
     std::string _ObjectAddress;
 
@@ -177,6 +180,10 @@ public:
     //! \return bool
     inline bool IsMethod() const { return _Type == ScriptObjectType::Method; }
 
+    //! Returns whether or not this is a referenced object.
+    //! \return bool
+    inline bool IsReference() const { return _Reference.IsValid(); }
+
     //! Returns the child objects.
     //! \return std::unordered_map<string, ScriptObject*>
     inline const std::vector< SharedPtr<ScriptObject> >& GetChildren() const {
@@ -194,6 +201,14 @@ public:
     inline Variant GetValue() const {
         return _Value;
     }
+
+    //! Sets the reference for this object.
+    //! \param value
+    inline void SetReference(ScriptObject* value) { _Reference = value; }
+
+    //! Returns the reference from this script object.
+    //! \return ScriptObject
+    inline ScriptObject* GetReference() const { return _Reference.IsValid() ? _Reference.Ptr() : &ScriptObject::Empty; }
 
     /// Empty script object.
     static ScriptObject Empty;

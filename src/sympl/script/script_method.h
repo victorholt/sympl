@@ -60,6 +60,9 @@ class SYMPL_API ScriptMethod : public ScriptObject
 {
     SYMPL_OBJECT(ScriptMethod, ScriptObject);
 
+protected:
+
+
 public:
     //! Constructor.
     ScriptMethod();
