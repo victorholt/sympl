@@ -110,7 +110,6 @@ Variant ArrayResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* cu
 
     // Check to see if the equal sign occurs before or after our brackets.
     // This will determine whether we're assigning a value to an array item.
-//    auto bracketIndex = statementStr->FirstOccurrence(currentStr->CStr(), 0);
     auto bracketIndex = statementStr->FirstOccurrence('[', 0);
     auto opIndex = statementStr->FirstOccurrence('=', 0);
 
@@ -137,6 +136,7 @@ Variant ArrayResolver::_ResolveArray(StatementResolver* stmtResolver, StringBuff
                       ScriptObject* destObject, StatementOperator op)
 {
     sympl_assert(destObject->GetType() == ScriptObjectType::Array, "Attempted to resolve non-array object as an array!");
+    to_array(destObject)->Clear();
 
     currentStr->Clear();
 
@@ -247,7 +247,6 @@ Variant ArrayResolver::_ResolveArrayValue(StatementResolver* stmtResolver, Strin
     if (arrayObj->IsEmpty() || arrayObj->GetType() != ScriptObjectType::Array) {
         sympl_assert(false, "Illegal call to a non-existent array variable!");
     }
-    currentStr->Clear();
 
     auto statementStr = stmtResolver->GetStatementString();
     SharedPtr<StringBuffer> resolveStr = mem_alloc_ref(StringBuffer);
@@ -255,17 +254,12 @@ Variant ArrayResolver::_ResolveArrayValue(StatementResolver* stmtResolver, Strin
     // Quick check to see if the equal sign occurs before or after our brackets.
     // This will determine whether we're assigning a value to an array item.
     auto bracketIndex = statementStr->FirstOccurrence('[', 0, 10);
-    auto opIndex = statementStr->FirstOccurrence('=');
-
-    // If opIndex does not = -1, fast forward the string.
-    if (opIndex != -1) {
-        stmtResolver->SetCharLocation(bracketIndex);
-    }
 
     // We have a problem if we can't find an index for either of these.
     if (bracketIndex == -1) {
         sympl_assert(false, "Invalid array statement found in attempting to retrieve array value!");
     }
+    currentStr->Clear();
 
     // Find the index of the array we want to modify.
     char currentChar = '\0';

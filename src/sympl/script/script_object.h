@@ -162,8 +162,20 @@ public:
     inline ScriptObjectType  GetType() const { return _Type; }
 
     //! Whether or not this is an empty object.
-    //! \return
+    //! \return bool
     inline bool IsEmpty() const { return _Type == ScriptObjectType::Empty; }
+
+    //! Whether or not this is a variable object.
+    //! \return bool
+    inline bool IsVariable() const { return _Type == ScriptObjectType::Variable; }
+
+    //! Whether or not this is an array object.
+    //! \return bool
+    inline bool IsArray() const { return _Type == ScriptObjectType::Array; }
+
+    //! Whether or not this is a method object.
+    //! \return bool
+    inline bool IsMethod() const { return _Type == ScriptObjectType::Method; }
 
     //! Returns the child objects.
     //! \return std::unordered_map<string, ScriptObject*>

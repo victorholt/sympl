@@ -101,6 +101,9 @@ private:
     //! Parse out the value of the object.
     void _ParseValue();
 
+    //! Parse out the method arguments of the object.
+    void _ParseMethodArgs();
+
     //! Builds the current object.
     void _BuildObject();
 

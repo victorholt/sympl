@@ -93,6 +93,12 @@ public:
     //! Returns the length of the array.
     //! \return size_t
     inline size_t Length() const { return _Items.size(); }
+
+    //! Clears the array.
+    inline void Clear() {
+        _Items.clear();
+        _RawItems.clear();
+    }
 };
 
 #define to_array(obj) dynamic_cast<ScriptArray*>(obj)

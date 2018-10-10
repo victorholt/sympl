@@ -179,6 +179,7 @@ void ScriptParser::_ParseType()
     if (nextChar == '\0') { // EOF
         return;
     }
+
     sympl_assert(false, "Missing type for declared variable!");
 }
 
@@ -233,10 +234,44 @@ void ScriptParser::_ParseValue()
             _CurrentIdentifierBuffer->Append("array");
         }
 
+        // Handle reading the method arguments.
+        if (currentChar == '(') {
+            _ParseMethodArgs();
+            return;
+        }
+
         _CurrentValueBuffer->AppendByte(currentChar);
     }
 
     sympl_assert(false, "Missing ';' detected for object value during parsing!");
+}
+
+void ScriptParser::_ParseMethodArgs()
+{
+    char currentChar = '\0';
+    char nextChar = '\0';
+    _ScanMode = ParserScanMode::Type;
+
+    while (_CharLocation < _Reader->GetBuffer()->Length()) {
+        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
+        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
+        _CharLocation++;
+
+        // Method is being called.
+        if (nextChar == ';') {
+            _CharLocation++; // move forward so we can start parsing the next object.
+            return;
+        }
+
+        // Method is being being defined.
+        if (nextChar == '{') {
+            return;
+        }
+
+        _CurrentValueBuffer->AppendByte(currentChar);
+    }
+
+    sympl_assert(false, "Missing ')' detected for object method arguments!");
 }
 
 void ScriptParser::_BuildObject()

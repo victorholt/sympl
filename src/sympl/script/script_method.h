@@ -67,11 +67,6 @@ public:
     //! Called in place of the constructor.
     void __Construct() override;
 
-    //! Initializes the object.
-    //! \param name
-    //! \param path
-    void _Initialize(const char* name, const char* path, ScriptObject* parent);
-
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
@@ -80,6 +75,10 @@ public:
     //! Evaluates and returns the results of the object.
     //! \return
     Variant Evaluate();
+
+    //! Add an argument to the method.
+    //! \param name
+    void AddArg(const char* name);
 };
 
 sympl_nsend

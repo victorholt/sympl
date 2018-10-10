@@ -237,7 +237,7 @@ void StatementResolver::_Solve(StatementEntry* entry, Variant& value)
     switch ((int)entry->Op) {
         case (int)StatementOperator::Add:
             if (_Type == StatementType::String) {
-                value.GetStringBuffer()->Append(evalValue.GetStringBuffer()->CStr());
+                value.GetStringBuffer()->Append(evalValue.AsString());
             } else if (_Type == StatementType::Integer) {
                 value.Set(value.GetInt() + evalValue.GetInt());
             }
