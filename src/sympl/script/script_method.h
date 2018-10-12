@@ -64,6 +64,9 @@ protected:
     // Statements called by the method.
     std::vector<MethodCallStatement> _CallStatements;
 
+    // Method argument strings.
+    std::vector<std::string> _MethodArgs;
+
 public:
     //! Constructor.
     ScriptMethod();

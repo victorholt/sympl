@@ -1,11 +1,11 @@
 // Example of a hello world program that will run
 // in a console environment.
 
-//func hello(a, b)
-//{
+func hello(a, b)
+{
     //print("test method");
 //    var x = greeting;
-//}
+}
 
 var name = "John" + " " + "Doe";
 var greeting = "Hello, " + name + "!";

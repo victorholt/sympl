@@ -243,6 +243,12 @@ void ScriptParser::_ParseValue()
     char currentChar = '\0';
     _ScanMode = ParserScanMode::Type;
 
+    // Whether or not this is an assignment value.
+    bool isAssignment = false;
+
+    // Whether or not we're recording a string.
+    bool recording = false;
+
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
         _CharLocation++;
@@ -251,8 +257,19 @@ void ScriptParser::_ParseValue()
             return;
         }
 
+        if (currentChar == '=') {
+            isAssignment = true;
+        }
+
+        if (currentChar == '%' && _CurrentValueBuffer->PeekSearch(SYMPL_STRING_TOKEN, _CharLocation - 1)) {
+            recording = !recording;
+            _CurrentValueBuffer->Append(SYMPL_STRING_TOKEN);
+            _CharLocation = _CharLocation + strlen(SYMPL_STRING_TOKEN) - 1;
+            continue;
+        }
+
         // Arrays should be marked as arrays in the type.
-        if (currentChar == '[' && !_CurrentValueBuffer->Contains(SYMPL_STRING_TOKEN)) {
+        if (!recording && currentChar == '[' && !_CurrentValueBuffer->Contains(SYMPL_STRING_TOKEN)) {
             _CurrentIdentifierBuffer->Clear();
             _CurrentIdentifierBuffer->Append("array");
         }
@@ -260,7 +277,7 @@ void ScriptParser::_ParseValue()
         _CurrentValueBuffer->AppendByte(currentChar);
 
         // Handle reading the method arguments.
-        if (currentChar == '(') {
+        if (!recording && !isAssignment && currentChar == '(') {
             _ParseMethodArgs();
             return;
         }
@@ -273,20 +290,51 @@ void ScriptParser::_ParseMethodArgs()
 {
     char currentChar = '\0';
     char nextChar = '\0';
+    int parethNestLevel = 1; // We're initially inside of a parameter.
+    bool recording = false;
     _ScanMode = ParserScanMode::Type;
+
+    SharedPtr<StringBuffer> methodArg = mem_alloc_ref(StringBuffer);
+    _MethodArgs.clear();
 
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
         nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
         _CharLocation++;
 
+        // Check if we're starting a string.
+        if (currentChar == '%' && _CurrentValueBuffer->PeekSearch(SYMPL_STRING_TOKEN, _CharLocation - 1)) {
+            recording = !recording;
+            _CurrentValueBuffer->Append(SYMPL_STRING_TOKEN);
+            _CharLocation = _CharLocation + strlen(SYMPL_STRING_TOKEN) - 1;
+            continue;
+        }
+
+        _CurrentValueBuffer->AppendByte(currentChar);
+
+        if (!recording) {
+            if (currentChar == '(') {
+                parethNestLevel++;
+            }
+            if (currentChar == ')') {
+                parethNestLevel--;
+            }
+
+            if (currentChar == ',' || nextChar == ';' || nextChar == '{') {
+                _MethodArgs.emplace_back(methodArg->CStr());
+                methodArg->Clear();
+            } else if (currentChar != ')' || parethNestLevel != 0) {
+                methodArg->AppendByte(currentChar);
+            }
+        } else {
+            methodArg->AppendByte(currentChar);
+        }
+
         // Method is being called.
         if (nextChar == ';') {
             _CharLocation++; // move forward so we can start parsing the next object.
             return;
         }
-
-        _CurrentValueBuffer->AppendByte(currentChar);
 
         // Method is being being defined.
         if (nextChar == '{') {
@@ -337,6 +385,13 @@ void ScriptParser::_BuildObject()
 
         // Set our reference.
         _CurrentObject->SetReference(scriptObject);
+
+        // Add our arguments.
+        if (!_MethodArgs.empty()) {
+            for (auto& arg : _MethodArgs) {
+                to_method(_CurrentObject.Ptr())->AddArg(arg.c_str());
+            }
+        }
     }
 
     // Add object processing to our interpreter for the main scope.

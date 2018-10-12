@@ -86,6 +86,9 @@ private:
     /// Current character location
     size_t _CharLocation = 0;
 
+    /// Method arguments.
+    std::vector<std::string> _MethodArgs;
+
     //! Parses the current buffer.
     void _ParseBuffer(ScriptReader* reader);
 

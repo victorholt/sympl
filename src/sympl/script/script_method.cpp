@@ -76,5 +76,5 @@ void ScriptMethod::AddCallStatement(ScriptObject* ref, const char* str)
 
 void ScriptMethod::AddArg(const char* name)
 {
-
+    _MethodArgs.emplace_back(name);
 }
