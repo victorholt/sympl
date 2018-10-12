@@ -24,8 +24,11 @@
 #include <sympl/script/script_parser.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/interpreter.h>
+#include <sympl/script/script_array.h>
+#include <sympl/script/script_method.h>
 
 #include <sympl/util/number_helper.h>
+#include <sympl/util/string_helper.h>
 
 #include <fmt/format.h>
 sympl_namespaces
@@ -139,6 +142,22 @@ void ScriptParser::_ParseType()
         nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
         _CharLocation++;
 
+        // Open/Close scopes.
+        if (currentChar == '{') {
+            _OpenScope();
+            _ClearBuffers();
+            continue;
+        }
+        if (currentChar == '}') {
+            _CloseScope();
+            _ClearBuffers();
+
+            // Ensure we get to the next step after we've discovered the type
+            // since this gets reset in _ParseMethodArgs.
+            _ScanMode = ParserScanMode::VarName;
+            continue;
+        }
+
         if (currentChar == '#' && _CurrentIdentifierBuffer->Length() > 0) {
             // Determine if we're defining a type, or using an existing object.
             if (!_CurrentIdentifierBuffer->Equals("var") &&
@@ -154,7 +173,8 @@ void ScriptParser::_ParseType()
                     _CharLocation++;
                     _ScanMode = ParserScanMode::Type;
                 } else {
-                    _CurrentObjectBuffer = _CurrentIdentifierBuffer;
+                    _CurrentObjectBuffer->Clear();
+                    _CurrentObjectBuffer->Append(_CurrentIdentifierBuffer);
                     _ScanMode = ParserScanMode::Value;
                 }
             }
@@ -205,6 +225,9 @@ void ScriptParser::_ParseName()
                 _CurrentIdentifierBuffer->Clear();
                 _CurrentIdentifierBuffer->Append("array");
             }
+            if (nextChar == '(') {
+                _CurrentObjectBuffer->AppendByte(currentChar);
+            }
             _ScanMode = ParserScanMode::Value;
             return;
         }
@@ -234,13 +257,13 @@ void ScriptParser::_ParseValue()
             _CurrentIdentifierBuffer->Append("array");
         }
 
+        _CurrentValueBuffer->AppendByte(currentChar);
+
         // Handle reading the method arguments.
         if (currentChar == '(') {
             _ParseMethodArgs();
             return;
         }
-
-        _CurrentValueBuffer->AppendByte(currentChar);
     }
 
     sympl_assert(false, "Missing ';' detected for object value during parsing!");
@@ -263,12 +286,12 @@ void ScriptParser::_ParseMethodArgs()
             return;
         }
 
+        _CurrentValueBuffer->AppendByte(currentChar);
+
         // Method is being being defined.
         if (nextChar == '{') {
             return;
         }
-
-        _CurrentValueBuffer->AppendByte(currentChar);
     }
 
     sympl_assert(false, "Missing ')' detected for object method arguments!");
@@ -280,37 +303,58 @@ void ScriptParser::_BuildObject()
     auto scriptObject = _FindObject(_CurrentObjectBuffer->CStr());
 
     // Determine the object type.
-    ScriptObjectType type = ScriptObjectType::Object;
     if (scriptObject->IsEmpty()) {
-        if (_CurrentIdentifierBuffer->Equals("var")) {
-            type = ScriptObjectType::Variable;
-        } else if (_CurrentIdentifierBuffer->Equals("array")) {
-            type = ScriptObjectType::Array;
-        } else if (_CurrentIdentifierBuffer->Equals("func")) {
-            type = ScriptObjectType::Method;
-        } else if (_CurrentIdentifierBuffer->Equals("class")) {
-            type = ScriptObjectType::Object;
-        }
-
         // Build our object.
         auto parentObject = _CurrentScopeObject.IsValid() ? _CurrentScopeObject.Ptr() : nullptr;
-        _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize(_CurrentObjectBuffer->CStr(), type, parentObject);
+
+        if (_CurrentIdentifierBuffer->Equals("var")) {
+            _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptObject>(_CurrentObjectBuffer->CStr(), parentObject);
+        } else if (_CurrentIdentifierBuffer->Equals("array")) {
+            _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptArray>(_CurrentObjectBuffer->CStr(), parentObject);
+        } else if (_CurrentIdentifierBuffer->Equals("func")) {
+            _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptMethod>(_CurrentObjectBuffer->CStr(), parentObject);
+        } else if (_CurrentIdentifierBuffer->Equals("class")) {
+            _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptObject>(_CurrentObjectBuffer->CStr(), parentObject);
+        }
+
     } else {
         _CurrentObject = scriptObject;
     }
 
     // Check if our object is part of a 'scoped' method (if, else, while, etc).
+    if (scriptObject->IsMethod()) {
+        // This will be a method reference (pointer to a method).
+        auto parentObject = _CurrentScopeObject.IsValid() ? _CurrentScopeObject.Ptr() : nullptr;
 
-    // Add object processing to our interpreter for the current scope.
-    if (_CurrentScopeObject.IsValid()) {
+        // Needs to use a unique name.
+        auto uniqueStr = StringHelper::GenerateRandomStr(5);
+        _CurrentObjectBuffer->Append(uniqueStr);
+
+        _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptMethod>(
+                _CurrentObjectBuffer->CStr(),
+                parentObject
+        );
+
+        // Set our reference.
+        _CurrentObject->SetReference(scriptObject);
+    }
+
+    // Add object processing to our interpreter for the main scope.
+    if (!_CurrentScopeObject.IsValid()) {
+        if (_CurrentObject->IsMethod() && !_CurrentObject->IsReference()) {
+            return;
+        }
         _Interpreter->AddCommand(
-                _CurrentScopeObject->GetObjectAddress(),
+                ScriptVMInstance.GetGlobalObject()->GetObjectAddress(),
                 _CurrentObject.Ptr(),
                 _CurrentValueBuffer->CStr()
         );
     } else {
-        _Interpreter->AddCommand(
-                ScriptVMInstance.GetGlobalObject()->GetObjectAddress(),
+        auto scopeParent = _CurrentScopeObject->GetParent().Ptr();
+        if (!scopeParent->IsMethod()) {
+            return;
+        }
+        to_method(scopeParent)->AddCallStatement(
                 _CurrentObject.Ptr(),
                 _CurrentValueBuffer->CStr()
         );
@@ -322,7 +366,10 @@ void ScriptParser::_OpenScope()
     // Check if we need to exit out of the argument building.
     _CurrentScopeObject = _CurrentObject->FindChildByName(SYMPL_SCOPE_NAME);
     if (_CurrentScopeObject->IsEmpty()) {
-        _CurrentScopeObject = ScriptVMInstance.CreateObjectAndInitialize(SYMPL_SCOPE_NAME, ScriptObjectType::Object, _CurrentObject.Ptr());
+        _CurrentScopeObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptObject>(
+                SYMPL_SCOPE_NAME,
+                _CurrentObject.Ptr()
+        );
     }
     _ScanMode = ParserScanMode::Type;
 }
@@ -337,7 +384,7 @@ void ScriptParser::_CloseScope()
     }
 
     // Set the new scope.
-    if (_CurrentObject->GetParent().IsValid()) {
+    if (_CurrentObject->GetParent().IsValid() && _CurrentObject->GetParent().Ptr() != ScriptVMInstance.GetGlobalObject()) {
         _CurrentScopeObject = _CurrentObject->GetParent().Ptr();
     }
 

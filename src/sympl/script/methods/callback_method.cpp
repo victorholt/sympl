@@ -21,60 +21,30 @@
  *  DEALINGS IN THE SOFTWARE.
  *
  **********************************************************/
-#include <sympl/script/script_method.h>
+#include <sympl/script/script_vm.h>
+#include <sympl/script/methods/callback_method.h>
+
+#include <fmt/format.h>
 sympl_namespaces
 
-ScriptMethod::ScriptMethod()
+CallbackMethod::CallbackMethod()
 {
     __Construct();
 }
 
-void ScriptMethod::__Construct()
+Variant CallbackMethod::Evaluate(ScriptObject* caller)
 {
-    _Type = ScriptObjectType::Method;
+    ScriptMethodArgList args;
+    Evaluate(args, caller);
 }
 
-Variant ScriptMethod::Evaluate(ScriptMethodArgs args, ScriptObject* caller)
+Variant CallbackMethod::Evaluate(ScriptMethodArgs args, ScriptObject* caller)
 {
-    if (IsReference()) {
-        return to_method(GetReference())->Evaluate(args, this);
+    ScriptMethodArgList list;
+
+    if (_Callback) {
+        _Callback(list);
     }
 
-    ProcessCallStatements();
-
-    return _Value;
-}
-
-Variant ScriptMethod::Evaluate(ScriptObject* caller)
-{
-    if (IsReference()) {
-        return to_method(GetReference())->Evaluate(this);
-    }
-
-    ProcessCallStatements();
-
-    return _Value;
-}
-
-void ScriptMethod::ProcessCallStatements()
-{
-    for (auto call : _CallStatements) {
-        call.Resolver = mem_alloc_ref(StatementResolver);
-        call.Resolver->Resolve(call.StatementStr, call.ObjectRef.Ptr());
-        call.Resolver.Release();
-    }
-    _Value = Variant::Empty;
-}
-
-void ScriptMethod::AddCallStatement(ScriptObject* ref, const char* str)
-{
-    MethodCallStatement stmt;
-    stmt.ObjectRef = ref;
-    stmt.StatementStr = str;
-    _CallStatements.emplace_back(stmt);
-}
-
-void ScriptMethod::AddArg(const char* name)
-{
-
+    return Variant::Empty;
 }

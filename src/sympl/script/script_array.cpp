@@ -26,12 +26,12 @@ sympl_namespaces
 
 ScriptArray::ScriptArray()
 {
-
+    __Construct();
 }
 
 void ScriptArray::__Construct()
 {
-
+    _Type = ScriptObjectType::Array;
 }
 
 void ScriptArray::SetItem(const char* index, const Variant& item, const Variant& rawItem)

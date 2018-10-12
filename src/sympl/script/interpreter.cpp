@@ -24,6 +24,7 @@
 #include <sympl/script/interpreter.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/script_parser.h>
+#include <sympl/script/script_method.h>
 #include <sympl/script/statement_resolver.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/util/number_helper.h>
@@ -53,23 +54,15 @@ bool Interpreter::Run(std::string scopeObjectAddress)
     }
 
     for (auto& entry : commandList->second) {
-        entry.ObjectRef->SetValue(entry.StatementStr->CStr());
-        SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
-        auto value = resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
-        entry.ObjectRef->SetValue(value);
+        if (entry.ObjectRef->IsMethod()) {
+            to_method(entry.ObjectRef.Ptr())->Evaluate();
+        } else {
+            entry.ObjectRef->SetValue(entry.StatementStr->CStr());
+            SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
+            auto value = resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
+            entry.ObjectRef->SetValue(value);
+        }
 
-//        if (entry.VirtualObjectRef.IsValid()) {
-//            // Attempt to find the object that should now exist.
-//            auto scriptObject = ScriptVMInstance->FindObjectByPath(entry.VirtualObjectRef->CStr(), nullptr);
-//            auto value = resolver->Resolve(entry.StatementStr->CStr(), scriptObject);
-//            if (scriptObject->GetType() != ScriptObjectType::Method) {
-//                scriptObject->SetValue(value);
-//            }
-//        } else if (entry.ObjectRef->GetType() != ScriptObjectType::Method) {
-//            entry.ObjectRef->SetValue(resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr()));
-//        } else {
-//            resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
-//        }
 //        ScriptVMInstance->GC();
     }
     return true;

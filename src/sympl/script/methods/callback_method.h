@@ -23,60 +23,39 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_method.h>
 
 sympl_nsstart
 
-class SYMPL_API MethodRegistry : public Object
+class SYMPL_API CallbackMethod : public ScriptMethod
 {
-    SYMPL_OBJECT(MethodRegistry, Object);
+    SYMPL_OBJECT(CallbackMethod, ScriptMethod);
 
-private:
-    /// List of methods available.
-    std::unordered_map<std::string, SharedPtr<ScriptMethod> >_Methods;
-
-    //! Initializes the system methods.
-    void _Initialize();
+protected:
+    /// Callback method called during the evaluate process.
+    ScriptMethodCallback _Callback;
 
 public:
     //! Constructor.
-    MethodRegistry();
+    CallbackMethod();
 
-    //! Called in place of the constructor.
-    void __Construct() override;
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(ScriptObject* caller = nullptr) override;
 
-    //! Adds a method to the registry.
-    //! \param method
-    //! \param handle
-    void AddMethod(ScriptObject* method);
+    //! Evaluates and returns the results of the object.
+    //! \param args
+    //! \return
+    Variant Evaluate(ScriptMethodArgs args, ScriptObject* caller = nullptr) override;
 
-    //! Adds a callback method.
-    //! \param name
+    //! Sets the callback for the method.
     //! \param callback
-    void AddCallbackMethod(const char* name, const ScriptMethodCallback& callback);
+    inline void SetCallback(ScriptMethodCallback callback) { _Callback = callback; }
 
-    //! Finds and returns a method.
-    //! \param name
-    //! \return ScriptMethod
-    ScriptObject* FindMethod(const char* name);
-
-    //! Returns whether a method was found.
-    //! \param name
-    //! \param method
-    //! \return bool
-    bool TryFindMethod(const char* name, ScriptObject*& method);
-
-    //! Releases the object.
-    bool Release() override;
-
-    //! Returns the methods.
-    //! \return std::unordered_map<std::string, ScriptMethod* >
-    inline const std::unordered_map<std::string, SharedPtr<ScriptMethod> >& GetMethods() const { return _Methods; }
-
-    // ScriptVM is a friend to this class.
-    friend ScriptVM;
+    //! Returns the callback method.
+    //! \return ScriptMethodCallback
+    inline const ScriptMethodCallback& GetCallback() const { return _Callback; }
 };
 
 sympl_nsend

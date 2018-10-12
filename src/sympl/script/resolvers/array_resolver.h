@@ -76,8 +76,8 @@ public:
     //! \param destObject
     //! \param op
     //! \return
-    virtual Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
-                            ScriptObject* destObject, StatementOperator op);
+    Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
+                    ScriptObject* destObject, StatementOperator op) override;
 };
 
 sympl_nsend

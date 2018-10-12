@@ -28,6 +28,7 @@
 #include <sympl/core/weak_ptr.h>
 #include <sympl/core/string_buffer.h>
 #include <sympl/script/script_object.h>
+#include <sympl/script/statement_resolver.h>
 
 sympl_nsstart
 
@@ -35,10 +36,9 @@ class StatementResolver;
 
 struct MethodCallStatement
 {
-    WeakPtr<ScriptObject> Variable;
-    SharedPtr<StringBuffer> VirtualObjectStr;
-    SharedPtr<StringBuffer> StatementStr;
+    WeakPtr<ScriptObject> ObjectRef;
     SharedPtr<StatementResolver> Resolver;
+    std::string StatementStr;
 };
 
 struct MethodArgCacheValue
@@ -61,7 +61,8 @@ class SYMPL_API ScriptMethod : public ScriptObject
     SYMPL_OBJECT(ScriptMethod, ScriptObject);
 
 protected:
-
+    // Statements called by the method.
+    std::vector<MethodCallStatement> _CallStatements;
 
 public:
     //! Constructor.
@@ -73,15 +74,25 @@ public:
     //! Evaluates and returns the results of the object.
     //! \param args
     //! \return
-    Variant Evaluate(ScriptMethodArgs args);
+    virtual Variant Evaluate(ScriptMethodArgs args, ScriptObject* caller = nullptr);
 
     //! Evaluates and returns the results of the object.
     //! \return
-    Variant Evaluate();
+    virtual Variant Evaluate(ScriptObject* caller = nullptr);
+
+    //! Process the call statements.
+    void ProcessCallStatements();
+
+    //! Adds a call statement to the method.
+    //! \param ref
+    //! \param str
+    void AddCallStatement(ScriptObject* ref, const char* str);
 
     //! Add an argument to the method.
     //! \param name
     void AddArg(const char* name);
 };
+
+#define to_method(obj) dynamic_cast<ScriptMethod*>(obj)
 
 sympl_nsend

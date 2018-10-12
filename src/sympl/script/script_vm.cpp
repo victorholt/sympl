@@ -51,56 +51,9 @@ void ScriptVM::__Construct()
     _GlobalObject->Initialize("root", "root", ScriptObjectType::Object);
 }
 
-ScriptObject* ScriptVM::CreateObject(ScriptObject* parent)
-{
-    return CreateObject(ScriptObjectType::Object, parent);
-}
-
-ScriptObject* ScriptVM::CreateObject(ScriptObjectType type, ScriptObject* parent)
-{
-    ScriptObject* ref;
-
-    if (type == ScriptObjectType::Array) {
-        ref = mem_alloc_ref(ScriptArray);
-    } else if (type == ScriptObjectType::Method) {
-        ref = mem_alloc_ref(ScriptMethod);
-    } else {
-        ref = mem_alloc_ref(ScriptObject);
-    }
-
-    ref->SetObjectAddress(ReserveObjectAddress());
-    _ObjectMap[ref->GetObjectAddress()] = ref;
-
-    if (parent) {
-        parent->AddChild(ref);
-    } else {
-        _GlobalObject->AddChild(ref);
-    }
-
-    return ref;
-}
-
-ScriptObject* ScriptVM::CreateObjectAndInitialize(const std::string& name, ScriptObjectType type, ScriptObject* parent)
-{
-    std::string path;
-    if (parent) {
-        path = fmt::format("{0}.{1}", parent->GetPath(), name);
-    } else {
-        path = fmt::format("{0}", name);
-    }
-
-    // Check for collision.
-    auto searchObj = FindObjectByPath(path);
-    sympl_assert(searchObj->IsEmpty(), "Collision detected with paths in an attempt to create a new object!");
-
-    auto ref = CreateObject(type, parent);
-    ref->Initialize(name, path, type);
-    return ref;
-}
-
 ScriptObject* ScriptVM::CreateObjectReference()
 {
-    auto ref = CreateObject(ScriptObjectType::Object);
+    auto ref = CreateObject<ScriptObject>();
     ref->Initialize(ref->GetObjectAddress(), ref->GetObjectAddress(), ScriptObjectType::Object);
     return ref;
 }

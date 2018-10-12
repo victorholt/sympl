@@ -50,7 +50,7 @@ protected:
     /// Name of the object.
     std::string _Name;
 
-    /// Clean non-unique namel
+    /// Clean non-unique name
     std::string _CleanName;
 
     /// Reference namespace path.
@@ -159,6 +159,10 @@ public:
     //! Returns the path of the object.
     //! \return
     inline const std::string& GetPath() const { return _Path; }
+
+    //! Sets the type of the object.
+    //! \param type
+    inline void SetType(ScriptObjectType type) { _Type = type; }
 
     //! Returns the type of the object.
     //! \return

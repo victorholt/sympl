@@ -29,6 +29,7 @@
 #include <sympl/core/shared_ptr.h>
 
 #include <sympl/script/script_common.h>
+#include <sympl/script/method_registry.h>
 
 sympl_nsstart
 
@@ -56,6 +57,9 @@ protected:
     /// Root reference object.
     SharedPtr<ScriptObject> _GlobalObject;
 
+    /// Reference to the method registry.
+    SharedPtr<MethodRegistry> _MethodRegistry;
+
     //! Build the available object addresses.
     void _BuildAddresses();
 
@@ -73,17 +77,38 @@ public:
     //! \return ScriptVM
     static ScriptVM& GetInstance() {
         static ScriptVM instance;
+
+        // Ensure the method registry is initialized.
+        instance.GetMethodRegistry();
+
         return instance;
     }
 
-    //! Creates an empty object and attaches it to the global object.
-    //! \return ScriptObject
-    ScriptObject* CreateObject(ScriptObject* parent = nullptr);
+    //! Creates an object based on a template class.
+    //! \tparam T
+    //! \param parent
+    //! \return
+    template<class T>
+    T* CreateObject(ScriptObject* parent = nullptr)
+    {
+        T* ref = mem_alloc_ref(T);
 
-    //! Creates an empty object and attaches it to the global object.
-    //! \return type
-    //! \return ScriptObject
-    ScriptObject* CreateObject(ScriptObjectType type, ScriptObject* parent = nullptr);
+        // There can be only 1 static empty type.
+        if (ref->GetType() == ScriptObjectType::Empty) {
+            ref->SetType(ScriptObjectType::Object);
+        }
+
+        ref->SetObjectAddress(ReserveObjectAddress());
+        _ObjectMap[ref->GetObjectAddress()] = ref;
+
+        if (parent) {
+            parent->AddChild(ref);
+        } else {
+            _GlobalObject->AddChild(ref);
+        }
+
+        return ref;
+    }
 
     //! Creates and initializes an object.
     //! \param name
@@ -91,7 +116,24 @@ public:
     //! \param type
     //! \param parent
     //! \return ScriptObject
-    ScriptObject* CreateObjectAndInitialize(const std::string& name, ScriptObjectType type = ScriptObjectType::Object, ScriptObject* parent = nullptr);
+    template<class T>
+    T* CreateObjectAndInitialize(const std::string& name, ScriptObject* parent = nullptr)
+    {
+        std::string path;
+        if (parent) {
+            path = fmt::format("{0}.{1}", parent->GetPath(), name);
+        } else {
+            path = fmt::format("{0}", name);
+        }
+
+        // Check for collision.
+        auto searchObj = FindObjectByPath(path);
+        sympl_assert(searchObj->IsEmpty(), "Collision detected with paths in an attempt to create a new object!");
+
+        T* ref = CreateObject<T>(parent);
+        ref->Initialize(name, path, ref->GetType());
+        return ref;
+    }
 
     //! Creates an object with the purpose of being passed by reference.
     //! \return ScriptObject
@@ -140,6 +182,16 @@ public:
     //! Returns the global object.
     //! \return ScriptObject
     inline ScriptObject* GetGlobalObject() const { return _GlobalObject.Ptr(); }
+
+    //! Returns the method registry.
+    //! \return SharedPtr<MethodRegistry>
+    inline MethodRegistry* GetMethodRegistry() {
+        if (!_MethodRegistry.IsValid()) {
+            _MethodRegistry = mem_alloc_ref(MethodRegistry);
+            _MethodRegistry->_Initialize();
+        }
+        return _MethodRegistry.Ptr();
+    }
 
 public:
     friend MemPool;

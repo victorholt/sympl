@@ -22,6 +22,9 @@
  *
  **********************************************************/
 #pragma once
+
+#include <sympl/thirdparty/fmt/format.h>
+
 #include <sympl/core/sympl_pch.h>
 #include <sympl/core/registry.h>
 #include <sympl/core/object.h>
@@ -40,8 +43,8 @@ class ScriptObject;
 #define SYMPL_METHOD_ARG_NAME "__arg__"
 #define to_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
 
-#define ScriptMethodArgs Urho3D::PODVector<Variant>&
-#define ScriptMethodArgList Urho3D::PODVector<Variant>
+#define ScriptMethodArgs std::vector<Variant>&
+#define ScriptMethodArgList std::vector<Variant>
 typedef std::function<void(ScriptMethodArgs)> ScriptMethodCallback;
 
 enum class ScriptObjectType : uint8_t {
