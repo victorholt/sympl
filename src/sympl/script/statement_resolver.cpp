@@ -40,7 +40,11 @@ void StatementResolver::__Construct()
 
 Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* destObject)
 {
-    _StmtString = mem_alloc_ref(StringBuffer);
+    if (!_StmtString.IsValid()) {
+        _StmtString = mem_alloc_ref(StringBuffer);
+    } else {
+        _StmtString->Clear();
+    }
     _StmtString->Append(stmtStr);
 
     if (_StmtString->LastByte() != ';') {
@@ -143,7 +147,7 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
             if (!isString && stmtEntry->ConstantValue.IsEmpty()) {
                 // Attempt to find the object we're looking for.
                 auto scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
-                sympl_assert(!scopeObj->IsEmpty(), "Attempt to assign non-declared object!");
+                sympl_assert(!scopeObj->IsEmpty(), "Illegal use of non-declared object!");
 
                 stmtEntry->ObjectValue = scopeObj;
 
@@ -392,11 +396,16 @@ void StatementResolver::ClearStatementEntries()
         mem_free_object(StatementEntry, stmtEntry);
     }
     _StmtEntries.clear();
+    _CharLocation = 0;
+    _Type = StatementType::None;
+
+    if (_StmtString.IsValid()) {
+        _StmtString->Clear();
+    }
 }
 
 bool StatementResolver::Release()
 {
-    mem_free_ref(StringBuffer, _StmtString);
     ClearStatementEntries();
     return true;
 }

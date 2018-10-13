@@ -3,15 +3,10 @@
 
 func hello(a, b)
 {
-    //print("test method");
-//    var x = greeting;
+    printl(a + b + "!");
 }
 
+var greeting = "Hello ";
 var name = "John" + " " + "Doe";
-var greeting = "Hello, " + name + "!";
 
-//hello(name, greeting);
-
-printl("testing printl");
-
-// printl("Hello! How are you ");
+hello(greeting, name);

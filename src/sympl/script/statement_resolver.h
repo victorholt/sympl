@@ -38,7 +38,7 @@ class SYMPL_API StatementResolver : public Object
 
 protected:
     /// String for the statement.
-    StringBuffer* _StmtString;
+    SharedPtr<StringBuffer> _StmtString;
 
     /// Entries for the statement.
     std::vector<StatementEntry*> _StmtEntries;
@@ -100,7 +100,7 @@ public:
 
     //! Returns the statement string buffer.
     //! \return StringBuffer
-    inline StringBuffer* GetStatementString() const { return _StmtString; }
+    inline StringBuffer* GetStatementString() const { return _StmtString.Ptr(); }
 
     //! Returns the current character location.
     //! \return size_t

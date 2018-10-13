@@ -35,15 +35,13 @@ CallbackMethod::CallbackMethod()
 Variant CallbackMethod::Evaluate(ScriptObject* caller)
 {
     ScriptMethodArgList args;
-    Evaluate(args, caller);
+    return Evaluate(args, caller);
 }
 
 Variant CallbackMethod::Evaluate(ScriptMethodArgs args, ScriptObject* caller)
 {
-    ScriptMethodArgList list;
-
     if (_Callback) {
-        _Callback(list);
+        _Callback(args);
     }
 
     return Variant::Empty;

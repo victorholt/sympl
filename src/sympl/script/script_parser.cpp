@@ -324,7 +324,11 @@ void ScriptParser::_ParseMethodArgs()
                 _MethodArgs.emplace_back(methodArg->CStr());
                 methodArg->Clear();
             } else if (currentChar != ')' || parethNestLevel != 0) {
-                methodArg->AppendByte(currentChar);
+                if (currentChar == '#' && methodArg->Length() != 0) {
+                    methodArg->AppendByte(currentChar);
+                } else if (currentChar != '#') {
+                    methodArg->AppendByte(currentChar);
+                }
             }
         } else {
             methodArg->AppendByte(currentChar);
@@ -385,12 +389,12 @@ void ScriptParser::_BuildObject()
 
         // Set our reference.
         _CurrentObject->SetReference(scriptObject);
+    }
 
-        // Add our arguments.
-        if (!_MethodArgs.empty()) {
-            for (auto& arg : _MethodArgs) {
-                to_method(_CurrentObject.Ptr())->AddArg(arg.c_str());
-            }
+    // Add our arguments.
+    if (_CurrentObject->IsMethod() && !_MethodArgs.empty()) {
+        for (auto& arg : _MethodArgs) {
+            to_method(_CurrentObject.Ptr())->AddArg(arg.c_str());
         }
     }
 
@@ -456,9 +460,9 @@ ScriptObject* ScriptParser::_FindObject(const char* objectName)
 
     if (_CurrentObject.IsValid()) {
         if (_CurrentScopeObject.IsValid()) {
-            output = _CurrentScopeObject->FindChildByName(objectName, false);
+            output = _CurrentScopeObject->FindChildByName(objectName);
         } else {
-            output = _CurrentObject->FindChildByName(objectName, false);
+            output = _CurrentObject->FindChildByName(objectName);
         }
     }
 

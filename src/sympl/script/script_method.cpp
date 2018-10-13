@@ -22,6 +22,7 @@
  *
  **********************************************************/
 #include <sympl/script/script_method.h>
+#include <sympl/script/script_vm.h>
 sympl_namespaces
 
 ScriptMethod::ScriptMethod()
@@ -36,34 +37,78 @@ void ScriptMethod::__Construct()
 
 Variant ScriptMethod::Evaluate(ScriptMethodArgs args, ScriptObject* caller)
 {
+    // Since we're taking in arguments, we'll copy them over.
+    CopyArgs(args);
+
     if (IsReference()) {
         return to_method(GetReference())->Evaluate(args, this);
     }
 
-    ProcessCallStatements();
-
-    return _Value;
+    return ProcessCallStatements();
 }
 
 Variant ScriptMethod::Evaluate(ScriptObject* caller)
 {
+    ScriptMethodArgList argList;
+    ProcessArgs(argList);
+
     if (IsReference()) {
-        return to_method(GetReference())->Evaluate(this);
+        return to_method(GetReference())->Evaluate(argList, this);
     }
 
-    ProcessCallStatements();
-
-    return _Value;
+    return ProcessCallStatements();
 }
 
-void ScriptMethod::ProcessCallStatements()
+void ScriptMethod::CopyArgs(const ScriptMethodArgs args)
 {
-    for (auto call : _CallStatements) {
-        call.Resolver = mem_alloc_ref(StatementResolver);
-        call.Resolver->Resolve(call.StatementStr, call.ObjectRef.Ptr());
-        call.Resolver.Release();
+    // Ensure we've created the arguments.
+    sympl_assert(_MethodArgs.size() <= args.size(), "Too many arguments given in method!");
+
+//    SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
+    for (size_t i = 0; i < args.size(); i++) {
+        const auto& argName = _MethodArgs[i];
+        const auto& arg = args[i];
+
+        auto argObject = GetScope()->FindChildByName(argName);
+        if (argObject->IsEmpty()) {
+            argObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptObject>(
+                    argName,
+                    GetScope()
+            );
+        }
+
+//        resolver->ClearStatementEntries();
+        argObject->SetValue(arg);
     }
-    _Value = Variant::Empty;
+}
+
+void ScriptMethod::ProcessArgs(ScriptMethodArgs output)
+{
+    SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
+    for (const auto& arg : _MethodArgs) {
+        resolver->ClearStatementEntries();
+        Variant vArg = resolver->Resolve(arg, this);
+        if (vArg.GetType() == VariantType::Object) {
+            output.emplace_back(to_script_object(vArg)->GetValue());
+        } else {
+            output.emplace_back(vArg);
+        }
+    }
+}
+
+Variant ScriptMethod::ProcessCallStatements()
+{
+    Variant ret = Variant::Empty;
+    for (auto call : _CallStatements) {
+        if (call.ObjectRef->IsMethod()) {
+            ret = to_method(call.ObjectRef.Ptr())->Evaluate(this);
+        } else {
+            call.Resolver = mem_alloc_ref(StatementResolver);
+            call.Resolver->Resolve(call.StatementStr, call.ObjectRef.Ptr());
+            call.Resolver.Release();
+        }
+    }
+    return ret;
 }
 
 void ScriptMethod::AddCallStatement(ScriptObject* ref, const char* str)
@@ -77,4 +122,18 @@ void ScriptMethod::AddCallStatement(ScriptObject* ref, const char* str)
 void ScriptMethod::AddArg(const char* name)
 {
     _MethodArgs.emplace_back(name);
+}
+
+ScriptObject* ScriptMethod::GetScope()
+{
+    if (!_Scope.IsValid()) {
+        _Scope = FindChildByName(SYMPL_SCOPE_NAME, false);
+        if (_Scope->IsEmpty()) {
+            _Scope = ScriptVMInstance.CreateObjectAndInitialize<ScriptObject>(
+                    SYMPL_SCOPE_NAME,
+                    this
+            );
+        }
+    }
+    return _Scope.Ptr();
 }

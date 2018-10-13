@@ -56,7 +56,6 @@ void MethodRegistry::_Initialize()
 
     // Prints text.
     AddCallbackMethod("print", [](ScriptMethodArgs args) {
-        std::cout << "printing something" << std::endl;
         if (!args.empty()) {
             if (args.size() > 1 && args[1].GetBool()) {
                 std::cout << args[0].AsString() << " (" << args[0].GetTypeAsString() << ")";
@@ -68,7 +67,6 @@ void MethodRegistry::_Initialize()
 
     // Prints text on a new line.
     AddCallbackMethod("printl", [](ScriptMethodArgs args) {
-        std::cout << "print lining something" << std::endl;
         if (!args.empty()) {
             if (args.size() > 1 && args[1].GetBool()) {
                 std::cout << args[0].AsString() << " (" << args[0].GetTypeAsString() << ")" << std::endl;

@@ -16,8 +16,8 @@ int main()
     sympl_profile_stop_and_print("program_run");
 
     // Find the variable and print it out.
-    auto greetingVar = ScriptVMInstance.FindObjectByPath("greeting");
-    cout << greetingVar->GetValue().AsString() << endl;
+//    auto greetingVar = ScriptVMInstance.FindObjectByPath("greeting");
+//    cout << greetingVar->GetValue().AsString() << endl;
 
 //    auto arrVar = ScriptVMInstance.FindObjectByPath("arr1");
 //    auto arrValue = to_array(arrVar)->GetItem(0);

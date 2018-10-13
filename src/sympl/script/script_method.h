@@ -67,6 +67,9 @@ protected:
     // Method argument strings.
     std::vector<std::string> _MethodArgs;
 
+    // Scope for the method.
+    SharedPtr<ScriptObject> _Scope;
+
 public:
     //! Constructor.
     ScriptMethod();
@@ -83,8 +86,16 @@ public:
     //! \return
     virtual Variant Evaluate(ScriptObject* caller = nullptr);
 
+    //! Copy over given arguments.
+    //! \param args
+    void CopyArgs(const ScriptMethodArgs args);
+
+    //! Processes the arguments and returns them through the output.
+    //! \param output
+    void ProcessArgs(ScriptMethodArgs output);
+
     //! Process the call statements.
-    void ProcessCallStatements();
+    Variant ProcessCallStatements();
 
     //! Adds a call statement to the method.
     //! \param ref
@@ -94,6 +105,10 @@ public:
     //! Add an argument to the method.
     //! \param name
     void AddArg(const char* name);
+
+    //! Returns the scope for the method.
+    //! \return ScriptObject
+    ScriptObject* GetScope();
 };
 
 #define to_method(obj) dynamic_cast<ScriptMethod*>(obj)
