@@ -4,9 +4,11 @@
 func hello(a, b)
 {
     printl(a + b + "!");
+    return "done";
 }
 
 var greeting = "Hello ";
 var name = "John" + " " + "Doe";
 
-hello(greeting, name);
+var r = hello(greeting, name);
+printl(r);
