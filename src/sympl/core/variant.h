@@ -161,10 +161,7 @@ public:
 
     //! Constructor.
     //! \param value
-    Variant(StringBuffer* value)
-    {
-        Set(value);
-    }
+    Variant(StringBuffer* value);
 
     //! Constructor.
     //! \param value
@@ -349,7 +346,11 @@ public:
 
     //! Sets the value for the variant.
     //! \param value
-    void Set(StringBuffer* value);
+//    void Set(StringBuffer* value);
+
+    //! Sets the value for the variant.
+    //! \param value
+    void CopyStringBuffer(StringBuffer* value);
 
     //! Sets the value for the variant.
     //! \param value

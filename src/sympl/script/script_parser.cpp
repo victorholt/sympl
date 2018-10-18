@@ -146,6 +146,10 @@ void ScriptParser::_ParseType()
         if (currentChar == '{') {
             _OpenScope();
             _ClearBuffers();
+
+            // Ensure we get to the next step after we've discovered the type
+            // since this gets reset in _ParseMethodArgs.
+            _ScanMode = ParserScanMode::VarName;
             continue;
         }
         if (currentChar == '}') {
@@ -178,6 +182,18 @@ void ScriptParser::_ParseType()
                     _ScanMode = ParserScanMode::Value;
                 }
             }
+
+            // Handle case where our .
+            if (_CurrentIdentifierBuffer->Equals("return")) {
+                _CurrentObjectBuffer->Clear();
+                _CurrentObjectBuffer->Append(_CurrentIdentifierBuffer);
+
+                _CurrentIdentifierBuffer->Clear();
+                _CurrentIdentifierBuffer->Append("var");
+
+                _ScanMode = ParserScanMode::Value;
+            }
+
             return;
         }
 
@@ -294,19 +310,21 @@ void ScriptParser::_ParseMethodArgs()
     bool recording = false;
     _ScanMode = ParserScanMode::Type;
 
+    auto buffer = _Reader->GetBuffer();
     SharedPtr<StringBuffer> methodArg = mem_alloc_ref(StringBuffer);
     _MethodArgs.clear();
 
-    while (_CharLocation < _Reader->GetBuffer()->Length()) {
-        currentChar = _Reader->GetBuffer()->Get(_CharLocation);
-        nextChar = _Reader->GetBuffer()->Get(_CharLocation + 1);
+    while (_CharLocation < buffer->Length()) {
+        currentChar = buffer->Get(_CharLocation);
+        nextChar = buffer->Get(_CharLocation + 1);
         _CharLocation++;
 
         // Check if we're starting a string.
-        if (currentChar == '%' && _CurrentValueBuffer->PeekSearch(SYMPL_STRING_TOKEN, _CharLocation - 1)) {
+        if (currentChar == '%' && buffer->PeekSearch(SYMPL_STRING_TOKEN, _CharLocation - 1)) {
             recording = !recording;
             _CurrentValueBuffer->Append(SYMPL_STRING_TOKEN);
             _CharLocation = _CharLocation + strlen(SYMPL_STRING_TOKEN) - 1;
+            methodArg->Append(SYMPL_STRING_TOKEN);
             continue;
         }
 
@@ -367,6 +385,8 @@ void ScriptParser::_BuildObject()
             _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptMethod>(_CurrentObjectBuffer->CStr(), parentObject);
         } else if (_CurrentIdentifierBuffer->Equals("class")) {
             _CurrentObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptObject>(_CurrentObjectBuffer->CStr(), parentObject);
+        } else {
+            sympl_assert(false, "Failed to identify the object type");
         }
 
     } else {

@@ -30,6 +30,11 @@ sympl_namespaces
 
 Variant Variant::Empty;
 
+Variant::Variant(StringBuffer* value)
+{
+    Set(value->CStr());
+}
+
 Variant::Variant(Object* value)
         : _Type(VariantType::Empty)
 {
@@ -91,7 +96,7 @@ void Variant::Set(const Variant& value)
     }
 }
 
-void Variant::Set(StringBuffer* value) {
+void Variant::CopyStringBuffer(StringBuffer* value) {
     Clear();
 
     value->AddRef();
@@ -107,7 +112,7 @@ void Variant::Set(const char* value) {
 
         if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
             auto sb = mem_alloc_ref(StringBuffer);
-            Set(sb);
+            CopyStringBuffer(sb);
         }
     }
 

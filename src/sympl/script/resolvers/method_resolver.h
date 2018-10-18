@@ -32,7 +32,12 @@ class SYMPL_API MethodResolver : public ObjectResolver
     SYMPL_OBJECT(MethodResolver, ObjectResolver);
 
 protected:
-
+    //! Finds the next argument in the method. Returns false if no argument found.
+    //! \param stmtResolver
+    //! \param destObject
+    //! \param args
+    //! \return bool
+    bool _FindArguments(StatementResolver* stmtResolver, ScriptObject* destObject, std::vector<Variant>& args);
 
 public:
     MethodResolver() = default;

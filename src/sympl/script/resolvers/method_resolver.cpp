@@ -29,6 +29,73 @@ sympl_namespaces
 Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
                                ScriptObject* destObject, StatementOperator op)
 {
-    Variant ret;
-    return ret;
+    sympl_assert(destObject->IsMethod(), "Non-method call attempt!");
+
+    currentStr->Clear();
+
+    std::vector<Variant> args;
+    _FindArguments(stmtResolver, destObject, args);
+
+    return to_method(destObject)->Evaluate(args);
+}
+
+bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObject* destObject, std::vector<Variant>& args)
+{
+    char currentChar = '\0';
+    char nextChar = '\0';
+    int parethNestLevel = 1; // We're initially inside of a parameter.
+    bool recording = false;
+
+    SharedPtr<StringBuffer> methodArg = mem_alloc_ref(StringBuffer);
+
+    auto statementStr = stmtResolver->GetStatementString();
+    size_t charLocation = stmtResolver->GetCharLocation();
+
+    while (charLocation < statementStr->Length()) {
+        currentChar = statementStr->Get(charLocation);
+        charLocation++;
+
+        stmtResolver->SetCharLocation(charLocation);
+
+        // Check if we're starting a string.
+        if (currentChar == '%' && statementStr->PeekSearch(SYMPL_STRING_TOKEN, charLocation - 1)) {
+            recording = !recording;
+            methodArg->Append(SYMPL_STRING_TOKEN);
+            charLocation = charLocation + strlen(SYMPL_STRING_TOKEN) - 1;
+            continue;
+        }
+
+        if (!recording) {
+            if (currentChar == '(') {
+                parethNestLevel++;
+            }
+            if (currentChar == ')') {
+                parethNestLevel--;
+            }
+
+            if (currentChar == ',' || (currentChar == ')' && parethNestLevel == 0)) {
+                EvalResolver evalResolver;
+                Variant value = evalResolver.GetEvalFromStatementBuffer(methodArg->CStr(), destObject);
+
+                args.emplace_back(value);
+                methodArg->Clear();
+
+                if (currentChar == ')') {
+                    return true;
+                }
+
+            } else if (currentChar != ')') {
+                if (currentChar == '#' && methodArg->Length() != 0) {
+                    methodArg->AppendByte(currentChar);
+                } else if (currentChar != '#') {
+                    methodArg->AppendByte(currentChar);
+                }
+            }
+        } else {
+            methodArg->AppendByte(currentChar);
+        }
+    }
+
+    return false;
+//    sympl_assert(false, "Missing closing ')' when attempting to resolve method!");
 }

@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/script_method.h>
 #include <sympl/script/script_vm.h>
+#include <sympl/script/resolvers/eval_resolver.h>
 sympl_namespaces
 
 ScriptMethod::ScriptMethod()
@@ -100,6 +101,32 @@ Variant ScriptMethod::ProcessCallStatements()
 {
     Variant ret = Variant::Empty;
     for (auto call : _CallStatements) {
+        // Check if we're returning a value.
+        if (call.ObjectRef->GetName() == "return") {
+            EvalResolver evalResolver;
+            Variant eval = evalResolver.GetEvalFromStatementBuffer(call.StatementStr.c_str(), call.ObjectRef.Ptr());
+
+            // TODO: Add return type to methods to skip this step.
+            // We need to figure out whether or value is a string, number, or object.
+
+            if (eval.GetType() == VariantType::Object) {
+                ret = to_script_object(eval)->GetValue();
+
+                if (ret.GetType() == VariantType::StringBuffer) {
+                    StringBuffer *buffer = ret.GetStringBuffer();
+                    buffer->Prepend(SYMPL_STRING_TOKEN);
+                    buffer->Append(SYMPL_STRING_TOKEN);
+                }
+            } else if (eval.GetType() == VariantType::StringBuffer) {
+                StringBuffer* buffer = eval.GetStringBuffer();
+                buffer->Prepend(SYMPL_STRING_TOKEN);
+                buffer->Append(SYMPL_STRING_TOKEN);
+                ret = buffer;
+            }
+
+            break;
+        }
+
         if (call.ObjectRef->IsMethod()) {
             ret = to_method(call.ObjectRef.Ptr())->Evaluate(this);
         } else {

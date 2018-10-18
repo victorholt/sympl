@@ -3,12 +3,15 @@
 
 func hello(a, b)
 {
-    printl(a + b + "!");
-    return "done";
+    var n = a + " " + b + "!";
+    printl(n);
+    //return a;
 }
 
-var greeting = "Hello ";
-var name = "John" + " " + "Doe";
+hello("hello", "john");
 
-var r = hello(greeting, name);
-printl(r);
+//var greeting = "Hello ";
+//var name = "John" + " " + "Doe";
+
+//var r = hello("hello", "mike");
+//printl(r);

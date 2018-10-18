@@ -57,7 +57,6 @@ bool Interpreter::Run(std::string scopeObjectAddress)
         if (entry.ObjectRef->IsMethod()) {
             to_method(entry.ObjectRef.Ptr())->Evaluate();
         } else {
-            entry.ObjectRef->SetValue(entry.StatementStr->CStr());
             SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
             auto value = resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
             entry.ObjectRef->SetValue(value);

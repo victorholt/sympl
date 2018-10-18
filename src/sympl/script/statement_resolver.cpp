@@ -22,7 +22,10 @@
  *
  **********************************************************/
 #include <sympl/script/statement_resolver.h>
+#include <sympl/script/script_vm.h>
 #include <sympl/script/resolvers/array_resolver.h>
+#include <sympl/script/resolvers/method_resolver.h>
+//#include <sympl/script/resolvers/parenth_resolver.h>
 #include <sympl/util/string_helper.h>
 #include <sympl/util/number_helper.h>
 
@@ -89,6 +92,28 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
             stmtEntryStr->Append(
                     arrayResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
             continue;
+        }
+
+        // Check if we're in a parenth or method.
+        if (!recording && currentChar == '(') {
+            if (stmtEntryStr->Empty() && destObject->GetType() == ScriptObjectType::Method) {
+                // Resolve our method.
+                auto methodResolver = SymplRegistry.Get<MethodResolver>();
+                stmtEntryStr->Append(
+                        methodResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
+            } else {
+                auto existingMethod = ScriptVMInstance.FindObjectByPath(stmtEntryStr->CStr());
+                if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                    auto methodResolver = SymplRegistry.Get<MethodResolver>();
+                    stmtEntryStr->Append(
+                            methodResolver->Resolve(this, stmtEntryStr, existingMethod, currentOp).AsString());
+                } else {
+                    sympl_assert(false, "Parenth Resolver not yet implemented!");
+                    //                auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
+                    //                stmtEntryStr->Append(
+                    //                        parenthResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
+                }
+            }
         }
 
         // Skip processing if we're current recording.
