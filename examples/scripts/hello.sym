@@ -1,17 +1,18 @@
+profiler_start("hello");
+
 // Example of a hello world program that will run
 // in a console environment.
 
 func hello(a, b)
 {
-    var n = a + " " + b + "!";
-    printl(n);
-    //return a;
+    return a + " " + b + "!";
 }
 
-hello("hello", "john");
+var greeting = "Hello";
+var name = "John" + " " + "Doe";
 
-//var greeting = "Hello ";
-//var name = "John" + " " + "Doe";
+var r = hello(greeting, name);
 
-//var r = hello("hello", "mike");
-//printl(r);
+printl(r);
+
+profiler_stop("hello");

@@ -116,6 +116,9 @@ private:
     //! Closes the current scope.
     void _CloseScope();
 
+    //! Registers an objects constructor/destructor method.
+//    void _RegisterObjectConstructs();
+
     //! Checks if an object exists based on the current scope.
     //! \param objectName
     //! \return ScriptObject

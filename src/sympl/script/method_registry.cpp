@@ -25,8 +25,8 @@
 #include <sympl/script/script_vm.h>
 #include <sympl/script/interpreter.h>
 
-//#include <sympl/script/methods/if_method.h>
-//#include <sympl/script/methods/while_method.h>
+#include <sympl/script/methods/if_method.h>
+#include <sympl/script/methods/while_method.h>
 #include <sympl/script/methods/callback_method.h>
 
 #include <sympl/util/profiler.h>
@@ -45,6 +45,13 @@ void MethodRegistry::__Construct()
 void MethodRegistry::_Initialize()
 {
     // Add the if method.
+    auto ifMethod = ScriptVMInstance.CreateObjectAndInitialize<IfMethod>("if");
+    AddMethod(ifMethod);
+
+    // Add the while method.
+    auto whileMethod = ScriptVMInstance.CreateObjectAndInitialize<WhileMethod>("while");
+    AddMethod(whileMethod);
+
 //    auto ifMethod = mem_alloc_ref(IfMethod);
 //    ScriptVMInstance->AddObject(ifMethod);
 //    AddMethod(ifMethod);
@@ -74,6 +81,28 @@ void MethodRegistry::_Initialize()
                 std::cout << args[0].AsString() << std::endl;
             }
         }
+    });
+
+    // Prints the memory allocated currently.
+    AddCallbackMethod("print_memory", [](ScriptMethodArgs args) {
+        std::cout << "Memory Allocated: " << MemPoolInstance.GetMemoryUsage() << std::endl;
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("profiler_start", [](ScriptMethodArgs args) {
+        sympl_profile_start(args[0].AsString());
+    });
+
+    // Prints the memory allocated reference list.
+    AddCallbackMethod("profiler_stop", [](ScriptMethodArgs args) {
+        sympl_profile_stop(args[0].AsString());
+        sympl_profile_print(args[0].AsString());
+    });
+
+    // Import a file.
+    AddCallbackMethod("import", [](ScriptMethodArgs args) {
+        auto program = ScriptVMInstance.LoadFile(args[0].AsString().c_str());
+        program->Run();
     });
 }
 

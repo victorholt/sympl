@@ -63,7 +63,7 @@ Variant ScriptMethod::Evaluate(ScriptObject* caller)
 void ScriptMethod::CopyArgs(const ScriptMethodArgs args)
 {
     // Ensure we've created the arguments.
-    sympl_assert(_MethodArgs.size() <= args.size(), "Too many arguments given in method!");
+    sympl_assert(_MethodArgs.size() >= args.size(), "Too many arguments given in method!");
 
 //    SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
     for (size_t i = 0; i < args.size(); i++) {
@@ -113,7 +113,7 @@ Variant ScriptMethod::ProcessCallStatements()
                 ret = to_script_object(eval)->GetValue();
 
                 if (ret.GetType() == VariantType::StringBuffer) {
-                    StringBuffer *buffer = ret.GetStringBuffer();
+                    StringBuffer* buffer = ret.GetStringBuffer();
                     buffer->Prepend(SYMPL_STRING_TOKEN);
                     buffer->Append(SYMPL_STRING_TOKEN);
                 }
@@ -131,8 +131,10 @@ Variant ScriptMethod::ProcessCallStatements()
             ret = to_method(call.ObjectRef.Ptr())->Evaluate(this);
         } else {
             call.Resolver = mem_alloc_ref(StatementResolver);
-            call.Resolver->Resolve(call.StatementStr, call.ObjectRef.Ptr());
+            ret = call.Resolver->Resolve(call.StatementStr, call.ObjectRef.Ptr());
             call.Resolver.Release();
+
+            call.ObjectRef->SetValue(ret);
         }
     }
     return ret;

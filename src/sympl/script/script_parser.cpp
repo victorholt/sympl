@@ -171,7 +171,7 @@ void ScriptParser::_ParseType()
                 !_CurrentIdentifierBuffer->Equals("break") &&
                 !_CurrentIdentifierBuffer->Equals("continue")) {
                 auto obj = _FindObject(_CurrentIdentifierBuffer->CStr());
-                sympl_assert(obj->IsEmpty(), "Illegal declaration of an object!");
+                sympl_assert(!obj->IsEmpty(), "Illegal declaration of an object!");
 
                 if (nextChar == ';') {
                     _CharLocation++;

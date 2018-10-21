@@ -51,7 +51,6 @@ enum class ScriptObjectType : uint8_t {
     Empty = 0,
     Object,
     Reference,
-    Variable,
     Array,
     Method,
 };

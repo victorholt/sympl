@@ -56,6 +56,11 @@ Object* Variant::GetObject() {
     return reinterpret_cast<Object*>(_Value.Ptr);
 }
 
+Variant& Variant::operator =(StringBuffer* rhs) {
+    Set(rhs->CStr());
+    return *this;
+}
+
 Variant& Variant::operator =(Object* rhs) {
     Set(rhs);
     return *this;
@@ -65,21 +70,27 @@ void Variant::Set(const Variant& value)
 {
     Clear();
 
-    _Type = value._Type;
+    auto type = value._Type;
 
-    switch ((int)_Type) {
+    switch ((int)type) {
         case (int)VariantType::Bool:
             _Value.BoolVal = value._Value.BoolVal;
+            _Type = type;
             break;
         case (int)VariantType::Int:
             _Value.IntVal = value._Value.IntVal;
+            _Type = type;
             break;
         case (int)VariantType::Float:
             _Value.FloatVal = value._Value.FloatVal;
+            _Type = type;
             break;
         case (int)VariantType::Object:
-        case (int)VariantType::StringBuffer:
             _Value.Ptr = value._Value.Ptr;
+            _Type = type;
+            break;
+        case (int)VariantType::StringBuffer:
+            Set(reinterpret_cast<StringBuffer*>(value._Value.Ptr)->CStr());
             break;
     }
 
@@ -87,11 +98,9 @@ void Variant::Set(const Variant& value)
     // a segment fault situation when passing the pointer
     // around.
     if (_Type == VariantType::StringBuffer) {
-        auto obj = GetStringBuffer();
         GetStringBuffer()->AddRef();
     }
     if (_Type == VariantType::Object) {
-        auto obj = GetObject();
         GetObject()->AddRef();
     }
 }
@@ -114,6 +123,8 @@ void Variant::Set(const char* value) {
             auto sb = mem_alloc_ref(StringBuffer);
             CopyStringBuffer(sb);
         }
+
+        _Type = VariantType::StringBuffer;
     }
 
     SetType(VariantType::StringBuffer);

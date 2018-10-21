@@ -174,7 +174,7 @@ public:
 
     //! Whether or not this is a variable object.
     //! \return bool
-    inline bool IsVariable() const { return _Type == ScriptObjectType::Variable; }
+    inline bool IsVariable() const { return _Type == ScriptObjectType::Object; }
 
     //! Whether or not this is an array object.
     //! \return bool

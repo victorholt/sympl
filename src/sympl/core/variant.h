@@ -479,10 +479,7 @@ public:
     //! Operator for assigning StringBuffer.
     //! \param rhs
     //! \return
-    Variant& operator =(StringBuffer* rhs) {
-        Set(rhs);
-        return *this;
-    }
+    Variant& operator =(StringBuffer* rhs);
 
     //! Operator for assigning StringBuffer.
     //! \param rhs

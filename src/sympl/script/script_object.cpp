@@ -153,9 +153,6 @@ std::string ScriptObject::GetTypeAsString() const
     if (_Type == ScriptObjectType::Reference) {
         return "object (reference)";
     }
-    if (_Type == ScriptObjectType::Variable) {
-        return "var";
-    }
     if (_Type == ScriptObjectType::Array) {
         return "array";
     }

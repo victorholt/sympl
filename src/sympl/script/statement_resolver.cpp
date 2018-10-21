@@ -251,7 +251,14 @@ void StatementResolver::_Solve(StatementEntry* entry, Variant& value)
 {
     Variant evalValue;
     if (entry->ObjectValue.IsValid()) {
+        // Find the object's value.
         evalValue = entry->ObjectValue->GetValue();
+        while (true) {
+            if (evalValue.GetType() != VariantType::Object) {
+                break;
+            }
+            evalValue = to_script_object(evalValue)->GetValue();
+        }
     } else {
         // We're dealing with a constant value.
         evalValue = entry->ConstantValue;
