@@ -6,7 +6,7 @@ func fib(previous, current) {
         printl("going again");
     }
     //    return fib(current, previous + current);
-    }
+    //}
     return current;
 }
 
