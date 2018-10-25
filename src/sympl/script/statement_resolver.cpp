@@ -103,6 +103,8 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
                         methodResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
             } else {
                 auto existingMethod = ScriptVMInstance.FindObjectByPath(stmtEntryStr->CStr());
+                sympl_assert(!stmtEntryStr->Empty() && existingMethod->IsMethod(), "Invalid method called!");
+
                 if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
                     auto methodResolver = SymplRegistry.Get<MethodResolver>();
                     stmtEntryStr->Append(
@@ -171,7 +173,13 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
             // Handle case if this is an object.
             if (!isString && stmtEntry->ConstantValue.IsEmpty()) {
                 // Attempt to find the object we're looking for.
-                auto scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
+                ScriptObject* scopeObj = &ScriptObject::Empty;
+
+                if (!destObject->IsMethod()) {
+                    scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
+                } else {
+                    scopeObj = to_method(destObject)->GetScope()->FindChildByName(stmtEntryStr->CStr());
+                }
                 sympl_assert(!scopeObj->IsEmpty(), "Illegal use of non-declared object!");
 
                 stmtEntry->ObjectValue = scopeObj;
@@ -406,16 +414,32 @@ Variant StatementResolver::_IsBoolean(const char* str)
 
 StatementType StatementResolver::_FindType(const Variant& value)
 {
-    if (value.GetType() == VariantType::Bool) {
+    auto type = value.GetType();
+
+    // If this is an object, figure out what the object
+    // value is to discover the type.
+    if (type == VariantType::Object) {
+        Variant tmpValue = value;
+        while (true) {
+            if (tmpValue.GetType() != VariantType::Object) {
+                break;
+            }
+            tmpValue = to_script_object(tmpValue)->GetValue();
+        }
+        type = tmpValue.GetType();
+    }
+
+    // Determine the type.
+    if (type == VariantType::Bool) {
         return StatementType::Bool;
     }
-    if (value.GetType() == VariantType::Int) {
+    if (type == VariantType::Int) {
         return StatementType::Integer;
     }
-    if (value.GetType() == VariantType::Float) {
+    if (type == VariantType::Float) {
         return StatementType::Float;
     }
-    if (value.GetType() == VariantType::StringBuffer) {
+    if (type == VariantType::StringBuffer) {
         return StatementType::String;
     }
 

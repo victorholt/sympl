@@ -109,6 +109,14 @@ public:
     //! Returns the scope for the method.
     //! \return ScriptObject
     ScriptObject* GetScope();
+
+    //! Returns the method argument string.
+    //! \param index
+    //! \return string
+    inline const std::string& GetMethodArg(size_t index) {
+        sympl_assert(index < _MethodArgs.size(), "Method argument index out of bounds!");
+        return _MethodArgs[index];
+    }
 };
 
 #define to_method(obj) dynamic_cast<ScriptMethod*>(obj)

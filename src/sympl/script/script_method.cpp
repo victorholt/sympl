@@ -65,7 +65,6 @@ void ScriptMethod::CopyArgs(const ScriptMethodArgs args)
     // Ensure we've created the arguments.
     sympl_assert(_MethodArgs.size() >= args.size(), "Too many arguments given in method!");
 
-//    SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
     for (size_t i = 0; i < args.size(); i++) {
         const auto& argName = _MethodArgs[i];
         const auto& arg = args[i];
@@ -78,7 +77,6 @@ void ScriptMethod::CopyArgs(const ScriptMethodArgs args)
             );
         }
 
-//        resolver->ClearStatementEntries();
         argObject->SetValue(arg);
     }
 }
@@ -122,6 +120,8 @@ Variant ScriptMethod::ProcessCallStatements()
                 buffer->Prepend(SYMPL_STRING_TOKEN);
                 buffer->Append(SYMPL_STRING_TOKEN);
                 ret = buffer;
+            } else {
+                ret = eval;
             }
 
             break;

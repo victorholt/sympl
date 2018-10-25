@@ -1,5 +1,5 @@
 // Array examples.
-#profiler_start("array");
+profiler_start("array");
 
 var notArr = "[not, an, array]";
 var arr1 = [
@@ -13,15 +13,14 @@ var arr3 = [
     "color": "red"
 ];
 
-//arr1[0] = arr2[0];
 arr1[0] = arr3["color"] + arr2[1] + arr3["color"];
 
-#printl(notArr, true);
-#printl(arr1[0], true);
-#printl(arr2[2], true);
+printl(notArr, true);
+printl(arr1[0], true);
+printl(arr2[2], true);
 
-#arr3["name"] = "jim";
-#printl(arr3["name"], true);
-#printl(arr3["color"], true);
+arr3["name"] = "jim";
+printl(arr3["name"], true);
+printl(arr3["color"], true);
 
-#profiler_stop("array");
+profiler_stop("array");

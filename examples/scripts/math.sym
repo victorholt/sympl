@@ -1,12 +1,12 @@
 // Simple math example.
 profiler_start("math");
 
-func add(a, b) : int {
+func add(a, b) {
     return a + b;
 }
 
 var x = 0;
-while (x < 150000) {
+while (x < 2000) {
     x = add(x, 1);
 }
 

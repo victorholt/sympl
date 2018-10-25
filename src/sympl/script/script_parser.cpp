@@ -443,7 +443,7 @@ void ScriptParser::_BuildObject()
 void ScriptParser::_OpenScope()
 {
     // Check if we need to exit out of the argument building.
-    _CurrentScopeObject = _CurrentObject->FindChildByName(SYMPL_SCOPE_NAME);
+    _CurrentScopeObject = _CurrentObject->FindChildByName(SYMPL_SCOPE_NAME, false);
     if (_CurrentScopeObject->IsEmpty()) {
         _CurrentScopeObject = ScriptVMInstance.CreateObjectAndInitialize<ScriptObject>(
                 SYMPL_SCOPE_NAME,

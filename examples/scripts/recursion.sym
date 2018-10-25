@@ -1,0 +1,21 @@
+// Simple recursion method.
+profiler_start("rec");
+
+var max_iter = 2000;
+
+func rec(previous, current) {
+    printl(current);
+
+    if (current < max_iter) {
+        return rec(current, previous + current);
+    }
+
+    return current;
+}
+
+var last = rec(1, 0);
+printl("Final Value: " + last);
+
+print_memory();
+
+profiler_stop("rec");
