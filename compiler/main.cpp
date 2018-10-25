@@ -8,7 +8,7 @@ int main()
     mem_create_pool(StringBuffer, 25);
     ScriptVMInstance.GetGlobalObject(); // Creates our global object.
 
-    auto program = ScriptVMInstance.LoadFile("../../examples/scripts/arrays.sym");
+    auto program = ScriptVMInstance.LoadFile("../../examples/scripts/math.sym");
     program->Run();
 
     return 0;
