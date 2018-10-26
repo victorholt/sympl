@@ -23,72 +23,49 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/thirdparty/fmt/format.h>
-
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/registry.h>
-#include <sympl/core/object.h>
 #include <sympl/core/variant.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/util/profiler.h>
+#include <sympl/core/object.h>
+
+#include <sympl/script/script_common.h>
+#include <sympl/script/script_object.h>
+#include <sympl/script/cache/script_cache_object.h>
 
 sympl_nsstart
 
-class ScriptObject;
-
-#define GLOBAL_SCRIPT_OBJECT "__global__"
-#define SYMPL_CLASS_TOKEN "class@@"
-#define SYMPL_STRING_TOKEN "%dq%"
-#define SYMPL_SCOPE_NAME "__scope__"
-#define SYMPL_METHOD_ARG_NAME "__arg__"
-#define to_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
-
-#define ScriptMethodArgs std::vector<Variant>&
-#define ScriptMethodArgList std::vector<Variant>
-typedef std::function<void(ScriptMethodArgs)> ScriptMethodCallback;
-
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Reference,
-    Array,
-    Method,
-};
-
-enum class StatementOperator {
-    None = 0,
-    Equals,
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
-    Mod,
-    IsEqual2,
-    NotIsEqual2,
-    GreaterThan,
-    LessThan,
-    GreaterEqualThan,
-    LessEqualThan,
-    NewObject,
-    DeleteObject,
-};
-
-enum class StatementType {
-    None = 0,
-    Object,
-    String,
-    Bool,
-    Integer,
-    Float,
-};
-
-struct StatementEntry
+class SYMPL_API ScriptCache
 {
-    SharedPtr<ScriptObject> ObjectValue;
-    Variant ConstantValue;
-    StatementOperator Op;
+protected:
+    /// Quick variable access list.
+    std::unordered_map<std::string, ScriptCacheObject*> _ObjectMap;
+
+    //! Constructor.
+    ScriptCache() = default;
+
+public:
+
+    //! Destructor.
+    ~ScriptCache() {
+        Clear();
+    }
+
+    //! Returns the singleton for the class.
+    //! \return StatementCache
+    static ScriptCache& GetInstance() {
+        static ScriptCache instance;
+        return instance;
+    }
+
+    //! Attempts to return a cache entry.
+    //! \param scriptObject
+    //! \return ScriptCacheObject
+    ScriptCacheObject* Fetch(ScriptObject* scriptObject);
+
+    //! Remove all cache for an object address.
+    //! \param objectAddress
+    void Remove(const std::string& objectAddress);
+
+    //! Clears the cache.
+    void Clear();
 };
 
 sympl_nsend
-
-

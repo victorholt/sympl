@@ -50,12 +50,15 @@
 
 #include <sympl/script/script_common.h>
 //#include <sympl/script/script_context.h>
-//#include <sympl/script/statement_resolver.h>
+#include <sympl/script/statement_resolver.h>
+#include <sympl/script/resolvers/method_resolver.h>
+#include <sympl/script/resolvers/array_resolver.h>
+#include <sympl/script/resolvers/eval_resolver.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/interpreter.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_array.h>
 #include <sympl/script/script_method.h>
-//#include <sympl/script/methods/callback_method.h>
-//#include <sympl/script/methods/if_method.h>
-//#include <sympl/script/methods/while_method.h>
+#include <sympl/script/methods/callback_method.h>
+#include <sympl/script/methods/if_method.h>
+#include <sympl/script/methods/while_method.h>

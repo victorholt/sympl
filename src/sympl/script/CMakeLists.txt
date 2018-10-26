@@ -1,12 +1,14 @@
 # Header and src files.
 file (GLOB SYMPL_SCRIPT_HEADERS
     "${SYMPL_SOURCE_DIR}/sympl/script/*.h"
+    "${SYMPL_SOURCE_DIR}/sympl/script/cache/*.h"
     "${SYMPL_SOURCE_DIR}/sympl/script/methods/*.h"
     "${SYMPL_SOURCE_DIR}/sympl/script/resolvers/*.h"
 )
 
 file (GLOB SYMPL_SCRIPT_SRC
     "${SYMPL_SOURCE_DIR}/sympl/script/*.cpp"
+    "${SYMPL_SOURCE_DIR}/sympl/script/cache/*.cpp"
     "${SYMPL_SOURCE_DIR}/sympl/script/methods/*.cpp"
     "${SYMPL_SOURCE_DIR}/sympl/script/resolvers/*.cpp"
 )

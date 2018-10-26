@@ -23,72 +23,47 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/thirdparty/fmt/format.h>
-
-#include <sympl/core/sympl_pch.h>
-#include <sympl/core/registry.h>
-#include <sympl/core/object.h>
 #include <sympl/core/variant.h>
-#include <sympl/core/weak_ptr.h>
-#include <sympl/util/profiler.h>
+#include <sympl/core/object.h>
+
+#include <sympl/script/script_common.h>
+#include <sympl/script/script_object.h>
 
 sympl_nsstart
 
-class ScriptObject;
-
-#define GLOBAL_SCRIPT_OBJECT "__global__"
-#define SYMPL_CLASS_TOKEN "class@@"
-#define SYMPL_STRING_TOKEN "%dq%"
-#define SYMPL_SCOPE_NAME "__scope__"
-#define SYMPL_METHOD_ARG_NAME "__arg__"
-#define to_script_object(var) dynamic_cast<ScriptObject*>(var.GetObject())
-
-#define ScriptMethodArgs std::vector<Variant>&
-#define ScriptMethodArgList std::vector<Variant>
-typedef std::function<void(ScriptMethodArgs)> ScriptMethodCallback;
-
-enum class ScriptObjectType : uint8_t {
-    Empty = 0,
-    Object,
-    Reference,
-    Array,
-    Method,
-};
-
-enum class StatementOperator {
-    None = 0,
-    Equals,
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
-    Mod,
-    IsEqual2,
-    NotIsEqual2,
-    GreaterThan,
-    LessThan,
-    GreaterEqualThan,
-    LessEqualThan,
-    NewObject,
-    DeleteObject,
-};
-
-enum class StatementType {
-    None = 0,
-    Object,
-    String,
-    Bool,
-    Integer,
-    Float,
-};
-
-struct StatementEntry
+class SYMPL_API ScriptCacheObject : public Object
 {
-    SharedPtr<ScriptObject> ObjectValue;
-    Variant ConstantValue;
-    StatementOperator Op;
+    SYMPL_OBJECT(ScriptCacheObject, Object);
+
+protected:
+    /// Map (i.e. Statement string/entries) associated with the object.
+    std::unordered_map< std::string, std::vector< Variant > > _ValueMap;
+
+    /// Object to determine the scope of the cache.
+    SharedPtr<ScriptObject> _Object;
+
+public:
+    //! Fetches the value based on the given key.
+    //! \param key
+    //! \return vector*
+    std::vector<Variant>* Fetch(const std::string& key);
+
+    //! Stores a value for the object.
+    //! \param key
+    //! \param value
+    void Store(const std::string& key, const Variant& value);
+
+    //! Checks whether or not a key exists.
+    //! \param key
+    //! \return bool
+    bool HasKey(const std::string& key);
+
+    //! Removes a key from the object.
+    //! \param key
+    void RemoveKey(const std::string& key);
+
+    //! Clears all values.
+    void Clear();
 };
 
 sympl_nsend
-
-

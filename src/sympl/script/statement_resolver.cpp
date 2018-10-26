@@ -22,6 +22,7 @@
  *
  **********************************************************/
 #include <sympl/script/statement_resolver.h>
+#include <sympl/script/script_cache.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/resolvers/array_resolver.h>
 #include <sympl/script/resolvers/method_resolver.h>
