@@ -39,14 +39,40 @@ protected:
     /// Map (i.e. Statement string/entries) associated with the object.
     std::unordered_map< std::string, std::vector< Variant > > _ValueMap;
 
-    /// Object to determine the scope of the cache.
-    SharedPtr<ScriptObject> _Object;
-
 public:
     //! Fetches the value based on the given key.
     //! \param key
     //! \return vector*
-    std::vector<Variant>* Fetch(const std::string& key);
+    template<typename T>
+    bool Fetch(const std::string& key, std::vector<T>& output)
+    {
+        auto it = _ValueMap.find(key);
+
+        if (it == _ValueMap.end()) {
+            return false;
+        }
+
+        auto values = it->second;
+        for (auto& entry : values) {
+            if (entry.GetType() == VariantType::Object) {
+                output.push_back(dynamic_cast<T*>(entry.GetObject()));
+            }
+            if (entry.GetType() == VariantType::StringBuffer) {
+                output.push_back(dynamic_cast<T*>(entry.GetStringBuffer()));
+            }
+            if (entry.GetType() == VariantType::Int) {
+                output.push_back(dynamic_cast<T>(entry.GetInt()));
+            }
+            if (entry.GetType() == VariantType::Float) {
+                output.push_back(dynamic_cast<T>(entry.GetFloat()));
+            }
+            if (entry.GetType() == VariantType::Bool) {
+                output.push_back(dynamic_cast<T>(entry.GetBool()));
+            }
+        }
+
+        return true;
+    }
 
     //! Stores a value for the object.
     //! \param key

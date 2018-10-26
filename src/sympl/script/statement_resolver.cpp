@@ -22,7 +22,7 @@
  *
  **********************************************************/
 #include <sympl/script/statement_resolver.h>
-#include <sympl/script/script_cache.h>
+#include <sympl/script/cache/script_cache.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/resolvers/array_resolver.h>
 #include <sympl/script/resolvers/method_resolver.h>
@@ -63,6 +63,14 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
     bool isString = false;
 
     StatementOperator currentOp = StatementOperator::Equals;
+
+    ScriptCacheObject* cacheObject = nullptr;
+    if (cache) {
+        cacheObject = ScriptCacheInstance.Fetch(destObject);
+        if (cacheObject->HasKey(stmtStr)) {
+
+        }
+    }
 
     while (_CharLocation < _StmtString->Length()) {
         currentChar = _StmtString->Get(_CharLocation);

@@ -24,12 +24,6 @@
 #include <sympl/script/cache/script_cache_object.h>
 sympl_namespaces
 
-std::vector<Variant>* ScriptCacheObject::Fetch(const std::string& key)
-{
-    auto it = _ValueMap.find(key);
-    return (it == _ValueMap.end() ? nullptr : &it->second);
-}
-
 void ScriptCacheObject::Store(const std::string& key, const Variant& value)
 {
     _ValueMap[key].push_back(value);
@@ -43,8 +37,7 @@ bool ScriptCacheObject::HasKey(const std::string& key)
 
 void ScriptCacheObject::RemoveKey(const std::string& key)
 {
-    auto data = Fetch(key);
-    if (IsNullObject(data)) {
+    if (!HasKey(key)) {
         return;
     }
     _ValueMap.erase(key);

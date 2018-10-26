@@ -47,7 +47,7 @@ class ScriptObject;
 #define ScriptMethodArgList std::vector<Variant>
 typedef std::function<void(ScriptMethodArgs)> ScriptMethodCallback;
 
-enum class ScriptObjectType : uint8_t {
+enum class ScriptObjectType {
     Empty = 0,
     Object,
     Reference,
@@ -80,13 +80,6 @@ enum class StatementType {
     Bool,
     Integer,
     Float,
-};
-
-struct StatementEntry
-{
-    SharedPtr<ScriptObject> ObjectValue;
-    Variant ConstantValue;
-    StatementOperator Op;
 };
 
 sympl_nsend

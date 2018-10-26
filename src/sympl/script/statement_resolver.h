@@ -29,6 +29,7 @@
 #include <sympl/core/shared_ptr.h>
 #include <sympl/script/script_object.h>
 #include <sympl/script/script_token.h>
+#include <sympl/script/statement_entry.h>
 
 sympl_nsstart
 
@@ -51,6 +52,9 @@ protected:
 
     /// Type of statement.
     StatementType _Type = StatementType::None;
+
+    /// Flag to cache the statement entries.
+    bool cache = false;
 
     //! Attempts to resolve a given statement.
     //! \param stmtEntries
@@ -105,6 +109,10 @@ public:
     //! Returns the current character location.
     //! \return size_t
     inline size_t GetCharLocation() const { return _CharLocation; }
+
+    //! Sets the cache flag for the statement.
+    //! \param value
+    inline void SetCache(bool value) { cache = value; }
 };
 
 sympl_nsend

@@ -24,61 +24,40 @@
 #include <sympl/script/cache/script_cache.h>
 sympl_namespaces
 
-StatementCacheEntry* StatementCache::Cache(const std::string& objectAddress, const char* cache, const std::vector<StatementEntry*>& entries)
+ScriptCacheObject* ScriptCache::Fetch(ScriptObject* scriptObject)
 {
-    if (strlen(cache) == 0 || *cache == '\0' || *cache == ' ') {
-        return nullptr;
+    ScriptCacheObject* cacheObject = nullptr;
+    const auto& objectAddress = scriptObject->GetObjectAddress();
+    auto entry = _ObjectMap.find(objectAddress);
+
+    if (entry == _ObjectMap.end()) {
+        cacheObject = mem_alloc_ref(ScriptCacheObject);
+        _ObjectMap[objectAddress] = cacheObject;
+    } else {
+        cacheObject = entry->second;
     }
 
-    StatementCacheEntry* entry = GetEntry(cache);
-    if (!IsNullObject(entry)) {
-        return entry;
+    return cacheObject;
+}
+
+void ScriptCache::Remove(ScriptObject* scriptObject)
+{
+    const auto& objectAddress = scriptObject->GetObjectAddress();
+    auto entry = _ObjectMap.find(objectAddress);
+
+    if (entry == _ObjectMap.end()) {
+        return;
     }
 
-    entry = mem_alloc_object(StatementCacheEntry);
-    memset(entry->Statement, 0, strlen(entry->Statement));
-    memcpy(entry->Statement, cache, strlen(cache));
+    mem_free_ref(ScriptCacheObject, entry->second);
+    _ObjectMap.erase(objectAddress);
+}
 
-    auto num = entries.size();
-    for (int i = 0; i < num; i++) {
-        auto stmtEntry = mem_alloc_object(StatementEntry);
-        stmtEntry->ObjectValue = entries[i]->ObjectValue;
-        stmtEntry->ConstantValue = entries[i]->ConstantValue;
-        stmtEntry->Op = entries[i]->Op;
-        entry->Entries.push_back(stmtEntry);
+void ScriptCache::Clear()
+{
+    for (auto entry : _ObjectMap) {
+        mem_free_ref(ScriptCacheObject, entry.second);
     }
-
-//    _CacheEntries.push_back(entry);
-
-    return entry;
-}
-
-ScriptCacheObject* StatementCache::Fetch(ScriptObject* scriptObject)
-{
-//    auto num = _CacheEntries.size();
-//    for (int i = 0; i < num; i++) {
-//        if (strcmp(_CacheEntries[i]->Statement, cache) == 0) {
-//            return _CacheEntries[i];
-//        }
-//    }
-    return nullptr;
-}
-
-void StatementCache::Remove(const std::string& objectAddress)
-{
-
-}
-
-void StatementCache::Clear()
-{
-//    auto count = _CacheEntries.size();
-//    for (int i = 0; i < count; i++) {
-//        auto ecount = _CacheEntries[i]->Entries.size();
-//        for (int j = 0; j < ecount; j++) {
-//            mem_free_object(StatementEntry, _CacheEntries[i]->Entries[j]);
-//        }
-//        mem_free_object(StatementCacheEntry, _CacheEntries[i]);
-//    }
-//    _CacheEntries.clear();
+    _ObjectMap.clear();
 }
 

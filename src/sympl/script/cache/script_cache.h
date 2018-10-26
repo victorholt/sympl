@@ -61,11 +61,13 @@ public:
     ScriptCacheObject* Fetch(ScriptObject* scriptObject);
 
     //! Remove all cache for an object address.
-    //! \param objectAddress
-    void Remove(const std::string& objectAddress);
+    //! \param scriptObject
+    void Remove(ScriptObject* scriptObject);
 
     //! Clears the cache.
     void Clear();
 };
+
+#define ScriptCacheInstance ScriptCache::GetInstance()
 
 sympl_nsend
