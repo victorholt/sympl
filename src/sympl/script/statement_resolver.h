@@ -33,6 +33,8 @@
 
 sympl_nsstart
 
+class ScriptCacheObject;
+
 class SYMPL_API StatementResolver : public Object
 {
     SYMPL_OBJECT(StatementResolver, Object);
@@ -54,7 +56,13 @@ protected:
     StatementType _Type = StatementType::None;
 
     /// Flag to cache the statement entries.
-    bool cache = false;
+    bool _Cache = false;
+
+    /// Reference to the cache object.
+    ScriptCacheObject* _CacheObject = nullptr;
+
+    /// String of the cache key.
+    std::string _CacheKey;
 
     //! Attempts to resolve a given statement.
     //! \param stmtEntries
@@ -95,6 +103,10 @@ public:
     //! Clears the statement entries.
     void ClearStatementEntries();
 
+    //! Sets the cache flag for the statement.
+    //! \param value
+    void SetCache(bool value);
+
     //! Releases the object.
     bool Release() override;
 
@@ -109,10 +121,6 @@ public:
     //! Returns the current character location.
     //! \return size_t
     inline size_t GetCharLocation() const { return _CharLocation; }
-
-    //! Sets the cache flag for the statement.
-    //! \param value
-    inline void SetCache(bool value) { cache = value; }
 };
 
 sympl_nsend

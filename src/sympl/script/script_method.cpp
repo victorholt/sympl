@@ -83,6 +83,10 @@ void ScriptMethod::CopyArgs(const ScriptMethodArgs args)
 
 void ScriptMethod::ProcessArgs(ScriptMethodArgs output)
 {
+    if (_MethodArgs.empty() || _MethodArgs[0].empty()) {
+        return;
+    }
+
     SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
     for (const auto& arg : _MethodArgs) {
         resolver->ClearStatementEntries();
@@ -98,7 +102,7 @@ void ScriptMethod::ProcessArgs(ScriptMethodArgs output)
 Variant ScriptMethod::ProcessCallStatements()
 {
     Variant ret = Variant::Empty;
-    for (auto call : _CallStatements) {
+    for (auto& call : _CallStatements) {
         // Check if we're returning a value.
         if (call.ObjectRef->GetName() == "return") {
             EvalResolver evalResolver;
@@ -130,9 +134,12 @@ Variant ScriptMethod::ProcessCallStatements()
         if (call.ObjectRef->IsMethod()) {
             ret = to_method(call.ObjectRef.Ptr())->Evaluate(this);
         } else {
-            call.Resolver = mem_alloc_ref(StatementResolver);
+            if (!call.Resolver.IsValid()) {
+                call.Resolver = mem_alloc_ref(StatementResolver);
+                call.Resolver->SetCache(true);
+            }
             ret = call.Resolver->Resolve(call.StatementStr, call.ObjectRef.Ptr());
-            call.Resolver.Release();
+//            call.Resolver.Release();
 
             call.ObjectRef->SetValue(ret);
         }

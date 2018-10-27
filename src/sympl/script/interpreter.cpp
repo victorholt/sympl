@@ -60,6 +60,7 @@ bool Interpreter::Run(std::string scopeObjectAddress)
             SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
             auto value = resolver->Resolve(entry.StatementStr->CStr(), entry.ObjectRef.Ptr());
             entry.ObjectRef->SetValue(value);
+            resolver.Release();
         }
 
 //        ScriptVMInstance->GC();

@@ -33,6 +33,8 @@ ScriptCacheObject* ScriptCache::Fetch(ScriptObject* scriptObject)
     if (entry == _ObjectMap.end()) {
         cacheObject = mem_alloc_ref(ScriptCacheObject);
         _ObjectMap[objectAddress] = cacheObject;
+
+        cacheObject->SetId(objectAddress);
     } else {
         cacheObject = entry->second;
     }
@@ -43,6 +45,11 @@ ScriptCacheObject* ScriptCache::Fetch(ScriptObject* scriptObject)
 void ScriptCache::Remove(ScriptObject* scriptObject)
 {
     const auto& objectAddress = scriptObject->GetObjectAddress();
+    Remove(objectAddress);
+}
+
+void ScriptCache::Remove(const std::string& objectAddress)
+{
     auto entry = _ObjectMap.find(objectAddress);
 
     if (entry == _ObjectMap.end()) {

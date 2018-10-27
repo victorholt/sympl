@@ -330,5 +330,8 @@ bool ScriptToken::Release()
     mem_free_ref(StringBuffer, _TranslateBuffer);
     mem_free_ref(StringBuffer, _ResultBuffer);
 
+    _TranslateBuffer = nullptr;
+    _ResultBuffer = nullptr;
+
     return true;
 }

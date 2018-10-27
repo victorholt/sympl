@@ -88,6 +88,14 @@ void MethodRegistry::_Initialize()
         std::cout << "Memory Allocated: " << MemPoolInstance.GetMemoryUsage() << std::endl;
     });
 
+    // Prints the memory allocated currently.
+    AddCallbackMethod("print_memory_map", [](ScriptMethodArgs args) {
+        auto map = MemPoolInstance.GetMemoryMap();
+        for (const auto& entry : map) {
+            std::cout << entry.first << ":" << entry.second << std::endl;
+        }
+    });
+
     // Prints the memory allocated reference list.
     AddCallbackMethod("profiler_start", [](ScriptMethodArgs args) {
         sympl_profile_start(args[0].AsString());

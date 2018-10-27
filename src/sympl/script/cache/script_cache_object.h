@@ -39,7 +39,13 @@ protected:
     /// Map (i.e. Statement string/entries) associated with the object.
     std::unordered_map< std::string, std::vector< Variant > > _ValueMap;
 
+    /// Cache id (ScriptObject Address).
+    std::string _Id;
+
 public:
+    //! Called in place of the constructor.
+    void __Construct() override {};
+
     //! Fetches the value based on the given key.
     //! \param key
     //! \return vector*
@@ -55,20 +61,20 @@ public:
         auto values = it->second;
         for (auto& entry : values) {
             if (entry.GetType() == VariantType::Object) {
-                output.push_back(dynamic_cast<T*>(entry.GetObject()));
+                output.push_back(dynamic_cast<T>(entry.GetObject()));
             }
             if (entry.GetType() == VariantType::StringBuffer) {
-                output.push_back(dynamic_cast<T*>(entry.GetStringBuffer()));
+                output.push_back(dynamic_cast<T>(entry.GetStringBuffer()));
             }
-            if (entry.GetType() == VariantType::Int) {
-                output.push_back(dynamic_cast<T>(entry.GetInt()));
-            }
-            if (entry.GetType() == VariantType::Float) {
-                output.push_back(dynamic_cast<T>(entry.GetFloat()));
-            }
-            if (entry.GetType() == VariantType::Bool) {
-                output.push_back(dynamic_cast<T>(entry.GetBool()));
-            }
+//            if (entry.GetType() == VariantType::Int) {
+//                output.push_back(dynamic_cast<T>(entry.GetInt()));
+//            }
+//            if (entry.GetType() == VariantType::Float) {
+//                output.push_back(dynamic_cast<T>(entry.GetFloat()));
+//            }
+//            if (entry.GetType() == VariantType::Bool) {
+//                output.push_back(dynamic_cast<T>(entry.GetBool()));
+//            }
         }
 
         return true;
@@ -90,6 +96,14 @@ public:
 
     //! Clears all values.
     void Clear();
+
+    //! Sets the id.
+    //! \param value
+    inline void SetId(const std::string& value) { _Id = value; }
+
+    //! Returns the id.
+    //! \return string
+    inline const std::string& GetId() const { return _Id; }
 };
 
 sympl_nsend

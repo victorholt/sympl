@@ -63,15 +63,15 @@ private:
 
 public:
     //! Destructor.
-    ~Profiler() {
-        if (!IsNullObject(_Instance)) {
-//            _Instance->Release();
-
-            // Double-delete... our Alloc class should cache this
-            // and disregard attempting to remove it.
-            mem_free_ref(Profiler, _Instance);
-        }
-    }
+//    ~Profiler() {
+//        if (!IsNullObject(_Instance)) {
+////            _Instance->Release();
+//
+//            // Double-delete... our Alloc class should cache this
+//            // and disregard attempting to remove it.
+//            mem_free_ref(Profiler, _Instance);
+//        }
+//    }
 
     //! Called in place of the constructor.
     void __Construct() override;
@@ -79,10 +79,15 @@ public:
     //! Returns the instance.
     //! \return Profiler
     static Profiler* GetInstance() {
-        if (IsNullObject(_Instance)) {
-            _Instance = mem_alloc_ref(Profiler);
-        }
-        return _Instance;
+        static Profiler instance;
+        instance.SetIsStaticRef(true);
+
+//        if (IsNullObject(_Instance)) {
+//            _Instance = mem_alloc_ref(Profiler);
+//            _Instance->SetIsStaticRef(true);
+//        }
+
+        return &instance;
     }
 
     //! Starts a record.

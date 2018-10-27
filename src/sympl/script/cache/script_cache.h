@@ -64,6 +64,10 @@ public:
     //! \param scriptObject
     void Remove(ScriptObject* scriptObject);
 
+    //! Removes all cache for an object address.
+    //! \param objectAddress
+    void Remove(const std::string& objectAddress);
+
     //! Clears the cache.
     void Clear();
 };

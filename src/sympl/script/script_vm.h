@@ -77,6 +77,7 @@ public:
     //! \return ScriptVM
     static ScriptVM& GetInstance() {
         static ScriptVM instance;
+        instance.SetIsStaticRef(true);
 
         // Ensure the method registry is initialized.
         instance.GetMethodRegistry();

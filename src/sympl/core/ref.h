@@ -84,6 +84,9 @@ protected:
     /// Memory address for the reference.
     long long _MemIndex = -1;
 
+    /// Flag to force the memory manager not to delete the reference.
+    bool _IsStaticRef = false;
+
 public:
     // Attempts to dec the reference count.
     virtual ~RefCounter() { Release(); }
@@ -109,6 +112,14 @@ public:
     //! Returns the reference count.
     //! \return
     inline unsigned RefCount() const { return _RefCount; }
+
+    //! Sets the memory manager ignore delete flag.
+    //! \param value
+    inline void SetIsStaticRef(bool value) { _IsStaticRef = value; }
+
+    //! Returns the memory manager ignore delete flag.
+    //! \return bool
+    inline bool IsStaticRef() const { return _IsStaticRef; }
 
     //! Called in place of the constructor.
     virtual void __Construct() = 0;

@@ -36,8 +36,16 @@ class SYMPL_API StatementEntry : public Object
 
 public:
 
+    //! Called in place of the constructor.
+    void __Construct() override {};
+
+    /// Reference to the object of the statement.
     SharedPtr<ScriptObject> ObjectValue;
+
+    /// Constant value of the statement.
     Variant ConstantValue;
+
+    /// Current operation to apply for the statement.
     StatementOperator Op;
 };
 

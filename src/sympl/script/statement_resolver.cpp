@@ -23,6 +23,7 @@
  **********************************************************/
 #include <sympl/script/statement_resolver.h>
 #include <sympl/script/cache/script_cache.h>
+#include <sympl/script/cache/script_cache_object.h>
 #include <sympl/script/script_vm.h>
 #include <sympl/script/resolvers/array_resolver.h>
 #include <sympl/script/resolvers/method_resolver.h>
@@ -64,148 +65,157 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
 
     StatementOperator currentOp = StatementOperator::Equals;
 
-    ScriptCacheObject* cacheObject = nullptr;
-    if (cache) {
-        cacheObject = ScriptCacheInstance.Fetch(destObject);
-        if (cacheObject->HasKey(stmtStr)) {
-
+    std::vector<StatementEntry*> cacheEntries;
+    if (_Cache) {
+        _CacheObject = ScriptCacheInstance.Fetch(destObject);
+        _CacheKey = stmtStr; // TODO: Risk of calling Resolve with a different key...
+        if (_CacheObject->HasKey(stmtStr)) {
+            _CacheObject->Fetch<StatementEntry*>(stmtStr, cacheEntries);
         }
     }
 
-    while (_CharLocation < _StmtString->Length()) {
-        currentChar = _StmtString->Get(_CharLocation);
-        nextChar = _StmtString->Get(_CharLocation + 1);
-        _CharLocation++;
+    if (cacheEntries.empty()) {
+        while (_CharLocation < _StmtString->Length()) {
+            currentChar = _StmtString->Get(_CharLocation);
+            nextChar = _StmtString->Get(_CharLocation + 1);
+            _CharLocation++;
 
-        // Check if we're starting a string.
-        if (currentChar == '%' && _StmtString->PeekSearch(SYMPL_STRING_TOKEN, _CharLocation - 1)) {
-            stmtEntryStr->Append(SYMPL_STRING_TOKEN); // We need to append the token so that we don't look for
-            // a class with the same name on object lookup.
-            SetCharLocation(_CharLocation + strlen(SYMPL_STRING_TOKEN) - 1);
-            recording = !recording;
-            isString = true;
-            _Type = StatementType::String;
-            continue;
-        }
+            // Check if we're starting a string.
+            if (currentChar == '%' && _StmtString->PeekSearch(SYMPL_STRING_TOKEN, _CharLocation - 1)) {
+                stmtEntryStr->Append(SYMPL_STRING_TOKEN); // We need to append the token so that we don't look for
+                // a class with the same name on object lookup.
+                SetCharLocation(_CharLocation + strlen(SYMPL_STRING_TOKEN) - 1);
+                recording = !recording;
+                isString = true;
+                _Type = StatementType::String;
+                continue;
+            }
 
-        // Save our current character.
-        if (recording || (currentChar != '#' && currentChar != ';' &&
-                          currentChar != '(' && currentChar != '{' &&
-                          currentChar != ')')) {
-            stmtEntryStr->AppendByte(currentChar);
-        }
+            // Save our current character.
+            if (recording || (currentChar != '#' && currentChar != ';' &&
+                              currentChar != '(' && currentChar != '{' &&
+                              currentChar != ')')) {
+                stmtEntryStr->AppendByte(currentChar);
+            }
 
-        // Check if we're in an array.
-        if (!recording && currentChar == '[') {
-            auto arrayResolver = SymplRegistry.Get<ArrayResolver>();
-            stmtEntryStr->Append(
-                    arrayResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
-            continue;
-        }
-
-        // Check if we're in a parenth or method.
-        if (!recording && currentChar == '(') {
-            if (stmtEntryStr->Empty() && destObject->GetType() == ScriptObjectType::Method) {
-                // Resolve our method.
-                auto methodResolver = SymplRegistry.Get<MethodResolver>();
+            // Check if we're in an array.
+            if (!recording && currentChar == '[') {
+                auto arrayResolver = SymplRegistry.Get<ArrayResolver>();
                 stmtEntryStr->Append(
-                        methodResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
-            } else {
-                auto existingMethod = ScriptVMInstance.FindObjectByPath(stmtEntryStr->CStr());
-                sympl_assert(!stmtEntryStr->Empty() && existingMethod->IsMethod(), "Invalid method called!");
+                        arrayResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
+                continue;
+            }
 
-                if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+            // Check if we're in a parenth or method.
+            if (!recording && currentChar == '(') {
+                if (stmtEntryStr->Empty() && destObject->GetType() == ScriptObjectType::Method) {
+                    // Resolve our method.
                     auto methodResolver = SymplRegistry.Get<MethodResolver>();
                     stmtEntryStr->Append(
-                            methodResolver->Resolve(this, stmtEntryStr, existingMethod, currentOp).AsString());
+                            methodResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
                 } else {
-                    sympl_assert(false, "Parenth Resolver not yet implemented!");
-                    //                auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
-                    //                stmtEntryStr->Append(
-                    //                        parenthResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
+                    auto existingMethod = ScriptVMInstance.FindObjectByPath(stmtEntryStr->CStr());
+                    sympl_assert(!stmtEntryStr->Empty() && existingMethod->IsMethod(), "Invalid method called!");
+
+                    if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
+                        auto methodResolver = SymplRegistry.Get<MethodResolver>();
+                        stmtEntryStr->Append(
+                                methodResolver->Resolve(this, stmtEntryStr, existingMethod, currentOp).AsString());
+                    } else {
+                        sympl_assert(false, "Parenth Resolver not yet implemented!");
+                        //                auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
+                        //                stmtEntryStr->Append(
+                        //                        parenthResolver->Resolve(this, stmtEntryStr, varObject, currentOp).AsString());
+                    }
                 }
             }
-        }
 
-        // Skip processing if we're current recording.
-        if (recording) { continue; }
+            // Skip processing if we're current recording.
+            if (recording) { continue; }
 
-        // Check if we need to create the statement entry.
-        if (currentChar == '#' || currentChar == ';' ||
-           _TokenHelper->IsOperator(currentChar) || _TokenHelper->IsOperator(nextChar)) {
+            // Check if we need to create the statement entry.
+            if (currentChar == '#' || currentChar == ';' ||
+                _TokenHelper->IsOperator(currentChar) || _TokenHelper->IsOperator(nextChar)) {
 
-            // Skip if we don't have anything to check.
-            if (stmtEntryStr->Empty()) {
-                continue;
-            }
-
-            // Check/save the operator.
-            if (stmtEntryStr->Length() <= 2 && _TokenHelper->IsOperator(stmtEntryStr->CStr())) {
-                // Check if we're a double operator.
-                if (_TokenHelper->IsOperator(nextChar)) {
-                    stmtEntryStr->AppendByte(nextChar);
-                    _CharLocation++;
+                // Skip if we don't have anything to check.
+                if (stmtEntryStr->Empty()) {
+                    continue;
                 }
 
-                currentOp = _SymbolToOp(stmtEntryStr->CStr());
-                stmtEntryStr->Clear();
-                continue;
-            }
+                // Check/save the operator.
+                if (stmtEntryStr->Length() <= 2 && _TokenHelper->IsOperator(stmtEntryStr->CStr())) {
+                    // Check if we're a double operator.
+                    if (_TokenHelper->IsOperator(nextChar)) {
+                        stmtEntryStr->AppendByte(nextChar);
+                        _CharLocation++;
+                    }
 
-            // Create our entry.
-            auto stmtEntry = mem_alloc_object(StatementEntry);
-            stmtEntry->Op = currentOp;
-
-            // Handle case if this is a string.
-            if (isString || stmtEntryStr->StartsWith(SYMPL_STRING_TOKEN)) {
-                _Type = StatementType::String;
-
-                // Constants will be decoded.
-                stmtEntryStr->Replace(SYMPL_STRING_TOKEN, "");
-
-                std::string decodedStr;
-                if (_TokenHelper->DecodeSpecialCharString(stmtEntryStr->CStr(), decodedStr)) {
+                    currentOp = _SymbolToOp(stmtEntryStr->CStr());
                     stmtEntryStr->Clear();
-                    stmtEntryStr->Append(decodedStr);
+                    continue;
                 }
 
-                stmtEntry->ConstantValue = stmtEntryStr->CStr();
-            } else {
-                NumberHelper::IsNumber(stmtEntryStr->CStr(), stmtEntry->ConstantValue);
+                // Create our entry.
+                auto stmtEntry = mem_alloc_ref(StatementEntry);
+                stmtEntry->Op = currentOp;
 
-                // Check if the value is a boolean value.
-                if (stmtEntry->ConstantValue.IsEmpty()) {
-                    stmtEntry->ConstantValue = _IsBoolean(stmtEntryStr->CStr());
-                }
-            }
+                // Handle case if this is a string.
+                if (isString || stmtEntryStr->StartsWith(SYMPL_STRING_TOKEN)) {
+                    _Type = StatementType::String;
 
-            // Handle case if this is an object.
-            if (!isString && stmtEntry->ConstantValue.IsEmpty()) {
-                // Attempt to find the object we're looking for.
-                ScriptObject* scopeObj = &ScriptObject::Empty;
+                    // Constants will be decoded.
+                    stmtEntryStr->Replace(SYMPL_STRING_TOKEN, "");
 
-                if (!destObject->IsMethod()) {
-                    scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
+                    std::string decodedStr;
+                    if (_TokenHelper->DecodeSpecialCharString(stmtEntryStr->CStr(), decodedStr)) {
+                        stmtEntryStr->Clear();
+                        stmtEntryStr->Append(decodedStr);
+                    }
+
+                    stmtEntry->ConstantValue = stmtEntryStr->CStr();
                 } else {
-                    scopeObj = to_method(destObject)->GetScope()->FindChildByName(stmtEntryStr->CStr());
+                    NumberHelper::IsNumber(stmtEntryStr->CStr(), stmtEntry->ConstantValue);
+
+                    // Check if the value is a boolean value.
+                    if (stmtEntry->ConstantValue.IsEmpty()) {
+                        stmtEntry->ConstantValue = _IsBoolean(stmtEntryStr->CStr());
+                    }
                 }
-                sympl_assert(!scopeObj->IsEmpty(), "Illegal use of non-declared object!");
 
-                stmtEntry->ObjectValue = scopeObj;
+                // Handle case if this is an object.
+                if (!isString && stmtEntry->ConstantValue.IsEmpty()) {
+                    // Attempt to find the object we're looking for.
+                    ScriptObject* scopeObj = &ScriptObject::Empty;
 
-                // If we cannot discover the object treat it as a string.
+                    if (!destObject->IsMethod()) {
+                        scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
+                    } else {
+                        scopeObj = to_method(destObject)->GetScope()->FindChildByName(stmtEntryStr->CStr());
+                    }
+                    sympl_assert(!scopeObj->IsEmpty(), "Illegal use of non-declared object!");
+
+                    stmtEntry->ObjectValue = scopeObj;
+
+                    // If we cannot discover the object treat it as a string.
 //                if (scopeObj->IsEmpty()) {
 //                    _Type = StatementType::String;
 //                    stmtEntry->ConstantValue = stmtEntryStr->CStr();
 //                } else {
 //                    stmtEntry->ObjectValue = scopeObj;
 //                }
-            }
+                }
 
-            // Save our entry.
-            _StmtEntries.emplace_back(stmtEntry);
-            stmtEntryStr->Clear();
-            isString = false;
+                // Save our entry.
+                if (_Cache && !IsNullObject(_CacheObject)) {
+                    cacheEntries.emplace_back(stmtEntry);
+                    _CacheObject->Store(stmtStr, stmtEntry);
+                } else {
+                    _StmtEntries.emplace_back(stmtEntry);
+                }
+
+                stmtEntryStr->Clear();
+                isString = false;
+            }
         }
     }
 
@@ -213,7 +223,13 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
 
     // Resolve the statements and update the value.
     Variant retVal;
-    retVal = _ResolveStatements(_StmtEntries);
+
+    if (!cacheEntries.empty()) {
+        retVal = _ResolveStatements(cacheEntries);
+    } else {
+        retVal = _ResolveStatements(_StmtEntries);
+    }
+
     ClearStatementEntries();
     return retVal;
 }
@@ -458,9 +474,10 @@ StatementType StatementResolver::_FindType(const Variant& value)
 void StatementResolver::ClearStatementEntries()
 {
     for (auto stmtEntry : _StmtEntries) {
-        mem_free_object(StatementEntry, stmtEntry);
+        mem_free_ref(StatementEntry, stmtEntry);
     }
     _StmtEntries.clear();
+
     _CharLocation = 0;
     _Type = StatementType::None;
 
@@ -469,8 +486,25 @@ void StatementResolver::ClearStatementEntries()
     }
 }
 
+void StatementResolver::SetCache(bool value)
+{
+    _Cache = value;
+
+    // Check if we need to remove the cache
+    // object.
+    if (!_Cache) {
+        std::vector<StatementEntry*> cacheEntries;
+        _CacheObject->RemoveKey(_CacheKey);
+    }
+}
+
 bool StatementResolver::Release()
 {
     ClearStatementEntries();
+
+//    if (_CacheObject) {
+//        ScriptCacheInstance.Remove(_CacheObject->GetId());
+//    }
+
     return true;
 }

@@ -44,6 +44,7 @@ Variant WhileMethod::Evaluate(ScriptMethodArgs args, ScriptObject* caller)
     // Process the statements.
     if (value.GetType() == VariantType::Bool && value.GetBool()) {
         SharedPtr<StatementResolver> resolver = mem_alloc_ref(StatementResolver);
+        resolver->SetCache(true);
 
         while (value.GetType() == VariantType::Bool && value.GetBool()) {
             if (caller->IsMethod()) {

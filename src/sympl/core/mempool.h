@@ -258,6 +258,12 @@ private:
     /// Memory usage size.
     size_t _MemoryUsage = 0;
 
+    /// Flag to track memory allocations.
+    bool _Debug = false;
+
+    /// Memory allocation map (used when debug = true).
+    std::unordered_map<std::string, long long int> _MemoryMap;
+
     //! Constructor.
     explicit MemPoolManager() = default;
 
@@ -299,6 +305,9 @@ public:
         _Pools.push_back(pool);
 
         _MemoryUsage += sizeof(T) * maxMemBlocks;
+
+        UpdateMemoryMap(T::GetTypeNameStatic(), static_cast<int>(maxMemBlocks));
+
         return pool;
     };
 
@@ -321,6 +330,9 @@ public:
         _Pools.push_back(pool);
 
         _MemoryUsage += sizeof(T) * maxMemBlocks;
+
+        UpdateMemoryMap(T::GetTypeNameStatic(), static_cast<int>(maxMemBlocks));
+
         return pool;
     };
 
@@ -387,6 +399,8 @@ public:
             return ((MemPoolRef*)pool)->template Allocate<T>();
         }
 
+        UpdateMemoryMap(T::GetTypeNameStatic(), 1);
+
         _MemoryUsage += sizeof(T);
         return new T();
     }
@@ -401,6 +415,8 @@ public:
         if (!IsNullObject(pool)) {
             return ((MemPoolObject*)pool)->template Allocate<T>();
         }
+
+        UpdateMemoryMap(typeName, 1);
 
         _MemoryUsage += sizeof(T);
         return new T();
@@ -430,15 +446,26 @@ public:
     template<class T>
     void DeallocateRef(T* ref)
     {
+        if (IsNullObject(ref) || ref->IsStaticRef()) {
+            return;
+        }
+
         auto pool = FindPool(ref->GetTypeName().c_str());
         if (!IsNullObject(pool)) {
             ((MemPoolRef*)pool)->template Deallocate<T>(ref);
             return;
         }
 
-        if (ref->DecRef() || ref->GetMemIndex() < 0) {
+//        if (ref->DecRef() || ref->GetMemIndex() < 0) {
+//            return;
+//        }
+
+        if (ref->DecRef()) {
             return;
         }
+
+        UpdateMemoryMap(ref->GetTypeName(), -1);
+
         ref->Release();
         delete ref;
 
@@ -458,12 +485,38 @@ public:
         }
         delete ref;
 
+        UpdateMemoryMap(typeName, -1);
+
         _MemoryUsage -= sizeof(T);
     }
+
+    //! Updates the memory map with a given value.
+    //! \param typeName
+    //! \param value
+    void UpdateMemoryMap(const std::string& typeName, int value)
+    {
+        if (!_Debug) {
+            return;
+        }
+
+        auto entry = _MemoryMap.find(typeName);
+        if (entry == _MemoryMap.end()) {
+            _MemoryMap[typeName] = 0;
+        }
+
+        _MemoryMap[typeName] += value;
+    }
+
+    //! Prints the memory map.
+    inline const std::unordered_map<std::string, long long int>& GetMemoryMap() { return _MemoryMap; }
 
     //! Returns the memory usage.
     //! \return size_t
     inline size_t GetMemoryUsage() const { return _MemoryUsage; }
+
+    //! Sets the debug flag.
+    //! \param value
+    inline void SetDebug(bool value) { _Debug = value; }
 };
 
 #define MemPoolInstance MemPoolManager::GetInstance()

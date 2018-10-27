@@ -15,4 +15,6 @@ var r = hello(greeting, name);
 
 printl(r);
 
+print_memory();
+
 profiler_stop("hello");

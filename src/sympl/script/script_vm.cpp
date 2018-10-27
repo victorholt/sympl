@@ -42,6 +42,10 @@ ScriptVM::~ScriptVM()
 
 void ScriptVM::__Construct()
 {
+    // Ensure an empty script object is not managed by
+    // the VM.
+    ScriptObject::Empty.SetIsStaticRef(true);
+
     _BuildAddresses();
 
     // Create the global object.
@@ -201,30 +205,24 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
 
 Interpreter* ScriptVM::LoadFile(const char* filePath)
 {
-    SharedPtr<Interpreter> interpreter = mem_alloc_ref(Interpreter);
     SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
     sympl_assert(reader->ReadFile(filePath), "Failed to find import file!");
 
-    if (!interpreter.IsValid()) {
-        interpreter = mem_alloc_ref(Interpreter);
-    }
+    auto interpreter = mem_alloc_ref(Interpreter);
     interpreter->_SetReader(reader.Ptr());
     interpreter->_Parse();
 
-    return interpreter.Ptr();
+    return interpreter;
 }
 
 Interpreter* ScriptVM::LoadString(const char* str)
 {
-    SharedPtr<Interpreter> interpreter = mem_alloc_ref(Interpreter);
     SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
     reader->ReadString(str);
 
-    if (!interpreter.IsValid()) {
-        interpreter = mem_alloc_ref(Interpreter);
-    }
+    auto interpreter = mem_alloc_ref(Interpreter);
     interpreter->_SetReader(reader.Ptr());
     interpreter->_Parse();
 
-    return interpreter.Ptr();
+    return interpreter;
 }
