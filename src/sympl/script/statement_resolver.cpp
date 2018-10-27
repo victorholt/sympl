@@ -45,36 +45,35 @@ void StatementResolver::__Construct()
 
 Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* destObject)
 {
-    if (!_StmtString.IsValid()) {
-        _StmtString = mem_alloc_ref(StringBuffer);
-    } else {
-        _StmtString->Clear();
-    }
-    _StmtString->Append(stmtStr);
-
-    if (_StmtString->LastByte() != ';') {
-        _StmtString->AppendByte(';');
-    }
-
-    auto stmtEntryStr = mem_alloc_ref(StringBuffer);
-    char currentChar = '\0';
-    char nextChar = '\0';
-
-    bool recording = false;
-    bool isString = false;
-
-    StatementOperator currentOp = StatementOperator::Equals;
-
-    std::vector<StatementEntry*> cacheEntries;
-    if (_Cache) {
+    if (_Cache && _CacheEntries.empty()) {
         _CacheObject = ScriptCacheInstance.Fetch(destObject);
         _CacheKey = stmtStr; // TODO: Risk of calling Resolve with a different key...
         if (_CacheObject->HasKey(stmtStr)) {
-            _CacheObject->Fetch<StatementEntry*>(stmtStr, cacheEntries);
+            _CacheObject->Fetch<StatementEntry*>(stmtStr, _CacheEntries);
         }
     }
 
-    if (cacheEntries.empty()) {
+    if (_CacheEntries.empty()) {
+        StatementOperator currentOp = StatementOperator::Equals;
+
+        if (!_StmtString.IsValid()) {
+            _StmtString = mem_alloc_ref(StringBuffer);
+        } else {
+            _StmtString->Clear();
+        }
+        _StmtString->Append(stmtStr);
+
+        if (_StmtString->LastByte() != ';') {
+            _StmtString->AppendByte(';');
+        }
+
+        auto stmtEntryStr = mem_alloc_ref(StringBuffer);
+        char currentChar = '\0';
+        char nextChar = '\0';
+
+        bool recording = false;
+        bool isString = false;
+
         while (_CharLocation < _StmtString->Length()) {
             currentChar = _StmtString->Get(_CharLocation);
             nextChar = _StmtString->Get(_CharLocation + 1);
@@ -111,16 +110,26 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
                 if (stmtEntryStr->Empty() && destObject->GetType() == ScriptObjectType::Method) {
                     // Resolve our method.
                     auto methodResolver = SymplRegistry.Get<MethodResolver>();
+                    methodResolver->SetCaller(destObject);
                     stmtEntryStr->Append(
                             methodResolver->Resolve(this, stmtEntryStr, destObject, currentOp).AsString());
+
+                    // We cannot cache methods (force us not to cache).
+                    _Cache = false;
+
                 } else {
                     auto existingMethod = ScriptVMInstance.FindObjectByPath(stmtEntryStr->CStr());
                     sympl_assert(!stmtEntryStr->Empty() && existingMethod->IsMethod(), "Invalid method called!");
 
                     if (!existingMethod->IsEmpty() && existingMethod->GetType() == ScriptObjectType::Method) {
                         auto methodResolver = SymplRegistry.Get<MethodResolver>();
+                        methodResolver->SetCaller(destObject);
                         stmtEntryStr->Append(
                                 methodResolver->Resolve(this, stmtEntryStr, existingMethod, currentOp).AsString());
+
+                        // We cannot cache methods (force us not to cache).
+                        _Cache = false;
+
                     } else {
                         sympl_assert(false, "Parenth Resolver not yet implemented!");
                         //                auto parenthResolver = SymplRegistry.Get<ParenthResolver>();
@@ -185,7 +194,7 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
                 // Handle case if this is an object.
                 if (!isString && stmtEntry->ConstantValue.IsEmpty()) {
                     // Attempt to find the object we're looking for.
-                    ScriptObject* scopeObj = &ScriptObject::Empty;
+                    ScriptObject* scopeObj;
 
                     if (!destObject->IsMethod()) {
                         scopeObj = destObject->FindChildByName(stmtEntryStr->CStr());
@@ -195,19 +204,11 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
                     sympl_assert(!scopeObj->IsEmpty(), "Illegal use of non-declared object!");
 
                     stmtEntry->ObjectValue = scopeObj;
-
-                    // If we cannot discover the object treat it as a string.
-//                if (scopeObj->IsEmpty()) {
-//                    _Type = StatementType::String;
-//                    stmtEntry->ConstantValue = stmtEntryStr->CStr();
-//                } else {
-//                    stmtEntry->ObjectValue = scopeObj;
-//                }
                 }
 
                 // Save our entry.
                 if (_Cache && !IsNullObject(_CacheObject)) {
-                    cacheEntries.emplace_back(stmtEntry);
+                    _CacheEntries.emplace_back(stmtEntry);
                     _CacheObject->Store(stmtStr, stmtEntry);
                 } else {
                     _StmtEntries.emplace_back(stmtEntry);
@@ -217,15 +218,15 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
                 isString = false;
             }
         }
-    }
 
-    mem_free_ref(StringBuffer, stmtEntryStr);
+        mem_free_ref(StringBuffer, stmtEntryStr);
+    }
 
     // Resolve the statements and update the value.
     Variant retVal;
 
-    if (!cacheEntries.empty()) {
-        retVal = _ResolveStatements(cacheEntries);
+    if (!_CacheEntries.empty()) {
+        retVal = _ResolveStatements(_CacheEntries);
     } else {
         retVal = _ResolveStatements(_StmtEntries);
     }

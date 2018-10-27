@@ -101,12 +101,18 @@ void ScriptMethod::ProcessArgs(ScriptMethodArgs output)
 
 Variant ScriptMethod::ProcessCallStatements()
 {
-    Variant ret = Variant::Empty;
+    Variant ret;
     for (auto& call : _CallStatements) {
         // Check if we're returning a value.
         if (call.ObjectRef->GetName() == "return") {
             EvalResolver evalResolver;
             Variant eval = evalResolver.GetEvalFromStatementBuffer(call.StatementStr.c_str(), call.ObjectRef.Ptr());
+
+//            if (!call.Resolver.IsValid()) {
+//                call.Resolver = mem_alloc_ref(StatementResolver);
+//                call.Resolver->SetCache(true);
+//            }
+//            Variant eval = call.Resolver->Resolve(call.StatementStr, call.ObjectRef.Ptr());
 
             // TODO: Add return type to methods to skip this step.
             // We need to figure out whether or value is a string, number, or object.

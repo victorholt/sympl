@@ -26,7 +26,7 @@ sympl_namespaces
 
 void ScriptCacheObject::Store(const std::string& key, const Variant& value)
 {
-    _ValueMap[key].push_back(value);
+    _ValueMap[key].emplace_back(value);
 }
 
 bool ScriptCacheObject::HasKey(const std::string& key)

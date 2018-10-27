@@ -92,13 +92,20 @@ void ScriptVM::ReleaseObjectAddress(const std::string& address)
 
 bool ScriptVM::IsAvailableObjectAddress(const std::string& address)
 {
-    auto addressIt = std::begin(_AvailableObjectAddresses);
-    while (addressIt != std::end(_AvailableObjectAddresses)) {
-        if (*addressIt == address) {
+//    auto addressIt = std::begin(_AvailableObjectAddresses);
+//    while (addressIt != std::end(_AvailableObjectAddresses)) {
+//        if (*addressIt == address) {
+//            return false;
+//        }
+//        ++addressIt;
+//    }
+
+    for (const auto& entry : _AvailableObjectAddresses) {
+        if (entry == address) {
             return false;
         }
-        ++addressIt;
     }
+
     return true;
 }
 
@@ -123,7 +130,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
     // Check first if we have the path '.' delimeter. If not.
     // then we should look in the global scope.
     if ((pos = parseStr.find(delimiter)) == std::string::npos) {
-        for (auto& entryIt : globalChildren) {
+        for (const auto& entryIt : globalChildren) {
             if (entryIt->GetPath() == path) {
                 resultObject = entryIt.Ptr();
                 break;
@@ -137,7 +144,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
             // Search through the object map and the children.
             if (currentObject->IsEmpty()) {
                 currentPath.append(token);
-                for (auto& entryIt : globalChildren) {
+                for (const auto& entryIt : globalChildren) {
                     if (entryIt->GetPath() == currentPath) {
                         currentObject = entryIt.Ptr();
 
@@ -165,7 +172,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
                     currentPath.append(token);
                 }
 
-                for (auto& entryIt : currentObject->GetChildren()) {
+                for (const auto& entryIt : currentObject->GetChildren()) {
                     if (entryIt->GetPath() == currentPath) {
                         currentObject = entryIt.Ptr();
 
@@ -192,7 +199,7 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
         if (!currentObject->IsEmpty()) {
             currentPath.append(".");
             currentPath.append(parseStr);
-            for (auto entryIt : currentObject->GetChildren()) {
+            for (const auto& entryIt : currentObject->GetChildren()) {
                 if (entryIt->GetPath() == currentPath) {
                     resultObject = entryIt.Ptr();
                     break;
@@ -206,7 +213,9 @@ ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)
 Interpreter* ScriptVM::LoadFile(const char* filePath)
 {
     SharedPtr<ScriptReader> reader = mem_alloc_ref(ScriptReader);
-    sympl_assert(reader->ReadFile(filePath), "Failed to find import file!");
+    bool success = reader->ReadFile(filePath);
+
+    sympl_assert(success, "Failed to find import file!");
 
     auto interpreter = mem_alloc_ref(Interpreter);
     interpreter->_SetReader(reader.Ptr());

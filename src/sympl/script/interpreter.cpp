@@ -105,7 +105,7 @@ void Interpreter::_Parse()
 
 bool Interpreter::Release()
 {
-    for (auto entryIt : _CommandList) {
+    for (const auto& entryIt : _CommandList) {
 //        entryIt.StatementStr.Release();
 //        entryIt.ObjectRef.Release();
     }

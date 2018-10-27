@@ -84,12 +84,18 @@ bool ScriptObject::IsChild(ScriptObject* ref)
 
 ScriptObject* ScriptObject::FindChildByName(const std::string& name, bool traverseUp)
 {
-    auto childIt = std::begin(_Children);
-    while (childIt != std::end(_Children)) {
-        if (childIt->Ptr()->GetName() == name) {
-            return childIt->Ptr();
+//    auto childIt = std::begin(_Children);
+//    while (childIt != std::end(_Children)) {
+//        if (childIt->Ptr()->GetName() == name) {
+//            return childIt->Ptr();
+//        }
+//        ++childIt;
+//    }
+
+    for (const auto& entry : _Children) {
+        if (entry->GetName() == name) {
+            return entry.Ptr();
         }
-        ++childIt;
     }
 
     // If we have not found the child, check if we want to traverse up the tree.
@@ -105,12 +111,10 @@ ScriptObject* ScriptObject::FindChildByName(const std::string& name, bool traver
 
 ScriptObject* ScriptObject::FindChildByPath(const std::string& path, bool traverseUp)
 {
-    auto childIt = std::begin(_Children);
-    while (childIt != std::end(_Children)) {
-        if (childIt->Ptr()->GetPath() == path) {
-            return childIt->Ptr();
+    for (const auto& entry : _Children) {
+        if (entry->GetPath() == path) {
+            return entry.Ptr();
         }
-        ++childIt;
     }
 
     // If we have not found the child, check if we want to traverse up the tree.
@@ -126,12 +130,10 @@ ScriptObject* ScriptObject::FindChildByPath(const std::string& path, bool traver
 
 ScriptObject* ScriptObject::FindChildByAddress(const std::string& address, bool traverseUp)
 {
-    auto childIt = std::begin(_Children);
-    while (childIt != std::end(_Children)) {
-        if (childIt->Ptr()->GetObjectAddress() == address) {
-            return childIt->Ptr();
+    for (const auto& entry : _Children) {
+        if (entry->GetObjectAddress() == address) {
+            return entry.Ptr();
         }
-        ++childIt;
     }
 
     // If we have not found the child, check if we want to traverse up the tree.

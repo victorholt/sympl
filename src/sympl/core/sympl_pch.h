@@ -153,7 +153,7 @@
 #include <assert.h>
 #define sympl_assert(condition, msg) assert(condition && msg)
 #else
-#define sympl_assert(stmt)
+#define sympl_assert(condition, msg)
 #endif
 
 #define SYMPL_VERSION 0x00010000 // ver. 0.1.0.0

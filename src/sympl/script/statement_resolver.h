@@ -61,6 +61,9 @@ protected:
     /// Reference to the cache object.
     ScriptCacheObject* _CacheObject = nullptr;
 
+    /// List of the cached entries.
+    std::vector<StatementEntry*> _CacheEntries;
+
     /// String of the cache key.
     std::string _CacheKey;
 

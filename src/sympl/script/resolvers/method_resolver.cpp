@@ -36,7 +36,12 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     std::vector<Variant> args;
     _FindArguments(stmtResolver, destObject, args);
 
-    return to_method(destObject)->Evaluate(args);
+    auto ret = to_method(destObject)->Evaluate(args, _Caller);
+
+    // Reset our caller object.
+    _Caller = nullptr;
+
+    return ret;
 }
 
 bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObject* destObject, std::vector<Variant>& args)

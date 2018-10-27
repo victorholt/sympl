@@ -202,7 +202,7 @@ public:
 
     //! Script value variant.
     //! \return Variant
-    inline Variant GetValue() const {
+    inline const Variant& GetValue() const {
         return _Value;
     }
 

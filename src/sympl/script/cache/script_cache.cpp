@@ -62,7 +62,7 @@ void ScriptCache::Remove(const std::string& objectAddress)
 
 void ScriptCache::Clear()
 {
-    for (auto entry : _ObjectMap) {
+    for (const auto& entry : _ObjectMap) {
         mem_free_ref(ScriptCacheObject, entry.second);
     }
     _ObjectMap.clear();

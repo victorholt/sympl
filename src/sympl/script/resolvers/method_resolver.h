@@ -32,6 +32,9 @@ class SYMPL_API MethodResolver : public ObjectResolver
     SYMPL_OBJECT(MethodResolver, ObjectResolver);
 
 protected:
+    /// Reference to the caller.
+    ScriptObject* _Caller = nullptr;
+
     //! Finds the next argument in the method. Returns false if no argument found.
     //! \param stmtResolver
     //! \param destObject
@@ -53,6 +56,10 @@ public:
     //! \return
     Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
                     ScriptObject* destObject, StatementOperator op) override;
+
+    //! Sets the caller object.
+    //! \param caller
+    inline void SetCaller(ScriptObject* value) { _Caller = value; }
 };
 
 sympl_nsend

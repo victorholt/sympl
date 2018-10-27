@@ -36,6 +36,8 @@ void WhileMethod::__Construct()
 
 Variant WhileMethod::Evaluate(ScriptMethodArgs args, ScriptObject* caller)
 {
+    auto method = to_method(caller);
+
     Variant value = args[0];
     if (value.GetType() == VariantType::Object) {
         value = dynamic_cast<ScriptObject*>(args[0].GetObject())->GetValue();
@@ -48,7 +50,6 @@ Variant WhileMethod::Evaluate(ScriptMethodArgs args, ScriptObject* caller)
 
         while (value.GetType() == VariantType::Bool && value.GetBool()) {
             if (caller->IsMethod()) {
-                auto method = to_method(caller);
                 method->ProcessCallStatements();
                 value = resolver->Resolve(method->GetMethodArg(0), this);
             } else {

@@ -7,12 +7,12 @@ func add(a, b) {
 
 var x = 0;
 while (x < 150000) {
-    x = x + 1; //add(x, 1);
+    x = add(x, 1);
 }
 
 printl(x);
 
-print_memory_map();
+//print_memory_map();
 
 print_memory();
 
