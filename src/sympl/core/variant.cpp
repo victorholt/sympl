@@ -46,14 +46,14 @@ void Variant::Set(Object* value) {
     value->AddRef();
 
     SetType(VariantType::Object);
-    _Value.Ptr = value;
+    _Value.ObjectVal = value;
 }
 
 Object* Variant::GetObject() {
     if (_Type != VariantType::Object) {
         return nullptr;
     }
-    return reinterpret_cast<Object*>(_Value.Ptr);
+    return _Value.ObjectVal;
 }
 
 Variant& Variant::operator =(StringBuffer* rhs) {
@@ -68,51 +68,49 @@ Variant& Variant::operator =(Object* rhs) {
 
 void Variant::Set(const Variant& value)
 {
-    Clear();
-
     auto type = value._Type;
 
     switch ((int)type) {
         case (int)VariantType::Bool:
+            Clear();
             _Value.BoolVal = value._Value.BoolVal;
             _Type = type;
             break;
         case (int)VariantType::Int:
+            Clear();
             _Value.IntVal = value._Value.IntVal;
             _Type = type;
             break;
         case (int)VariantType::Float:
+            Clear();
             _Value.FloatVal = value._Value.FloatVal;
             _Type = type;
             break;
         case (int)VariantType::Object:
-            _Value.Ptr = value._Value.Ptr;
+            Clear();
+            _Value.ObjectVal = value._Value.ObjectVal;
             _Type = type;
+            _Value.ObjectVal->AddRef();
             break;
         case (int)VariantType::StringBuffer:
-            Set(reinterpret_cast<StringBuffer*>(value._Value.Ptr)->CStr());
+            if (_Type != type) { Clear(); }
+            else { GetStringBuffer()->Clear(); }
+            Set(value._Value.StringBufferVal->CStr());
             break;
     }
-
-    // Increment the reference count so we don't run into
-    // a segment fault situation when passing the pointer
-    // around.
-    if (_Type == VariantType::StringBuffer) {
-        GetStringBuffer()->AddRef();
-    }
-    if (_Type == VariantType::Object) {
-        GetObject()->AddRef();
-    }
 }
 
-void Variant::CopyStringBuffer(StringBuffer* value) {
-    Clear();
-
-    value->AddRef();
-
-    SetType(VariantType::StringBuffer);
-    _Value.Ptr = value;
-}
+//void Variant::Set(StringBuffer* value) {
+//    if (_Type != VariantType::StringBuffer) {
+//        Set(value->CStr());
+//        GetStringBuffer()->AddRef();
+//        return;
+//    }
+//
+//    auto buffer = GetStringBuffer();
+//    buffer->Clear();
+//    buffer->Append(value->CStr());
+//}
 
 void Variant::Set(const char* value) {
     // Only clear if we are not already a string buffer.
@@ -120,23 +118,24 @@ void Variant::Set(const char* value) {
         Clear();
 
         if (IsNullObject(_Value.Ptr) || _Type == VariantType::Empty) {
-            _Value.Ptr = mem_alloc_ref(StringBuffer);
-//            CopyStringBuffer(sb);
+            auto buffer = mem_alloc_ref(StringBuffer);
+            buffer->AddRef();
+            _Value.StringBufferVal = buffer;
         }
 
         _Type = VariantType::StringBuffer;
     }
 
     SetType(VariantType::StringBuffer);
-    GetStringBuffer()->Clear();
-    GetStringBuffer()->Append(value);
+    _Value.StringBufferVal->Clear();
+    _Value.StringBufferVal->Append(value);
 }
 
 StringBuffer* Variant::GetStringBuffer() {
     if (_Type != VariantType::StringBuffer) {
         return nullptr;
     }
-    return reinterpret_cast<StringBuffer*>(_Value.Ptr);
+    return _Value.StringBufferVal;
 }
 
 std::string Variant::AsString()
@@ -189,17 +188,14 @@ std::string Variant::GetTypeAsString()
 void Variant::Clear() {
     // Free our string buffer.
     if (_Type == VariantType::StringBuffer) {
-        auto buffer = GetStringBuffer();
-        mem_free_ref(StringBuffer, buffer);
-        _Value.Ptr = nullptr;
+        mem_free_ref(StringBuffer, _Value.StringBufferVal);
+        _Value.StringBufferVal = nullptr;
     }
 
     // Free our object.
     if (_Type == VariantType::Object) {
-        auto sobj = GetObject();
-
-        if (sobj->GetTypeName().empty()) {
-            mem_free_ref(Object, sobj);
+        if (_Value.ObjectVal->GetTypeName().empty()) {
+            mem_free_ref(Object, _Value.ObjectVal);
         }
 
         _Value.Ptr = nullptr;

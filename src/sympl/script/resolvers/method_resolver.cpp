@@ -36,12 +36,7 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     std::vector<Variant> args;
     _FindArguments(stmtResolver, destObject, args);
 
-    auto ret = to_method(destObject)->Evaluate(args, _Caller);
-
-    // Reset our caller object.
-    _Caller = nullptr;
-
-    return ret;
+    return to_method(destObject)->Evaluate(args, _Caller);
 }
 
 bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObject* destObject, std::vector<Variant>& args)
@@ -80,9 +75,9 @@ bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObjec
 
             if (currentChar == ',' || (currentChar == ')' && parethNestLevel == 0)) {
                 EvalResolver evalResolver;
-                Variant value = evalResolver.GetEvalFromStatementBuffer(methodArg->CStr(), destObject);
-
-                args.emplace_back(value);
+                args.emplace_back(
+                        evalResolver.GetEvalFromStatementBuffer(methodArg->CStr(), destObject)
+                );
                 methodArg->Clear();
 
                 if (currentChar == ')') {

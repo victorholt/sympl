@@ -52,6 +52,8 @@ struct VariantValue {
         bool                BoolVal;
         long long           IntVal;
         float               FloatVal;
+        Object*             ObjectVal;
+        StringBuffer*       StringBufferVal;
         void*               Ptr;
 
     };
@@ -347,10 +349,6 @@ public:
     //! Sets the value for the variant.
     //! \param value
 //    void Set(StringBuffer* value);
-
-    //! Sets the value for the variant.
-    //! \param value
-    void CopyStringBuffer(StringBuffer* value);
 
     //! Sets the value for the variant.
     //! \param value

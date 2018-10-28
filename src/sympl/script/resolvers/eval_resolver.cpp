@@ -33,6 +33,8 @@ Variant EvalResolver::GetEvalFromStatementBuffer(const char* stmtStr, ScriptObje
 
     // Create the statement and set the string.
     SharedPtr<StatementResolver> stmtResolver = mem_alloc_ref(StatementResolver);
+    stmtResolver->SetCache(true);
+
     return stmtResolver->Resolve(stmtStr, scriptObject);
 }
 

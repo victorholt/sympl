@@ -8,10 +8,10 @@ int main()
 //    MemPoolInstance.SetDebug(true);
 
 //    mem_create_pool(StringBuffer, 50);
-//    mem_create_pool(StatementResolver, 50);
-//
-//    mem_create_pool(StatementEntry, 50);
-//
+
+//    mem_create_pool(StatementResolver, 200);
+//    mem_create_pool(StatementEntry, 200);
+
 //    mem_create_pool(ScriptObject, 50);
 //    mem_create_pool(ScriptMethod, 50);
 //

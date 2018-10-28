@@ -131,7 +131,7 @@ Variant ScriptMethod::ProcessCallStatements()
                 buffer->Append(SYMPL_STRING_TOKEN);
                 ret = buffer;
             } else {
-                ret = eval;
+                return eval;
             }
 
             break;
@@ -145,11 +145,10 @@ Variant ScriptMethod::ProcessCallStatements()
                 call.Resolver->SetCache(true);
             }
             ret = call.Resolver->Resolve(call.StatementStr, call.ObjectRef.Ptr());
-//            call.Resolver.Release();
-
             call.ObjectRef->SetValue(ret);
         }
     }
+
     return ret;
 }
 
