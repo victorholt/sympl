@@ -23,7 +23,11 @@
  **********************************************************/
 #include <sympl/script/resolvers/method_resolver.h>
 #include <sympl/script/resolvers/eval_resolver.h>
+#include <sympl/script/script_vm.h>
 #include <sympl/script/script_method.h>
+#include <sympl/script/method_cache_entry.h>
+#include <sympl/script/cache/script_cache.h>
+#include <sympl/script/cache/script_cache_object.h>
 sympl_namespaces
 
 Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
@@ -34,15 +38,14 @@ Variant MethodResolver::Resolve(StatementResolver* stmtResolver, StringBuffer* c
     currentStr->Clear();
 
     std::vector<Variant> args;
-    _FindArguments(stmtResolver, destObject, args);
+    _FindArguments(stmtResolver, destObject, args, !_IsRecursiveCall(destObject));
 
     return to_method(destObject)->Evaluate(args, _Caller);
 }
 
-bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObject* destObject, std::vector<Variant>& args)
+bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObject* destObject, std::vector<Variant>& args, bool useCache)
 {
     char currentChar = '\0';
-    char nextChar = '\0';
     int parethNestLevel = 1; // We're initially inside of a parameter.
     bool recording = false;
 
@@ -50,6 +53,27 @@ bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObjec
 
     auto statementStr = stmtResolver->GetStatementString();
     size_t charLocation = stmtResolver->GetCharLocation();
+
+    // Cache arguments for optimization.
+    ScriptCacheObject* cacheObject = nullptr;
+    std::string cacheKey;
+
+    if (useCache) {
+        cacheObject = ScriptCacheInstance.Fetch(destObject);
+        cacheKey = statementStr->CStr();
+        std::vector<Object*>* cacheEntries;
+
+        if (cacheObject->HasKey(cacheKey)) {
+            if (cacheObject->FetchValues(cacheKey, cacheEntries)) {
+                for (const auto& entry : *cacheEntries) {
+                    auto methodEntry = dynamic_cast<MethodCacheEntry*>(entry);
+                    args.emplace_back(methodEntry->Value);
+                    stmtResolver->SetCharLocation(methodEntry->StmtCharLocation);
+                }
+                return true;
+            }
+        }
+    }
 
     while (charLocation < statementStr->Length()) {
         currentChar = statementStr->Get(charLocation);
@@ -75,9 +99,17 @@ bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObjec
 
             if (currentChar == ',' || (currentChar == ')' && parethNestLevel == 0)) {
                 EvalResolver evalResolver;
-                args.emplace_back(
-                        evalResolver.GetEvalFromStatementBuffer(methodArg->CStr(), destObject)
-                );
+
+                // Cache the argument.
+                if (useCache) {
+                    auto cacheEntry = mem_alloc_ref(MethodCacheEntry);
+                    cacheEntry->Value = evalResolver.GetEvalFromStatementBuffer(methodArg->CStr(), destObject);
+                    cacheEntry->StmtCharLocation = charLocation;
+                    cacheObject->Store(cacheKey, cacheEntry);
+                    args.emplace_back(cacheEntry->Value);
+                } else {
+                    args.emplace_back(evalResolver.GetEvalFromStatementBuffer(methodArg->CStr(), destObject));
+                }
                 methodArg->Clear();
 
                 if (currentChar == ')') {
@@ -98,4 +130,21 @@ bool MethodResolver::_FindArguments(StatementResolver* stmtResolver, ScriptObjec
 
     return false;
 //    sympl_assert(false, "Missing closing ')' when attempting to resolve method!");
+}
+
+bool MethodResolver::_IsRecursiveCall(ScriptObject* destObject)
+{
+    auto parent = _Caller->GetParent();
+    if (!parent.IsValid() || parent.Ptr() == ScriptVMInstance.GetGlobalObject()) {
+        return false;
+    }
+
+    while (parent.IsValid() && parent.Ptr() != ScriptVMInstance.GetGlobalObject()) {
+        if (parent.Ptr() == destObject) {
+            return true;
+        }
+        parent = parent->GetParent();
+    }
+
+    return false;
 }

@@ -37,7 +37,7 @@ class SYMPL_API ScriptCacheObject : public Object
 
 protected:
     /// Map (i.e. Statement string/entries) associated with the object.
-    std::unordered_map< std::string, std::vector< Variant > > _ValueMap;
+    std::unordered_map< std::string, std::vector< Object* > > _ValueMap;
 
     /// Cache id (ScriptObject Address).
     std::string _Id;
@@ -48,7 +48,7 @@ public:
 
     //! Fetches the value based on the given key.
     //! \param key
-    //! \return vector*
+    //! \return bool
     template<typename T>
     bool Fetch(const std::string& key, std::vector<T>& output)
     {
@@ -58,32 +58,22 @@ public:
             return false;
         }
 
-        auto values = it->second;
-        for (auto& entry : values) {
-            if (entry.GetType() == VariantType::Object) {
-                output.push_back(dynamic_cast<T>(entry.GetObject()));
-            }
-            if (entry.GetType() == VariantType::StringBuffer) {
-                output.push_back(dynamic_cast<T>(entry.GetStringBuffer()));
-            }
-//            if (entry.GetType() == VariantType::Int) {
-//                output.push_back(dynamic_cast<T>(entry.GetInt()));
-//            }
-//            if (entry.GetType() == VariantType::Float) {
-//                output.push_back(dynamic_cast<T>(entry.GetFloat()));
-//            }
-//            if (entry.GetType() == VariantType::Bool) {
-//                output.push_back(dynamic_cast<T>(entry.GetBool()));
-//            }
+        for (auto& entry : it->second) {
+            output.emplace_back(dynamic_cast<T>(entry));
         }
 
         return true;
     }
 
+    //! Returns the values based on the given cache key.
+    //! \param key
+    //! \return bool
+    bool FetchValues(const std::string& key, std::vector<Object*>*& output);
+
     //! Stores a value for the object.
     //! \param key
     //! \param value
-    void Store(const std::string& key, const Variant& value);
+    void Store(const std::string& key, Object* value);
 
     //! Checks whether or not a key exists.
     //! \param key

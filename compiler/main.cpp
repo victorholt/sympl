@@ -19,7 +19,7 @@ int main()
 
     ScriptVMInstance.GetGlobalObject(); // Creates our global object.
 
-    auto program = ScriptVMInstance.LoadFile("../../examples/scripts/math.sym");
+    auto program = ScriptVMInstance.LoadFile("../../examples/scripts/arrays.sym");
     program->Run();
 
     return 0;

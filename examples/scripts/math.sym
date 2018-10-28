@@ -12,8 +12,6 @@ while (x < 150000) {
 
 printl(x);
 
-//print_memory_map();
-
 print_memory();
 
 profiler_stop("math");

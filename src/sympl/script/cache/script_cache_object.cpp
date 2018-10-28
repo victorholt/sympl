@@ -24,7 +24,20 @@
 #include <sympl/script/cache/script_cache_object.h>
 sympl_namespaces
 
-void ScriptCacheObject::Store(const std::string& key, const Variant& value)
+bool ScriptCacheObject::FetchValues(const std::string& key, std::vector<Object*>*& output)
+{
+    auto it = _ValueMap.find(key);
+
+    if (it == _ValueMap.end()) {
+        return false;
+    }
+
+    output = &_ValueMap[key];
+
+    return true;
+}
+
+void ScriptCacheObject::Store(const std::string& key, Object* value)
 {
     _ValueMap[key].emplace_back(value);
 }

@@ -22,50 +22,28 @@
  *
  **********************************************************/
 #pragma once
+
+#include <sympl/core/sympl_pch.h>
+#include <sympl/core/object.h>
 #include <sympl/script/script_common.h>
-#include <sympl/script/resolvers/object_resolver.h>
+#include <sympl/script/script_object.h>
 
 sympl_nsstart
 
-class SYMPL_API MethodResolver : public ObjectResolver
+class SYMPL_API MethodCacheEntry : public Object
 {
-    SYMPL_OBJECT(MethodResolver, ObjectResolver);
-
-protected:
-    /// Reference to the caller.
-    ScriptObject* _Caller = nullptr;
-
-    //! Finds the next argument in the method. Returns false if no argument found.
-    //! \param stmtResolver
-    //! \param destObject
-    //! \param args
-    //! \param useCache
-    //! \return bool
-    bool _FindArguments(StatementResolver* stmtResolver, ScriptObject* destObject, std::vector<Variant>& args, bool useCache);
-
-    //! Returns whether or not we're making a recursive call.
-    //! \param destObject
-    //! \return bool
-    bool _IsRecursiveCall(ScriptObject* destObject);
+    SYMPL_OBJECT(MethodCacheEntry, Object);
 
 public:
-    MethodResolver() = default;
 
     //! Called in place of the constructor.
-    void __Construct() override {}
+    void __Construct() override {};
 
-    //! Resolves the array.
-    //! \param stmtResolver
-    //! \param currentStr
-    //! \param destObject
-    //! \param op
-    //! \return
-    Variant Resolve(StatementResolver* stmtResolver, StringBuffer* currentStr,
-                    ScriptObject* destObject, StatementOperator op) override;
+    /// String value of the argument.
+    Variant Value;
 
-    //! Sets the caller object.
-    //! \param caller
-    inline void SetCaller(ScriptObject* value) { _Caller = value; }
+    /// The statement character location.
+    size_t StmtCharLocation = 0;
 };
 
 sympl_nsend
