@@ -24,6 +24,8 @@
 #include <sympl/core/mempool.h>
 #include <sympl/core/ref.h>
 
+#include <sympl/util/string_helper.h>
+
 #include <fmt/format.h>
 sympl_namespaces
 
@@ -43,85 +45,84 @@ MemPool::MemPool(const char* typeName, size_t blockSize, bool isRefCounter, size
 MemPool::~MemPool()
 {
     for (auto& block : _Blocks) {
-        free(block->Data);
-        delete block;
+        MemPoolInstance.ReleaseObjectAddress(block.first);
+        free(block.second->Data);
+        delete block.second;
     }
     _Blocks.clear();
-//    free(_Pool);
+
+    _AvailableObjectAddresses.clear();
 }
 
 MemPool::MemBlock* MemPool::FindAvailableBlock()
 {
-    // First Scan.
-    auto size = _Blocks.size();
-    for (unsigned i = _LastFreeIndex; i < size; i++) {
-        if (_Blocks[i]->Free) {
-            _LastFreeIndex = _Blocks[i]->Index + 1;
-            return _Blocks[i];
-        }
+    // Check if we need to resize the available addresses.
+    if (_AvailableObjectAddresses.empty()) {
+        Resize(_MaxMemBlocks * 2);
     }
 
-    // Second scan from the beginning.
-    _LastFreeIndex = 0;
-    for (unsigned i = _LastFreeIndex; i < size; i++) {
-        if (_Blocks[i]->Free) {
-            _LastFreeIndex = _Blocks[i]->Index + 1;
-            return _Blocks[i];
-        }
-    }
-
-    // Allocate more memory.
-    _LastFreeIndex = _MaxMemBlocks;
-    size_t newAmount = _MaxMemBlocks * 2;
-    Resize(newAmount);
-
-    return FindAvailableBlock();
-
-//    sympl_assert(false, "Unable to allocate memory block!");
-//    return nullptr;
+    auto address = ReserveObjectAddress();
+    return _Blocks[address];
 }
 
 MemPool::MemBlock* MemPool::FindBlock(void* ref)
 {
-    auto size = _Blocks.size();
-    for (unsigned i = 0; i < size; i++) {
-        if (!_Blocks[i]->Free && _Blocks[i]->Data == ref) {
-            return _Blocks[i];
+    for (const auto& entry : _Blocks) {
+        if (entry.second->Free && entry.second->Data == ref) {
+            return entry.second;
         }
     }
     return nullptr;
 }
 
-void MemPool::ClearBlock(size_t index)
+void MemPool::ClearBlock(const std::string& address)
 {
-//    memset((char*)_Pool + (index * (_BlockSize + _Padding)), 0, _BlockSize + _Padding);
-    memset(_Blocks[index]->Data, 0, _BlockSize + _Padding);
+    memset(_Blocks[address]->Data, 0, _BlockSize + _Padding);
 }
 
 void MemPool::ClearAll()
 {
-    for (size_t i = 0; i < _MaxMemBlocks; i++) {
-        ClearBlock(i);
+    for (const auto& entry : _Blocks) {
+        ClearBlock(entry.first);
     }
 }
 
-void MemPool::FillBlock(size_t index)
+void MemPool::FillBlock(const std::string& address)
 {
-    memset(_Blocks[index]->Data, 0xDD, _BlockSize + _Padding);
+    memset(_Blocks[address]->Data, 0xDD, _BlockSize + _Padding);
 }
 
 void MemPool::Resize(size_t amount)
 {
     size_t newSize = _MaxMemBlocks + amount;
     for (size_t i = _MaxMemBlocks; i < newSize; i++) {
+        // Grab our address from the manager.
+        auto address = MemPoolInstance.ReserveObjectAddress();
+
+        // Push the address into available addresses.
+        ReleaseObjectAddress(address);
+
         auto block = new MemBlock();
-        block->Index = i;
+        block->Address = address;
         block->Free = true;
         block->Data = malloc(_BlockSize + _Padding);
-        _Blocks.push_back(block);
-        FillBlock(block->Index);
+
+        _Blocks[address] = block;
+        FillBlock(address);
     }
     _MaxMemBlocks = newSize;
+}
+
+const std::string& MemPool::ReserveObjectAddress()
+{
+    const auto& result = _AvailableObjectAddresses.back();
+    _AvailableObjectAddresses.pop_back();
+    return result;
+}
+
+void MemPool::ReleaseObjectAddress(const std::string& address)
+{
+    _AvailableObjectAddresses.emplace_back(address);
 }
 
 MemPoolRef::MemPoolRef(const char* typeName, size_t blockSize, bool isRefCounter, size_t padding, size_t maxMemBlocks)
@@ -138,4 +139,51 @@ MemPoolBytes::MemPoolBytes(const char* typeName, size_t blockSize, bool isRefCou
         : MemPool(typeName, blockSize, isRefCounter, padding, maxMemBlocks)
 {
 
+}
+
+void MemPoolManager::_BuildAddresses()
+{
+    _AvailableObjectAddresses.clear();
+    _AvailableObjectAddresses.reserve(_MaxObjectAddresses);
+
+    for (size_t i = 0; i < _MaxObjectAddresses; i++) {
+        auto address = StringHelper::GenerateRandomStr(64);
+        _AvailableObjectAddresses.emplace_back(address);
+    }
+}
+
+void MemPoolManager::Initialize()
+{
+    if (_Init) {
+        return;
+    }
+
+    if (!_Init) {
+        _BuildAddresses();
+    }
+    _Init = true;
+}
+
+const std::string& MemPoolManager::ReserveObjectAddress()
+{
+    const auto& result = _AvailableObjectAddresses.back();
+    _AvailableObjectAddresses.pop_back();
+    return result;
+}
+
+void MemPoolManager::ReleaseObjectAddress(const std::string& address)
+{
+//    sympl_assert(IsAvailableObjectAddress(address), "Attempted to release an object address that's already available!");
+    _AvailableObjectAddresses.emplace_back(address);
+}
+
+bool MemPoolManager::IsAvailableObjectAddress(const std::string& address)
+{
+    for (const auto& entry : _AvailableObjectAddresses) {
+        if (entry == address) {
+            return false;
+        }
+    }
+
+    return true;
 }

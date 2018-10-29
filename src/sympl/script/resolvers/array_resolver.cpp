@@ -24,6 +24,8 @@
 #include <sympl/script/resolvers/array_resolver.h>
 #include <sympl/script/resolvers/eval_resolver.h>
 #include <sympl/script/script_array.h>
+
+#include <sympl/util/number_helper.h>
 sympl_namespaces
 
 bool ArrayResolver::_CheckValueAssignment(StatementResolver* stmtResolver, ScriptObject* varObject, Variant& index)
@@ -85,6 +87,13 @@ bool ArrayResolver::_CheckValueAssignment(StatementResolver* stmtResolver, Scrip
 
         // Check if we need to solve the value inside the bracket.
         if (currentChar == ']') {
+            // Check if this is a string or number. Strings need to have
+            // the string token appended to them.
+            if (!NumberHelper::IsNumber(resolveStr->CStr())) {
+                resolveStr->Prepend(SYMPL_STRING_TOKEN);
+                resolveStr->Append(SYMPL_STRING_TOKEN);
+            }
+
             EvalResolver evalResolver;
             index = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), varObject);
             return true;
@@ -303,7 +312,19 @@ Variant ArrayResolver::_ResolveArrayValue(StatementResolver* stmtResolver, Strin
         if (currentChar == ']') {
             EvalResolver evalResolver;
             auto value = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), destObject);
-            return to_array(arrayObj)->GetRawItem(value.AsString().c_str());
+            auto ret = to_array(arrayObj)->GetItem(value.AsString());
+
+            if (ret.GetType() == VariantType::StringBuffer) {
+                auto buffer = ret.GetStringBuffer();
+                if (!buffer->StartsWith(SYMPL_STRING_TOKEN)) {
+                    buffer->Prepend(SYMPL_STRING_TOKEN);
+                }
+                if (!buffer->EndsWith(SYMPL_STRING_TOKEN)) {
+                    buffer->Append(SYMPL_STRING_TOKEN);
+                }
+            }
+
+            return ret;
         }
 
         // Record our string.

@@ -257,6 +257,7 @@ void ScriptParser::_ParseName()
 void ScriptParser::_ParseValue()
 {
     char currentChar = '\0';
+    char previousChar = '\0';
     _ScanMode = ParserScanMode::Type;
 
     // Whether or not this is an assignment value.
@@ -267,6 +268,7 @@ void ScriptParser::_ParseValue()
 
     while (_CharLocation < _Reader->GetBuffer()->Length()) {
         currentChar = _Reader->GetBuffer()->Get(_CharLocation);
+        previousChar = _Reader->GetBuffer()->Get(_CharLocation - 1);
         _CharLocation++;
 
         if (currentChar == ';') {
@@ -285,7 +287,7 @@ void ScriptParser::_ParseValue()
         }
 
         // Arrays should be marked as arrays in the type.
-        if (!recording && currentChar == '[' && !_CurrentValueBuffer->Contains(SYMPL_STRING_TOKEN)) {
+        if (!recording && currentChar == '[' && previousChar == '#' && !_CurrentValueBuffer->Contains(SYMPL_STRING_TOKEN)) {
             _CurrentIdentifierBuffer->Clear();
             _CurrentIdentifierBuffer->Append("array");
         }

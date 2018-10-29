@@ -33,16 +33,19 @@ protected:
     /// Blocks in the pool.
     struct MemBlock
     {
-        size_t  Index;
         bool    Free;
+        std::string Address;
         void*   Data;
     };
 
     /// Memory pool of allocated space with padding.
     void* _Pool = nullptr;
 
-    /// Blocks in the pool.
-    std::vector<MemBlock*> _Blocks;
+    /// Blocks in the memory pool.
+    std::unordered_map<std::string, MemBlock*> _Blocks;
+
+    /// Available addresses that have been reserved.
+    std::vector<std::string> _AvailableObjectAddresses;
 
     /// Type name of the pool.
     char _TypeName[256] = {};
@@ -55,9 +58,6 @@ protected:
 
     /// Max memory blocks to allocate.
     size_t _Padding = 0;
-
-    /// Last free index.
-    size_t _LastFreeIndex = 0;
 
     /// Whether or not this pool manages a ref counter object.
     bool _IsRefCounter = false;
@@ -72,18 +72,27 @@ protected:
 
     //! Clears the block memory.
     //! \param index
-    void ClearBlock(size_t index);
+    void ClearBlock(const std::string& address);
 
     //! Clear all blocks.
     void ClearAll();
 
     //! Fills the block with junk data.
     //! \param index
-    void FillBlock(size_t index);
+    void FillBlock(const std::string& address);
 
     //! Resizes the memory pool.
     //! \param amount
     void Resize(size_t amount);
+
+    //! Reserves an object address.
+    //! \return std::string
+    const std::string& ReserveObjectAddress();
+
+    //! Release an object address.
+    //! \param address
+    void ReleaseObjectAddress(const std::string& address);
+
 public:
     //! Constructor.
     MemPool();
@@ -154,7 +163,7 @@ public:
         block->Free = false;
 
         T* ref = new(block->Data) T();
-        ref->SetMemIndex(block->Index);
+        ref->SetObjectAddress(block->Address);
 
         return ref;
     }
@@ -167,17 +176,15 @@ public:
         if (ref->DecRef()) {
             return;
         }
-        if (ref->GetMemIndex() == -1) {
+        if (ref->IsStaticRef()) {
             return;
         }
 
-        size_t blockIndex = ref->GetMemIndex();
+        _Blocks[ref->GetObjectAddress()]->Free = true;
+        ReleaseObjectAddress(ref->GetObjectAddress());
 
         ref->Release();
         ref->~T();
-
-        _Blocks[blockIndex]->Free = true;
-        _LastFreeIndex = _LastFreeIndex > blockIndex ? blockIndex : _LastFreeIndex;
     }
 };
 
@@ -210,9 +217,9 @@ public:
     void Deallocate(T* ref)
     {
         auto block = FindBlock(reinterpret_cast<void*>(ref));
+        ReleaseObjectAddress(block->Address);
         ref->~T();
         block->Free = true;
-        _LastFreeIndex = _LastFreeIndex > block->Index ? block->Index : _LastFreeIndex;
     }
 };
 
@@ -244,8 +251,8 @@ public:
     void Deallocate(T* ref)
     {
         auto block = FindBlock(reinterpret_cast<void*>(ref));
+        ReleaseObjectAddress(block->Address);
         block->Free = true;
-        _LastFreeIndex = _LastFreeIndex > block->Index ? block->Index : _LastFreeIndex;
     }
 };
 
@@ -255,14 +262,26 @@ private:
     /// Pools available in the manager.
     std::vector<MemPool*> _Pools;
 
+    /// Max available addresses.
+    size_t _MaxObjectAddresses = 100000;
+
     /// Memory usage size.
     size_t _MemoryUsage = 0;
 
     /// Flag to track memory allocations.
     bool _Debug = false;
 
+    /// Flag to track whether or not the manager has been initialized.
+    bool _Init = false;
+
     /// Memory allocation map (used when debug = true).
     std::unordered_map<std::string, long long int> _MemoryMap;
+
+    /// Available address list for the pool.
+    std::vector<std::string> _AvailableObjectAddresses;
+
+    //! Build the available object addresses.
+    void _BuildAddresses();
 
     //! Constructor.
     explicit MemPoolManager() = default;
@@ -286,6 +305,9 @@ public:
         return instance;
     }
 
+    //! Initializes the pool manager.
+    void Initialize();
+
     //! Creates a new pool.
     //! \tparam T
     //! \tparam Padding
@@ -295,6 +317,8 @@ public:
     template<class T, size_t Padding = 64, size_t Size = sizeof(T)>
     MemPool* CreatePool(bool isRefCounter = true, size_t maxMemBlocks = 200)
     {
+        Initialize();
+
         MemPool* pool = nullptr;
 
         if (isRefCounter) {
@@ -320,6 +344,8 @@ public:
     template<class T, size_t Padding = 64, size_t Size = sizeof(T)>
     MemPool* CreatePool(const char* typeName, bool isRefCounter = true, size_t maxMemBlocks = 200)
     {
+        Initialize();
+
         MemPool* pool = nullptr;
 
         if (isRefCounter) {
@@ -402,7 +428,11 @@ public:
         UpdateMemoryMap(T::GetTypeNameStatic(), 1);
 
         _MemoryUsage += sizeof(T);
-        return new T();
+
+        auto ref = new T();
+        ref->SetObjectAddress(ReserveObjectAddress());
+
+        return ref;
     }
 
     //! Attempts to find and return a memory pool.
@@ -465,6 +495,7 @@ public:
         }
 
         UpdateMemoryMap(ref->GetTypeName(), -1);
+        ReleaseObjectAddress(ref->GetObjectAddress());
 
         ref->Release();
         delete ref;
@@ -506,6 +537,27 @@ public:
 
         _MemoryMap[typeName] += value;
     }
+
+    //! Reserves an object address.
+    //! \return std::string
+    const std::string& ReserveObjectAddress();
+
+    //! Releases an object address.
+    //! \param address
+    void ReleaseObjectAddress(const std::string& address);
+
+    //! Checks if an address is available.
+    //! \param address
+    //! \return bool
+    bool IsAvailableObjectAddress(const std::string& address);
+
+    //! Sets the max number object addresses.
+    //! \param value
+    inline void SetMaxObjectAddresses(size_t value) { _MaxObjectAddresses = value; }
+
+    //! Returns the max number object addresses.
+    //! \return
+    inline size_t GetMaxObjectAddresses() const { return _MaxObjectAddresses; }
 
     //! Prints the memory map.
     inline const std::unordered_map<std::string, long long int>& GetMemoryMap() { return _MemoryMap; }

@@ -41,9 +41,6 @@ protected:
     /// Reference object this used by this object.
     SharedPtr<ScriptObject> _Reference;
 
-    /// Object address for the VM.
-    std::string _ObjectAddress;
-
     /// Parent reference for the object.
     SharedPtr<ScriptObject> _Parent;
 
@@ -117,14 +114,6 @@ public:
 
     //! Releases the object.
     bool Release() override;
-
-    //! Sets the object address.
-    //! \param value
-    inline void SetObjectAddress(const std::string& value) { _ObjectAddress = value; }
-
-    //! Returns the object address.
-    //! \return std::string
-    inline const std::string& GetObjectAddress() const { return _ObjectAddress; }
 
     //! Sets the parent for the object.
     //! \param parent

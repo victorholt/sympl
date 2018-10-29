@@ -6,7 +6,7 @@ func add(a, b) {
 }
 
 var x = 0;
-while (x < 150000) {
+while (x < 1500) {
     x = add(x, 1);
 }
 

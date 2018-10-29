@@ -46,11 +46,8 @@ void ScriptVM::__Construct()
     // the VM.
     ScriptObject::Empty.SetIsStaticRef(true);
 
-    _BuildAddresses();
-
     // Create the global object.
     _GlobalObject = mem_alloc_ref(ScriptObject);
-    _GlobalObject->SetObjectAddress(ReserveObjectAddress());
     _ObjectMap[_GlobalObject->GetObjectAddress()] = _GlobalObject;
     _GlobalObject->Initialize("root", "root", ScriptObjectType::Object);
 }
@@ -60,53 +57,6 @@ ScriptObject* ScriptVM::CreateObjectReference()
     auto ref = CreateObject<ScriptObject>();
     ref->Initialize(ref->GetObjectAddress(), ref->GetObjectAddress(), ScriptObjectType::Object);
     return ref;
-}
-
-void ScriptVM::_BuildAddresses()
-{
-    _ObjectMap.clear();
-    _ObjectMap.reserve(_MaxObjectAddresses);
-
-    _AvailableObjectAddresses.clear();
-    _AvailableObjectAddresses.reserve(_MaxObjectAddresses);
-
-    for (size_t i = 0; i < _MaxObjectAddresses; i++) {
-        auto address = StringHelper::GenerateRandomStr(64);
-        _AvailableObjectAddresses.push_back(address);
-    }
-}
-
-std::string ScriptVM::ReserveObjectAddress()
-{
-    auto result = _AvailableObjectAddresses.back();
-    _AvailableObjectAddresses.pop_back();
-    return result;
-}
-
-void ScriptVM::ReleaseObjectAddress(const std::string& address)
-{
-    sympl_assert(IsAvailableObjectAddress(address), "Attempted to release an object address that's already available!");
-    _ObjectMap.erase(address);
-    _AvailableObjectAddresses.push_back(address);
-}
-
-bool ScriptVM::IsAvailableObjectAddress(const std::string& address)
-{
-//    auto addressIt = std::begin(_AvailableObjectAddresses);
-//    while (addressIt != std::end(_AvailableObjectAddresses)) {
-//        if (*addressIt == address) {
-//            return false;
-//        }
-//        ++addressIt;
-//    }
-
-    for (const auto& entry : _AvailableObjectAddresses) {
-        if (entry == address) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 ScriptObject* ScriptVM::FindObjectByPath(const std::string& path)

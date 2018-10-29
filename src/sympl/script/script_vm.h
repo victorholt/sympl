@@ -45,12 +45,6 @@ class SYMPL_API ScriptVM : public Object
     SYMPL_OBJECT(ScriptVM, Object);
 
 protected:
-    /// Max available addresses.
-    size_t _MaxObjectAddresses = 100000;
-
-    /// Available object addresses.
-    std::vector<std::string> _AvailableObjectAddresses;
-
     /// Object mapping with given addresses.
     std::unordered_map< std::string, SharedPtr<ScriptObject> > _ObjectMap;
 
@@ -59,9 +53,6 @@ protected:
 
     /// Reference to the method registry.
     SharedPtr<MethodRegistry> _MethodRegistry;
-
-    //! Build the available object addresses.
-    void _BuildAddresses();
 
     //! Constructor.
     ScriptVM();
@@ -99,7 +90,6 @@ public:
             ref->SetType(ScriptObjectType::Object);
         }
 
-        ref->SetObjectAddress(ReserveObjectAddress());
         _ObjectMap[ref->GetObjectAddress()] = ref;
 
         if (parent) {
@@ -140,19 +130,6 @@ public:
     //! \return ScriptObject
     ScriptObject* CreateObjectReference();
 
-    //! Reserves an object address.
-    //! \return std::string
-    std::string ReserveObjectAddress();
-
-    //! Releases an object address.
-    //! \param address
-    void ReleaseObjectAddress(const std::string& address);
-
-    //! Checks if an address is available.
-    //! \param address
-    //! \return bool
-    bool IsAvailableObjectAddress(const std::string& address);
-
     //! Attempts to find an object.
     //! \param path
     //! \return ScriptObject
@@ -167,14 +144,6 @@ public:
     //! \param str
     //! \return Interpreter
     Interpreter* LoadString(const char* str);
-
-    //! Sets the max number object addresses.
-    //! \param value
-    inline void SetMaxObjectAddresses(size_t value) { _MaxObjectAddresses = value; }
-
-    //! Returns the max number object addresses.
-    //! \return
-    inline size_t GetMaxObjectAddresses() const { return _MaxObjectAddresses; }
 
     //! Returns the object map.
     //! \return

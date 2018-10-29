@@ -156,6 +156,30 @@ public:
         return output.c_str();
     }
 
+    static bool IsNumber(const char* str)
+    {
+        char firstChar = *str;
+        if (firstChar == '0' || firstChar == '1' || firstChar == '2' ||
+            firstChar == '3' || firstChar == '4' || firstChar == '5' ||
+            firstChar == '6' || firstChar == '7' || firstChar == '8' ||
+            firstChar == '9') {
+
+            long long intVal;
+            float floatVal;
+
+            if (!NumberHelper::TryParseLong(str, &intVal)) {
+                return false;
+            } else if (!NumberHelper::TryParseFloat(str, &floatVal)) {
+                return false;
+            }
+
+        } else {
+            return false;
+        }
+
+        return true;
+    }
+
     static bool IsNumber(const char* str, Variant& output)
     {
         char firstChar = *str;

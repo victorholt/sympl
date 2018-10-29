@@ -201,6 +201,7 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
                     } else {
                         scopeObj = to_method(destObject)->GetScope()->FindChildByName(stmtEntryStr->CStr());
                     }
+
                     sympl_assert(!scopeObj->IsEmpty(), "Illegal use of non-declared object!");
 
                     stmtEntry->ObjectValue = scopeObj;

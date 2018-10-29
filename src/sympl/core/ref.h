@@ -81,8 +81,8 @@ protected:
     /// Current reference count before we can delete the reference.
     unsigned _RefCount = 0;
 
-    /// Memory address for the reference.
-    long long _MemIndex = -1;
+    /// Object address for memory allocation.
+    std::string _ObjectAddress;
 
     /// Flag to force the memory manager not to delete the reference.
     bool _IsStaticRef = false;
@@ -91,12 +91,13 @@ public:
     // Attempts to dec the reference count.
     virtual ~RefCounter() { Release(); }
 
-    //! Sets the memory index.
-    //! \param index
-    inline void SetMemIndex(long long index) { _MemIndex = index; }
+    //! Sets the object address.
+    //! \param value
+    inline void SetObjectAddress(const std::string& value) { _ObjectAddress = value; }
 
-    //! Returns the block memory index for the object.
-    inline const long long GetMemIndex() const { return _MemIndex; }
+    //! Returns the object address.
+    //! \return std::string
+    inline const std::string& GetObjectAddress() const { return _ObjectAddress; }
 
     //! Adds to the reference count.
     inline void AddRef() { _RefCount++; }
