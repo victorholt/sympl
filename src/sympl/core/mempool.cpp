@@ -75,7 +75,7 @@ MemPool::MemBlock* MemPool::FindBlock(void* ref)
     return nullptr;
 }
 
-void MemPool::ClearBlock(const std::string& address)
+void MemPool::ClearBlock(MemAddressType address)
 {
     memset(_Blocks[address]->Data, 0, _BlockSize + _Padding);
 }
@@ -87,7 +87,7 @@ void MemPool::ClearAll()
     }
 }
 
-void MemPool::FillBlock(const std::string& address)
+void MemPool::FillBlock(MemAddressType address)
 {
     memset(_Blocks[address]->Data, 0xDD, _BlockSize + _Padding);
 }
@@ -113,14 +113,14 @@ void MemPool::Resize(size_t amount)
     _MaxMemBlocks = newSize;
 }
 
-const std::string& MemPool::ReserveObjectAddress()
+MemAddressType MemPool::ReserveObjectAddress()
 {
-    const auto& result = _AvailableObjectAddresses.back();
+    MemAddressType result = _AvailableObjectAddresses.back();
     _AvailableObjectAddresses.pop_back();
     return result;
 }
 
-void MemPool::ReleaseObjectAddress(const std::string& address)
+void MemPool::ReleaseObjectAddress(MemAddressType address)
 {
     _AvailableObjectAddresses.emplace_back(address);
 }
@@ -147,8 +147,8 @@ void MemPoolManager::_BuildAddresses()
     _AvailableObjectAddresses.reserve(_MaxObjectAddresses);
 
     for (size_t i = 0; i < _MaxObjectAddresses; i++) {
-        auto address = StringHelper::GenerateRandomStr(64);
-        _AvailableObjectAddresses.emplace_back(address);
+//        auto address = StringHelper::GenerateRandomStr(64);
+        _AvailableObjectAddresses.emplace_back(i);
     }
 }
 
@@ -164,22 +164,22 @@ void MemPoolManager::Initialize()
     _Init = true;
 }
 
-const std::string& MemPoolManager::ReserveObjectAddress()
+MemAddressType MemPoolManager::ReserveObjectAddress()
 {
-    const auto& result = _AvailableObjectAddresses.back();
+    MemAddressType result = _AvailableObjectAddresses.back();
     _AvailableObjectAddresses.pop_back();
     return result;
 }
 
-void MemPoolManager::ReleaseObjectAddress(const std::string& address)
+void MemPoolManager::ReleaseObjectAddress(MemAddressType address)
 {
 //    sympl_assert(IsAvailableObjectAddress(address), "Attempted to release an object address that's already available!");
     _AvailableObjectAddresses.emplace_back(address);
 }
 
-bool MemPoolManager::IsAvailableObjectAddress(const std::string& address)
+bool MemPoolManager::IsAvailableObjectAddress(MemAddressType address)
 {
-    for (const auto& entry : _AvailableObjectAddresses) {
+    for (auto entry : _AvailableObjectAddresses) {
         if (entry == address) {
             return false;
         }

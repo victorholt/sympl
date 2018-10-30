@@ -82,7 +82,7 @@ protected:
     unsigned _RefCount = 0;
 
     /// Object address for memory allocation.
-    std::string _ObjectAddress;
+    MemAddressType _ObjectAddress;
 
     /// Flag to force the memory manager not to delete the reference.
     bool _IsStaticRef = false;
@@ -93,11 +93,11 @@ public:
 
     //! Sets the object address.
     //! \param value
-    inline void SetObjectAddress(const std::string& value) { _ObjectAddress = value; }
+    inline void SetObjectAddress(MemAddressType value) { _ObjectAddress = value; }
 
     //! Returns the object address.
     //! \return std::string
-    inline const std::string& GetObjectAddress() const { return _ObjectAddress; }
+    inline MemAddressType GetObjectAddress() const { return _ObjectAddress; }
 
     //! Adds to the reference count.
     inline void AddRef() { _RefCount++; }

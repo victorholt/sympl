@@ -106,7 +106,7 @@ public:
     //! \param address
     //! \param traverseUp
     //! \return ScriptObjectRef
-    ScriptObject* FindChildByAddress(const std::string& address, bool traverseUp = true);
+    ScriptObject* FindChildByAddress(MemAddressType address, bool traverseUp = true);
 
     //! Returns the type as a string.
     //! \return string

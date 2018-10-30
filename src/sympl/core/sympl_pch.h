@@ -105,7 +105,11 @@
 #include <getopt.h>
 #include <unistd.h>
 
+#include <sparsehash/sparsehash_pch.h>
+
 #define IsSpaceChar(c, loc) std::isspace(c, loc)
+
+#define MemAddressType long long int
 
 #else
 #include <time.h>

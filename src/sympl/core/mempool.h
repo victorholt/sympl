@@ -33,19 +33,16 @@ protected:
     /// Blocks in the pool.
     struct MemBlock
     {
-        bool    Free;
-        std::string Address;
-        void*   Data;
+        bool            Free;
+        MemAddressType  Address;
+        void*           Data;
     };
 
-    /// Memory pool of allocated space with padding.
-    void* _Pool = nullptr;
-
     /// Blocks in the memory pool.
-    std::unordered_map<std::string, MemBlock*> _Blocks;
+    std::unordered_map<MemAddressType, MemBlock*> _Blocks;
 
     /// Available addresses that have been reserved.
-    std::vector<std::string> _AvailableObjectAddresses;
+    std::vector<MemAddressType> _AvailableObjectAddresses;
 
     /// Type name of the pool.
     char _TypeName[256] = {};
@@ -72,14 +69,14 @@ protected:
 
     //! Clears the block memory.
     //! \param index
-    void ClearBlock(const std::string& address);
+    void ClearBlock(MemAddressType address);
 
     //! Clear all blocks.
     void ClearAll();
 
     //! Fills the block with junk data.
     //! \param index
-    void FillBlock(const std::string& address);
+    void FillBlock(MemAddressType address);
 
     //! Resizes the memory pool.
     //! \param amount
@@ -87,11 +84,11 @@ protected:
 
     //! Reserves an object address.
     //! \return std::string
-    const std::string& ReserveObjectAddress();
+    MemAddressType ReserveObjectAddress();
 
     //! Release an object address.
     //! \param address
-    void ReleaseObjectAddress(const std::string& address);
+    void ReleaseObjectAddress(MemAddressType address);
 
 public:
     //! Constructor.
@@ -278,7 +275,7 @@ private:
     std::unordered_map<std::string, long long int> _MemoryMap;
 
     /// Available address list for the pool.
-    std::vector<std::string> _AvailableObjectAddresses;
+    std::vector<MemAddressType> _AvailableObjectAddresses;
 
     //! Build the available object addresses.
     void _BuildAddresses();
@@ -326,7 +323,7 @@ public:
         } else {
             pool = new MemPoolObject(T::GetTypeNameStatic().c_str(), Size, isRefCounter, Padding, maxMemBlocks);
         }
-        _Pools.push_back(pool);
+        _Pools.emplace_back(pool);
 
         _MemoryUsage += sizeof(T) * maxMemBlocks;
 
@@ -353,7 +350,7 @@ public:
         } else {
             pool = new MemPoolObject(typeName, Size, isRefCounter, Padding, maxMemBlocks);
         }
-        _Pools.push_back(pool);
+        _Pools.emplace_back(pool);
 
         _MemoryUsage += sizeof(T) * maxMemBlocks;
 
@@ -540,16 +537,16 @@ public:
 
     //! Reserves an object address.
     //! \return std::string
-    const std::string& ReserveObjectAddress();
+    MemAddressType ReserveObjectAddress();
 
     //! Releases an object address.
     //! \param address
-    void ReleaseObjectAddress(const std::string& address);
+    void ReleaseObjectAddress(MemAddressType address);
 
     //! Checks if an address is available.
     //! \param address
     //! \return bool
-    bool IsAvailableObjectAddress(const std::string& address);
+    bool IsAvailableObjectAddress(MemAddressType address);
 
     //! Sets the max number object addresses.
     //! \param value

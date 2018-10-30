@@ -40,7 +40,7 @@ protected:
     std::unordered_map< std::string, std::vector< Object* > > _ValueMap;
 
     /// Cache id (ScriptObject Address).
-    std::string _Id;
+    MemAddressType _Id;
 
 public:
     //! Called in place of the constructor.
@@ -89,11 +89,11 @@ public:
 
     //! Sets the id.
     //! \param value
-    inline void SetId(const std::string& value) { _Id = value; }
+    inline void SetId(MemAddressType value) { _Id = value; }
 
     //! Returns the id.
     //! \return string
-    inline const std::string& GetId() const { return _Id; }
+    inline MemAddressType GetId() const { return _Id; }
 };
 
 sympl_nsend

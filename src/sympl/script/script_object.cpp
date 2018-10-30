@@ -128,7 +128,7 @@ ScriptObject* ScriptObject::FindChildByPath(const std::string& path, bool traver
     return &ScriptObject::Empty;
 }
 
-ScriptObject* ScriptObject::FindChildByAddress(const std::string& address, bool traverseUp)
+ScriptObject* ScriptObject::FindChildByAddress(MemAddressType address, bool traverseUp)
 {
     for (const auto& entry : _Children) {
         if (entry->GetObjectAddress() == address) {

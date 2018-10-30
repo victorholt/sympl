@@ -6,7 +6,8 @@ sympl_namespaces
 int main()
 {
     // Any memory manager setting changes.
-    //    MemPoolInstance.SetDebug(true);
+//    MemPoolInstance.SetDebug(true);
+//    MemPoolInstance.SetMaxObjectAddresses(500000);
 
     // Initialize the object addresses.
     MemPoolInstance.Initialize();

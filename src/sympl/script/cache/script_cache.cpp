@@ -48,7 +48,7 @@ void ScriptCache::Remove(ScriptObject* scriptObject)
     Remove(objectAddress);
 }
 
-void ScriptCache::Remove(const std::string& objectAddress)
+void ScriptCache::Remove(MemAddressType objectAddress)
 {
     auto entry = _ObjectMap.find(objectAddress);
 

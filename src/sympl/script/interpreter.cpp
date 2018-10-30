@@ -42,9 +42,9 @@ void Interpreter::__Construct()
 
 }
 
-bool Interpreter::Run(std::string scopeObjectAddress)
+bool Interpreter::Run(MemAddressType scopeObjectAddress)
 {
-    if (scopeObjectAddress.empty()) {
+    if (scopeObjectAddress == -1) {
         scopeObjectAddress = ScriptVMInstance.GetGlobalObject()->GetObjectAddress();
     }
 
@@ -68,7 +68,7 @@ bool Interpreter::Run(std::string scopeObjectAddress)
     return true;
 }
 
-void Interpreter::AddCommand(const std::string& scopeObjectAddress, ScriptObject* objectRef, const char* stmtStr)
+void Interpreter::AddCommand(MemAddressType scopeObjectAddress, ScriptObject* objectRef, const char* stmtStr)
 {
     InterpretCommandEntry entry;
     entry.ObjectRef     = objectRef;
@@ -77,7 +77,7 @@ void Interpreter::AddCommand(const std::string& scopeObjectAddress, ScriptObject
     _CommandList[scopeObjectAddress].push_back(entry);
 }
 
-void Interpreter::AddVirtualCommand(const std::string& scopeObjectAddress, const char* command, const char* stmtStr)
+void Interpreter::AddVirtualCommand(MemAddressType scopeObjectAddress, const char* command, const char* stmtStr)
 {
     InterpretCommandEntry entry;
     entry.VirtualObjectRef  = mem_alloc_ref(StringBuffer);

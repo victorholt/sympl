@@ -48,6 +48,7 @@ set (SYMPL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set (SYMPL_INCLUDES
     "${SYMPL_SOURCE_DIR}"
     "${SYMPL_SOURCE_DIR}/sympl/thirdparty"
+    "${SYMPL_SOURCE_DIR}/sympl/thirdparty/google"
 )
 set (SYMPL_SOURCES)
 

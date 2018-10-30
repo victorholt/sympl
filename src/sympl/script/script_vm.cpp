@@ -55,7 +55,12 @@ void ScriptVM::__Construct()
 ScriptObject* ScriptVM::CreateObjectReference()
 {
     auto ref = CreateObject<ScriptObject>();
-    ref->Initialize(ref->GetObjectAddress(), ref->GetObjectAddress(), ScriptObjectType::Object);
+    auto objectName = fmt::format("@{0}", ref->GetObjectAddress());
+    ref->Initialize(
+            objectName,
+            objectName,
+            ScriptObjectType::Object
+    );
     return ref;
 }
 

@@ -46,7 +46,7 @@ class SYMPL_API ScriptVM : public Object
 
 protected:
     /// Object mapping with given addresses.
-    std::unordered_map< std::string, SharedPtr<ScriptObject> > _ObjectMap;
+    std::unordered_map< MemAddressType, SharedPtr<ScriptObject> > _ObjectMap;
 
     /// Root reference object.
     SharedPtr<ScriptObject> _GlobalObject;
@@ -147,7 +147,7 @@ public:
 
     //! Returns the object map.
     //! \return
-    inline const std::unordered_map< std::string, SharedPtr<ScriptObject> >& GetObjectMap() const { return _ObjectMap; }
+    inline const std::unordered_map< MemAddressType, SharedPtr<ScriptObject> >& GetObjectMap() const { return _ObjectMap; }
 
     //! Returns the global object.
     //! \return ScriptObject

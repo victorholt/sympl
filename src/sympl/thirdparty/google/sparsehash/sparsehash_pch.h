@@ -23,55 +23,9 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/core/variant.h>
-#include <sympl/core/object.h>
-
-#include <sympl/script/script_common.h>
-#include <sympl/script/script_object.h>
-#include <sympl/script/cache/script_cache_object.h>
-
-sympl_nsstart
-
-class SYMPL_API ScriptCache
-{
-protected:
-    /// Quick variable access list.
-    std::unordered_map<MemAddressType, ScriptCacheObject*> _ObjectMap;
-
-    //! Constructor.
-    ScriptCache() = default;
-
-public:
-
-    //! Destructor.
-    ~ScriptCache() {
-        Clear();
-    }
-
-    //! Returns the singleton for the class.
-    //! \return StatementCache
-    static ScriptCache& GetInstance() {
-        static ScriptCache instance;
-        return instance;
-    }
-
-    //! Attempts to return a cache entry.
-    //! \param scriptObject
-    //! \return ScriptCacheObject
-    ScriptCacheObject* Fetch(ScriptObject* scriptObject);
-
-    //! Remove all cache for an object address.
-    //! \param scriptObject
-    void Remove(ScriptObject* scriptObject);
-
-    //! Removes all cache for an object address.
-    //! \param objectAddress
-    void Remove(MemAddressType objectAddress);
-
-    //! Clears the cache.
-    void Clear();
-};
-
-#define ScriptCacheInstance ScriptCache::GetInstance()
-
-sympl_nsend
+#include <sparsehash/dense_hash_set.h>
+#include <sparsehash/dense_hash_map.h>
+//#include <sparsehash/sparse_hash_map.h>
+//#include <sparsehash/sparse_hash_set.h>
+//#include <sparsehash/sparsetable.h>
+//#include <sparsehash/traits.h>
