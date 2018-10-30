@@ -109,15 +109,13 @@
 
 #define IsSpaceChar(c, loc) std::isspace(c, loc)
 
-#define MemAddressType long long int
-
 #else
 #include <time.h>
 #include <sympl/thirdparty/direntutil.h>
 #include <sympl/thirdparty/getoptutil.h>
 #include <sympl/thirdparty/timeutil.h>
 #include <sympl/thirdparty/unistdutil.h>
-#include <sympl/thirdparty/dynamic_mem_pool.h>
+//#include <sympl/thirdparty/dynamic_mem_pool.h>
 
 //#define IsSpaceChar(c, loc) std::isspace(static_cast<int>(c), loc)
 #define IsSpaceChar(c, loc) std::isspace(c, loc)
@@ -134,6 +132,10 @@
 #endif
 
 //#include <sympl/thirdparty/guid.h>
+//#include <sparsepp/spp.h>
+#include <tsl/sparse_map.h>
+//#include <tsl/sparse_hash.h>
+#include <tsl/hopscotch_map.h>
 
 #ifdef _WIN32
 #ifndef SYMPL_IMPORTS
@@ -159,5 +161,11 @@
 #else
 #define sympl_assert(condition, msg)
 #endif
+
+#define MemAddressType long long int
+
+struct SppNoHash64 {
+    MemAddressType operator()(MemAddressType k) const { return k; }
+};
 
 #define SYMPL_VERSION 0x00010000 // ver. 0.1.0.0

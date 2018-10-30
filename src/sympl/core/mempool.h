@@ -39,7 +39,10 @@ protected:
     };
 
     /// Blocks in the memory pool.
-    std::unordered_map<MemAddressType, MemBlock*> _Blocks;
+    std::unordered_map<
+        MemAddressType,
+        MemBlock*
+    > _Blocks;
 
     /// Available addresses that have been reserved.
     std::vector<MemAddressType> _AvailableObjectAddresses;
