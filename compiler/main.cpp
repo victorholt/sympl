@@ -7,7 +7,7 @@ int main()
 {
     // Any memory manager setting changes.
 //    MemPoolInstance.SetDebug(true);
-    MemPoolInstance.SetMaxObjectAddresses(10000);
+    MemPoolInstance.SetMaxObjectAddresses(100000);
 
     // Initialize the object addresses.
     MemPoolInstance.Initialize();

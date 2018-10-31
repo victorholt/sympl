@@ -93,8 +93,6 @@ void Variant::Set(const Variant& value)
             _Value.ObjectVal->AddRef();
             break;
         case (int)VariantType::StringBuffer:
-            if (_Type != type) { Clear(); }
-            else { GetStringBuffer()->Clear(); }
             Set(value._Value.StringBufferVal->CStr());
             break;
     }
@@ -123,11 +121,11 @@ void Variant::Set(const char* value) {
             _Value.StringBufferVal = buffer;
         }
 
-        _Type = VariantType::StringBuffer;
+    } else {
+        _Value.StringBufferVal->Clear();
     }
 
     SetType(VariantType::StringBuffer);
-    _Value.StringBufferVal->Clear();
     _Value.StringBufferVal->Append(value);
 }
 
