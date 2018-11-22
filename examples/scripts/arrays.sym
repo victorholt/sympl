@@ -24,4 +24,16 @@ arr3["name"] = "jim";
 printl(arr3["name"], true);
 printl(arr3["color"], true);
 
+printl("total count in array 1: " + count(arr1));
+
+// Go through the array and print the values.
+var i = 0;
+while (i < count(arr1)) {
+    var value = arr1[i]; // TODO: ISSUE WITH PRINTING VALUE IN CONCATS!
+    printl("i: " + i + " = " + value);
+    i = i + 1;
+}
+
+print_memory();
+
 profiler_stop("array");

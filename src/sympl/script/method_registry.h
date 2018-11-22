@@ -40,6 +40,9 @@ private:
     //! Initializes the system methods.
     void _Initialize();
 
+    //! Add the array methods.
+    void _AddArrayMethods();
+
 public:
     //! Constructor.
     MethodRegistry();

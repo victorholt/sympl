@@ -39,7 +39,7 @@ protected:
     };
 
     /// Blocks in the memory pool.
-    tsl::hopscotch_map<
+    std::unordered_map<
         MemAddressType,
         MemBlock*
     > _Blocks;

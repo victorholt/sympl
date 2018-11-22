@@ -1,0 +1,16 @@
+// Examples for sympl.
+
+var scripts_dir = "../../examples/scripts/";
+
+// Hello world.
+// import(scripts_dir + "hello.sym");
+
+// Math example.
+// import(scripts_dir + "math.sym");
+
+// Recursive example.
+// import(scripts_dir + "rec.sym");
+
+// Arrays example.
+import(scripts_dir + "arrays.sym");
+

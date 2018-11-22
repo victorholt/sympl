@@ -25,6 +25,8 @@
 #include <sympl/script/script_vm.h>
 #include <sympl/script/interpreter.h>
 
+#include <sympl/script/script_array.h>
+
 #include <sympl/script/methods/if_method.h>
 #include <sympl/script/methods/while_method.h>
 #include <sympl/script/methods/callback_method.h>
@@ -52,15 +54,6 @@ void MethodRegistry::_Initialize()
     auto whileMethod = ScriptVMInstance.CreateObjectAndInitialize<WhileMethod>("while");
     AddMethod(whileMethod);
 
-//    auto ifMethod = mem_alloc_ref(IfMethod);
-//    ScriptVMInstance->AddObject(ifMethod);
-//    AddMethod(ifMethod);
-//
-//    // Add the while method.
-//    auto whileMethod = mem_alloc_ref(WhileMethod);
-//    ScriptVMInstance->AddObject(whileMethod);
-//    AddMethod(whileMethod);
-
     // Prints text.
     AddCallbackMethod("print", [](ScriptMethodArgs args) {
         if (!args.empty()) {
@@ -70,6 +63,7 @@ void MethodRegistry::_Initialize()
                 std::cout << args[0].AsString();
             }
         }
+        return Variant::Empty;
     });
 
     // Prints text on a new line.
@@ -81,11 +75,13 @@ void MethodRegistry::_Initialize()
                 std::cout << args[0].AsString() << std::endl;
             }
         }
+        return Variant::Empty;
     });
 
     // Prints the memory allocated currently.
     AddCallbackMethod("print_memory", [](ScriptMethodArgs args) {
         std::cout << "Memory Allocated: " << MemPoolInstance.GetMemoryUsage() << std::endl;
+        return Variant::Empty;
     });
 
     // Prints the memory allocated currently.
@@ -94,23 +90,47 @@ void MethodRegistry::_Initialize()
         for (const auto& entry : map) {
             std::cout << entry.first << ":" << entry.second << std::endl;
         }
+        return Variant::Empty;
     });
 
     // Prints the memory allocated reference list.
     AddCallbackMethod("profiler_start", [](ScriptMethodArgs args) {
         sympl_profile_start(args[0].AsString());
+        return Variant::Empty;
     });
 
     // Prints the memory allocated reference list.
     AddCallbackMethod("profiler_stop", [](ScriptMethodArgs args) {
         sympl_profile_stop(args[0].AsString());
         sympl_profile_print(args[0].AsString());
+        return Variant::Empty;
     });
 
     // Import a file.
     AddCallbackMethod("import", [](ScriptMethodArgs args) {
         auto program = ScriptVMInstance.LoadFile(args[0].AsString().c_str());
         program->Run();
+
+        return Variant::Empty;
+    });
+
+    _AddArrayMethods();
+}
+
+void MethodRegistry::_AddArrayMethods()
+{
+    // Counts an array.
+    AddCallbackMethod("count", [](ScriptMethodArgs args) {
+        if (!args.empty()) {
+            auto obj = to_script_object(args[0]);
+            if (!obj->IsArray()) {
+                sympl_assert(false, "Invalid argument in count method is not an array!");
+                return 0;
+            }
+            return static_cast<int>(to_array(obj)->Length());
+        }
+
+        return 0;
     });
 }
 

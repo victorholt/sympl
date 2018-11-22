@@ -103,6 +103,9 @@ public:
     //! \param destObject
     Variant Resolve(const std::string& stmtStr, ScriptObject* destObject);
 
+    //! Moves and clears any cached entries.
+    void MoveAndClearCachedEntries();
+
     //! Clears the statement entries.
     void ClearStatementEntries();
 

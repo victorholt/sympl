@@ -117,6 +117,9 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
                     // We cannot cache methods (force us not to cache).
                     _Cache = false;
 
+                    // Move any cached entries.
+                    MoveAndClearCachedEntries();
+
                 } else {
                     auto existingMethod = ScriptVMInstance.FindObjectByPath(stmtEntryStr->CStr());
                     sympl_assert(!stmtEntryStr->Empty() && existingMethod->IsMethod(), "Invalid method called!");
@@ -129,6 +132,9 @@ Variant StatementResolver::Resolve(const std::string& stmtStr, ScriptObject* des
 
                         // We cannot cache methods (force us not to cache).
                         _Cache = false;
+
+                        // Move any cached entries.
+                        MoveAndClearCachedEntries();
 
                     } else {
                         sympl_assert(false, "Parenth Resolver not yet implemented!");
@@ -471,6 +477,14 @@ StatementType StatementResolver::_FindType(const Variant& value)
     }
 
     return StatementType::Object;
+}
+
+void StatementResolver::MoveAndClearCachedEntries()
+{
+    for (auto stmtEntry : _CacheEntries) {
+        _StmtEntries.emplace_back(stmtEntry);
+    }
+    _CacheEntries.clear();
 }
 
 void StatementResolver::ClearStatementEntries()

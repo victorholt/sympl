@@ -40,9 +40,10 @@ Variant CallbackMethod::Evaluate(ScriptObject* caller)
 
 Variant CallbackMethod::Evaluate(ScriptMethodArgs args, ScriptObject* caller)
 {
+    Variant ret;
     if (_Callback) {
-        _Callback(args);
+        ret = _Callback(args);
     }
 
-    return Variant::Empty;
+    return ret;
 }

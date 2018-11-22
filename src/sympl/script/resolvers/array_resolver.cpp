@@ -312,7 +312,19 @@ Variant ArrayResolver::_ResolveArrayValue(StatementResolver* stmtResolver, Strin
         if (currentChar == ']') {
             EvalResolver evalResolver;
             auto value = evalResolver.GetEvalFromStatementBuffer(resolveStr->CStr(), destObject);
-            auto ret = to_array(arrayObj)->GetItem(value.AsString());
+            Variant ret;
+
+            if (value.GetType() == VariantType::Object) {
+                auto objValue = to_script_object(value)->GetValue();
+                ret = to_array(arrayObj)->GetItem(objValue.AsString());
+
+                // We cannot cache this resolver!
+                stmtResolver->SetCache(false);
+                stmtResolver->MoveAndClearCachedEntries();
+
+            } else {
+                ret = to_array(arrayObj)->GetItem(value.AsString());
+            }
 
             if (ret.GetType() == VariantType::StringBuffer) {
                 auto buffer = ret.GetStringBuffer();

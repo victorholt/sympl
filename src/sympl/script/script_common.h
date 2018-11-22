@@ -45,7 +45,7 @@ class ScriptObject;
 
 #define ScriptMethodArgs std::vector<Variant>&
 #define ScriptMethodArgList std::vector<Variant>
-typedef std::function<void(ScriptMethodArgs)> ScriptMethodCallback;
+typedef std::function<Variant(ScriptMethodArgs)> ScriptMethodCallback;
 
 enum class ScriptObjectType {
     Empty = 0,

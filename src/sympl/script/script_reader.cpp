@@ -129,6 +129,9 @@ void ScriptReader::ProcessScript(std::istream& fileStream, size_t bufferLength)
             // Check if we need to close the comment.
             if (currentChar == '*' && nextChar == '/') {
                 isBlockComment = false;
+
+                // Move to the next character.
+                fileStream.get();
             }
 
             continue;

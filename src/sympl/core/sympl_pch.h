@@ -133,9 +133,9 @@
 
 //#include <sympl/thirdparty/guid.h>
 //#include <sparsepp/spp.h>
-#include <tsl/sparse_map.h>
+//#include <tsl/sparse_map.h>
 //#include <tsl/sparse_hash.h>
-#include <tsl/hopscotch_map.h>
+//#include <tsl/hopscotch_map.h>
 
 #ifdef _WIN32
 #ifndef SYMPL_IMPORTS

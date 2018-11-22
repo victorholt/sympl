@@ -23,7 +23,7 @@ int main()
 
 //    mem_create_pool(EvalResolver, 100);
 
-    auto program = ScriptVMInstance.LoadFile("../../examples/scripts/math.sym");
+    auto program = ScriptVMInstance.LoadFile("../../examples/scripts/main.sym");
     program->Run();
 
     return 0;
