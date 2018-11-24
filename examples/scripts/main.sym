@@ -2,15 +2,25 @@
 
 var scripts_dir = "../../examples/scripts/";
 
+var example = 4;
+
 // Hello world.
-// import(scripts_dir + "hello.sym");
+if (example == 1) {
+    import(scripts_dir + "hello.sym");
+}
 
 // Math example.
-// import(scripts_dir + "math.sym");
+if (example == 2) {
+    import(scripts_dir + "math.sym");
+}
 
 // Recursive example.
-// import(scripts_dir + "rec.sym");
+if (example == 3) {
+    import(scripts_dir + "rec.sym");
+}
 
 // Arrays example.
-import(scripts_dir + "arrays.sym");
+if (example == 4) {
+    import(scripts_dir + "arrays.sym");
+}
 

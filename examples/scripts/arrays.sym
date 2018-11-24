@@ -28,9 +28,10 @@ printl("total count in array 1: " + count(arr1));
 
 // Go through the array and print the values.
 var i = 0;
-while (i < count(arr1)) {
+var size = count(arr1);
+while (i < size) {
     var value = arr1[i]; // TODO: ISSUE WITH PRINTING VALUE IN CONCATS!
-    printl("i: " + i + " = " + value);
+    printl("i:" + i + " = " + value);
     i = i + 1;
 }
 
