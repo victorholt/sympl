@@ -23,41 +23,7 @@
  **********************************************************/
 #pragma once
 
-#include <sympl/core/variant.h>
-#include <sympl/core/object.h>
-
-#include <sympl/script/script_common.h>
-
-sympl_nsstart
-
-class SYMPL_API StatementCache : public Object
-{
-    SYMPL_OBJECT(StatementCache, Object);
-
-protected:
-    /// Quick variable access list.
-    std::vector<StatementCacheEntry*> _CacheEntries;
-
-public:
-    //! Constructor.
-    StatementCache();
-
-    //! Called in place of the constructor.
-    void __Construct() override;
-
-    //! Cache a statement entry.
-    //! \param cache
-    //! \param entry
-    StatementCacheEntry* Cache(const char* cache, const std::vector<StatementEntry*>& entries);
-
-    //! Attempts to return a cache entry.
-    //! \param cache
-    //! \return StatementCacheEntry
-    StatementCacheEntry* GetEntry(const char* cache);
-
-    //! Release the object.
-    //! \return bool
-    bool Release() override;
-};
-
-sympl_nsend
+#include "SymplPCH.hpp"
+#include "SyntaxError.hpp"
+#include "Token.hpp"
+#include "Lexer.hpp"

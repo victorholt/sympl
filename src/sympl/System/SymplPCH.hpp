@@ -145,9 +145,9 @@
 
 #define IsNullObject(Object) (Object == NULL || Object == nullptr)
 
-#define sympl_nsstart namespace Sympl {
-#define sympl_nsend }
-#define sympl_namespaces using namespace Sympl;
+#define SymplNamespaceStart namespace Sympl {
+#define SymplNamespaceEnd }
+#define SymplNamespace using namespace Sympl;
 
 #ifdef SYMPL_DEBUG
 #include <assert.h>
@@ -157,3 +157,9 @@
 #endif
 
 #define SYMPL_VERSION 0x00010000 // ver. 0.1.0.0
+
+#include "sympl/thirdparty/fmt/format.h"
+
+// Definitions
+typedef const char* CStrPtr;
+typedef char* StrPtr;
