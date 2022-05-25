@@ -3,8 +3,7 @@
 //
 #include "Parser.hpp"
 #include "Token.hpp"
-#include "ParserNode.hpp"
-#include "ParserBinaryNode.hpp"
+#include "InvalidSyntaxError.hpp"
 SymplNamespace
 
 Parser::Parser(const std::vector<class Token>& pTokenList)
@@ -14,73 +13,80 @@ Parser::Parser(const std::vector<class Token>& pTokenList)
     Advance();
 }
 
-ParserNodeObject Parser::Parse()
+SharedPtr<ParseResult> Parser::Parse()
 {
     return Expression();
 }
 
-Token* Parser::Advance()
+void Parser::Advance()
 {
-    TokenIndex++;
-    return GetCurrentToken();
+    if (TokenIndex >= TokenList.size()) {
+		return;
+	}
+
+	CurrentToken = &TokenList[TokenIndex++];
 }
 
-ParserNodeObject Parser::Factor()
+SharedPtr<ParseResult> Parser::Factor()
 {
-    switch (CurrentToken->GetType())
+	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
+	Token* FactorToken = CurrentToken;
+
+	switch (FactorToken->GetType())
     {
         case TokenType::Int:
         case TokenType::Float:
             Advance();
-            return { CurrentToken };
-
+            Result->Success(new ParserNumberNode(FactorToken));
+			return Result;
     }
+
+	Result->Failure(new InvalidSyntaxError(FactorToken->ToString()));
+
+	return Result;
 }
 
-ParserNodeObject Parser::Term()
+SharedPtr<ParseResult> Parser::Term()
 {
+	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
     return BinaryOperation(
         [=] { return Factor(); },
         { TokenType::Mul, TokenType::Div }
     );
 }
 
-ParserNodeObject Parser::BinaryOperation(std::function<ParserNodeObject()> OpMethod, const std::vector<TokenType>& ValidOps)
+SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResult>()> OpMethod, const std::vector<TokenType>& ValidOps)
 {
-    ParserNodeObject LeftNode = OpMethod();
+	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
+	auto LeftNodeResult = OpMethod();
+
+	assert(!LeftNodeResult->Error.IsValid());
 
     while (std::find(ValidOps.begin(), ValidOps.end(), CurrentToken->GetType()) != ValidOps.end())
     {
         Token* OpToken = CurrentToken;
         Advance();
 
-        ParserNodeObject RightNode = OpMethod();
-        LeftNode.BinaryNode = ParserBinaryNode(&LeftNode.BaseNode, OpToken, &RightNode.BaseNode);
+        auto RightNodeResult = OpMethod();
+		assert(RightNodeResult->Error.IsValid());
+
+		auto LeftNode = new ParserBinaryNode(
+			static_cast<ParserNumberNode*>(LeftNodeResult->ParserNode.Ptr()),
+			OpToken,
+			static_cast<ParserNumberNode*>(RightNodeResult->ParserNode.Ptr())
+		);
+
+		LeftNodeResult->Success(LeftNode);
     }
 
-    return { LeftNode.BinaryNode };
+    return LeftNodeResult;
 }
 
-ParserNodeObject Parser::Expression()
+SharedPtr<ParseResult> Parser::Expression()
 {
+	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
     return BinaryOperation(
-            [=] { return Factor(); },
+            [=] { return Term(); },
             { TokenType::Plus, TokenType::Minus }
     );
-}
-
-class Token* Parser::GetCurrentToken()
-{
-    if (TokenIndex >= TokenList.size()) {
-        return nullptr;
-    }
-
-    CurrentToken = &TokenList[TokenIndex];
-
-    return CurrentToken;
-}
-
-char* Parser::ToString() const
-{
-
 }

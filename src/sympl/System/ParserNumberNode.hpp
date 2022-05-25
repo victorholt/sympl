@@ -3,10 +3,11 @@
 //
 #pragma once
 #include "SymplPCH.hpp"
+#include <sympl/Memory/ManagedObject.hpp>
 
 SymplNamespaceStart
 
-class ParserNode
+class ParserNumberNode : public ManagedObject
 {
 protected:
     // Handles conversion of the node to a string.
@@ -23,20 +24,13 @@ public:
      * Constructor
      * @param pNodeToken
      */
-    ParserNode(class Token* pNodeToken);
+    ParserNumberNode(class Token* pNodeToken);
 
     /**
      * Returns the string representation of the node.
      * @return
      */
     virtual CStrPtr ToString();
-
-    /**
-     * Copies the parser node.
-     * @param rhs
-     * @return
-     */
-    ParserNode& operator=(const ParserNode& rhs);
 };
 
 SymplNamespaceEnd

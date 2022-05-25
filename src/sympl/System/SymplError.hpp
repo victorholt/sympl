@@ -3,10 +3,11 @@
 //
 #pragma once
 #include "SymplPCH.hpp"
+#include <sympl/Memory/ManagedObject.hpp>
 
 SymplNamespaceStart
 
-class SymplError
+class SymplError : public ManagedObject
 {
 protected:
 

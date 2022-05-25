@@ -5,9 +5,11 @@
 #include <fmt/format.h>
 SymplNamespace;
 
-Token::Token(TokenType Type, CStrPtr ValueStr) : Type(Type)
+Token::Token(TokenType Type, CStrPtr ValueStr, size_t pStartPosition, size_t pEndPosition) : Type(Type)
 {
     Value = nullptr;
+	StartPosition = pStartPosition;
+	EndPosition = pEndPosition;
 
     if (ValueStr) {
         Value = std::make_shared<StrPtr>(new char[strlen(ValueStr) + 1]);

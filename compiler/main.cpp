@@ -1,5 +1,6 @@
-#include "sympl/System/Sympl.hpp"
+#include <sympl/Sympl.hpp>
 #include <fmt/format.h>
+#include <sympl/Test/Memory/ManagedObjectTest.hpp>
 using namespace std;
 SymplNamespace
 
@@ -24,12 +25,8 @@ int main()
 	}
 
     Parser parser(tokens);
-    ParserNodeObject node = parser.Parse();
-    if (node.BaseNode.Type == ParseNodeType::Binary) {
-        cout << node.BinaryNode.ToString() << endl;
-    } else {
-        cout << node.BaseNode.ToString() << endl;
-    }
+    auto node = parser.Parse();
+	cout << static_cast<ParserNumberNode*>(node)->ToString() << endl;
 
     return 0;
 }

@@ -1,12 +1,12 @@
 //
-// GameSencha, LLC 5/24/22.
+// GameSencha, LLC 5/25/22.
 //
 #pragma once
 #include "SymplError.hpp"
 
 SymplNamespaceStart
 
-class SyntaxError : public SymplError
+class IllegalCharacterError : public SymplError
 {
 public:
 
@@ -14,7 +14,7 @@ public:
 	 * Constructor.
 	 * @param ErrorDetails
 	 */
-	SyntaxError(CStrPtr ErrorDetails);
+	IllegalCharacterError(CStrPtr ErrorDetails);
 };
 
 SymplNamespaceEnd

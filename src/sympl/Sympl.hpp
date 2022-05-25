@@ -23,11 +23,18 @@
  **********************************************************/
 #pragma once
 
-#include "SymplPCH.hpp"
-#include "SyntaxError.hpp"
-#include "Token.hpp"
-#include "LexerPosition.hpp"
-#include "Lexer.hpp"
-#include "ParserNode.hpp"
-#include "ParserBinaryNode.hpp"
-#include "Parser.hpp"
+#include <sympl/Memory/ManagedObject.hpp>
+#include <sympl/Memory/MemBlock.hpp>
+#include <sympl/Memory/MemPool.hpp>
+#include <sympl/Memory/SharedPtr.hpp>
+#include <sympl/Memory/SharedPtrRef.hpp>
+
+#include <sympl/System/SymplPCH.hpp>
+#include <sympl/System/IllegalCharacterError.hpp>
+#include <sympl/System/InvalidSyntaxError.hpp>
+#include <sympl/System/Token.hpp>
+#include <sympl/System/LexerPosition.hpp>
+#include <sympl/System/Lexer.hpp>
+#include <sympl/System/ParserNumberNode.hpp>
+#include <sympl/System/ParserBinaryNode.hpp>
+#include <sympl/System/Parser.hpp>

@@ -4,7 +4,7 @@
 #include "Lexer.hpp"
 #include "LexerPosition.hpp"
 #include "Token.hpp"
-#include "SyntaxError.hpp"
+#include "IllegalCharacterError.hpp"
 SymplNamespace
 
 Lexer::Lexer(CStrPtr FileName, CStrPtr Text) :
@@ -38,12 +38,12 @@ void Lexer::Advance()
 
 void Lexer::MakeTokens()
 {
-	CurrentChar = -1;
-	while (CurrentChar != '\0') {
-		Advance();
+	Advance();
 
+	while (CurrentChar != '\0') {
 		// Ignore spaces and tabs.
 		if (CurrentChar == ' ' || CurrentChar == '\t') {
+			Advance();
 			continue;
 		}
 
@@ -81,7 +81,7 @@ void Lexer::MakeTokens()
 		else {
 			// Unable to find a proper token.
 			TokenList.clear();
-			ErrorList.emplace_back(SyntaxError(
+			ErrorList.emplace_back(IllegalCharacterError(
                 fmt::format(
                     "'{0}' on Line: {1} (Col: {2}) > {3}",
                     CurrentChar,
@@ -90,7 +90,6 @@ void Lexer::MakeTokens()
                     (*Position)->GetFileName()
                 ).c_str()
             ));
-            Advance();
 			return;
 		}
 	}

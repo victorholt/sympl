@@ -17,6 +17,12 @@ private:
 	// Current value of our token.
 	std::shared_ptr<StrPtr> Value;
 
+	// Start position of the token.
+	size_t StartPosition = 0;
+
+	// End position of the token.
+	size_t EndPosition = 0;
+
 	// Temporary storage for holding the to string value.
 	char TmpAlloc_ToString[512];
 
@@ -26,8 +32,10 @@ public:
 	 * Constructor.
 	 * @param Type
 	 * @param ValueStr
+	 * @param pStartPosition
+	 * @param pEndPosition
 	 */
-	Token(TokenType Type, CStrPtr ValueStr);
+	Token(TokenType Type, CStrPtr ValueStr, size_t pStartPosition, size_t pEndPosition);
 
     /**
      * Constructor.
@@ -59,6 +67,18 @@ public:
      * @return
      */
     inline CStrPtr GetValue() const { return *Value; }
+
+	/**
+	 * Returns the start position.
+	 * @return
+	 */
+	inline size_t GetStartPosition() const { return StartPosition; }
+
+	/**
+	 * Returns the end position.
+	 * @return
+	 */
+	inline size_t GetEndPosition() const { return EndPosition; }
 };
 
 SymplNamespaceEnd

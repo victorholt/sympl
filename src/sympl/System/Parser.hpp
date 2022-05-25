@@ -3,26 +3,11 @@
 //
 #pragma once
 #include "SymplPCH.hpp"
-#include "ParserNode.hpp"
+#include "ParserNumberNode.hpp"
 #include "ParserBinaryNode.hpp"
+#include "ParseResult.hpp"
 
 SymplNamespaceStart
-
-union ParserNodeObject {
-    ParserNode BaseNode;
-    ParserBinaryNode BinaryNode;
-
-    inline ParserNodeObject& operator=(const ParserNodeObject& rhs) {
-        if (this == &rhs) {
-            return *this;
-        }
-
-        BaseNode = rhs.BaseNode;
-        BinaryNode = rhs.BinaryNode;
-
-        return *this;
-    }
-};
 
 class Parser
 {
@@ -44,34 +29,30 @@ public:
      */
     Parser(const std::vector<class Token>& pTokenList);
 
-    ParserNodeObject Parse();
-
-    /**
-     * Returns the current token.
-     * @return
-     */
-    class Token* GetCurrentToken();
-
-    char* ToString() const;
+	/**
+	 * Parses the tokens.
+	 * @return
+	 */
+	SharedPtr<ParseResult> Parse();
 
 protected:
 
     /**
      * Advances the parser.
      */
-    class Token* Advance();
+    void Advance();
 
     /**
      * Returns a node based on a factor.
      * @return
      */
-    ParserNodeObject Factor();
+	SharedPtr<ParseResult> Factor();
 
     /**
      * Returns a node based on a term.
      * @return
      */
-    ParserNodeObject Term();
+	SharedPtr<ParseResult> Term();
 
     /**
      * Returns a node based on a binary operation.
@@ -79,13 +60,13 @@ protected:
      * @param ValidOps
      * @return
      */
-    ParserNodeObject BinaryOperation(std::function<ParserNodeObject()> OpMethod, const std::vector<TokenType>& ValidOps);
+	SharedPtr<ParseResult> BinaryOperation(std::function<SharedPtr<ParseResult>()> OpMethod, const std::vector<TokenType>& ValidOps);
 
     /**
      * Returns the node based on a given expression.
      * @return
      */
-    ParserNodeObject Expression();
+	SharedPtr<ParseResult> Expression();
 
 };
 

@@ -3,17 +3,17 @@
 //
 #pragma once
 #include "SymplPCH.hpp"
-#include "ParserNode.hpp"
+#include "ParserNumberNode.hpp"
 
 SymplNamespaceStart
 
-class ParserBinaryNode : public ParserNode
+class ParserBinaryNode : public ParserNumberNode
 {
 public:
     // Reference to the left node.
-    class ParserNode* LeftNode;
+    ParserNumberNode* LeftNode;
     // Reference to the right node.
-    class ParserNode* RightNode;
+    ParserNumberNode* RightNode;
 
     /**
      * Constructor
@@ -21,20 +21,13 @@ public:
      * @param pNodeToken
      * @param pRightNode
      */
-    ParserBinaryNode(class ParserNode* pLeftNode, class Token* pNodeToken, class ParserNode* pRightNode);
+    ParserBinaryNode(ParserNumberNode* pLeftNode, class Token* pNodeToken, ParserNumberNode* pRightNode);
 
     /**
      * Returns the string representation of the node.
      * @return
      */
     virtual CStrPtr ToString() override;
-
-    /**
-     * Copies the object from another object.
-     * @param rhs
-     * @return
-     */
-    ParserBinaryNode& operator=(const ParserBinaryNode& rhs);
 };
 
 SymplNamespaceEnd
