@@ -11,7 +11,7 @@ class Lexer
 {
 private:
 	// List of tokens.
-	std::vector<struct Token> TokenList;
+	std::vector<class Token> TokenList;
 
 	// List of errors.
 	std::vector<class SymplError> ErrorList;
@@ -23,7 +23,7 @@ private:
 	char CurrentChar;
 
 	// Current buffer position.
-	size_t BufferPosition;
+	std::unique_ptr<class LexerPosition*> Position;
 
 	// Digits to check for.
 	std::vector<char> Digits;
@@ -39,9 +39,15 @@ public:
 
 	/**
 	 * Constructor.
+	 * @param FileName
 	 * @param Text
 	 */
-	Lexer(CStrPtr Text);
+	Lexer(CStrPtr FileName, CStrPtr Text);
+
+    /**
+     * Destructor.
+     */
+    ~Lexer();
 
 	/**
 	 * Generates a list of tokens from the buffer.
@@ -58,7 +64,7 @@ public:
 	 * Returns the list of tokens.
 	 * @return
 	 */
-	inline const std::vector<struct Token>& GetTokens() const { return TokenList; }
+	inline const std::vector<class Token>& GetTokens() const { return TokenList; }
 
 	/**
 	 * Returns the list of errors.

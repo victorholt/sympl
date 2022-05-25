@@ -2,27 +2,38 @@
 // GameSencha, LLC 5/24/22.
 //
 #include "Lexer.hpp"
+#include "LexerPosition.hpp"
 #include "Token.hpp"
 #include "SyntaxError.hpp"
 SymplNamespace
 
-Lexer::Lexer(CStrPtr Text) : BufferPosition(0), CurrentChar('\0')
+Lexer::Lexer(CStrPtr FileName, CStrPtr Text) :
+    Position(std::make_unique<LexerPosition*>(new LexerPosition(0, 1, 0, FileName, Text))),
+    CurrentChar('\0')
 {
-	Buffer = new char[strlen(Buffer) + 1];
-	memset(Buffer, 0, strlen(Buffer));
-	
+	Buffer = new char[strlen(Text) + 1];
+	memset(Buffer, 0, strlen(Text));
+    strcpy(Buffer, Text);
+
 	Digits = {'0','1','2','3','4','5','6','7','8','9'};
-	Advance();
+}
+
+Lexer::~Lexer()
+{
+    delete [] Buffer;
 }
 
 void Lexer::Advance()
 {
-	if (BufferPosition >= strlen(Buffer)) {
+    const size_t index = (*Position)->GetIndex();
+
+	if (index >= strlen(Buffer)) {
 		CurrentChar = '\0';
 		return;
 	}
 
-	CurrentChar = Buffer[BufferPosition++];
+	CurrentChar = Buffer[index];
+    (*Position)->Advance(CurrentChar);
 }
 
 void Lexer::MakeTokens()
@@ -69,9 +80,17 @@ void Lexer::MakeTokens()
 		}
 		else {
 			// Unable to find a proper token.
-			Advance();
 			TokenList.clear();
-			ErrorList.emplace_back(SyntaxError(fmt::format("'{0}' on Line: {1}", CurrentChar, __LINE__).c_str()));
+			ErrorList.emplace_back(SyntaxError(
+                fmt::format(
+                    "'{0}' on Line: {1} (Col: {2}) > {3}",
+                    CurrentChar,
+                    (*Position)->GetLineNumber(),
+                    (*Position)->GetLineCol(),
+                    (*Position)->GetFileName()
+                ).c_str()
+            ));
+            Advance();
 			return;
 		}
 	}
@@ -92,6 +111,7 @@ Token Lexer::MakeNumberToken()
 			isFloat = true;
 		}
 		NumberStr[NumberStrIndex++] = CurrentChar;
+        Advance();
 	}
 
 	if (isFloat) {

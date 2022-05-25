@@ -26,4 +26,8 @@
 #include "SymplPCH.hpp"
 #include "SyntaxError.hpp"
 #include "Token.hpp"
+#include "LexerPosition.hpp"
 #include "Lexer.hpp"
+#include "ParserNode.hpp"
+#include "ParserBinaryNode.hpp"
+#include "Parser.hpp"

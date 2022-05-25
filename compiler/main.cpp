@@ -5,9 +5,11 @@ SymplNamespace
 
 int main()
 {
-	cout << "Create lexer" << endl;
+    std::string code;
+    std::cout << "sympl> ";
+	std::getline(cin, code);
 
-	Lexer lexer("1 + 1");
+	Lexer lexer("stdin", code.c_str());
 
 	lexer.MakeTokens();
 	auto tokens = lexer.GetTokens();
@@ -19,13 +21,15 @@ int main()
 		for (auto& error : errors) {
 			cout << error.ToString() << endl;
 		}
-	} else {
-		cout << "Successfully Ran!" << endl;
-
-		for (auto& token : tokens) {
-			cout << token.ToString() << endl;
-		}
 	}
+
+    Parser parser(tokens);
+    ParserNodeObject node = parser.Parse();
+    if (node.BaseNode.Type == ParseNodeType::Binary) {
+        cout << node.BinaryNode.ToString() << endl;
+    } else {
+        cout << node.BaseNode.ToString() << endl;
+    }
 
     return 0;
 }

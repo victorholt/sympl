@@ -7,7 +7,7 @@ file (GLOB SYMPL_COMPILER_SRC
 list (APPEND SYMPL_SOURCES ${SYMPL_COMPILER_SRC})
 
 # Add the sources to the executables.
-add_executable(SymplCompiler ${SYMPL_COMPILER_SRC})
+add_executable(SymplCompiler ${SYMPL_COMPILER_SRC} ../src/sympl/System/Parser.cpp)
 
 target_link_libraries(
     SymplCompiler

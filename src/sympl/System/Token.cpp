@@ -5,10 +5,23 @@
 #include <fmt/format.h>
 SymplNamespace;
 
-Token::Token(TokenType Type, CStrPtr Value) : Type(Type), Value(Value)
+Token::Token(TokenType Type, CStrPtr ValueStr) : Type(Type)
 {
+    Value = nullptr;
+
+    if (ValueStr) {
+        Value = std::make_shared<StrPtr>(new char[strlen(ValueStr) + 1]);
+        strcpy(*Value, ValueStr);
+    }
+
 	// Zero out the tmp string.
 	memset(TmpAlloc_ToString, 0, strlen(TmpAlloc_ToString));
+}
+
+Token::Token(Token* CopyToken)
+{
+    this->Type = CopyToken->Type;
+    this->Value = CopyToken->Value;
 }
 
 CStrPtr Token::ToString()
@@ -47,17 +60,22 @@ CStrPtr Token::ToString()
 	// Zero out the tmp string.
 	memset(TmpAlloc_ToString, 0, strlen(TmpAlloc_ToString));
 
-	if (Value && strlen(Value) > 0) {
-		memcpy(TmpAlloc_ToString, fmt::format("{0}:{1}", TypeStr, Value).c_str(), strlen(TmpAlloc_ToString));
+	if (Value && strlen(*Value) > 0) {
+		strcpy(TmpAlloc_ToString, fmt::format("{0}:{1}", TypeStr, *Value).c_str());
 		return TmpAlloc_ToString;
 	}
 
-	memcpy(TmpAlloc_ToString, fmt::format("{0}}", TypeStr).c_str(), strlen(TmpAlloc_ToString));
+	strcpy(TmpAlloc_ToString, fmt::format("{0}", TypeStr).c_str());
 	return TmpAlloc_ToString;
 }
 
 Token& Token::operator=(const Token& rhs) {
+    if (this == &rhs) {
+        return *this;
+    }
+
 	this->Type = rhs.Type;
-	this->Value = rhs.Value;
+    this->Value = rhs.Value;
+
 	return *this;
 }

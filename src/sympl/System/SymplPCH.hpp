@@ -163,3 +163,27 @@
 // Definitions
 typedef const char* CStrPtr;
 typedef char* StrPtr;
+
+// Base token types.
+SymplNamespaceStart
+
+enum class TokenType
+{
+    Null = 0,
+    Int,
+    Float,
+    Plus,
+    Minus,
+    Mul,
+    Div,
+    LH_Parenth,
+    RH_Parenth
+};
+
+enum class ParseNodeType
+{
+    Number = 0,
+    Binary
+};
+
+SymplNamespaceEnd

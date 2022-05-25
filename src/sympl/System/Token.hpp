@@ -7,35 +7,33 @@
 
 SymplNamespaceStart
 
-// Base token types.
-enum class TokenType
+class Token
 {
-	Int = 0,
-	Float,
-	Plus,
-	Minus,
-	Mul,
-	Div,
-	LH_Parenth,
-	RH_Parenth
-};
+private:
 
-struct Token
-{
 	// Our token type base on the list of token types.
 	TokenType Type;
+
 	// Current value of our token.
-	CStrPtr Value;
+	std::shared_ptr<StrPtr> Value;
 
 	// Temporary storage for holding the to string value.
 	char TmpAlloc_ToString[512];
 
+public:
+
 	/**
 	 * Constructor.
 	 * @param Type
-	 * @param Value
+	 * @param ValueStr
 	 */
-	Token(TokenType Type, CStrPtr Value);
+	Token(TokenType Type, CStrPtr ValueStr);
+
+    /**
+     * Constructor.
+     * @param CopyToken
+     */
+    Token(Token* CopyToken);
 
 	/**
 	 * Prints a nice representation of the token.
@@ -43,7 +41,24 @@ struct Token
 	 */
 	CStrPtr ToString();
 
+    /**
+     * Copies from another token.
+     * @param rhs
+     * @return
+     */
 	Token& operator = (const Token& rhs);
+
+    /**
+     * Returns the type of the token.
+     * @return
+     */
+    inline TokenType GetType() const { return Type; }
+
+    /**
+     * Returns the token value.
+     * @return
+     */
+    inline CStrPtr GetValue() const { return *Value; }
 };
 
 SymplNamespaceEnd
