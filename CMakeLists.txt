@@ -88,7 +88,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/fmt/CMakeLists.txt)
 
 # Include the source.
 include(src/sympl/Memory/CMakeLists.txt)
-include(src/sympl/System/CMakeLists.txt)
+include(src/sympl/Parser/CMakeLists.txt)
 include(src/sympl/Test/CMakeLists.txt)
 
 # Include the compiler.

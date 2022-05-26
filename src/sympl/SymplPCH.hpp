@@ -109,11 +109,11 @@
 
 #else
 #include <time.h>
-#include <sympl/thirdparty/direntutil.h>
-#include <sympl/thirdparty/getoptutil.h>
-#include <sympl/thirdparty/timeutil.h>
-#include <sympl/thirdparty/unistdutil.h>
-#include <sympl/thirdparty/dynamic_mem_pool.h>
+#include "sympl/thirdparty/direntutil.h"
+#include "sympl/thirdparty/getoptutil.h"
+#include "sympl/thirdparty/timeutil.h"
+#include "sympl/thirdparty/unistdutil.h"
+#include "sympl/thirdparty/dynamic_mem_pool.h"
 
 //#define IsSpaceChar(c, loc) std::isspace(static_cast<int>(c), loc)
 #define IsSpaceChar(c, loc) std::isspace(c, loc)
@@ -183,8 +183,17 @@ enum class TokenType
 
 enum class ParseNodeType
 {
-    Number = 0,
-    Binary
+    Null = 0,
+    Number,
+    Binary,
+    Unary
+};
+
+enum class ValueType
+{
+    Null = 0,
+    Int,
+    Float
 };
 
 SymplNamespaceEnd

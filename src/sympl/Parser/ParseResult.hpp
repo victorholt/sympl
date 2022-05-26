@@ -2,7 +2,7 @@
 // GameSencha, LLC 5/25/22.
 //
 #pragma once
-#include "SymplPCH.hpp"
+#include "sympl/SymplPCH.hpp"
 #include "SymplError.hpp"
 #include <sympl/Memory/ManagedObject.hpp>
 
@@ -15,13 +15,13 @@ public:
 	SharedPtr<SymplError> Error;
 
 	// Reference to the parser node.
-	SharedPtr<ManagedObject> ParserNode;
+	SharedPtr<class ParserNode> ParserNodePtr;
 
 	/**
 	 * Handles the success.
 	 * @param Node
 	 */
-	void Success(const SharedPtr<ManagedObject>& Node);
+	void Success(const SharedPtr<class ParserNode>& Node);
 
 	/**
 	 * Handles a failure.

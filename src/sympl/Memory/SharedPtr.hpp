@@ -2,7 +2,7 @@
 // GameSencha, LLC 5/25/22.
 //
 #pragma once
-#include <sympl/System/SymplPCH.hpp>
+#include <sympl/SymplPCH.hpp>
 #include "SharedPtrRef.hpp"
 
 SymplNamespaceStart
@@ -42,12 +42,14 @@ public:
 	 * @return
 	 */
 	T& operator* ();
+	const T& operator* () const;
 
 	/**
 	 * Overloads the pointer access operator.
 	 * @return
 	 */
 	T* operator-> ();
+    const T* operator->() const;
 
 	/**
 	 * Overloads the = operator.
@@ -115,9 +117,21 @@ T& SharedPtr<T>::operator*()
 }
 
 template<typename T>
+const T& SharedPtr<T>::operator*() const
+{
+    return *PtrData;
+}
+
+template<typename T>
 T* SharedPtr<T>::operator->()
 {
 	return static_cast<T*>(PtrData);
+}
+
+template<typename T>
+const T* SharedPtr<T>::operator->() const
+{
+    return static_cast<T*>(PtrData);
 }
 
 template<typename T>

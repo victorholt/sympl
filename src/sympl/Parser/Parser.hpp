@@ -2,9 +2,9 @@
 // GameSencha, LLC 5/24/22.
 //
 #pragma once
-#include "SymplPCH.hpp"
-#include "ParserNumberNode.hpp"
-#include "ParserBinaryNode.hpp"
+#include "sympl/SymplPCH.hpp"
+#include "sympl/Parser/Node/ParserNumberNode.hpp"
+#include "sympl/Parser/Node/ParserBinaryOpNode.hpp"
 #include "ParseResult.hpp"
 
 SymplNamespaceStart

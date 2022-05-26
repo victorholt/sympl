@@ -29,12 +29,17 @@
 #include <sympl/Memory/SharedPtr.hpp>
 #include <sympl/Memory/SharedPtrRef.hpp>
 
-#include <sympl/System/SymplPCH.hpp>
-#include <sympl/System/IllegalCharacterError.hpp>
-#include <sympl/System/InvalidSyntaxError.hpp>
-#include <sympl/System/Token.hpp>
-#include <sympl/System/LexerPosition.hpp>
-#include <sympl/System/Lexer.hpp>
-#include <sympl/System/ParserNumberNode.hpp>
-#include <sympl/System/ParserBinaryNode.hpp>
-#include <sympl/System/Parser.hpp>
+#include "SymplPCH.hpp"
+#include <sympl/Parser/IllegalCharacterError.hpp>
+#include <sympl/Parser/InvalidSyntaxError.hpp>
+#include <sympl/Parser/Token.hpp>
+#include <sympl/Parser/LexerPosition.hpp>
+#include <sympl/Parser/Lexer.hpp>
+#include <sympl/Parser/Handle/ValueHandle.hpp>
+#include <sympl/Parser/Handle/IntHandle.hpp>
+#include <sympl/Parser/Handle/FloatHandle.hpp>
+#include <sympl/Parser/Node/ParserBinaryOpNode.hpp>
+#include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
+#include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
+#include <sympl/Parser/Parser.hpp>
+#include <sympl/Parser/Interpreter.hpp>

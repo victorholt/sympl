@@ -9,31 +9,44 @@ int main()
 //    ManagedObjectTest managedObjectTest;
 //    managedObjectTest.Run();
 
-    std::string code;
-    std::cout << "sympl> ";
-	std::getline(cin, code);
+    while (true) {
+        std::string code;
+        std::cout << "sympl> ";
+        std::getline(cin, code);
 
-	Lexer lexer("stdin", code.c_str());
+        if (strcmp(code.c_str(), "exit") == 0)
+        {
+            break;
+        }
 
-	lexer.MakeTokens();
-	auto tokens = lexer.GetTokens();
-	auto errors = lexer.GetErrors();
+        Lexer lexer("stdin", code.c_str());
 
-	if (!errors.empty()) {
-		cout << "Failed to Run!" << endl;
+        lexer.MakeTokens();
+        auto tokens = lexer.GetTokens();
+        auto errors = lexer.GetErrors();
 
-		for (auto& error : errors) {
-			cout << error.ToString() << endl;
-		}
-	}
+        if (!errors.empty()) {
+            cout << "Failed to Run!" << endl;
 
-    Parser parser(tokens);
-    auto node = parser.Parse();
+            for (auto& error: errors) {
+                cout << error.ToString() << endl;
+            }
+        }
 
-    if (node->Error.IsValid()) {
-        cout << node->Error->ToString() << endl;
-    } else {
-        cout << static_cast<ParserNumberNode*>(node->ParserNode.Ptr())->ToString() << endl;
+        Parser parser(tokens);
+        auto node = parser.Parse();
+
+        if (node->Error.IsValid()) {
+            cout << node->Error->ToString() << endl;
+        } else {
+            cout << node->ParserNodePtr->ToString() << endl;
+        }
+
+        // Run the program.
+        auto program = SharedPtr<Interpreter>(new Interpreter());
+        auto result = program->Visit(node->ParserNodePtr);
+
+        cout << result->ToString() << endl;
     }
 
     return 0;

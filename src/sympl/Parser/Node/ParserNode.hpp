@@ -2,12 +2,12 @@
 // GameSencha, LLC 5/24/22.
 //
 #pragma once
-#include "SymplPCH.hpp"
-#include <sympl/Memory/ManagedObject.hpp>
+#include "sympl/SymplPCH.hpp"
+#include "sympl/Memory/ManagedObject.hpp"
 
 SymplNamespaceStart
 
-class ParserNumberNode : public ManagedObject
+class ParserNode : public ManagedObject
 {
 protected:
     // Handles conversion of the node to a string.
@@ -20,11 +20,18 @@ public:
     // Reference to the token associated with the node.
     class Token* NodeToken;
 
+    // Start position of the token.
+    SharedPtr<class LexerPosition> StartPosition;
+
+    // End position of the token.
+    SharedPtr<class LexerPosition> EndPosition;
+
     /**
      * Constructor
+     * @param pType
      * @param pNodeToken
      */
-    ParserNumberNode(class Token* pNodeToken);
+    ParserNode(ParseNodeType pType, class Token* pNodeToken);
 
     /**
      * Returns the string representation of the node.

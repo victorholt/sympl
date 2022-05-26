@@ -16,7 +16,7 @@ public:
 	 * @param EndPosition
 	 * @param ErrorDetails
 	 */
-	InvalidSyntaxError(size_t StartPosition, size_t EndPosition, CStrPtr ErrorDetails);
+	InvalidSyntaxError(const SharedPtr<class LexerPosition>& StartPosition, const SharedPtr<class LexerPosition>& EndPosition, CStrPtr ErrorDetails);
 };
 
 SymplNamespaceEnd

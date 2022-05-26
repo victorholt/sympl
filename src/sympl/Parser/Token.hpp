@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "SymplPCH.hpp"
+#include "sympl/SymplPCH.hpp"
 #include <sympl/Memory/SharedPtr.hpp>
 
 SymplNamespaceStart

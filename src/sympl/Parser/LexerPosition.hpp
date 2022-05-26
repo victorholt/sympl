@@ -2,7 +2,7 @@
 // GameSencha, LLC 5/24/22.
 //
 #pragma once
-#include "SymplPCH.hpp"
+#include "sympl/SymplPCH.hpp"
 #include <sympl/Memory/ManagedObject.hpp>
 
 SymplNamespaceStart

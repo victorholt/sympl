@@ -5,6 +5,7 @@
 #include "Token.hpp"
 #include "LexerPosition.hpp"
 #include "InvalidSyntaxError.hpp"
+#include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 SymplNamespace
 
 Parser::Parser(const std::vector<class Token>& pTokenList)
@@ -22,8 +23,8 @@ SharedPtr<ParseResult> Parser::Parse()
     if (Result->Error.IsValid() || CurrentToken->GetType() != TokenType::EndOfFile)
     {
         Result->Failure(new InvalidSyntaxError(
-                CurrentToken->GetStartPosition()->GetLineNumber(),
-                CurrentToken->GetEndPosition()->GetLineCol(),
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
                 fmt::format("Expected '+', '-', '*' or '/', got {0}", CurrentToken->ToString()).c_str()
         ));
     }
@@ -47,16 +48,56 @@ SharedPtr<ParseResult> Parser::Factor()
 
 	switch (FactorToken->GetType())
     {
+        case TokenType::Plus:
+        case TokenType::Minus: {
+            Advance();
+            SharedPtr<ParseResult> ResultFactor = Factor();
+            if (ResultFactor->Error.IsValid()) {
+                return ResultFactor;
+            }
+
+            Result->Success(new ParserUnaryOpNode(FactorToken, ResultFactor->ParserNodePtr));
+            return Result;
+        }
+
         case TokenType::Int:
-        case TokenType::Float:
+        case TokenType::Float: {
             Advance();
             Result->Success(new ParserNumberNode(FactorToken));
-			return Result;
+            return Result;
+        }
+
+        case TokenType::LH_Parenth:
+        {
+            Advance();
+
+            // Recursively evaluate the expression.
+            auto Expr = Expression();
+            if (Expr->Error.IsValid()) {
+                return Expr;
+            }
+
+            // We should end at the right parenth.
+            if (CurrentToken->GetType() == TokenType::RH_Parenth)
+            {
+                Advance();
+                return Expr;
+            }
+            else
+            {
+                Expr->Failure(new InvalidSyntaxError(
+                        FactorToken->GetStartPosition(),
+                        FactorToken->GetEndPosition(),
+                        fmt::format("Expected ')', got {0}", FactorToken->ToString()).c_str()
+                ));
+                return Expr;
+            }
+        }
     }
 
 	Result->Failure(new InvalidSyntaxError(
-            FactorToken->GetStartPosition()->GetLineNumber(),
-            FactorToken->GetEndPosition()->GetLineCol(),
+            FactorToken->GetStartPosition(),
+            FactorToken->GetEndPosition(),
             fmt::format("Expected int or float, got {0}", FactorToken->ToString()).c_str()
     ));
 
@@ -90,10 +131,10 @@ SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResu
             return RightNodeResult;
         }
 
-		auto LeftNode = new ParserBinaryNode(
-			static_cast<ParserNumberNode*>(LeftNodeResult->ParserNode.Ptr()),
+		auto LeftNode = new ParserBinaryOpNode(
+			static_cast<ParserNode*>(LeftNodeResult->ParserNodePtr.Ptr()),
 			OpToken,
-			static_cast<ParserNumberNode*>(RightNodeResult->ParserNode.Ptr())
+			static_cast<ParserNode*>(RightNodeResult->ParserNodePtr.Ptr())
 		);
 
 		LeftNodeResult->Success(LeftNode);

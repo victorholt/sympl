@@ -2,19 +2,19 @@
 // GameSencha, LLC 5/24/22.
 //
 #pragma once
-#include "SymplPCH.hpp"
-#include "ParserNumberNode.hpp"
-#include <sympl/Memory/SharedPtr.hpp>
+#include "sympl/SymplPCH.hpp"
+#include "ParserNode.hpp"
+#include "sympl/Memory/SharedPtr.hpp"
 
 SymplNamespaceStart
 
-class ParserBinaryNode : public ParserNumberNode
+class ParserBinaryOpNode : public ParserNode
 {
 public:
     // Reference to the left node.
-    SharedPtr<ParserNumberNode> LeftNode;
+    SharedPtr<ParserNode> LeftNode;
     // Reference to the right node.
-    SharedPtr<ParserNumberNode> RightNode;
+    SharedPtr<ParserNode> RightNode;
 
     /**
      * Constructor
@@ -22,7 +22,7 @@ public:
      * @param pNodeToken
      * @param pRightNode
      */
-    ParserBinaryNode(const SharedPtr<ParserNumberNode>& pLeftNode, class Token* pNodeToken, const SharedPtr<ParserNumberNode>& pRightNode);
+    ParserBinaryOpNode(const SharedPtr<ParserNode>& pLeftNode, class Token* pNodeToken, const SharedPtr<ParserNode>& pRightNode);
 
     /**
      * Returns the string representation of the node.

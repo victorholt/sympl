@@ -1,0 +1,47 @@
+//
+// Created by Victor on 5/25/2022.
+//
+#include "FloatHandle.hpp"
+#include <sympl/Parser/LexerPosition.hpp>
+#include <fmt/format.h>
+SymplNamespace
+
+FloatHandle::FloatHandle()
+{
+    Type = ValueType::Float;
+    SetPosition(nullptr, nullptr);
+}
+
+SharedPtr<NumberHandle> FloatHandle::AddTo(const SharedPtr<NumberHandle>& handle)
+{
+    auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+    NewNumber->Value.FloatNum = Value.FloatNum + handle->Value.FloatNum;
+    return NewNumber.Ptr();
+}
+
+SharedPtr<NumberHandle> FloatHandle::SubtractBy(const SharedPtr<NumberHandle>& handle)
+{
+    auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+    NewNumber->Value.FloatNum = Value.FloatNum - handle->Value.FloatNum;
+    return NewNumber.Ptr();
+}
+
+SharedPtr<NumberHandle> FloatHandle::MultiplyBy(const SharedPtr<NumberHandle>& handle)
+{
+    auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+    NewNumber->Value.FloatNum = Value.FloatNum * handle->Value.FloatNum;
+    return NewNumber.Ptr();
+}
+SharedPtr<NumberHandle> FloatHandle::DivideBy(const SharedPtr<NumberHandle>& handle)
+{
+    auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+    NewNumber->Value.FloatNum = Value.FloatNum / handle->Value.FloatNum;
+    return NewNumber.Ptr();
+}
+
+CStrPtr FloatHandle::ToString()
+{
+    memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));
+    strcpy(TmpNumber_Allocation, fmt::format("{0}", Value.FloatNum).c_str());
+    return TmpNumber_Allocation;
+}

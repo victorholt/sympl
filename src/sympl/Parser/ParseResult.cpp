@@ -2,11 +2,12 @@
 // GameSencha, LLC 5/25/22.
 //
 #include "ParseResult.hpp"
+#include "sympl/Parser/Node/ParserNode.hpp"
 SymplNamespace
 
-void ParseResult::Success(const SharedPtr<ManagedObject>& Node)
+void ParseResult::Success(const SharedPtr<ParserNode>& Node)
 {
-	ParserNode = Node;
+    ParserNodePtr = Node;
 }
 
 void ParseResult::Failure(const SharedPtr<SymplError>& pError)
