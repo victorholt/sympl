@@ -10,7 +10,7 @@ void ParseResult::Success(const SharedPtr<ParserNode>& Node)
     ParserNodePtr = Node;
 }
 
-void ParseResult::Failure(const SharedPtr<SymplError>& pError)
+void ParseResult::Failure(const SharedPtr<ParserError>& pError)
 {
 	Error = pError;
 }

@@ -3,11 +3,11 @@
 //
 #pragma once
 #include "sympl/SymplPCH.hpp"
-#include <sympl/Memory/ManagedObject.hpp>
+#include "sympl/Memory/ManagedObject.hpp"
 
 SymplNamespaceStart
 
-class SymplError : public ManagedObject
+class ParserError : public ManagedObject
 {
 protected:
 
@@ -18,14 +18,14 @@ protected:
 public:
 
 	// Default constructor.
-	SymplError() = default;
+	ParserError() = default;
 
 	/**
 	 * Constructor.
 	 * @param Name
 	 * @param Details
 	 */
-	SymplError(CStrPtr Name, CStrPtr Details);
+	ParserError(CStrPtr Name, CStrPtr Details);
 
 	/**
 	 * Returns string of the error.

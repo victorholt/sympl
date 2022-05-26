@@ -3,6 +3,7 @@
 //
 #include "FloatHandle.hpp"
 #include <sympl/Parser/LexerPosition.hpp>
+#include <sympl/Parser/Error/RuntimeError.hpp>
 #include <fmt/format.h>
 SymplNamespace
 
@@ -35,6 +36,16 @@ SharedPtr<NumberHandle> FloatHandle::MultiplyBy(const SharedPtr<NumberHandle>& h
 SharedPtr<NumberHandle> FloatHandle::DivideBy(const SharedPtr<NumberHandle>& handle)
 {
     auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+
+    if (handle->Value.IntNum == 0) {
+        NewNumber->Error = SharedPtr<RuntimeError>(new RuntimeError(
+                StartPosition,
+                EndPosition,
+                "Division by zero"
+        )).Ptr();
+        return NewNumber.Ptr();
+    }
+
     NewNumber->Value.FloatNum = Value.FloatNum / handle->Value.FloatNum;
     return NewNumber.Ptr();
 }

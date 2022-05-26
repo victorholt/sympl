@@ -46,7 +46,14 @@ int main()
         auto program = SharedPtr<Interpreter>(new Interpreter());
         auto result = program->Visit(node->ParserNodePtr);
 
-        cout << result->ToString() << endl;
+        if (result->Error.IsValid())
+        {
+            cout << result->Error->ToString() << endl;
+        }
+        else
+        {
+            cout << result->Value->ToString() << endl;
+        }
     }
 
     return 0;

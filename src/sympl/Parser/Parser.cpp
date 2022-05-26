@@ -4,7 +4,7 @@
 #include "Parser.hpp"
 #include "Token.hpp"
 #include "LexerPosition.hpp"
-#include "InvalidSyntaxError.hpp"
+#include "sympl/Parser/Error/InvalidSyntaxError.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 SymplNamespace
 

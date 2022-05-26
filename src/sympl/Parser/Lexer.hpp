@@ -15,7 +15,7 @@ private:
 	std::vector<class Token> TokenList;
 
 	// List of errors.
-	std::vector<class SymplError> ErrorList;
+	std::vector<class ParserError> ErrorList;
 
 	// Buffer of text to iterate through.
 	StrPtr Buffer;
@@ -71,7 +71,7 @@ public:
 	 * Returns the list of errors.
 	 * @return
 	 */
-	inline const std::vector<class SymplError>& GetErrors() const { return ErrorList; }
+	inline const std::vector<class ParserError>& GetErrors() const { return ErrorList; }
 
 };
 

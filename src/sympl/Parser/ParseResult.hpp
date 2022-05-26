@@ -3,7 +3,7 @@
 //
 #pragma once
 #include "sympl/SymplPCH.hpp"
-#include "SymplError.hpp"
+#include "sympl/Parser/Error/ParserError.hpp"
 #include <sympl/Memory/ManagedObject.hpp>
 
 SymplNamespaceStart
@@ -12,7 +12,7 @@ class ParseResult : public ManagedObject
 {
 public:
 	// Reference to the error.
-	SharedPtr<SymplError> Error;
+	SharedPtr<ParserError> Error;
 
 	// Reference to the parser node.
 	SharedPtr<class ParserNode> ParserNodePtr;
@@ -27,7 +27,7 @@ public:
 	 * Handles a failure.
 	 * @param pError
 	 */
-	void Failure(const SharedPtr<SymplError>& pError);
+	void Failure(const SharedPtr<ParserError>& pError);
 
 };
 

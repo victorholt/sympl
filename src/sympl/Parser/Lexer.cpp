@@ -4,7 +4,7 @@
 #include "Lexer.hpp"
 #include "LexerPosition.hpp"
 #include "Token.hpp"
-#include "IllegalCharacterError.hpp"
+#include "sympl/Parser/Error/IllegalCharacterError.hpp"
 SymplNamespace
 
 Lexer::Lexer(CStrPtr FileName, CStrPtr Text) :

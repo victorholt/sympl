@@ -30,8 +30,10 @@
 #include <sympl/Memory/SharedPtrRef.hpp>
 
 #include "SymplPCH.hpp"
-#include <sympl/Parser/IllegalCharacterError.hpp>
-#include <sympl/Parser/InvalidSyntaxError.hpp>
+#include <sympl/Parser/Error/IllegalCharacterError.hpp>
+#include <sympl/Parser/Error/InvalidSyntaxError.hpp>
+#include <sympl/Parser/Error/InvalidSyntaxError.hpp>
+#include <sympl/Parser/Error/RuntimeError.hpp>
 #include <sympl/Parser/Token.hpp>
 #include <sympl/Parser/LexerPosition.hpp>
 #include <sympl/Parser/Lexer.hpp>
@@ -42,4 +44,5 @@
 #include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
 #include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
 #include <sympl/Parser/Parser.hpp>
+#include <sympl/Parser/ParserRuntimeResult.hpp>
 #include <sympl/Parser/Interpreter.hpp>

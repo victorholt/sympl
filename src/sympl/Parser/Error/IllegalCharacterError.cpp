@@ -5,6 +5,6 @@
 SymplNamespace
 
 IllegalCharacterError::IllegalCharacterError(CStrPtr ErrorDetails)
-		: SymplError("Illegal Character Error", ErrorDetails)
+		: ParserError("Illegal Character Error", ErrorDetails)
 {
 }

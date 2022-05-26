@@ -11,6 +11,7 @@ class ValueHandle : public ManagedObject
 {
 public:
     ValueType Type = ValueType::Int;
+    SharedPtr<class ParserError> Error;
 
 protected:
 

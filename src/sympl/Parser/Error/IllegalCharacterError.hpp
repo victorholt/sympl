@@ -2,11 +2,11 @@
 // GameSencha, LLC 5/25/22.
 //
 #pragma once
-#include "SymplError.hpp"
+#include "ParserError.hpp"
 
 SymplNamespaceStart
 
-class IllegalCharacterError : public SymplError
+class IllegalCharacterError : public ParserError
 {
 public:
 

@@ -12,15 +12,15 @@ class Interpreter : public ManagedObject
 public:
     Interpreter() = default;
 
-    SharedPtr<class ValueHandle> Visit(SharedPtr<class ParserNode> Node);
+    SharedPtr<class ParserRuntimeResult> Visit(SharedPtr<class ParserNode> Node);
 
-    SharedPtr<class ValueHandle> VisitNumberNode(SharedPtr<class ParserNode> Node);
+    SharedPtr<class ParserRuntimeResult> VisitNumberNode(SharedPtr<class ParserNode> Node);
 
-    SharedPtr<class ValueHandle> VisitBinaryOpNode(SharedPtr<class ParserNode> Node);
+    SharedPtr<class ParserRuntimeResult> VisitBinaryOpNode(SharedPtr<class ParserNode> Node);
 
-    SharedPtr<class ValueHandle> VisitUnaryOpNode(SharedPtr<class ParserNode> Node);
+    SharedPtr<class ParserRuntimeResult> VisitUnaryOpNode(SharedPtr<class ParserNode> Node);
 
-    SharedPtr<class ValueHandle> NoVisit(SharedPtr<class ParserNode> Node);
+    SharedPtr<class ParserRuntimeResult> NoVisit(SharedPtr<class ParserNode> Node);
 };
 
 SymplNamespaceEnd
