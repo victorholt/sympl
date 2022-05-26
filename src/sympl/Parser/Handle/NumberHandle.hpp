@@ -49,6 +49,13 @@ public:
     virtual SharedPtr<NumberHandle> DivideBy(const SharedPtr<NumberHandle>& handle) = 0;
 
     /**
+     * Returns a new number that's the power by a given value.
+     * @param handle
+     * @return
+     */
+    virtual SharedPtr<NumberHandle> PowerBy(const SharedPtr<NumberHandle>& handle) = 0;
+
+    /**
      * Attempts to normalize the value.
      */
     void NormalizeValue();
@@ -57,13 +64,13 @@ public:
      * Sets the integer value.
      * @param pValue
      */
-    inline void SetIntValue(int pValue) { Value.IntNum = pValue; }
+    inline void SetIntValue(long pValue) { Value.IntNum = pValue; }
 
     /**
      * Returns the int value.
      * @return
      */
-    inline int GetIntValue() const { return Value.IntNum; }
+    inline long GetIntValue() const { return Value.IntNum; }
 
     /**
      * Sets the float value.

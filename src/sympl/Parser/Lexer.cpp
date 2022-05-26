@@ -71,6 +71,10 @@ void Lexer::MakeTokens()
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Div, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
+        else if (CurrentChar == '^') {
+            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Power, nullptr, Position.Ptr(), nullptr));
+            Advance();
+        }
 		else if (CurrentChar == '(') {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::LH_Parenth, nullptr, Position.Ptr(), nullptr));
 			Advance();

@@ -109,6 +109,13 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNo
             ValueResult = LeftNumber->DivideBy(RightNumber).Ptr();
             break;
         }
+        case TokenType::Power:
+        {
+            SharedPtr<NumberHandle> LeftNumber = dynamic_cast<NumberHandle*>(Left.Ptr());
+            SharedPtr<NumberHandle> RightNumber = dynamic_cast<NumberHandle*>(Right.Ptr());
+            ValueResult = LeftNumber->PowerBy(RightNumber).Ptr();
+            break;
+        }
     }
 
     ValueResult->SetPosition(Node->StartPosition, Node->EndPosition);

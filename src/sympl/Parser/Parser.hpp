@@ -43,6 +43,12 @@ protected:
     void Advance();
 
     /**
+     * Returns a node based on an atom rule.
+     * @return
+     */
+    SharedPtr<ParseResult> Atom();
+
+    /**
      * Returns a node based on a factor.
      * @return
      */
@@ -60,7 +66,17 @@ protected:
      * @param ValidOps
      * @return
      */
-	SharedPtr<ParseResult> BinaryOperation(std::function<SharedPtr<ParseResult>()> OpMethod, const std::vector<TokenType>& ValidOps);
+	SharedPtr<ParseResult> BinaryOperation(
+        std::function<SharedPtr<ParseResult>()> LeftOpMethod,
+        const std::vector<TokenType>& ValidOps,
+        std::function<SharedPtr<ParseResult>()> RightOpMethod = nullptr
+    );
+
+    /**
+     * Returns the node based on a given expression.
+     * @return
+     */
+    SharedPtr<ParseResult> Power();
 
     /**
      * Returns the node based on a given expression.

@@ -44,6 +44,13 @@ public:
     virtual SharedPtr<NumberHandle> DivideBy(const SharedPtr<NumberHandle>& handle) override;
 
     /**
+     * Returns a new number that's the power by a given value.
+     * @param handle
+     * @return
+     */
+    virtual SharedPtr<NumberHandle> PowerBy(const SharedPtr<NumberHandle>& handle) override;
+
+    /**
      * Returns a string of the value.
      * @return
      */

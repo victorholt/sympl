@@ -55,6 +55,14 @@ SharedPtr<NumberHandle> IntHandle::DivideBy(const SharedPtr<NumberHandle>& handl
     return NewNumber.Ptr();
 }
 
+SharedPtr<NumberHandle> IntHandle::PowerBy(const SharedPtr<NumberHandle>& handle)
+{
+    auto NewNumber = IntHandle::Alloc<IntHandle>();
+    NewNumber->Context = Context;
+    NewNumber->Value.IntNum = static_cast<long>(std::pow(Value.IntNum, handle->Value.IntNum));
+    return NewNumber.Ptr();
+}
+
 CStrPtr IntHandle::ToString()
 {
     memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));

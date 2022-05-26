@@ -20,7 +20,7 @@ SharedPtr<ParseResult> Parser::Parse()
     auto Result = Expression();
     assert(Result.IsValid());
 
-    if (Result->Error.IsValid() || CurrentToken->GetType() != TokenType::EndOfFile)
+    if (!Result->Error.IsValid() && CurrentToken->GetType() != TokenType::EndOfFile)
     {
         Result->Failure(new InvalidSyntaxError(
                 CurrentToken->GetStartPosition(),
@@ -41,27 +41,13 @@ void Parser::Advance()
 	CurrentToken = TokenList[TokenIndex++].Ptr();
 }
 
-SharedPtr<ParseResult> Parser::Factor()
+SharedPtr<ParseResult> Parser::Atom()
 {
-	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
-	SharedPtr<Token> FactorToken = CurrentToken;
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+    SharedPtr<Token> FactorToken = CurrentToken;
 
-	switch (FactorToken->GetType())
+    switch (FactorToken->GetType())
     {
-        case TokenType::Plus:
-        case TokenType::Minus: {
-            Advance();
-            SharedPtr<ParseResult> ResultFactor = Factor();
-            if (ResultFactor->Error.IsValid()) {
-                return ResultFactor;
-            }
-
-            Result->Success(
-                ParserUnaryOpNode::Alloc<ParserUnaryOpNode, ParserNode>(2, FactorToken.Ptr(), ResultFactor->ParserNodePtr.Ptr())
-            );
-            return Result;
-        }
-
         case TokenType::Int:
         case TokenType::Float: {
             Advance();
@@ -97,13 +83,38 @@ SharedPtr<ParseResult> Parser::Factor()
         }
     }
 
-	Result->Failure(new InvalidSyntaxError(
-            FactorToken->GetStartPosition(),
-            FactorToken->GetEndPosition(),
-            fmt::format("Expected int or float, got {0}", FactorToken->ToString()).c_str()
+    Result->Failure(new InvalidSyntaxError(
+        FactorToken->GetStartPosition(),
+        FactorToken->GetEndPosition(),
+        fmt::format("Expected int, float, '+', '-', or '(' got {0}", FactorToken->ToString()).c_str()
     ));
 
-	return Result;
+    return Result;
+}
+
+SharedPtr<ParseResult> Parser::Factor()
+{
+	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+	SharedPtr<Token> FactorToken = CurrentToken;
+
+	switch (FactorToken->GetType())
+    {
+        case TokenType::Plus:
+        case TokenType::Minus: {
+            Advance();
+            SharedPtr<ParseResult> ResultFactor = Factor();
+            if (ResultFactor->Error.IsValid()) {
+                return ResultFactor;
+            }
+
+            Result->Success(
+                ParserUnaryOpNode::Alloc<ParserUnaryOpNode, ParserNode>(2, FactorToken.Ptr(), ResultFactor->ParserNodePtr.Ptr())
+            );
+            return Result;
+        }
+    }
+
+	return Power();
 }
 
 SharedPtr<ParseResult> Parser::Term()
@@ -114,10 +125,14 @@ SharedPtr<ParseResult> Parser::Term()
     );
 }
 
-SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResult>()> OpMethod, const std::vector<TokenType>& ValidOps)
+SharedPtr<ParseResult> Parser::BinaryOperation(
+    std::function<SharedPtr<ParseResult>()> LeftOpMethod,
+    const std::vector<TokenType>& ValidOps,
+    std::function<SharedPtr<ParseResult>()> RightOpMethod
+)
 {
 	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
-	auto LeftNodeResult = OpMethod();
+	auto LeftNodeResult = LeftOpMethod();
 
     if (LeftNodeResult->Error.IsValid()) {
         return LeftNodeResult;
@@ -128,7 +143,7 @@ SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResu
         Token* OpToken = CurrentToken;
         Advance();
 
-        auto RightNodeResult = OpMethod();
+        auto RightNodeResult = RightOpMethod ? RightOpMethod() : LeftOpMethod();
         if (RightNodeResult->Error.IsValid()) {
             return RightNodeResult;
         }
@@ -146,10 +161,19 @@ SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResu
     return LeftNodeResult;
 }
 
+SharedPtr<ParseResult> Parser::Power()
+{
+    return BinaryOperation(
+        [=] { return Atom(); },
+        { TokenType::Power },
+        [=] { return Factor(); }
+    );
+}
+
 SharedPtr<ParseResult> Parser::Expression()
 {
 	return BinaryOperation(
-            [=] { return Term(); },
-            { TokenType::Plus, TokenType::Minus }
+        [=] { return Term(); },
+        { TokenType::Plus, TokenType::Minus }
     );
 }

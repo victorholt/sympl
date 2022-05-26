@@ -185,6 +185,7 @@ enum class TokenType
     Minus,
     Mul,
     Div,
+    Power,
     LH_Parenth,
     RH_Parenth
 };
