@@ -17,12 +17,19 @@ public:
     SharedPtr<ParserNode> RightNode;
 
     /**
+     * Overrides the construct.
+     * @param argc
+     * @param ArgList
+     */
+    virtual void __Construct(int argc, va_list ArgList) override;
+
+    /**
      * Constructor
      * @param pLeftNode
      * @param pNodeToken
      * @param pRightNode
      */
-    ParserBinaryOpNode(const SharedPtr<ParserNode>& pLeftNode, class Token* pNodeToken, const SharedPtr<ParserNode>& pRightNode);
+    void Create(const SharedPtr<ParserNode>& pLeftNode, SharedPtr<class Token> pNodeToken, const SharedPtr<ParserNode>& pRightNode);
 
     /**
      * Returns the string representation of the node.

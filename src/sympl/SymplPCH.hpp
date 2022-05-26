@@ -52,6 +52,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <cstdarg>
 
 #include <fcntl.h>
 #include <fstream>
@@ -161,6 +162,7 @@
 #include "sympl/thirdparty/fmt/format.h"
 
 // Helpers
+#define alloc_bytes(type) new type()
 #define alloc_bytes(type) new type()
 #define alloc_bytes_array(type, amount) (type*)calloc(amount, sizeof(type))
 #define free_bytes(ref) delete ref; ref = nullptr

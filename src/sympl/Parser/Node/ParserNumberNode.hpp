@@ -11,10 +11,17 @@ class ParserNumberNode : public ParserNode
 {
 public:
     /**
+     * Overrides the construct.
+     * @param argc
+     * @param ArgList
+     */
+    virtual void __Construct(int argc, va_list ArgList) override;
+
+    /**
      * Constructor
      * @param pNodeToken
      */
-    ParserNumberNode(class Token* pNodeToken);
+    void Create(SharedPtr<class Token> pNodeToken);
 };
 
 SymplNamespaceEnd

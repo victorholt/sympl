@@ -28,6 +28,12 @@ public:
 	~ManagedObject();
 
     /**
+     * Constructs the object.
+     * @param ArgList
+     */
+    virtual void __Construct(int argc, va_list ArgList);
+
+    /**
 	 * Subtract from the reference count.
 	 */
     virtual int Release() override;
@@ -74,10 +80,18 @@ public:
      * @return
      */
     template<class T>
-    static SharedPtr<T> Alloc()
+    static SharedPtr<T> Alloc(int argc = 0, ...)
     {
         char* Bytes = static_cast<char*>(malloc(sizeof(T)));
         ManagedObject* NewObject = new(Bytes) T();
+
+        if (argc > 0) {
+            va_list ArgList;
+            va_start(ArgList, argc);
+            NewObject->__Construct(argc, ArgList);
+            va_end(ArgList);
+        }
+
         return SharedPtr<T>(static_cast<T*>(NewObject));
     }
 
@@ -88,10 +102,18 @@ public:
      * @return
      */
     template<class T, class R>
-    static SharedPtr<R> Alloc()
+    static SharedPtr<R> Alloc(int argc = 0, ...)
     {
         char* Bytes = static_cast<char*>(malloc(sizeof(T)));
         ManagedObject* NewObject = new(Bytes) T();
+
+        if (argc > 0) {
+            va_list ArgList;
+            va_start(ArgList, argc);
+            NewObject->__Construct(argc, ArgList);
+            va_end(ArgList);
+        }
+
         return SharedPtr<R>(dynamic_cast<R*>(NewObject));
     }
 };

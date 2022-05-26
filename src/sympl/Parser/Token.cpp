@@ -3,12 +3,24 @@
 //
 #include "Token.hpp"
 #include "LexerPosition.hpp"
+#include <sympl/Core/StringBuffer.hpp>
 #include <fmt/format.h>
 SymplNamespace;
 
-Token::Token(TokenType Type, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition) : Type(Type)
+void Token::__Construct(int argc, va_list ArgList)
 {
-    Value = nullptr;
+    TokenType pType = va_arg(ArgList, TokenType);
+    CStrPtr pValueStr = va_arg(ArgList, CStrPtr);
+    SharedPtr<LexerPosition> pStartPosition = va_arg(ArgList, LexerPosition*);
+    SharedPtr<LexerPosition> pEndPosition = va_arg(ArgList, LexerPosition*);
+
+    Create(pType, pValueStr, pStartPosition, pEndPosition);
+}
+
+void Token::Create(TokenType pType, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition)
+{
+    Type = pType;
+    Value = StringBuffer::Alloc<StringBuffer>();
     StartPosition = nullptr;
     EndPosition = nullptr;
 
@@ -23,18 +35,25 @@ Token::Token(TokenType Type, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPo
     }
 
     if (ValueStr) {
-        Value = std::make_shared<StrPtr>(new char[strlen(ValueStr) + 1]);
-        strcpy(*Value, ValueStr);
+        Value->Set(ValueStr);
     }
 
 	// Zero out the tmp string.
 	memset(TmpAlloc_ToString, 0, sizeof(TmpAlloc_ToString));
 }
 
-Token::Token(Token* CopyToken)
+void Token::Copy(SharedPtr<Token> CopyToken)
 {
-    this->Type = CopyToken->Type;
-    this->Value = CopyToken->Value;
+    Type = CopyToken->Type;
+    Value = CopyToken->Value;
+}
+
+CStrPtr Token::GetValue() const
+{
+    if (!Value.IsValid()) {
+        return "";
+    }
+    return Value->CStr();
 }
 
 CStrPtr Token::ToString()
@@ -73,8 +92,8 @@ CStrPtr Token::ToString()
 	// Zero out the tmp string.
 	memset(TmpAlloc_ToString, 0, sizeof(TmpAlloc_ToString));
 
-	if (Value && strlen(*Value) > 0) {
-		strcpy(TmpAlloc_ToString, fmt::format("{0}:{1}", TypeStr, *Value).c_str());
+	if (Value->Length() > 0) {
+		strcpy(TmpAlloc_ToString, fmt::format("{0}:{1}", TypeStr, Value->CStr()).c_str());
 		return TmpAlloc_ToString;
 	}
 

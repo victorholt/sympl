@@ -4,11 +4,12 @@
 #include "LexerPosition.hpp"
 SymplNamespace
 
-LexerPosition::LexerPosition(size_t pIndex, size_t pLineNumber, int64_t pCol, CStrPtr pFileName, CStrPtr pFileText)
-    : Index(pIndex), LineNumber(pLineNumber), LineCol(pCol),
-    FileName(pFileName), FileText(pFileText)
+void LexerPosition::Create(size_t pIndex, size_t pLineNumber, int64_t pCol, CStrPtr pFileName, CStrPtr pFileText)
 {
-
+    Index = pIndex;
+    LineNumber = pLineNumber;
+    FileName = pFileName;
+    FileText = pFileText;
 }
 
 void LexerPosition::Advance(char CurrentCharacter)
@@ -23,16 +24,19 @@ void LexerPosition::Advance(char CurrentCharacter)
     }
 }
 
-LexerPosition* LexerPosition::Copy() const
+SharedPtr<LexerPosition> LexerPosition::Copy() const
 {
-    return new LexerPosition(Index, LineNumber, LineCol, FileName.c_str(), FileText.c_str());
+    auto CopyPosition = LexerPosition::Alloc<LexerPosition>();
+    CopyPosition->Create(Index, LineNumber, LineCol, FileName.c_str(), FileText.c_str());
+
+    return CopyPosition;
 }
 
-LexerPosition& LexerPosition::operator=(const LexerPosition& rhs)
-{
-    Index = rhs.Index;
-    LineNumber = rhs.LineNumber;
-    LineCol = rhs.LineCol;
-
-    return *this;
-}
+//LexerPosition& LexerPosition::operator=(const LexerPosition& rhs)
+//{
+//    Index = rhs.Index;
+//    LineNumber = rhs.LineNumber;
+//    LineCol = rhs.LineCol;
+//
+//    return *this;
+//}

@@ -97,7 +97,9 @@ template<typename T>
 SharedPtr<T>::SharedPtr(const SharedPtr<T> &CopySharedPtr)
 		: PtrData(CopySharedPtr.PtrData)
 {
-	PtrData->AddRef();
+    if (PtrData) {
+        PtrData->AddRef();
+    }
 }
 
 template<typename T>

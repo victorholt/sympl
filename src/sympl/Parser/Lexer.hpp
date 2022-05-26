@@ -12,13 +12,13 @@ class Lexer
 {
 private:
 	// List of tokens.
-	std::vector<class Token> TokenList;
+	std::vector<SharedPtr<class Token>> TokenList;
 
 	// List of errors.
-	std::vector<class ParserError> ErrorList;
+	std::vector<SharedPtr<class ParserError>> ErrorList;
 
 	// Buffer of text to iterate through.
-	StrPtr Buffer;
+	SharedPtr<class StringBuffer> Buffer;
 
 	// Current character.
 	char CurrentChar;
@@ -34,7 +34,7 @@ protected:
 	/**
 	 * Generates a number.
 	 */
-	struct Token MakeNumberToken();
+	SharedPtr<class Token> MakeNumberToken();
 
 public:
 
@@ -65,13 +65,13 @@ public:
 	 * Returns the list of tokens.
 	 * @return
 	 */
-	inline const std::vector<class Token>& GetTokens() const { return TokenList; }
+	inline const std::vector<SharedPtr<class Token>>& GetTokens() const { return TokenList; }
 
 	/**
 	 * Returns the list of errors.
 	 * @return
 	 */
-	inline const std::vector<class ParserError>& GetErrors() const { return ErrorList; }
+	inline const std::vector<SharedPtr<class ParserError>>& GetErrors() const { return ErrorList; }
 
 };
 

@@ -8,7 +8,7 @@
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 SymplNamespace
 
-Parser::Parser(const std::vector<class Token>& pTokenList)
+Parser::Parser(const std::vector<SharedPtr<Token>>& pTokenList)
     : TokenIndex(0), CurrentToken(nullptr)
 {
     TokenList = pTokenList;
@@ -38,13 +38,13 @@ void Parser::Advance()
 		return;
 	}
 
-	CurrentToken = &TokenList[TokenIndex++];
+	CurrentToken = TokenList[TokenIndex++].Ptr();
 }
 
 SharedPtr<ParseResult> Parser::Factor()
 {
-	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
-	Token* FactorToken = CurrentToken;
+	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+	SharedPtr<Token> FactorToken = CurrentToken;
 
 	switch (FactorToken->GetType())
     {
@@ -56,14 +56,16 @@ SharedPtr<ParseResult> Parser::Factor()
                 return ResultFactor;
             }
 
-            Result->Success(new ParserUnaryOpNode(FactorToken, ResultFactor->ParserNodePtr));
+            Result->Success(
+                ParserUnaryOpNode::Alloc<ParserUnaryOpNode, ParserNode>(2, FactorToken.Ptr(), ResultFactor->ParserNodePtr.Ptr())
+            );
             return Result;
         }
 
         case TokenType::Int:
         case TokenType::Float: {
             Advance();
-            Result->Success(new ParserNumberNode(FactorToken));
+            Result->Success(ParserNumberNode::Alloc<ParserNumberNode, ParserNode>(1, FactorToken.Ptr()));
             return Result;
         }
 
@@ -131,7 +133,8 @@ SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResu
             return RightNodeResult;
         }
 
-		auto LeftNode = new ParserBinaryOpNode(
+		auto LeftNode = ParserBinaryOpNode::Alloc<ParserBinaryOpNode, ParserNode>(
+            3,
 			static_cast<ParserNode*>(LeftNodeResult->ParserNodePtr.Ptr()),
 			OpToken,
 			static_cast<ParserNode*>(RightNodeResult->ParserNodePtr.Ptr())

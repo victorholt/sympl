@@ -13,6 +13,10 @@ ManagedObject::~ManagedObject()
 {
 }
 
+void ManagedObject::__Construct(int argc, va_list ArgList)
+{
+}
+
 int ManagedObject::Release()
 {
     auto Result = SharedPtrRef::Release();

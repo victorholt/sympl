@@ -37,7 +37,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
 
 SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
-    auto Result = SharedPtr<ParserRuntimeResult>(new ParserRuntimeResult());
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     char* pNumEnd;
     auto NodeToken = Node->NodeToken;
     SharedPtr<ValueHandle> ValueResult;
@@ -64,7 +64,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode
 
 SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
-    auto Result = SharedPtr<ParserRuntimeResult>(new ParserRuntimeResult());
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     auto OpNode = static_cast<ParserBinaryOpNode*>(Node.Ptr());
 
     auto Left = Result->Register(Visit(OpNode->LeftNode, Context));

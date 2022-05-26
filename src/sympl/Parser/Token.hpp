@@ -4,11 +4,12 @@
 #pragma once
 
 #include "sympl/SymplPCH.hpp"
+#include <sympl/Memory/ManagedObject.hpp>
 #include <sympl/Memory/SharedPtr.hpp>
 
 SymplNamespaceStart
 
-class Token
+class Token : public ManagedObject
 {
 private:
 
@@ -16,7 +17,7 @@ private:
 	TokenType Type;
 
 	// Current value of our token.
-	std::shared_ptr<StrPtr> Value;
+	SharedPtr<class StringBuffer> Value;
 
 	// Start position of the token.
 	SharedPtr<class LexerPosition> StartPosition;
@@ -29,20 +30,27 @@ private:
 
 public:
 
+    /**
+     * Construct object.
+     * @param argc
+     * @param ArgList
+     */
+    virtual void __Construct(int argc, va_list ArgList) override;
+
 	/**
 	 * Constructor.
-	 * @param Type
+	 * @param pType
 	 * @param ValueStr
 	 * @param pStartPosition
 	 * @param pEndPosition
 	 */
-	Token(TokenType Type, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition = nullptr);
+	void Create(TokenType pType, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition = nullptr);
 
     /**
      * Constructor.
      * @param CopyToken
      */
-    Token(Token* CopyToken);
+    void Copy(SharedPtr<Token> CopyToken);
 
 	/**
 	 * Prints a nice representation of the token.
@@ -67,7 +75,7 @@ public:
      * Returns the token value.
      * @return
      */
-    inline CStrPtr GetValue() const { return *Value; }
+    CStrPtr GetValue() const;
 
 	/**
 	 * Returns the start position.

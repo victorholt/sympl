@@ -18,7 +18,7 @@ public:
     ParseNodeType Type;
 
     // Reference to the token associated with the node.
-    class Token* NodeToken;
+    SharedPtr<class Token> NodeToken;
 
     // Start position of the token.
     SharedPtr<class LexerPosition> StartPosition;
@@ -27,11 +27,18 @@ public:
     SharedPtr<class LexerPosition> EndPosition;
 
     /**
-     * Constructor
+     * Overrides the construct.
+     * @param argc
+     * @param ArgList
+     */
+    virtual void __Construct(int argc, va_list ArgList) override;
+
+    /**
+     * Creates the parser node.
      * @param pType
      * @param pNodeToken
      */
-    ParserNode(ParseNodeType pType, class Token* pNodeToken);
+    void Create(ParseNodeType pType, SharedPtr<class Token> pNodeToken);
 
     /**
      * Returns the string representation of the node.

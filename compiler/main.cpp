@@ -1,14 +1,10 @@
 #include <sympl/Sympl.hpp>
 #include <fmt/format.h>
-#include <sympl/Test/Memory/ManagedObjectTest.hpp>
 using namespace std;
 SymplNamespace
 
 int main()
 {
-//    ManagedObjectTest managedObjectTest;
-//    managedObjectTest.Run();
-
     while (true) {
         std::string code;
         std::cout << "sympl> ";
@@ -29,7 +25,7 @@ int main()
             cout << "Failed to Run!" << endl;
 
             for (auto& error: errors) {
-                cout << error.ToString() << endl;
+                cout << error->ToString() << endl;
             }
 
             continue;

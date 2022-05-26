@@ -5,7 +5,14 @@
 #include "sympl/Parser/Token.hpp"
 SymplNamespace
 
-ParserNumberNode::ParserNumberNode(Token* pNodeToken)
-    : ParserNode(ParseNodeType::Number, pNodeToken)
+void ParserNumberNode::__Construct(int argc, va_list ArgList)
 {
+    SharedPtr<Token> pToken = va_arg(ArgList, Token*);
+
+    Create(pToken);
+}
+
+void ParserNumberNode::Create(SharedPtr<Token> pNodeToken)
+{
+    ParserNode::Create(ParseNodeType::Number, pNodeToken);
 }

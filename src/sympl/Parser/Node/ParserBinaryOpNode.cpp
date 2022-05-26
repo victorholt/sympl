@@ -6,9 +6,19 @@
 #include "sympl/thirdparty/fmt/format.h"
 SymplNamespace
 
-ParserBinaryOpNode::ParserBinaryOpNode(const SharedPtr<ParserNode>& pLeftNode, class Token* pNodeToken, const SharedPtr<ParserNode>& pRightNode)
-    : ParserNode(ParseNodeType::Binary, pNodeToken)
+void ParserBinaryOpNode::__Construct(int argc, va_list ArgList)
 {
+    SharedPtr<ParserNode> pLeftNode = va_arg(ArgList, ParserNode*);
+    SharedPtr<Token> pToken = va_arg(ArgList, Token*);
+    SharedPtr<ParserNode> pRightNode = va_arg(ArgList, ParserNode*);
+
+    Create(pLeftNode, pToken, pRightNode);
+}
+
+void ParserBinaryOpNode::Create(const SharedPtr<ParserNode>& pLeftNode, SharedPtr<class Token> pNodeToken, const SharedPtr<ParserNode>& pRightNode)
+{
+    ParserNode::Create(ParseNodeType::Binary, pNodeToken);
+
     LeftNode = pLeftNode;
     RightNode = pRightNode;
 

@@ -28,14 +28,14 @@ private:
 public:
 
     /**
-     * Constructor
+     * Creates the position.
      * @param pIndex
      * @param pLineNumber
      * @param pCol
      * @param pFileName
      * @param pFileText
      */
-    LexerPosition(size_t pIndex, size_t pLineNumber, int64_t pCol, CStrPtr pFileName, CStrPtr pFileText);
+    void Create(size_t pIndex, size_t pLineNumber, int64_t pCol, CStrPtr pFileName, CStrPtr pFileText);
 
     /**
      * Advances the lexer position.
@@ -47,14 +47,14 @@ public:
      * Copies the values of the position.
      * @return
      */
-    LexerPosition* Copy() const;
+    SharedPtr<LexerPosition> Copy() const;
 
     /**
      * Handles copying the object.
      * @param rhs
      * @return
      */
-    LexerPosition& operator=(const LexerPosition& rhs);
+//    LexerPosition& operator=(const LexerPosition& rhs);
 
     /**
      * Returns the index of the lexer position.
