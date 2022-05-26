@@ -7,7 +7,7 @@
 #include <fmt/format.h>
 SymplNamespace
 
-ParserBinaryNode::ParserBinaryNode(ParserNumberNode* pLeftNode, class Token* pNodeToken, ParserNumberNode* pRightNode)
+ParserBinaryNode::ParserBinaryNode(const SharedPtr<ParserNumberNode>& pLeftNode, class Token* pNodeToken, const SharedPtr<ParserNumberNode>& pRightNode)
     : ParserNumberNode(pNodeToken)
 {
     Type = ParseNodeType::Binary;
@@ -17,7 +17,7 @@ ParserBinaryNode::ParserBinaryNode(ParserNumberNode* pLeftNode, class Token* pNo
 
 CStrPtr ParserBinaryNode::ToString()
 {
-    memset(TmpNodeString_Allocate, 0, strlen(TmpNodeString_Allocate));
+    memset(TmpNodeString_Allocate, 0, sizeof(TmpNodeString_Allocate));
     strcpy(TmpNodeString_Allocate, fmt::format(
             "({0}, {1}, {2})",
             LeftNode->ToString(),

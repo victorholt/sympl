@@ -6,6 +6,9 @@ SymplNamespace
 
 int main()
 {
+//    ManagedObjectTest managedObjectTest;
+//    managedObjectTest.Run();
+
     std::string code;
     std::cout << "sympl> ";
 	std::getline(cin, code);
@@ -26,7 +29,12 @@ int main()
 
     Parser parser(tokens);
     auto node = parser.Parse();
-	cout << static_cast<ParserNumberNode*>(node)->ToString() << endl;
+
+    if (node->Error.IsValid()) {
+        cout << node->Error->ToString() << endl;
+    } else {
+        cout << static_cast<ParserNumberNode*>(node->ParserNode.Ptr())->ToString() << endl;
+    }
 
     return 0;
 }

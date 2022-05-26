@@ -13,7 +13,7 @@ public:
 
 	ManagedClass()
 	{
-		memset(buffer, 0, strlen(buffer));
+		memset(buffer, 0, sizeof(buffer));
 		strcpy(buffer, "Managed Class String");
 	}
 };

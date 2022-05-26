@@ -12,10 +12,7 @@ class SharedPtr
 {
 private:
 	// Pointer reference.
-	T*    PtrData;
-
-	// Reference counter.
-	SharedPtrRef* RefCounter;
+	SharedPtrRef* PtrData;
 
 public:
 	/**
@@ -58,57 +55,56 @@ public:
 	 * @return
 	 */
 	SharedPtr<T>& operator = (const SharedPtr<T>& Ptr);
+    SharedPtr<T>& operator = (T* Ptr);
 
 	/**
 	 * Returns the pointer data.
 	 * @return
 	 */
-	inline T* Ptr() const { return PtrData; }
+	inline T* Ptr() const { return static_cast<T*>(PtrData); }
 
 	/**
 	 * Returns the current count.
 	 * @return
 	 */
-	inline size_t RefCount() const { return RefCounter->Count; }
+	inline size_t RefCount() const { return PtrData->RefCount; }
 
 	/**
 	 * Returns whether or not the data is valid.
 	 * @return
 	 */
-	inline bool IsValid() const { return PtrData != nullptr && RefCounter->Count > 0; }
+	inline bool IsValid() const { return PtrData != nullptr && PtrData->RefCount > 0; }
 };
 
 template<typename T>
 SharedPtr<T>::SharedPtr()
-		: PtrData(nullptr), RefCounter(nullptr)
+		: PtrData(nullptr)
 {
-	RefCounter = new SharedPtrRef();
-	RefCounter->AddRef();
 }
 
 template<typename T>
 SharedPtr<T>::SharedPtr(T* Value)
-		: PtrData(Value), RefCounter(nullptr)
+		: PtrData(Value)
 {
-	RefCounter = new SharedPtrRef();
-	RefCounter->AddRef();
+    if (PtrData) {
+        PtrData->AddRef();
+    }
 }
 
 template<typename T>
 SharedPtr<T>::SharedPtr(const SharedPtr<T> &CopySharedPtr)
-		: PtrData(CopySharedPtr.PtrData), RefCounter(nullptr)
+		: PtrData(CopySharedPtr.PtrData)
 {
-	RefCounter = CopySharedPtr.RefCounter;
-	RefCounter->AddRef();
+	PtrData->AddRef();
 }
 
 template<typename T>
 SharedPtr<T>::~SharedPtr()
 {
-	if (RefCounter->Release() == 0)
+	if (PtrData && PtrData->Release() == 0)
 	{
 		delete PtrData;
-		delete RefCounter;
+        PtrData = nullptr;
 	}
 }
 
@@ -121,7 +117,7 @@ T& SharedPtr<T>::operator*()
 template<typename T>
 T* SharedPtr<T>::operator->()
 {
-	return PtrData;
+	return static_cast<T*>(PtrData);
 }
 
 template<typename T>
@@ -132,19 +128,49 @@ SharedPtr<T> &SharedPtr<T>::operator=(const SharedPtr<T> &Ptr)
 		return *this;
 	}
 
+    if (PtrData && PtrData == Ptr.PtrData) {
+        PtrData->AddRef();
+        return *this;
+    }
+
 	// Check if we need to delete the data.
-	if(RefCounter->Release() == 0)
+	if(PtrData && PtrData->Release() == 0)
 	{
 		delete PtrData;
-		delete RefCounter;
 	}
 
 	// Copy over our data.
 	PtrData = Ptr.PtrData;
-	RefCounter = Ptr.RefCounter;
-	RefCounter->AddRef();
+
+    if (PtrData) {
+        PtrData->AddRef();
+    }
 
 	return *this;
+}
+
+template<typename T>
+SharedPtr<T> &SharedPtr<T>::operator=(T* Ptr)
+{
+    // Check if we need to delete the data.
+    if(PtrData && PtrData != Ptr && PtrData->Release() == 0)
+    {
+        delete PtrData;
+        PtrData = nullptr;
+    }
+
+    if (PtrData && PtrData == Ptr) {
+        PtrData->AddRef();
+        return *this;
+    }
+
+    // Copy over our data.
+    PtrData = Ptr;
+    if (PtrData) {
+        PtrData->AddRef();
+    }
+
+    return *this;
 }
 
 SymplNamespaceEnd

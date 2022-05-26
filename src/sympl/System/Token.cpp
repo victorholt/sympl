@@ -2,14 +2,25 @@
 // GameSencha, LLC 5/24/22.
 //
 #include "Token.hpp"
+#include "LexerPosition.hpp"
 #include <fmt/format.h>
 SymplNamespace;
 
-Token::Token(TokenType Type, CStrPtr ValueStr, size_t pStartPosition, size_t pEndPosition) : Type(Type)
+Token::Token(TokenType Type, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition) : Type(Type)
 {
     Value = nullptr;
-	StartPosition = pStartPosition;
-	EndPosition = pEndPosition;
+    StartPosition = nullptr;
+    EndPosition = nullptr;
+
+    if (pStartPosition.IsValid()) {
+        StartPosition = pStartPosition->Copy();
+        EndPosition = pStartPosition->Copy();
+        EndPosition->Advance();
+    }
+
+    if (pEndPosition.IsValid()) {
+        EndPosition = pEndPosition;
+    }
 
     if (ValueStr) {
         Value = std::make_shared<StrPtr>(new char[strlen(ValueStr) + 1]);
@@ -17,7 +28,7 @@ Token::Token(TokenType Type, CStrPtr ValueStr, size_t pStartPosition, size_t pEn
     }
 
 	// Zero out the tmp string.
-	memset(TmpAlloc_ToString, 0, strlen(TmpAlloc_ToString));
+	memset(TmpAlloc_ToString, 0, sizeof(TmpAlloc_ToString));
 }
 
 Token::Token(Token* CopyToken)
@@ -60,7 +71,7 @@ CStrPtr Token::ToString()
 	}
 
 	// Zero out the tmp string.
-	memset(TmpAlloc_ToString, 0, strlen(TmpAlloc_ToString));
+	memset(TmpAlloc_ToString, 0, sizeof(TmpAlloc_ToString));
 
 	if (Value && strlen(*Value) > 0) {
 		strcpy(TmpAlloc_ToString, fmt::format("{0}:{1}", TypeStr, *Value).c_str());

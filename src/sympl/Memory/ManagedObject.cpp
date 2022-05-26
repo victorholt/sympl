@@ -6,19 +6,24 @@ SymplNamespace
 
 ManagedObject::ManagedObject()
 {
+    Block = nullptr;
 }
 
 ManagedObject::~ManagedObject()
 {
-	Release();
 }
 
-void ManagedObject::Release()
+int ManagedObject::Release()
 {
-	if (Block)
+    auto Result = SharedPtrRef::Release();
+
+	if (Result == 0 && Block && Block->BlockIndex > 0)
 	{
 		MemPool::Instance()->FreeBlock(Block->BlockIndex);
+        Block = nullptr;
 	}
+
+    return Result;
 }
 
 

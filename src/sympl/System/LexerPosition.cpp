@@ -23,6 +23,11 @@ void LexerPosition::Advance(char CurrentCharacter)
     }
 }
 
+LexerPosition* LexerPosition::Copy() const
+{
+    return new LexerPosition(Index, LineNumber, LineCol, FileName.c_str(), FileText.c_str());
+}
+
 LexerPosition& LexerPosition::operator=(const LexerPosition& rhs)
 {
     Index = rhs.Index;

@@ -18,20 +18,6 @@ public:
 	SharedPtr<ManagedObject> ParserNode;
 
 	/**
-	 * Registers a parse result.
-	 * @param Result
-	 * @return
-	 */
-	SharedPtr<ManagedObject> RegisterResult(SharedPtr<ParseResult> Result);
-
-	/**
-	 * Registers a parse node.
-	 * @param Node
-	 * @return
-	 */
-	SharedPtr<ManagedObject> RegisterNode(SharedPtr<ManagedObject> Node);
-
-	/**
 	 * Handles the success.
 	 * @param Node
 	 */

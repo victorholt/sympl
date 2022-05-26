@@ -3,10 +3,11 @@
 //
 #pragma once
 #include "SymplPCH.hpp"
+#include <sympl/Memory/ManagedObject.hpp>
 
 SymplNamespaceStart
 
-class LexerPosition
+class LexerPosition : public ManagedObject
 {
 private:
     // Index of the position.
@@ -40,7 +41,13 @@ public:
      * Advances the lexer position.
      * @param CurrentCharacter
      */
-    void Advance(char CurrentCharacter);
+    void Advance(char CurrentCharacter = '\0');
+
+    /**
+     * Copies the values of the position.
+     * @return
+     */
+    LexerPosition* Copy() const;
 
     /**
      * Handles copying the object.

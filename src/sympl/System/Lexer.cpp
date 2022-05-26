@@ -8,11 +8,11 @@
 SymplNamespace
 
 Lexer::Lexer(CStrPtr FileName, CStrPtr Text) :
-    Position(std::make_unique<LexerPosition*>(new LexerPosition(0, 1, 0, FileName, Text))),
+    Position(SharedPtr<LexerPosition>(new LexerPosition(0, 1, 0, FileName, Text))),
     CurrentChar('\0')
 {
 	Buffer = new char[strlen(Text) + 1];
-	memset(Buffer, 0, strlen(Text));
+	memset(Buffer, 0, strlen(Text) + 1);
     strcpy(Buffer, Text);
 
 	Digits = {'0','1','2','3','4','5','6','7','8','9'};
@@ -25,7 +25,7 @@ Lexer::~Lexer()
 
 void Lexer::Advance()
 {
-    const size_t index = (*Position)->GetIndex();
+    const size_t index = Position->GetIndex();
 
 	if (index >= strlen(Buffer)) {
 		CurrentChar = '\0';
@@ -33,7 +33,7 @@ void Lexer::Advance()
 	}
 
 	CurrentChar = Buffer[index];
-    (*Position)->Advance(CurrentChar);
+    Position->Advance(CurrentChar);
 }
 
 void Lexer::MakeTokens()
@@ -55,27 +55,27 @@ void Lexer::MakeTokens()
 
 		// Check for tokens.
 		if (CurrentChar == '+') {
-			TokenList.emplace_back(Token(TokenType::Plus, nullptr));
+			TokenList.emplace_back(Token(TokenType::Plus, nullptr, Position));
 			Advance();
 		}
 		else if (CurrentChar == '-') {
-			TokenList.emplace_back(Token(TokenType::Minus, nullptr));
+			TokenList.emplace_back(Token(TokenType::Minus, nullptr, Position));
 			Advance();
 		}
 		else if (CurrentChar == '*') {
-			TokenList.emplace_back(Token(TokenType::Mul, nullptr));
+			TokenList.emplace_back(Token(TokenType::Mul, nullptr, Position));
 			Advance();
 		}
 		else if (CurrentChar == '/') {
-			TokenList.emplace_back(Token(TokenType::Div, nullptr));
+			TokenList.emplace_back(Token(TokenType::Div, nullptr, Position));
 			Advance();
 		}
 		else if (CurrentChar == '(') {
-			TokenList.emplace_back(Token(TokenType::LH_Parenth, nullptr));
+			TokenList.emplace_back(Token(TokenType::LH_Parenth, nullptr, Position));
 			Advance();
 		}
 		else if (CurrentChar == ')') {
-			TokenList.emplace_back(Token(TokenType::RH_Parenth, nullptr));
+			TokenList.emplace_back(Token(TokenType::RH_Parenth, nullptr, Position));
 			Advance();
 		}
 		else {
@@ -85,14 +85,16 @@ void Lexer::MakeTokens()
                 fmt::format(
                     "'{0}' on Line: {1} (Col: {2}) > {3}",
                     CurrentChar,
-                    (*Position)->GetLineNumber(),
-                    (*Position)->GetLineCol(),
-                    (*Position)->GetFileName()
+                    Position->GetLineNumber(),
+                    Position->GetLineCol(),
+                    Position->GetFileName()
                 ).c_str()
             ));
 			return;
 		}
 	}
+
+    TokenList.emplace_back(Token(TokenType::EndOfFile, nullptr, Position));
 }
 
 Token Lexer::MakeNumberToken()
@@ -101,6 +103,8 @@ Token Lexer::MakeNumberToken()
 	char NumberStr[64];
 	short NumberStrIndex = 0;
 	memset(NumberStr, 0, 64);
+
+    SharedPtr<LexerPosition> StartPosition = Position->Copy();
 
 	while (CurrentChar != '\0' &&
 	( std::find(Digits.begin(), Digits.end(), CurrentChar) != Digits.end() ||
@@ -114,8 +118,8 @@ Token Lexer::MakeNumberToken()
 	}
 
 	if (isFloat) {
-		return {TokenType::Float, NumberStr};
+		return {TokenType::Float, NumberStr, StartPosition, Position};
 	}
 
-	return {TokenType::Int, NumberStr };
+	return {TokenType::Int, NumberStr, StartPosition, Position};
 }

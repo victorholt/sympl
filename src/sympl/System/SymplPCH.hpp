@@ -170,6 +170,7 @@ SymplNamespaceStart
 enum class TokenType
 {
     Null = 0,
+    EndOfFile,
     Int,
     Float,
     Plus,

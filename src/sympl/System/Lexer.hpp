@@ -4,6 +4,7 @@
 #pragma once
 
 #include "SymplPCH.hpp"
+#include <sympl/Memory/SharedPtr.hpp>
 
 SymplNamespaceStart
 
@@ -23,7 +24,7 @@ private:
 	char CurrentChar;
 
 	// Current buffer position.
-	std::unique_ptr<class LexerPosition*> Position;
+	SharedPtr<class LexerPosition> Position;
 
 	// Digits to check for.
 	std::vector<char> Digits;

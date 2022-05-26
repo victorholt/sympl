@@ -30,8 +30,8 @@ void MemPool::FreeBlock(size_t Index)
 	MemBlock* Block = Blocks[Block->BlockIndex];
 	Block->Active = false;
 
-	ManagedObject* Object = reinterpret_cast<ManagedObject*>(Block->Bytes);
-	Object->~ManagedObject();
+	auto Object = reinterpret_cast<ManagedObject*>(Block->Bytes);
+	Object->Release();
 }
 
 void MemPool::Clear()

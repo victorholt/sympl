@@ -3,6 +3,7 @@
 //
 #include "Parser.hpp"
 #include "Token.hpp"
+#include "LexerPosition.hpp"
 #include "InvalidSyntaxError.hpp"
 SymplNamespace
 
@@ -15,7 +16,19 @@ Parser::Parser(const std::vector<class Token>& pTokenList)
 
 SharedPtr<ParseResult> Parser::Parse()
 {
-    return Expression();
+    auto Result = Expression();
+    assert(Result.IsValid());
+
+    if (Result->Error.IsValid() || CurrentToken->GetType() != TokenType::EndOfFile)
+    {
+        Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition()->GetLineNumber(),
+                CurrentToken->GetEndPosition()->GetLineCol(),
+                fmt::format("Expected '+', '-', '*' or '/', got {0}", CurrentToken->ToString()).c_str()
+        ));
+    }
+
+    return Result;
 }
 
 void Parser::Advance()
@@ -41,15 +54,18 @@ SharedPtr<ParseResult> Parser::Factor()
 			return Result;
     }
 
-	Result->Failure(new InvalidSyntaxError(FactorToken->ToString()));
+	Result->Failure(new InvalidSyntaxError(
+            FactorToken->GetStartPosition()->GetLineNumber(),
+            FactorToken->GetEndPosition()->GetLineCol(),
+            fmt::format("Expected int or float, got {0}", FactorToken->ToString()).c_str()
+    ));
 
 	return Result;
 }
 
 SharedPtr<ParseResult> Parser::Term()
 {
-	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
-    return BinaryOperation(
+	return BinaryOperation(
         [=] { return Factor(); },
         { TokenType::Mul, TokenType::Div }
     );
@@ -60,7 +76,9 @@ SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResu
 	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
 	auto LeftNodeResult = OpMethod();
 
-	assert(!LeftNodeResult->Error.IsValid());
+    if (LeftNodeResult->Error.IsValid()) {
+        return LeftNodeResult;
+    }
 
     while (std::find(ValidOps.begin(), ValidOps.end(), CurrentToken->GetType()) != ValidOps.end())
     {
@@ -68,7 +86,9 @@ SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResu
         Advance();
 
         auto RightNodeResult = OpMethod();
-		assert(RightNodeResult->Error.IsValid());
+        if (RightNodeResult->Error.IsValid()) {
+            return RightNodeResult;
+        }
 
 		auto LeftNode = new ParserBinaryNode(
 			static_cast<ParserNumberNode*>(LeftNodeResult->ParserNode.Ptr()),
@@ -84,8 +104,7 @@ SharedPtr<ParseResult> Parser::BinaryOperation(std::function<SharedPtr<ParseResu
 
 SharedPtr<ParseResult> Parser::Expression()
 {
-	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
-    return BinaryOperation(
+	return BinaryOperation(
             [=] { return Term(); },
             { TokenType::Plus, TokenType::Minus }
     );

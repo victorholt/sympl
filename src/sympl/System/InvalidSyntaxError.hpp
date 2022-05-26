@@ -12,9 +12,11 @@ public:
 
 	/**
 	 * Constructor.
+	 * @param StartPosition
+	 * @param EndPosition
 	 * @param ErrorDetails
 	 */
-	InvalidSyntaxError(CStrPtr ErrorDetails);
+	InvalidSyntaxError(size_t StartPosition, size_t EndPosition, CStrPtr ErrorDetails);
 };
 
 SymplNamespaceEnd

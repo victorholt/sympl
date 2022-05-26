@@ -6,8 +6,8 @@ SymplNamespace
 
 SymplError::SymplError(CStrPtr Name, CStrPtr Details)
 {
-	memset(ErrorName, 0, strlen(ErrorName));
-	memset(ErrorDetails, 0, strlen(ErrorDetails));
+	memset(ErrorName, 0, sizeof(ErrorName));
+	memset(ErrorDetails, 0, sizeof(ErrorDetails));
 
 	strcpy(ErrorName, Name);
 	strcpy(ErrorDetails, Details);
@@ -15,7 +15,7 @@ SymplError::SymplError(CStrPtr Name, CStrPtr Details)
 
 CStrPtr SymplError::ToString()
 {
-	memset(TmpError_String, 0, strlen(TmpError_String));
+	memset(TmpError_String, 0, sizeof(TmpError_String));
 	strcpy(TmpError_String, fmt::format("<{0}>: {1}", ErrorName, ErrorDetails).c_str());
 
 	return TmpError_String;

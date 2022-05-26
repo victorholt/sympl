@@ -13,7 +13,7 @@ ParserNumberNode::ParserNumberNode(Token* pNodeToken)
 
 CStrPtr ParserNumberNode::ToString()
 {
-    memset(TmpNodeString_Allocate, 0, strlen(TmpNodeString_Allocate));
+    memset(TmpNodeString_Allocate, 0, sizeof(TmpNodeString_Allocate));
     strcpy(TmpNodeString_Allocate, NodeToken->ToString());
 
     return TmpNodeString_Allocate;

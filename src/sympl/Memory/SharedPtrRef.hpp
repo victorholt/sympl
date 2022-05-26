@@ -10,7 +10,7 @@ class SharedPtrRef
 {
 public:
 	// Reference count.
-	size_t Count = 0;
+	size_t RefCount = 0;
 
 	/**
 	 * Adds to the reference count.
@@ -18,18 +18,18 @@ public:
 	void AddRef()
 	{
 		// Increment the reference count
-		Count++;
+        RefCount++;
 	}
 
 	/**
 	 * Subtracts the reference count.
 	 * @return
 	 */
-	int Release()
+	virtual int Release()
 	{
 		// Decrement the reference count and
 		// return the reference count.
-		return --Count;
+		return --RefCount;
 	}
 
 	/**
@@ -43,7 +43,7 @@ public:
 			return *this;
 		}
 
-		Count = rhs.Count;
+        RefCount = rhs.RefCount;
 
 		return *this;
 	}

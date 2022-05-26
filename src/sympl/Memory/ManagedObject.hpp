@@ -6,21 +6,15 @@
 #include "MemBlock.hpp"
 #include "MemPool.hpp"
 #include "SharedPtr.hpp"
+#include "SharedPtrRef.hpp"
 
 SymplNamespaceStart
 
-class ManagedObject
+class ManagedObject : public SharedPtrRef
 {
 private:
 	// Reference to the memory block.
 	MemBlock* Block;
-
-protected:
-
-	/**
-	 * Subtract from the reference count.
-	 */
-	void Release();
 
 public:
 	/**
@@ -32,6 +26,11 @@ public:
 	 * Destructor.
 	 */
 	~ManagedObject();
+
+    /**
+	 * Subtract from the reference count.
+	 */
+    virtual int Release() override;
 
 	/**
 	 * Makes a new managed object.

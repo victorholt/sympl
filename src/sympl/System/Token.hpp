@@ -4,6 +4,7 @@
 #pragma once
 
 #include "SymplPCH.hpp"
+#include <sympl/Memory/SharedPtr.hpp>
 
 SymplNamespaceStart
 
@@ -18,10 +19,10 @@ private:
 	std::shared_ptr<StrPtr> Value;
 
 	// Start position of the token.
-	size_t StartPosition = 0;
+	SharedPtr<class LexerPosition> StartPosition;
 
 	// End position of the token.
-	size_t EndPosition = 0;
+    SharedPtr<class LexerPosition> EndPosition;
 
 	// Temporary storage for holding the to string value.
 	char TmpAlloc_ToString[512];
@@ -35,7 +36,7 @@ public:
 	 * @param pStartPosition
 	 * @param pEndPosition
 	 */
-	Token(TokenType Type, CStrPtr ValueStr, size_t pStartPosition, size_t pEndPosition);
+	Token(TokenType Type, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition = nullptr);
 
     /**
      * Constructor.
@@ -72,13 +73,13 @@ public:
 	 * Returns the start position.
 	 * @return
 	 */
-	inline size_t GetStartPosition() const { return StartPosition; }
+	inline SharedPtr<LexerPosition> GetStartPosition() const { return StartPosition; }
 
 	/**
 	 * Returns the end position.
 	 * @return
 	 */
-	inline size_t GetEndPosition() const { return EndPosition; }
+	inline SharedPtr<LexerPosition> GetEndPosition() const { return EndPosition; }
 };
 
 SymplNamespaceEnd

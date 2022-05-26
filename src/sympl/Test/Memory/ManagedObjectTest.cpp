@@ -6,11 +6,14 @@ SymplNamespace
 
 void ManagedObjectTest::Run()
 {
-	SharedPtr<ManagedClass> managedClass = ManagedObject::New<ManagedClass>();
+    auto mC = new ManagedClass();
+	SharedPtr<ManagedClass> managedClass = SharedPtr<ManagedClass>(mC); //ManagedObject::New<ManagedClass>();
 
 	{
 		SharedPtr<ManagedClass> managedClass1 = managedClass;
 		std::cout << "ManagedClass RefCount: " << managedClass.RefCount() << std::endl;
+
+//        managedClass = new ManagedClass();
 	}
 
 	std::cout << "ManagedClass RefCount: " << managedClass.RefCount() << std::endl;

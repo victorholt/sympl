@@ -4,6 +4,7 @@
 #pragma once
 #include "SymplPCH.hpp"
 #include "ParserNumberNode.hpp"
+#include <sympl/Memory/SharedPtr.hpp>
 
 SymplNamespaceStart
 
@@ -11,9 +12,9 @@ class ParserBinaryNode : public ParserNumberNode
 {
 public:
     // Reference to the left node.
-    ParserNumberNode* LeftNode;
+    SharedPtr<ParserNumberNode> LeftNode;
     // Reference to the right node.
-    ParserNumberNode* RightNode;
+    SharedPtr<ParserNumberNode> RightNode;
 
     /**
      * Constructor
@@ -21,7 +22,7 @@ public:
      * @param pNodeToken
      * @param pRightNode
      */
-    ParserBinaryNode(ParserNumberNode* pLeftNode, class Token* pNodeToken, ParserNumberNode* pRightNode);
+    ParserBinaryNode(const SharedPtr<ParserNumberNode>& pLeftNode, class Token* pNodeToken, const SharedPtr<ParserNumberNode>& pRightNode);
 
     /**
      * Returns the string representation of the node.
