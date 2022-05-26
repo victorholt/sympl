@@ -19,7 +19,7 @@ int main()
             break;
         }
 
-        Lexer lexer("stdin", code.c_str());
+        Lexer lexer("<stdin>", code.c_str());
 
         lexer.MakeTokens();
         auto tokens = lexer.GetTokens();
@@ -31,6 +31,8 @@ int main()
             for (auto& error: errors) {
                 cout << error.ToString() << endl;
             }
+
+            continue;
         }
 
         Parser parser(tokens);
@@ -38,13 +40,15 @@ int main()
 
         if (node->Error.IsValid()) {
             cout << node->Error->ToString() << endl;
-        } else {
-            cout << node->ParserNodePtr->ToString() << endl;
+            continue;
         }
 
         // Run the program.
+        auto context = SharedPtr<ParserContext>(new ParserContext());
+        context->Create(nullptr, nullptr, "<program>");
+
         auto program = SharedPtr<Interpreter>(new Interpreter());
-        auto result = program->Visit(node->ParserNodePtr);
+        auto result = program->Visit(node->ParserNodePtr, context);
 
         if (result->Error.IsValid())
         {

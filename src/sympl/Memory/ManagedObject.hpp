@@ -33,7 +33,8 @@ public:
     virtual int Release() override;
 
 	/**
-	 * Makes a new managed object.
+	 * Creates a new managed object.
+	 * @tparam T
 	 * @return
 	 */
 	template<class T>
@@ -49,6 +50,50 @@ public:
 		return SharedPtr<T>(static_cast<T*>(NewObject));
 	}
 
+    /**
+     * Creates a new managed object.
+     * @tparam T
+     * @tparam R
+     * @return
+     */
+    template<class T, class R>
+    static SharedPtr<R> New()
+    {
+        size_t ObjectSize = sizeof(T);
+        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+
+        ManagedObject* NewObject = new(Block->Bytes) T();
+        NewObject->Block = Block;
+
+        return SharedPtr<R>(static_cast<R*>(NewObject));
+    }
+
+    /**
+     * Allocates memory without using the memory pool.
+     * @tparam T
+     * @return
+     */
+    template<class T>
+    static SharedPtr<T> Alloc()
+    {
+        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
+        ManagedObject* NewObject = new(Bytes) T();
+        return SharedPtr<T>(static_cast<T*>(NewObject));
+    }
+
+    /**
+     * Allocates memory without using the memory pool.
+     * @tparam T
+     * @tparam R
+     * @return
+     */
+    template<class T, class R>
+    static SharedPtr<R> Alloc()
+    {
+        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
+        ManagedObject* NewObject = new(Bytes) T();
+        return SharedPtr<R>(dynamic_cast<R*>(NewObject));
+    }
 };
 
 SymplNamespaceEnd

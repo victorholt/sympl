@@ -3,6 +3,7 @@
 //
 #include "Interpreter.hpp"
 #include "sympl/Parser/Token.hpp"
+#include "sympl/Parser/ParserContext.hpp"
 #include "sympl/Parser/Error/ParserError.hpp"
 #include "sympl/Parser/Error/RuntimeError.hpp"
 #include "sympl/Parser/Node/ParserNumberNode.hpp"
@@ -13,28 +14,28 @@
 #include "sympl/Parser/ParserRuntimeResult.hpp"
 SymplNamespace
 
-SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node)
+SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     switch (Node->Type)
     {
         case ParseNodeType::Number:
         {
-            return VisitNumberNode(Node);
+            return VisitNumberNode(Node, Context);
         }
         case ParseNodeType::Binary:
         {
-            return VisitBinaryOpNode(Node);
+            return VisitBinaryOpNode(Node, Context);
         }
         case ParseNodeType::Unary:
         {
-            return VisitUnaryOpNode(Node);
+            return VisitUnaryOpNode(Node, Context);
         }
     }
 
-    return NoVisit(Node);
+    return NoVisit(Node, Context);
 }
 
-SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode> Node)
+SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = SharedPtr<ParserRuntimeResult>(new ParserRuntimeResult());
     char* pNumEnd;
@@ -43,12 +44,16 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode
 
     if (NodeToken->GetType() == TokenType::Int)
     {
-        ValueResult = SharedPtr<ValueHandle>(new IntHandle());
+        ValueResult = IntHandle::Alloc<IntHandle, ValueHandle>();
+        ValueResult->Context = Context;
+
         dynamic_cast<IntHandle*>(ValueResult.Ptr())->SetValue(static_cast<int>(std::strtol(Node->NodeToken->GetValue(), &pNumEnd, 10)));
     }
     else if (NodeToken->GetType() == TokenType::Float)
     {
-        ValueResult = SharedPtr<ValueHandle>(new FloatHandle());
+        ValueResult = FloatHandle::Alloc<FloatHandle, ValueHandle>();
+        ValueResult->Context = Context;
+
         dynamic_cast<FloatHandle*>(ValueResult.Ptr())->SetValue(static_cast<float>(std::strtof(Node->NodeToken->GetValue(), &pNumEnd)));
     }
     ValueResult->SetPosition(Node->StartPosition, Node->EndPosition);
@@ -57,17 +62,17 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNode> Node)
+SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = SharedPtr<ParserRuntimeResult>(new ParserRuntimeResult());
     auto OpNode = static_cast<ParserBinaryOpNode*>(Node.Ptr());
 
-    auto Left = Result->Register(Visit(OpNode->LeftNode));
+    auto Left = Result->Register(Visit(OpNode->LeftNode, Context));
     if (Result->Error.IsValid()) {
         return Result;
     }
 
-    auto Right = Result->Register(Visit(OpNode->RightNode));
+    auto Right = Result->Register(Visit(OpNode->RightNode, Context));
     if (Result->Error.IsValid()) {
         return Result;
     }
@@ -117,12 +122,12 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNo
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNode> Node)
+SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
-    auto Result = SharedPtr<ParserRuntimeResult>(new ParserRuntimeResult());
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     auto OpNode = dynamic_cast<ParserUnaryOpNode*>(Node.Ptr());
 
-    auto ValueResult = Result->Register(Visit(OpNode->Node));
+    auto ValueResult = Result->Register(Visit(OpNode->Node, Context));
     if (Result->Error.IsValid()) {
         return Result;
     }
@@ -130,7 +135,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
     if (Node->NodeToken->GetType() == TokenType::Minus)
     {
         auto Number = SharedPtr<NumberHandle>(dynamic_cast<NumberHandle*>(ValueResult.Ptr()));
-        auto NegOneNumber = SharedPtr<NumberHandle>(new IntHandle());
+        auto NegOneNumber = IntHandle::Alloc<IntHandle, NumberHandle>();
         NegOneNumber->SetIntValue(-1);
         ValueResult = Number->MultiplyBy(NegOneNumber).Ptr();
     }
@@ -146,10 +151,11 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> Interpreter::NoVisit(SharedPtr<ParserNode> Node)
+SharedPtr<ParserRuntimeResult> Interpreter::NoVisit(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
-    auto Result = SharedPtr<ParserRuntimeResult>(new ParserRuntimeResult());
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
+        Context,
         Node->StartPosition,
         Node->EndPosition,
         "Parser unable to interpret code"

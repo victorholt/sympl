@@ -8,15 +8,41 @@ SymplNamespaceStart
 
 class RuntimeError : public ParserError
 {
+protected:
+    // Start position.
+    SharedPtr<class LexerPosition> StartPosition;
+    // End position.
+    SharedPtr<class LexerPosition> EndPosition;
+
 public:
+    // Reference to the context.
+    SharedPtr<class ParserContext> Context;
 
     /**
      * Constructor.
-     * @param StartPosition
-     * @param EndPosition
+     * @param pContext
+     * @param pStartPosition
+     * @param pEndPosition
      * @param ErrorDetails
      */
-    RuntimeError(const SharedPtr<class LexerPosition>& StartPosition, const SharedPtr<class LexerPosition>& EndPosition, CStrPtr ErrorDetails);
+    RuntimeError(
+        const SharedPtr<class ParserContext>& pContext,
+        const SharedPtr<class LexerPosition>& pStartPosition,
+        const SharedPtr<class LexerPosition>& pEndPosition,
+        CStrPtr ErrorDetails
+    );
+
+    /**
+     * Generates a traceback string.
+     * @return
+     */
+    SharedPtr<class StringBuffer> GenerateTraceback();
+
+    /**
+	 * Returns string of the error.
+	 * @return
+	 */
+    virtual CStrPtr ToString() override;
 };
 
 SymplNamespaceEnd

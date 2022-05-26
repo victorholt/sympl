@@ -2,21 +2,22 @@
 // GameSencha, LLC 5/24/22.
 //
 #include "ParserError.hpp"
+#include <sympl/Core/StringBuffer.hpp>
+#include <fmt/format.h>
 SymplNamespace
 
 ParserError::ParserError(CStrPtr Name, CStrPtr Details)
 {
-	memset(ErrorName, 0, sizeof(ErrorName));
-	memset(ErrorDetails, 0, sizeof(ErrorDetails));
+    ErrorName = StringBuffer::Alloc<StringBuffer>();
+    ErrorDetails = StringBuffer::Alloc<StringBuffer>();
+    ErrorMessage = StringBuffer::Alloc<StringBuffer>();
 
-	strcpy(ErrorName, Name);
-	strcpy(ErrorDetails, Details);
+    ErrorName->Append(Name);
+    ErrorDetails->Append(Details);
 }
 
 CStrPtr ParserError::ToString()
 {
-	memset(TmpError_String, 0, sizeof(TmpError_String));
-	strcpy(TmpError_String, fmt::format("<{0}>: {1}", ErrorName, ErrorDetails).c_str());
-
-	return TmpError_String;
+    ErrorMessage->Set(fmt::format("<{0}>: {1}", ErrorName->CStr(), ErrorDetails->CStr()).c_str());
+	return ErrorMessage->CStr();
 }

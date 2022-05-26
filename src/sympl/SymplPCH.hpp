@@ -160,6 +160,12 @@
 
 #include "sympl/thirdparty/fmt/format.h"
 
+// Helpers
+#define alloc_bytes(type) new type()
+#define alloc_bytes_array(type, amount) (type*)calloc(amount, sizeof(type))
+#define free_bytes(ref) delete ref; ref = nullptr
+#define free_bytes_array(ref) free(ref); ref = nullptr
+
 // Definitions
 typedef const char* CStrPtr;
 typedef char* StrPtr;

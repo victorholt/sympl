@@ -19,6 +19,7 @@ add_library(SymplParserLib
 
 target_link_libraries(
     SymplParserLib
+    SymplCoreLib
     fmtLib
     ${SymplAppleLibs}
 )

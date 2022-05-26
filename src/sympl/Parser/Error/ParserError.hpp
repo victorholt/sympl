@@ -10,10 +10,12 @@ SymplNamespaceStart
 class ParserError : public ManagedObject
 {
 protected:
-
-	char ErrorName[64];
-	char ErrorDetails[2048];
-	char TmpError_String[2112];
+    // Error name string.
+    SharedPtr<class StringBuffer> ErrorName;
+    // Error details string.
+    SharedPtr<class StringBuffer> ErrorDetails;
+    // Error message string.
+    SharedPtr<class StringBuffer> ErrorMessage;
 
 public:
 
@@ -31,7 +33,7 @@ public:
 	 * Returns string of the error.
 	 * @return
 	 */
-	CStrPtr ToString();
+	virtual CStrPtr ToString();
 };
 
 SymplNamespaceEnd

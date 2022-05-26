@@ -15,30 +15,35 @@ FloatHandle::FloatHandle()
 
 SharedPtr<NumberHandle> FloatHandle::AddTo(const SharedPtr<NumberHandle>& handle)
 {
-    auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+    auto NewNumber = FloatHandle::Alloc<FloatHandle>();
+    NewNumber->Context = Context;
     NewNumber->Value.FloatNum = Value.FloatNum + handle->Value.FloatNum;
     return NewNumber.Ptr();
 }
 
 SharedPtr<NumberHandle> FloatHandle::SubtractBy(const SharedPtr<NumberHandle>& handle)
 {
-    auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+    auto NewNumber = FloatHandle::Alloc<FloatHandle>();
+    NewNumber->Context = Context;
     NewNumber->Value.FloatNum = Value.FloatNum - handle->Value.FloatNum;
     return NewNumber.Ptr();
 }
 
 SharedPtr<NumberHandle> FloatHandle::MultiplyBy(const SharedPtr<NumberHandle>& handle)
 {
-    auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+    auto NewNumber = FloatHandle::Alloc<FloatHandle>();
+    NewNumber->Context = Context;
     NewNumber->Value.FloatNum = Value.FloatNum * handle->Value.FloatNum;
     return NewNumber.Ptr();
 }
 SharedPtr<NumberHandle> FloatHandle::DivideBy(const SharedPtr<NumberHandle>& handle)
 {
-    auto NewNumber = SharedPtr<FloatHandle>(new FloatHandle());
+    auto NewNumber = FloatHandle::Alloc<FloatHandle>();
+    NewNumber->Context = Context;
 
     if (handle->Value.IntNum == 0) {
         NewNumber->Error = SharedPtr<RuntimeError>(new RuntimeError(
+                Context,
                 StartPosition,
                 EndPosition,
                 "Division by zero"

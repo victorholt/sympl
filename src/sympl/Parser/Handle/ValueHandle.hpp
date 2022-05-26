@@ -10,8 +10,12 @@ SymplNamespaceStart
 class ValueHandle : public ManagedObject
 {
 public:
+    // Type of value.
     ValueType Type = ValueType::Int;
+    // Error from the value.
     SharedPtr<class ParserError> Error;
+    // Context of the value.
+    SharedPtr<class ParserContext> Context;
 
 protected:
 

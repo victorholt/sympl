@@ -15,6 +15,7 @@ add_library(SymplTestLib
 
 target_link_libraries(
     SymplTestLib
+    SymplCoreLib
     SymplMemoryLib
     SymplParserLib
     fmtLib
