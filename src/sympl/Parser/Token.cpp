@@ -42,10 +42,15 @@ void Token::Create(TokenType pType, CStrPtr ValueStr, SharedPtr<LexerPosition> p
 	memset(TmpAlloc_ToString, 0, sizeof(TmpAlloc_ToString));
 }
 
-void Token::Copy(SharedPtr<Token> CopyToken)
+void Token::CopyFrom(SharedPtr<Token> CopyToken)
 {
     Type = CopyToken->Type;
     Value = CopyToken->Value;
+}
+
+SharedPtr<Token> Token::Copy()
+{
+    return Token::Alloc<Token>(4, Type, Value->CStr(), StartPosition.Ptr(), EndPosition.Ptr());
 }
 
 CStrPtr Token::GetValue() const

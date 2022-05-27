@@ -41,6 +41,23 @@ public:
     void SetPosition(SharedPtr<class LexerPosition> pStartPosition, SharedPtr<class LexerPosition> pEndPosition);
 
     /**
+     * Creates a copy of the value.
+     * @return
+     */
+    template<class T>
+    static SharedPtr<T> BaseCopy(const T* BaseHandle)
+    {
+        auto NewValue = ValueHandle::Alloc<T>();
+        NewValue->Type = BaseHandle->Type;
+        NewValue->SetPosition(BaseHandle->StartPosition->Copy(), BaseHandle->EndPosition->Copy());
+        NewValue->Context = BaseHandle->Context;
+        return NewValue;
+    }
+
+    [[nodiscard]]
+    virtual SharedPtr<ValueHandle> Copy() const;
+
+    /**
      * Returns a string of the value.
      * @return
      */

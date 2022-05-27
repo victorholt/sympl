@@ -187,7 +187,10 @@ enum class TokenType
     Div,
     Power,
     LH_Parenth,
-    RH_Parenth
+    RH_Parenth,
+    Identifier,
+    Keyword,
+    Equals
 };
 
 enum class ParseNodeType
@@ -195,7 +198,9 @@ enum class ParseNodeType
     Null = 0,
     Number,
     Binary,
-    Unary
+    Unary,
+    VarAccess,
+    VarAssign
 };
 
 enum class ValueType
@@ -203,6 +208,11 @@ enum class ValueType
     Null = 0,
     Int,
     Float
+};
+
+// Valid keywords.
+static const std::vector<const char*> BuiltInKeywordList = {
+    "var"
 };
 
 SymplNamespaceEnd

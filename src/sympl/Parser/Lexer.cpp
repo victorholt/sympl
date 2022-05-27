@@ -18,6 +18,14 @@ Lexer::Lexer(CStrPtr FileName, CStrPtr Text) :
     Buffer->Set(Text);
 
 	Digits = {'0','1','2','3','4','5','6','7','8','9'};
+	Letters = {'a','b','c','d','e','f','g','h','i','j',
+               'k','l','m','n','o','p','q','r','s','t','u',
+               'v','w','x','y','z',
+               'A','B','C','D','E','F','G','H','I','J',
+               'K','L','M','N','O','P','Q','R','S','T','U',
+               'V','W','X','Y','Z',
+               '0','1','2','3','4','5','6','7','8','9',
+               '_'};
 }
 
 Lexer::~Lexer()
@@ -48,11 +56,16 @@ void Lexer::MakeTokens()
 			continue;
 		}
 
-		// Check if the character is a digit.
+        // Check if the character is a digit.
 		if (std::find(Digits.begin(), Digits.end(), CurrentChar) != Digits.end()) {
 			TokenList.emplace_back(MakeNumberToken());
 			continue;
 		}
+
+        if (std::find(Letters.begin(), Letters.end(), CurrentChar) != Letters.end()) {
+            TokenList.emplace_back(MakeIdentifier());
+            continue;
+        }
 
 		// Check for tokens.
 		if (CurrentChar == '+') {
@@ -73,6 +86,10 @@ void Lexer::MakeTokens()
 		}
         else if (CurrentChar == '^') {
             TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Power, nullptr, Position.Ptr(), nullptr));
+            Advance();
+        }
+        else if (CurrentChar == '=') {
+            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Equals, nullptr, Position.Ptr(), nullptr));
             Advance();
         }
 		else if (CurrentChar == '(') {
@@ -127,4 +144,27 @@ SharedPtr<Token> Lexer::MakeNumberToken()
 	}
 
 	return Token::Alloc<Token>(4, TokenType::Int, NumberStr, StartPosition.Ptr(), Position.Ptr());
+}
+
+SharedPtr<class Token> Lexer::MakeIdentifier()
+{
+    auto IdentifierStr = StringBuffer::Alloc<StringBuffer>();
+    auto StartPosition = Position->Copy();
+
+    while (CurrentChar != '\0' &&
+        ( std::find(Letters.begin(), Letters.end(), CurrentChar) != Letters.end()) )
+    {
+        IdentifierStr->AppendByte(CurrentChar);
+        Advance();
+    }
+
+    auto Result = Token::Alloc<Token>(
+        4,
+        IdentifierStr->IsWithin(BuiltInKeywordList) ? TokenType::Keyword : TokenType::Identifier,
+        IdentifierStr->CStr(),
+        StartPosition.Ptr(),
+        Position.Ptr()
+    );
+
+    return Result;
 }

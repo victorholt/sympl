@@ -45,6 +45,22 @@ public:
     SharedPtr<class ParserRuntimeResult> VisitUnaryOpNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
+     * Visits the variable access node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitVarAccessNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
+     * Visits the variable assign node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitVarAssignNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
      * Failed to visit a node.
      * @param Node
      * @param Context

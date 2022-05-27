@@ -63,6 +63,13 @@ SharedPtr<NumberHandle> IntHandle::PowerBy(const SharedPtr<NumberHandle>& handle
     return NewNumber.Ptr();
 }
 
+SharedPtr<ValueHandle> IntHandle::Copy() const
+{
+    auto NewValue = ValueHandle::BaseCopy<IntHandle>(this);
+    NewValue->Value = Value;
+    return dynamic_cast<ValueHandle*>(NewValue.Ptr());
+}
+
 CStrPtr IntHandle::ToString()
 {
     memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));

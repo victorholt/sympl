@@ -67,9 +67,9 @@ protected:
      * @return
      */
 	SharedPtr<ParseResult> BinaryOperation(
-        std::function<SharedPtr<ParseResult>()> LeftOpMethod,
+        const std::function<SharedPtr<ParseResult>()>& LeftOpMethod,
         const std::vector<TokenType>& ValidOps,
-        std::function<SharedPtr<ParseResult>()> RightOpMethod = nullptr
+        const std::function<SharedPtr<ParseResult>()>& RightOpMethod = nullptr
     );
 
     /**

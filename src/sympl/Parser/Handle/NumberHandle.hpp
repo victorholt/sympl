@@ -15,6 +15,17 @@ public:
     {
         long IntNum = 0;
         float FloatNum = 0.f;
+
+        NumberVariant& operator=(const NumberVariant& rhs) {
+            if (this == &rhs) {
+                return *this;
+            }
+
+            IntNum = rhs.IntNum;
+            FloatNum = rhs.FloatNum;
+
+            return *this;
+        }
     };
 
     // Value of the number.

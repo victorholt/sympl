@@ -99,6 +99,11 @@ public:
     //! \return bool
     bool Contains(const char* search);
 
+    //! Checks if this is within a list.
+    //! \param searchList
+    //! \return
+    bool IsWithin(const std::vector<const char*>& searchList);
+
     //! Returns a substr once it encounters the given string.
     //! \param c
     //! \return

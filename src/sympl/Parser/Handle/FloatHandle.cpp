@@ -63,6 +63,13 @@ SharedPtr<NumberHandle> FloatHandle::PowerBy(const SharedPtr<NumberHandle>& hand
     return NewNumber.Ptr();
 }
 
+SharedPtr<ValueHandle> FloatHandle::Copy() const
+{
+    auto NewValue = ValueHandle::BaseCopy<FloatHandle>(this);
+    NewValue->Value = Value;
+    return dynamic_cast<ValueHandle*>(NewValue.Ptr());
+}
+
 CStrPtr FloatHandle::ToString()
 {
     memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));

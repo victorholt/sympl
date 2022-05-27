@@ -5,6 +5,9 @@ SymplNamespace
 
 int main()
 {
+    auto globalSymbolTable = SymbolTable::Alloc<SymbolTable>();
+    globalSymbolTable->Set("null", nullptr);
+
     while (true) {
         std::string code;
         std::cout << "sympl> ";
@@ -42,6 +45,7 @@ int main()
         // Run the program.
         auto context = SharedPtr<ParserContext>(new ParserContext());
         context->Create(nullptr, nullptr, "<program>");
+        context->VariableSymbolTable = globalSymbolTable;
 
         auto program = SharedPtr<Interpreter>(new Interpreter());
         auto result = program->Visit(node->ParserNodePtr, context);

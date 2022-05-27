@@ -51,6 +51,13 @@ public:
     virtual SharedPtr<NumberHandle> PowerBy(const SharedPtr<NumberHandle>& handle) override;
 
     /**
+     * Copies the value to a new value handle.
+     * @return
+     */
+    [[nodiscard]]
+    SharedPtr<ValueHandle> Copy() const override;
+
+    /**
      * Returns a string of the value.
      * @return
      */

@@ -47,10 +47,16 @@ public:
 	void Create(TokenType pType, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition = nullptr);
 
     /**
-     * Constructor.
+     * Copies values from another token.
      * @param CopyToken
      */
-    void Copy(SharedPtr<Token> CopyToken);
+    void CopyFrom(SharedPtr<Token> CopyToken);
+
+    /**
+     * Creates a copy of the token.
+     * @return
+     */
+    SharedPtr<Token> Copy();
 
 	/**
 	 * Prints a nice representation of the token.

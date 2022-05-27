@@ -28,6 +28,8 @@ private:
 
 	// Digits to check for.
 	std::vector<char> Digits;
+    // Valid letters for the lexer.
+	std::vector<char> Letters;
 
 protected:
 
@@ -35,6 +37,12 @@ protected:
 	 * Generates a number.
 	 */
 	SharedPtr<class Token> MakeNumberToken();
+
+    /**
+     * Generates a string token.
+     * @return
+     */
+    SharedPtr<class Token> MakeIdentifier();
 
 public:
 

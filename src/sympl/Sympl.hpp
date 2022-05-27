@@ -38,12 +38,15 @@
 #include <sympl/Parser/Token.hpp>
 #include <sympl/Parser/LexerPosition.hpp>
 #include <sympl/Parser/Lexer.hpp>
+#include <sympl/Parser/SymbolTable.hpp>
 #include <sympl/Parser/Handle/ValueHandle.hpp>
 #include <sympl/Parser/Handle/IntHandle.hpp>
 #include <sympl/Parser/Handle/FloatHandle.hpp>
 #include <sympl/Parser/Node/ParserBinaryOpNode.hpp>
 #include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
 #include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
+#include <sympl/Parser/Node/VarAccessNode.hpp>
+#include <sympl/Parser/Node/VarAssignNode.hpp>
 #include <sympl/Parser/Parser.hpp>
 #include <sympl/Parser/ParserRuntimeResult.hpp>
 #include <sympl/Parser/ParserContext.hpp>

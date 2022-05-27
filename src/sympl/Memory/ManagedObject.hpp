@@ -15,6 +15,8 @@ class ManagedObject : public SharedPtrRef
 private:
 	// Reference to the memory block.
 	MemBlock* Block;
+    // Size of the object.
+    size_t ObjectSize = 0;
 
 public:
 	/**
@@ -38,6 +40,12 @@ public:
 	 */
     virtual int Release() override;
 
+    /**
+     * Performs a memory-based copy.
+     * @return
+     */
+    ManagedObject* MemCopy();
+
 	/**
 	 * Creates a new managed object.
 	 * @tparam T
@@ -52,6 +60,7 @@ public:
 //		ManagedObject* NewObject = reinterpret_cast<T*>(Block->Bytes);
 		ManagedObject* NewObject = new(Block->Bytes) T();
 		NewObject->Block = Block;
+        NewObject->ObjectSize = ObjectSize;
 
 		return SharedPtr<T>(static_cast<T*>(NewObject));
 	}
@@ -70,6 +79,7 @@ public:
 
         ManagedObject* NewObject = new(Block->Bytes) T();
         NewObject->Block = Block;
+        NewObject->ObjectSize = ObjectSize;
 
         return SharedPtr<R>(static_cast<R*>(NewObject));
     }
@@ -84,6 +94,7 @@ public:
     {
         char* Bytes = static_cast<char*>(malloc(sizeof(T)));
         ManagedObject* NewObject = new(Bytes) T();
+        NewObject->ObjectSize = sizeof(T);
 
         if (argc > 0) {
             va_list ArgList;
@@ -106,6 +117,7 @@ public:
     {
         char* Bytes = static_cast<char*>(malloc(sizeof(T)));
         ManagedObject* NewObject = new(Bytes) T();
+        NewObject->ObjectSize = sizeof(T);
 
         if (argc > 0) {
             va_list ArgList;

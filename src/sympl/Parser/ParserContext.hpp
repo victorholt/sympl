@@ -16,6 +16,8 @@ public:
     SharedPtr<class LexerPosition> ParentEntryPosition;
     // Reference to the display name.
     SharedPtr<class StringBuffer> DisplayName;
+    // Reference to the global symbol table.
+    SharedPtr<class SymbolTable> VariableSymbolTable;
 
     /**
      * Constructor.

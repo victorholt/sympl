@@ -21,6 +21,11 @@ void ValueHandle::SetPosition(SharedPtr<LexerPosition> pStartPosition, SharedPtr
     EndPosition = pEndPosition;
 }
 
+SharedPtr<ValueHandle> ValueHandle::Copy() const
+{
+    return ValueHandle::BaseCopy<ValueHandle>(this);
+}
+
 CStrPtr ValueHandle::ToString()
 {
     memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));

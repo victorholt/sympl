@@ -6,6 +6,8 @@
 #include "LexerPosition.hpp"
 #include "sympl/Parser/Error/InvalidSyntaxError.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
+#include "sympl/Parser/Node/VarAssignNode.hpp"
+#include "sympl/Parser/Node/VarAccessNode.hpp"
 SymplNamespace
 
 Parser::Parser(const std::vector<SharedPtr<Token>>& pTokenList)
@@ -50,13 +52,21 @@ SharedPtr<ParseResult> Parser::Atom()
     {
         case TokenType::Int:
         case TokenType::Float: {
+            Result->RegisterAdvance();
             Advance();
             Result->Success(ParserNumberNode::Alloc<ParserNumberNode, ParserNode>(1, FactorToken.Ptr()));
+            return Result;
+        }
+        case TokenType::Identifier: {
+            Result->RegisterAdvance();
+            Advance();
+            Result->Success(VarAccessNode::Alloc<VarAccessNode, ParserNode>(1, FactorToken.Ptr()));
             return Result;
         }
 
         case TokenType::LH_Parenth:
         {
+            Result->RegisterAdvance();
             Advance();
 
             // Recursively evaluate the expression.
@@ -68,6 +78,7 @@ SharedPtr<ParseResult> Parser::Atom()
             // We should end at the right parenth.
             if (CurrentToken->GetType() == TokenType::RH_Parenth)
             {
+                Result->RegisterAdvance();
                 Advance();
                 return Expr;
             }
@@ -86,7 +97,7 @@ SharedPtr<ParseResult> Parser::Atom()
     Result->Failure(new InvalidSyntaxError(
         FactorToken->GetStartPosition(),
         FactorToken->GetEndPosition(),
-        fmt::format("Expected int, float, '+', '-', or '(' got {0}", FactorToken->ToString()).c_str()
+        fmt::format("Expected int, float, identifier, '+', '-', or '(' got {0}", FactorToken->ToString()).c_str()
     ));
 
     return Result;
@@ -101,6 +112,7 @@ SharedPtr<ParseResult> Parser::Factor()
     {
         case TokenType::Plus:
         case TokenType::Minus: {
+            Result->RegisterAdvance();
             Advance();
             SharedPtr<ParseResult> ResultFactor = Factor();
             if (ResultFactor->Error.IsValid()) {
@@ -126,12 +138,12 @@ SharedPtr<ParseResult> Parser::Term()
 }
 
 SharedPtr<ParseResult> Parser::BinaryOperation(
-    std::function<SharedPtr<ParseResult>()> LeftOpMethod,
+    const std::function<SharedPtr<ParseResult>()>& LeftOpMethod,
     const std::vector<TokenType>& ValidOps,
-    std::function<SharedPtr<ParseResult>()> RightOpMethod
+    const std::function<SharedPtr<ParseResult>()>& RightOpMethod
 )
 {
-	SharedPtr<ParseResult> Result = SharedPtr<ParseResult>(new ParseResult());
+	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
 	auto LeftNodeResult = LeftOpMethod();
 
     if (LeftNodeResult->Error.IsValid()) {
@@ -141,6 +153,7 @@ SharedPtr<ParseResult> Parser::BinaryOperation(
     while (std::find(ValidOps.begin(), ValidOps.end(), CurrentToken->GetType()) != ValidOps.end())
     {
         Token* OpToken = CurrentToken;
+        Result->RegisterAdvance();
         Advance();
 
         auto RightNodeResult = RightOpMethod ? RightOpMethod() : LeftOpMethod();
@@ -172,8 +185,69 @@ SharedPtr<ParseResult> Parser::Power()
 
 SharedPtr<ParseResult> Parser::Expression()
 {
-	return BinaryOperation(
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
+    if (CurrentToken->GetType() == TokenType::Keyword)
+    {
+        if (strcmp(CurrentToken->GetValue(), "var") == 0) {
+            Result->RegisterAdvance();
+            Advance();
+
+            // Advanced and didn't find a proper identifier.
+            if (CurrentToken->GetType() != TokenType::Identifier)
+            {
+                Result->Failure(new InvalidSyntaxError(
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("Expected variable identifier, got {0}", CurrentToken->ToString()).c_str()
+                ));
+                return Result;
+            }
+
+            // We found an identifier and we can move forward.
+            auto VarName = CurrentToken->Copy();
+            Result->RegisterAdvance();
+            Advance();
+
+            // Ensure the next token is the set (=) identifier.
+            if (CurrentToken->GetType() != TokenType::Equals)
+            {
+                Result->Failure(new InvalidSyntaxError(
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("Expected = token, got {0}", CurrentToken->ToString()).c_str()
+                ));
+                return Result;
+            }
+
+            // Go to the value of the token.
+            Result->RegisterAdvance();
+            Advance();
+
+            auto ExprNode = Result->Register(Expression());
+            if (Result->Error.IsValid()) {
+                return Result;
+            }
+
+            Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(1, VarName.Ptr(), ExprNode.Ptr()));
+            return Result;
+        }
+    }
+
+	auto NodeBinOp = Result->Register(BinaryOperation(
         [=] { return Term(); },
         { TokenType::Plus, TokenType::Minus }
-    );
+    ));
+
+    if (Result->Error.IsValid()) {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("Expected var, int, float, identifier, '+', '-', or '(' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->Success(NodeBinOp);
+    return Result;
 }

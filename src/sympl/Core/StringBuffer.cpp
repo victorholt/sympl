@@ -314,6 +314,18 @@ bool StringBuffer::Contains(const char* search)
     return false;
 }
 
+bool StringBuffer::IsWithin(const std::vector<const char*>& searchList)
+{
+    for (const auto& str : searchList)
+    {
+        if (Contains(str)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::string StringBuffer::SubstrFirstOccurrence(const char c)
 {
     std::string ret;

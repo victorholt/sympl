@@ -3,15 +3,20 @@
 //
 #include "Interpreter.hpp"
 #include "sympl/Parser/Token.hpp"
+#include "sympl/Parser/SymbolTable.hpp"
 #include "sympl/Parser/ParserContext.hpp"
+#include "sympl/Parser/ParseResult.hpp"
 #include "sympl/Parser/Error/ParserError.hpp"
 #include "sympl/Parser/Error/RuntimeError.hpp"
 #include "sympl/Parser/Node/ParserNumberNode.hpp"
 #include "sympl/Parser/Node/ParserBinaryOpNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
+#include "sympl/Parser/Node/VarAccessNode.hpp"
+#include "sympl/Parser/Node/VarAssignNode.hpp"
 #include "sympl/Parser/Handle/IntHandle.hpp"
 #include "sympl/Parser/Handle/FloatHandle.hpp"
 #include "sympl/Parser/ParserRuntimeResult.hpp"
+#include <fmt/format.h>
 SymplNamespace
 
 SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
@@ -29,6 +34,14 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
         case ParseNodeType::Unary:
         {
             return VisitUnaryOpNode(Node, Context);
+        }
+        case ParseNodeType::VarAccess:
+        {
+            return VisitVarAccessNode(Node, Context);
+        }
+        case ParseNodeType::VarAssign:
+        {
+            return VisitVarAssignNode(Node, Context);
         }
     }
 
@@ -158,6 +171,47 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
     return Result;
 }
 
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    auto VarName = Node->NodeToken->GetValue();
+    auto Value = Context->VariableSymbolTable->Get(VarName);
+
+    if (!Value.IsValid()) {
+        Result->Failure(new RuntimeError(
+            Context,
+            Node->StartPosition,
+            Node->EndPosition,
+            fmt::format("'{0}' is not defined", VarName).c_str()
+        ));
+        return Result;
+    }
+
+    Value = Value->Copy();
+    Value->SetPosition(Node->StartPosition, Node->EndPosition);
+
+    Result->Success(Value);
+    return Result;
+}
+
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    auto VarName = Node->NodeToken->GetValue();
+
+    auto AssignNode = SharedPtr<VarAssignNode>(dynamic_cast<VarAssignNode*>(Node.Ptr()));
+    auto Value = Result->Register(Visit(AssignNode->Value, Context));
+
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
+
+    Context->VariableSymbolTable->Set(VarName, Value);
+
+    Result->Success(Value);
+    return Result;
+}
+
 SharedPtr<ParserRuntimeResult> Interpreter::NoVisit(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
@@ -165,7 +219,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::NoVisit(SharedPtr<ParserNode> Node, 
         Context,
         Node->StartPosition,
         Node->EndPosition,
-        "Parser unable to interpret code"
+        "Interpreter unable to execute code"
     )).Ptr();
 
     return Result;

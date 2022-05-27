@@ -30,4 +30,9 @@ int ManagedObject::Release()
     return Result;
 }
 
-
+ManagedObject* ManagedObject::MemCopy()
+{
+    auto Data = static_cast<ManagedObject*>(malloc(ObjectSize));
+    memcpy(static_cast<void*>(Data), static_cast<void*>(this), ObjectSize);
+    return Data;
+}
