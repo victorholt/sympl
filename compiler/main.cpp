@@ -6,7 +6,11 @@ SymplNamespace
 int main()
 {
     auto globalSymbolTable = SymbolTable::Alloc<SymbolTable>();
-    globalSymbolTable->Set("null", nullptr);
+
+    auto NullValue = IntHandle::Alloc<IntHandle>();
+    NullValue->SetValue(0);
+
+    globalSymbolTable->Set("null", NullValue.Ptr());
 
     while (true) {
         std::string code;
@@ -46,6 +50,8 @@ int main()
         auto context = SharedPtr<ParserContext>(new ParserContext());
         context->Create(nullptr, nullptr, "<program>");
         context->VariableSymbolTable = globalSymbolTable;
+
+        NullValue->Context = context;
 
         auto program = SharedPtr<Interpreter>(new Interpreter());
         auto result = program->Visit(node->ParserNodePtr, context);

@@ -44,6 +44,40 @@ protected:
      */
     SharedPtr<class Token> MakeIdentifier();
 
+    /**
+     * Make the not equals token.
+     * @return
+     */
+    SharedPtr<class Token> MakeNotEquals();
+
+    /**
+     * Make the equals token.
+     * @return
+     */
+    SharedPtr<class Token> MakeEquals();
+
+    /**
+     * Make the greater than token.
+     * @return
+     */
+    SharedPtr<class Token> MakeGreaterThan();
+
+    /**
+     * Make the less than token.
+     * @return
+     */
+    SharedPtr<class Token> MakeLessThan();
+
+    /**
+     * Reference to the error.
+     */
+    SharedPtr<class ParserError> CreateIllegalCharacterError();
+
+    /**
+     * Reference to the error.
+     */
+    SharedPtr<class ParserError> CreateExpectedCharacterError(CStrPtr ExpectedCharacter, CStrPtr AfterCharacter);
+
 public:
 
 	/**

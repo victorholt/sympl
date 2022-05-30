@@ -190,7 +190,16 @@ enum class TokenType
     RH_Parenth,
     Identifier,
     Keyword,
-    Equals
+    Equals,
+    IsEqual,
+    NotEqual,
+    LessThan,
+    LessThanOrEqual,
+    GreaterThan,
+    GreaterThanOrEqual,
+    Not,
+    Or,
+    And
 };
 
 enum class ParseNodeType
@@ -212,7 +221,10 @@ enum class ValueType
 
 // Valid keywords.
 static const std::vector<const char*> BuiltInKeywordList = {
-    "var"
+    "var",
+    "&&",
+    "||",
+    "!"
 };
 
 SymplNamespaceEnd

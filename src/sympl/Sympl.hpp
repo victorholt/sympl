@@ -40,6 +40,7 @@
 #include <sympl/Parser/Lexer.hpp>
 #include <sympl/Parser/SymbolTable.hpp>
 #include <sympl/Parser/Handle/ValueHandle.hpp>
+#include <sympl/Parser/Handle/NumberHandle.hpp>
 #include <sympl/Parser/Handle/IntHandle.hpp>
 #include <sympl/Parser/Handle/FloatHandle.hpp>
 #include <sympl/Parser/Node/ParserBinaryOpNode.hpp>

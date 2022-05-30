@@ -62,6 +62,7 @@ void Lexer::MakeTokens()
 			continue;
 		}
 
+        // Check for identifiers.
         if (std::find(Letters.begin(), Letters.end(), CurrentChar) != Letters.end()) {
             TokenList.emplace_back(MakeIdentifier());
             continue;
@@ -88,10 +89,6 @@ void Lexer::MakeTokens()
             TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Power, nullptr, Position.Ptr(), nullptr));
             Advance();
         }
-        else if (CurrentChar == '=') {
-            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Equals, nullptr, Position.Ptr(), nullptr));
-            Advance();
-        }
 		else if (CurrentChar == '(') {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::LH_Parenth, nullptr, Position.Ptr(), nullptr));
 			Advance();
@@ -100,18 +97,29 @@ void Lexer::MakeTokens()
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::RH_Parenth, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
+        else if (CurrentChar == '!') {
+            auto Result = MakeNotEquals();
+            if (Result.IsValid()) {
+                TokenList.emplace_back(Result);
+            } else {
+                TokenList.clear();
+                ErrorList.emplace_back(CreateExpectedCharacterError("=", "!"));
+                return;
+            }
+        }
+        else if (CurrentChar == '=') {
+            TokenList.emplace_back(MakeEquals());
+        }
+        else if (CurrentChar == '>') {
+            TokenList.emplace_back(MakeGreaterThan());
+        }
+        else if (CurrentChar == '<') {
+            TokenList.emplace_back(MakeLessThan());
+        }
 		else {
 			// Unable to find a proper token.
 			TokenList.clear();
-			ErrorList.emplace_back(new IllegalCharacterError(
-                fmt::format(
-                    "'{0}' on Line: {1} (Col: {2}) > {3}",
-                    CurrentChar,
-                    Position->GetLineNumber(),
-                    Position->GetLineCol(),
-                    Position->GetFileName()
-                ).c_str()
-            ));
+			ErrorList.emplace_back(CreateIllegalCharacterError());
 			return;
 		}
 	}
@@ -167,4 +175,67 @@ SharedPtr<class Token> Lexer::MakeIdentifier()
     );
 
     return Result;
+}
+
+SharedPtr<Token> Lexer::MakeNotEquals()
+{
+    auto StartPosition = Position->Copy();
+    Advance();
+
+    if (CurrentChar == '=') {
+        Advance();
+        return Token::Alloc<Token>(4, TokenType::NotEqual, "!=", StartPosition.Ptr(), Position.Ptr());
+    }
+
+    return nullptr;
+}
+
+SharedPtr<Token> Lexer::MakeEquals()
+{
+    auto StartPosition = Position->Copy();
+    Advance();
+
+    if (CurrentChar == '=') {
+        Advance();
+        return Token::Alloc<Token>(4, TokenType::IsEqual, "!=", StartPosition.Ptr(), Position.Ptr());
+    }
+
+    return nullptr;
+}
+
+SharedPtr<Token> Lexer::MakeGreaterThan()
+{
+    return SharedPtr<struct Token>();
+}
+
+SharedPtr<Token> Lexer::MakeLessThan()
+{
+    return SharedPtr<struct Token>();
+}
+
+SharedPtr<ParserError> Lexer::CreateIllegalCharacterError()
+{
+    return new IllegalCharacterError(
+        fmt::format(
+            "'{0}' on Line: {1} (Col: {2}) > {3}",
+            CurrentChar,
+            Position->GetLineNumber(),
+            Position->GetLineCol(),
+            Position->GetFileName()
+        ).c_str()
+    );
+}
+
+SharedPtr<ParserError> Lexer::CreateExpectedCharacterError(CStrPtr ExpectedCharacter, CStrPtr AfterCharacter)
+{
+    return new IllegalCharacterError(
+        fmt::format(
+            "'{0}' (after '{1}') on Line: {1} (Col: {2}) > {3}",
+            ExpectedCharacter,
+            AfterCharacter,
+            Position->GetLineNumber(),
+            Position->GetLineCol(),
+            Position->GetFileName()
+        ).c_str()
+    );
 }

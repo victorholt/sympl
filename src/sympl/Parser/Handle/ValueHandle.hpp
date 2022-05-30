@@ -49,7 +49,7 @@ public:
     {
         auto NewValue = ValueHandle::Alloc<T>();
         NewValue->Type = BaseHandle->Type;
-        NewValue->SetPosition(BaseHandle->StartPosition->Copy(), BaseHandle->EndPosition->Copy());
+        NewValue->SetPosition(BaseHandle->StartPosition, BaseHandle->EndPosition);
         NewValue->Context = BaseHandle->Context;
         return NewValue;
     }

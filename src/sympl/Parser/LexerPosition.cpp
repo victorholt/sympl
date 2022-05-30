@@ -4,10 +4,20 @@
 #include "LexerPosition.hpp"
 SymplNamespace
 
+LexerPosition::LexerPosition()
+{
+    Index = 0;
+    LineNumber = 0;
+    LineCol = 0;
+    FileName = "";
+    FileText = "";
+}
+
 void LexerPosition::Create(size_t pIndex, size_t pLineNumber, int64_t pCol, CStrPtr pFileName, CStrPtr pFileText)
 {
     Index = pIndex;
     LineNumber = pLineNumber;
+    LineCol = pCol;
     FileName = pFileName;
     FileText = pFileText;
 }

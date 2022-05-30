@@ -26,6 +26,10 @@ private:
     std::string FileText;
 
 public:
+    /**
+     * Constructor.
+     */
+    LexerPosition();
 
     /**
      * Creates the position.

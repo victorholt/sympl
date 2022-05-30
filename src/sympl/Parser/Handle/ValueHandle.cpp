@@ -10,7 +10,7 @@ SymplNamespace
 ValueHandle::ValueHandle()
 {
     Type = ValueType::Null;
-    SetPosition(nullptr, nullptr);
+    SetPosition(LexerPosition::Alloc<LexerPosition>(), LexerPosition::Alloc<LexerPosition>());
     Error = nullptr;
     Context = nullptr;
 }
