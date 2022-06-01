@@ -9,8 +9,10 @@
 
 SymplNamespaceStart
 
-class Parser
+class SYMPL_API Parser : public ManagedObject
 {
+	SYMPL_OBJECT(Parser, ManagedObject)
+
 private:
     // Current token index.
     size_t TokenIndex;
@@ -68,7 +70,7 @@ protected:
      */
 	SharedPtr<ParseResult> BinaryOperation(
         const std::function<SharedPtr<ParseResult>()>& LeftOpMethod,
-        const std::vector<TokenType>& ValidOps,
+		const std::unordered_map<TokenType, std::string>& ValidOps,
         const std::function<SharedPtr<ParseResult>()>& RightOpMethod = nullptr
     );
 
@@ -84,6 +86,35 @@ protected:
      */
 	SharedPtr<ParseResult> Expression();
 
+	/**
+	 * Returns a node based on a compare expression.
+	 * @return
+	 */
+	SharedPtr<ParseResult> CompExpr();
+
+	/**
+	 * Returns a node based on an arithmetic expression.
+	 * @return
+	 */
+	SharedPtr<ParseResult> ArithExpr();
+
+	/**
+	 * Returns a node based on an if expression.
+	 * @return
+	 */
+	SharedPtr<ParseResult> IfExpr();
+
+	/**
+	 * Returns a node based on an if expression.
+	 * @return
+	 */
+	SharedPtr<ParseResult> ForExpr();
+
+	/**
+	 * Returns a node based on an if expression.
+	 * @return
+	 */
+	SharedPtr<ParseResult> WhileExpr();
 };
 
 SymplNamespaceEnd

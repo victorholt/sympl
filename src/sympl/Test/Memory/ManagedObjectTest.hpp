@@ -8,6 +8,8 @@ SymplNamespaceStart
 
 class ManagedClass : public ManagedObject
 {
+	SYMPL_OBJECT(ManagedClass, ManagedObject)
+
 public:
 	char buffer[256];
 

@@ -7,11 +7,11 @@
 
 SymplNamespaceStart
 
-class Interpreter : public ManagedObject
+class SYMPL_API Interpreter : public ManagedObject
 {
-public:
-    Interpreter() = default;
+	SYMPL_OBJECT(Interpreter, ManagedObject)
 
+public:
     /**
      * Visits the parser nodes.
      * @param Node
@@ -43,6 +43,30 @@ public:
      * @return
      */
     SharedPtr<class ParserRuntimeResult> VisitUnaryOpNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+	/**
+     * Visits the if node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+	SharedPtr<class ParserRuntimeResult> VisitIfNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+	/**
+     * Visits the for node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+	SharedPtr<class ParserRuntimeResult> VisitForNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+	/**
+     * Visits the while node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+	SharedPtr<class ParserRuntimeResult> VisitWhileNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
      * Visits the variable access node.

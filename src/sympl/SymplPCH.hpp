@@ -94,6 +94,8 @@
 
 #include <wchar.h>
 
+#include <tuple>
+
 #ifdef _WIN32
 #include <uchar.h>
 #endif
@@ -167,6 +169,14 @@
 #define alloc_bytes_array(type, amount) (type*)calloc(amount, sizeof(type))
 #define free_bytes(ref) delete ref; ref = nullptr
 #define free_bytes_array(ref) free(ref); ref = nullptr
+#define TokenValue(x) TokenTypeValueList[(int)x]
+#define TokenValueChar(x) TokenTypeValueList[(int)x][0]
+#define TokenIsKeyword(tok, key) (tok->GetType() == TokenType::Keyword && (strcmp(tok->GetValue(), key) == 0))
+#define TokenIsNotKeyword(tok, key) (tok->GetType() != TokenType::Keyword || (strcmp(tok->GetValue(), key) != 0))
+#define StringEquals(a, b) (strcmp(a, b) == 0)
+#define StringNotEquals(a, b) (strcmp(a, b) != 0)
+
+#define VectorHas(vec, key) (std::find(vec.begin(), vec.end(), key) != vec.end())
 
 // Definitions
 typedef const char* CStrPtr;
@@ -201,6 +211,12 @@ enum class TokenType
     Or,
     And
 };
+static const std::vector<CStrPtr> TokenTypeValueList = {
+	"null", "EOF", "int", "float",
+	"+", "-", "*", "/", "^", "(", ")",
+	"identifier", "keyword",
+	"=", "==", "!=", "<", "<=", ">", ">=", "!", "||", "&&"
+};
 
 enum class ParseNodeType
 {
@@ -209,22 +225,36 @@ enum class ParseNodeType
     Binary,
     Unary,
     VarAccess,
-    VarAssign
+    VarAssign,
+	If,
+	For,
+	While
 };
 
 enum class ValueType
 {
     Null = 0,
     Int,
-    Float
+    Float,
+	String
 };
 
 // Valid keywords.
+static const char* VarKeyword = "var";
+static const char* IfKeyword = "if";
+static const char* ThenKeyword = "then";
+static const char* ElseIfKeyword = "elif";
+static const char* ElseKeyword = "else";
+static const char* ForKeyword = "for";
+static const char* ToKeyword = "to";
+static const char* StepKeyword = "step";
+static const char* WhileKeyword = "while";
+
 static const std::vector<const char*> BuiltInKeywordList = {
-    "var",
-    "&&",
-    "||",
-    "!"
+    VarKeyword,
+    "&&", "||", "!",
+	IfKeyword, ThenKeyword, ElseIfKeyword, ElseKeyword,
+	ForKeyword, ToKeyword, StepKeyword, WhileKeyword
 };
 
 SymplNamespaceEnd

@@ -11,9 +11,9 @@ add_executable(SymplCompiler ${SYMPL_COMPILER_SRC})
 
 target_link_libraries(
     SymplCompiler
-    SymplParserLib
     SymplMemoryLib
-
+    SymplCoreLib
+    SymplParserLib
     SymplTestLib
     fmtLib
 )

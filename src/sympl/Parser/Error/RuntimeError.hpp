@@ -6,8 +6,10 @@
 
 SymplNamespaceStart
 
-class RuntimeError : public ParserError
+class SYMPL_API RuntimeError : public ParserError
 {
+	SYMPL_OBJECT(RuntimeError, ParserError)
+
 protected:
     // Start position.
     SharedPtr<class LexerPosition> StartPosition;

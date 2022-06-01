@@ -21,6 +21,30 @@ void ValueHandle::SetPosition(SharedPtr<LexerPosition> pStartPosition, SharedPtr
     EndPosition = pEndPosition;
 }
 
+void ValueHandle::NormalizeValue()
+{
+	switch (Type)
+	{
+		case ValueType::Int:
+			Value.FloatNum = static_cast<float>(Value.IntNum);
+			break;
+		case ValueType::Float:
+			Value.IntNum = static_cast<int>(Value.FloatNum);
+			break;
+		case ValueType::Null:
+			break;
+	}
+}
+
+bool ValueHandle::IsTrue() const
+{
+	return Value.String.IsValid() && Value.IntNum != 0 && static_cast<int>(Value.FloatNum) != 0;
+}
+
+bool ValueHandle::IsNull() const {
+	return Type == ValueType::Null && GetTypeName() == "NullHandle";
+}
+
 SharedPtr<ValueHandle> ValueHandle::Copy() const
 {
     return ValueHandle::BaseCopy<ValueHandle>(this);

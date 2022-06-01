@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class ParserContext : public ManagedObject
+class SYMPL_API ParserContext : public ManagedObject
 {
+	SYMPL_OBJECT(ParserContext, ManagedObject)
+
 public:
     // Reference to the parent context.
     SharedPtr<ParserContext> Parent;

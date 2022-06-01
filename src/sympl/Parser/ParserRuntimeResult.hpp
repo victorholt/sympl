@@ -8,8 +8,10 @@
 
 SymplNamespaceStart
 
-class ParserRuntimeResult : public ManagedObject
+class SYMPL_API ParserRuntimeResult : public ManagedObject
 {
+	SYMPL_OBJECT(ParserRuntimeResult, ManagedObject)
+
 public:
     // Reference to the error.
     SharedPtr<ParserError> Error;

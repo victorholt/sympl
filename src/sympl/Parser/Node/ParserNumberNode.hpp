@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class ParserNumberNode : public ParserNode
+class SYMPL_API ParserNumberNode : public ParserNode
 {
+	SYMPL_OBJECT(ParserNumberNode, ParserNode)
+
 public:
     /**
      * Overrides the construct.

@@ -4,17 +4,7 @@
 #include "NumberHandle.hpp"
 SymplNamespace
 
-void NumberHandle::NormalizeValue()
+bool NumberHandle::IsTrue() const
 {
-    switch (Type)
-    {
-        case ValueType::Int:
-            Value.FloatNum = static_cast<float>(Value.IntNum);
-            break;
-        case ValueType::Float:
-            Value.IntNum = static_cast<int>(Value.FloatNum);
-            break;
-        case ValueType::Null:
-            break;
-    }
+	return Value.IntNum != 0 && static_cast<int>(Value.FloatNum) != 0;
 }

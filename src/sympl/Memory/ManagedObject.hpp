@@ -6,11 +6,11 @@
 #include "MemBlock.hpp"
 #include "MemPool.hpp"
 #include "SharedPtr.hpp"
-#include "SharedPtrRef.hpp"
+#include "ObjectRef.hpp"
 
 SymplNamespaceStart
 
-class ManagedObject : public SharedPtrRef
+class SYMPL_API ManagedObject : public ObjectRef
 {
 private:
 	// Reference to the memory block.

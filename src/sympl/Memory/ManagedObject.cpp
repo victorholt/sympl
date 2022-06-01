@@ -19,7 +19,7 @@ void ManagedObject::__Construct(int argc, va_list ArgList)
 
 int ManagedObject::Release()
 {
-    auto Result = SharedPtrRef::Release();
+    auto Result = ObjectRef::Release();
 
 	if (Result == 0 && Block && Block->BlockIndex > 0)
 	{

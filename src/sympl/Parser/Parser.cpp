@@ -5,6 +5,9 @@
 #include "Token.hpp"
 #include "LexerPosition.hpp"
 #include "sympl/Parser/Error/InvalidSyntaxError.hpp"
+#include "sympl/Parser/Node/ParserIfNode.hpp"
+#include "sympl/Parser/Node/ParserForNode.hpp"
+#include "sympl/Parser/Node/ParserWhileNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 #include "sympl/Parser/Node/VarAssignNode.hpp"
 #include "sympl/Parser/Node/VarAccessNode.hpp"
@@ -27,7 +30,7 @@ SharedPtr<ParseResult> Parser::Parse()
         Result->Failure(new InvalidSyntaxError(
                 CurrentToken->GetStartPosition(),
                 CurrentToken->GetEndPosition(),
-                fmt::format("Expected '+', '-', '*' or '/', got {0}", CurrentToken->ToString()).c_str()
+                fmt::format("<parse> Expected '+', '-', '*' or '/', got {0}", CurrentToken->ToString()).c_str()
         ));
     }
 
@@ -87,17 +90,53 @@ SharedPtr<ParseResult> Parser::Atom()
                 Expr->Failure(new InvalidSyntaxError(
                         FactorToken->GetStartPosition(),
                         FactorToken->GetEndPosition(),
-                        fmt::format("Expected ')', got {0}", FactorToken->ToString()).c_str()
+                        fmt::format("<atom> Expected ')', got {0}", FactorToken->ToString()).c_str()
                 ));
                 return Expr;
             }
         }
+
+		// Keywords
+		case TokenType::Keyword:
+		{
+			if (TokenIsKeyword(FactorToken, IfKeyword)) {
+				auto IfExprNode = Result->Register(IfExpr());
+				if (Result->Error.IsValid()) {
+					return Result;
+				}
+
+				Result->Success(IfExprNode);
+				return Result;
+			}
+
+			if (TokenIsKeyword(FactorToken, ForKeyword)) {
+				auto ForExprNode = Result->Register(ForExpr());
+				if (Result->Error.IsValid()) {
+					return Result;
+				}
+
+				Result->Success(ForExprNode);
+				return Result;
+			}
+
+			if (TokenIsKeyword(FactorToken, WhileKeyword)) {
+				auto WhileExprNode = Result->Register(WhileExpr());
+				if (Result->Error.IsValid()) {
+					return Result;
+				}
+
+				Result->Success(WhileExprNode);
+				return Result;
+			}
+
+			break;
+		}
     }
 
     Result->Failure(new InvalidSyntaxError(
         FactorToken->GetStartPosition(),
         FactorToken->GetEndPosition(),
-        fmt::format("Expected int, float, identifier, '+', '-', or '(' got {0}", FactorToken->ToString()).c_str()
+        fmt::format("<atom> Expected int, float, identifier, '+', '-', or '(' got {0}", FactorToken->ToString()).c_str()
     ));
 
     return Result;
@@ -133,13 +172,16 @@ SharedPtr<ParseResult> Parser::Term()
 {
 	return BinaryOperation(
         [=] { return Factor(); },
-        { TokenType::Mul, TokenType::Div }
+        {
+				{TokenType::Mul, TokenValue(TokenType::Mul)},
+				{TokenType::Div, TokenValue(TokenType::Div)}
+		}
     );
 }
 
 SharedPtr<ParseResult> Parser::BinaryOperation(
     const std::function<SharedPtr<ParseResult>()>& LeftOpMethod,
-    const std::vector<TokenType>& ValidOps,
+    const std::unordered_map<TokenType, std::string>& ValidOps,
     const std::function<SharedPtr<ParseResult>()>& RightOpMethod
 )
 {
@@ -150,7 +192,14 @@ SharedPtr<ParseResult> Parser::BinaryOperation(
         return LeftNodeResult;
     }
 
-    while (std::find(ValidOps.begin(), ValidOps.end(), CurrentToken->GetType()) != ValidOps.end())
+	std::vector<TokenType> OpKeys;
+	std::vector<std::string> OpValues;
+	for(const auto& it : ValidOps) {
+		OpKeys.push_back(it.first);
+		OpValues.push_back(it.second);
+	}
+
+    while ( VectorHas(OpKeys, CurrentToken->GetType()) || VectorHas(OpValues, CurrentToken->GetValue()) )
     {
         Token* OpToken = CurrentToken;
         Result->RegisterAdvance();
@@ -178,7 +227,7 @@ SharedPtr<ParseResult> Parser::Power()
 {
     return BinaryOperation(
         [=] { return Atom(); },
-        { TokenType::Power },
+        { {TokenType::Power, TokenValue(TokenType::Power)} },
         [=] { return Factor(); }
     );
 }
@@ -189,7 +238,7 @@ SharedPtr<ParseResult> Parser::Expression()
 
     if (CurrentToken->GetType() == TokenType::Keyword)
     {
-        if (strcmp(CurrentToken->GetValue(), "var") == 0) {
+        if (strcmp(CurrentToken->GetValue(), VarKeyword) == 0) {
             Result->RegisterAdvance();
             Advance();
 
@@ -199,7 +248,7 @@ SharedPtr<ParseResult> Parser::Expression()
                 Result->Failure(new InvalidSyntaxError(
                     CurrentToken->GetStartPosition(),
                     CurrentToken->GetEndPosition(),
-                    fmt::format("Expected variable identifier, got {0}", CurrentToken->ToString()).c_str()
+                    fmt::format("<expr> Expected variable identifier, got {0}", CurrentToken->ToString()).c_str()
                 ));
                 return Result;
             }
@@ -215,7 +264,7 @@ SharedPtr<ParseResult> Parser::Expression()
                 Result->Failure(new InvalidSyntaxError(
                     CurrentToken->GetStartPosition(),
                     CurrentToken->GetEndPosition(),
-                    fmt::format("Expected = token, got {0}", CurrentToken->ToString()).c_str()
+                    fmt::format("<expr> Expected = token, got {0}", CurrentToken->ToString()).c_str()
                 ));
                 return Result;
             }
@@ -235,19 +284,331 @@ SharedPtr<ParseResult> Parser::Expression()
     }
 
 	auto NodeBinOp = Result->Register(BinaryOperation(
-        [=] { return Term(); },
-        { TokenType::Plus, TokenType::Minus }
+        [=] { return CompExpr(); },
+        {
+			{TokenType::And, TokenValue(TokenType::And)},
+			{TokenType::Or, TokenValue(TokenType::Or)}
+		}
     ));
 
     if (Result->Error.IsValid()) {
         Result->Failure(new InvalidSyntaxError(
             CurrentToken->GetStartPosition(),
             CurrentToken->GetEndPosition(),
-            fmt::format("Expected var, int, float, identifier, '+', '-', or '(' got {0}", CurrentToken->ToString()).c_str()
+            fmt::format("<expr> Expected var, int, float, identifier, '+', '-', or '(' got {0}", CurrentToken->ToString()).c_str()
         ));
         return Result;
     }
 
     Result->Success(NodeBinOp);
     return Result;
+}
+
+SharedPtr<ParseResult> Parser::CompExpr() {
+	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+	SharedPtr<ParserNode> Node;
+
+	if (CurrentToken->GetType() == TokenType::Not)
+	{
+		Result->RegisterAdvance();
+		Advance();
+
+		Node = Result->Register(CompExpr());
+		if (Result->Error.IsValid()) {
+			Result->Failure(new InvalidSyntaxError(
+				CurrentToken->GetStartPosition(),
+				CurrentToken->GetEndPosition(),
+				fmt::format("<comp_expr> Expected var, int, float, identifier, '+', '-', or '(' got {0}", CurrentToken->ToString()).c_str()
+			));
+			return Result;
+		}
+
+		Result->Success(
+			ParserUnaryOpNode::Alloc<ParserUnaryOpNode, ParserNode>(2, CurrentToken, Node.Ptr())
+		);
+	}
+
+	Node = Result->Register(BinaryOperation(
+			[=] { return ArithExpr(); },
+			{
+				{TokenType::IsEqual, TokenValue(TokenType::IsEqual)},
+				{TokenType::NotEqual, TokenValue(TokenType::NotEqual)},
+				{TokenType::LessThan, TokenValue(TokenType::LessThan)},
+				{TokenType::LessThanOrEqual, TokenValue(TokenType::LessThanOrEqual)},
+				{TokenType::GreaterThan, TokenValue(TokenType::GreaterThan)},
+				{TokenType::GreaterThanOrEqual, TokenValue(TokenType::GreaterThanOrEqual)}
+			}
+	));
+
+	if (Result->Error.IsValid())
+	{
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<comp_expr> Expected int, float, identifier, '+', '-', '(', or '!' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->Success(Node);
+	return Result;
+}
+
+SharedPtr<ParseResult> Parser::ArithExpr() {
+	return BinaryOperation(
+		[=] { return Term(); },
+		{
+			{TokenType::Plus, TokenValue(TokenType::Plus)},
+			{TokenType::Minus, TokenValue(TokenType::Minus)}
+		}
+	);
+}
+
+SharedPtr<ParseResult> Parser::IfExpr() {
+	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+	IfCaseList Cases;
+	SharedPtr<ParserNode> ElseCase;
+
+	if (TokenIsNotKeyword(CurrentToken, IfKeyword)) {
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<if_expr> Expected 'if' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->RegisterAdvance();
+	Advance();
+
+	// Grab the condition from the expression.
+	SharedPtr<ParserNode> Condition = Result->Register(Expression());
+	if (Result->Error.IsValid()) {
+		return Result;
+	}
+
+	// Our next token should be the 'then' keyword.
+	if (TokenIsNotKeyword(CurrentToken, ThenKeyword)) {
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<if_expr> Expected 'then' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->RegisterAdvance();
+	Advance();
+
+	// Grab the expression for the if statement.
+	SharedPtr<ParserNode> Expr = Result->Register(Expression());
+	if (Result->Error.IsValid()) {
+		return Result;
+	}
+	// Save the expression.
+	Cases.emplace_back(std::make_tuple(Condition, Expr));
+
+	while (TokenIsKeyword(CurrentToken, ElseIfKeyword)) {
+		Result->RegisterAdvance();
+		Advance();
+
+		Condition = Result->Register(Expression());
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+
+		// Our next token should be the 'then' keyword.
+		if (TokenIsNotKeyword(CurrentToken, ThenKeyword)) {
+			Result->Failure(new InvalidSyntaxError(
+				CurrentToken->GetStartPosition(),
+				CurrentToken->GetEndPosition(),
+				fmt::format("<if_expr> Expected 'then' got {0}", CurrentToken->ToString()).c_str()
+			));
+			return Result;
+		}
+
+		Result->RegisterAdvance();
+		Advance();
+
+		Expr = Result->Register(Expression());
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+		Cases.emplace_back(std::make_tuple(Condition, Expr));
+	}
+
+	// Check if we are ending with an else statement.
+	if (strcmp(CurrentToken->GetValue(), ElseKeyword) == 0) {
+		Result->RegisterAdvance();
+		Advance();
+
+		ElseCase = Result->Register(Expression());
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+	}
+
+	auto ResultIfNode = ParserIfNode::Alloc<ParserIfNode>();
+
+	// Explicity call create here since I don't believe C++ can handle tuples in va_list???
+	ResultIfNode->Create(CurrentToken, Cases, ElseCase);
+	Result->Success(ResultIfNode.Ptr());
+
+	return Result;
+}
+
+SharedPtr<ParseResult> Parser::ForExpr()
+{
+	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
+	// Ensure we have a for keyword.
+	if (TokenIsNotKeyword(CurrentToken, ForKeyword)) {
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<for_expr> Expected 'for' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->RegisterAdvance();
+	Advance();
+
+	// Ensure we have an identifier.
+	if (CurrentToken->GetType() != TokenType::Identifier) {
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<for_expr> Expected 'identifier' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	auto VarNameToken = CurrentToken;
+	Result->RegisterAdvance();
+	Advance();
+
+	// Identifier should assign a value.
+	if (CurrentToken->GetType() != TokenType::Equals) {
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<for_expr> Expected '=' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->RegisterAdvance();
+	Advance();
+
+	// Grab the start value.
+	auto StartValue = Result->Register(Expression());
+	if (Result->Error.IsValid()) {
+		return Result;
+	}
+
+	// Ensure we have a 'to' keyword to set our ending value.
+	if (TokenIsNotKeyword(CurrentToken, ToKeyword)) {
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<for_expr> Expected 'to' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->RegisterAdvance();
+	Advance();
+
+	// Grab the end value expression.
+	auto EndValue = Result->Register(Expression());
+	if (Result->Error.IsValid()) {
+		return Result;
+	}
+
+	// Ensure we have a 'step' keyword to set our ending value.
+	SharedPtr<ParserNode> StepValue;
+	if (TokenIsKeyword(CurrentToken, StepKeyword)) {
+		Result->RegisterAdvance();
+		Advance();
+
+		StepValue = Result->Register(Expression());
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+	}
+
+	// Ensure we have a 'then' keyword to capture the body.
+	if (TokenIsNotKeyword(CurrentToken, ThenKeyword)) {
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<for_expr> Expected 'then' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->RegisterAdvance();
+	Advance();
+
+	// Grab the body value expression.
+	auto BodyNode = Result->Register(Expression());
+	if (Result->Error.IsValid()) {
+		return Result;
+	}
+
+	Result->Success(ParserForNode::Alloc<ParserForNode>(
+		5, VarNameToken, StartValue.Ptr(), EndValue.Ptr(), StepValue.IsValid() ? StepValue.Ptr() : nullptr, BodyNode.Ptr()
+	).Ptr());
+
+	return Result;
+}
+
+SharedPtr<ParseResult> Parser::WhileExpr()
+{
+	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
+	// Ensure we have a for keyword.
+	if (TokenIsNotKeyword(CurrentToken, WhileKeyword)) {
+		Result->Failure(new InvalidSyntaxError(
+			CurrentToken->GetStartPosition(),
+			CurrentToken->GetEndPosition(),
+			fmt::format("<while_expr> Expected 'for' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->RegisterAdvance();
+	Advance();
+
+	// Grab the start value.
+	auto Condition = Result->Register(Expression());
+	if (Result->Error.IsValid()) {
+		return Result;
+	}
+
+	// Ensure we have a 'to' keyword to set our ending value.
+	if (TokenIsNotKeyword(CurrentToken, ThenKeyword)) {
+		Result->Failure(new InvalidSyntaxError(
+				CurrentToken->GetStartPosition(),
+				CurrentToken->GetEndPosition(),
+				fmt::format("<while_expr> Expected 'then' got {0}", CurrentToken->ToString()).c_str()
+		));
+		return Result;
+	}
+
+	Result->RegisterAdvance();
+	Advance();
+
+	// Grab the body value expression.
+	auto BodyNode = Result->Register(Expression());
+	if (Result->Error.IsValid()) {
+		return Result;
+	}
+
+	Result->Success(ParserWhileNode::Alloc<ParserWhileNode>(
+		3, CurrentToken, Condition.Ptr(), BodyNode.Ptr()
+	).Ptr());
+
+	return Result;
 }

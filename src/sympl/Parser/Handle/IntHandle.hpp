@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class IntHandle : public NumberHandle
+class SYMPL_API IntHandle : public NumberHandle
 {
+	SYMPL_OBJECT(IntHandle, NumberHandle)
+
 public:
     /**
      * Constructor.
@@ -61,7 +63,7 @@ public:
      * Returns a string of the value.
      * @return
      */
-    virtual CStrPtr ToString() override;
+    CStrPtr ToString() override;
 
     /**
      * Sets the float value.

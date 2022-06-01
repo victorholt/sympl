@@ -6,8 +6,10 @@
 
 SymplNamespaceStart
 
-class InvalidSyntaxError : public ParserError
+class SYMPL_API InvalidSyntaxError : public ParserError
 {
+	SYMPL_OBJECT(InvalidSyntaxError, ParserError)
+
 public:
 
 	/**

@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class VarAssignNode : public ParserNode
+class SYMPL_API VarAssignNode : public ParserNode
 {
+	SYMPL_OBJECT(VarAssignNode, ParserNode)
+
 public:
     // Expression result.
     SharedPtr<ParserNode> Value;

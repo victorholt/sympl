@@ -69,35 +69,35 @@ void Lexer::MakeTokens()
         }
 
 		// Check for tokens.
-		if (CurrentChar == '+') {
+		if (CurrentChar == TokenValueChar(TokenType::Plus)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Plus, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
-		else if (CurrentChar == '-') {
+		else if (CurrentChar == TokenValueChar(TokenType::Minus)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Minus, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
-		else if (CurrentChar == '*') {
+		else if (CurrentChar == TokenValueChar(TokenType::Mul)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Mul, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
-		else if (CurrentChar == '/') {
+		else if (CurrentChar == TokenValueChar(TokenType::Div)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Div, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
-        else if (CurrentChar == '^') {
+        else if (CurrentChar == TokenValueChar(TokenType::Power)) {
             TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Power, nullptr, Position.Ptr(), nullptr));
             Advance();
         }
-		else if (CurrentChar == '(') {
+		else if (CurrentChar == TokenValueChar(TokenType::LH_Parenth)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::LH_Parenth, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
-		else if (CurrentChar == ')') {
+		else if (CurrentChar == TokenValueChar(TokenType::RH_Parenth)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::RH_Parenth, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
-        else if (CurrentChar == '!') {
+        else if (CurrentChar == TokenValueChar(TokenType::Not)) {
             auto Result = MakeNotEquals();
             if (Result.IsValid()) {
                 TokenList.emplace_back(Result);
@@ -107,15 +107,21 @@ void Lexer::MakeTokens()
                 return;
             }
         }
-        else if (CurrentChar == '=') {
+        else if (CurrentChar == TokenValueChar(TokenType::Equals)) {
             TokenList.emplace_back(MakeEquals());
         }
-        else if (CurrentChar == '>') {
+        else if (CurrentChar == TokenValueChar(TokenType::GreaterThan)) {
             TokenList.emplace_back(MakeGreaterThan());
         }
-        else if (CurrentChar == '<') {
+        else if (CurrentChar == TokenValueChar(TokenType::LessThan)) {
             TokenList.emplace_back(MakeLessThan());
         }
+		else if (CurrentChar == TokenValueChar(TokenType::Or)) {
+			TokenList.emplace_back(MakeOrOp());
+		}
+		else if (CurrentChar == TokenValueChar(TokenType::And)) {
+			TokenList.emplace_back(MakeAndOp());
+		}
 		else {
 			// Unable to find a proper token.
 			TokenList.clear();
@@ -184,33 +190,81 @@ SharedPtr<Token> Lexer::MakeNotEquals()
 
     if (CurrentChar == '=') {
         Advance();
-        return Token::Alloc<Token>(4, TokenType::NotEqual, "!=", StartPosition.Ptr(), Position.Ptr());
+        return Token::Alloc<Token>(4, TokenType::NotEqual, TokenValue(TokenType::NotEqual), StartPosition.Ptr(), Position.Ptr());
     }
 
+	Advance();
     return nullptr;
 }
 
 SharedPtr<Token> Lexer::MakeEquals()
 {
+	auto Type = TokenType::Equals;
     auto StartPosition = Position->Copy();
     Advance();
 
     if (CurrentChar == '=') {
         Advance();
-        return Token::Alloc<Token>(4, TokenType::IsEqual, "!=", StartPosition.Ptr(), Position.Ptr());
+		Type = TokenType::IsEqual;
     }
 
-    return nullptr;
+	return Token::Alloc<Token>(4, Type, TokenValue(Type), StartPosition.Ptr(), Position.Ptr());
 }
 
 SharedPtr<Token> Lexer::MakeGreaterThan()
 {
-    return SharedPtr<struct Token>();
+	auto Type = TokenType::GreaterThan;
+	auto StartPosition = Position->Copy();
+	Advance();
+
+	if (CurrentChar == '=') {
+		Advance();
+		Type = TokenType::GreaterThanOrEqual;
+	}
+
+	return Token::Alloc<Token>(4, Type, TokenValue(Type), StartPosition.Ptr(), Position.Ptr());
 }
 
 SharedPtr<Token> Lexer::MakeLessThan()
 {
-    return SharedPtr<struct Token>();
+	auto Type = TokenType::LessThan;
+	auto StartPosition = Position->Copy();
+	Advance();
+
+	if (CurrentChar == '=') {
+		Advance();
+		Type = TokenType::LessThanOrEqual;
+	}
+
+	return Token::Alloc<Token>(4, Type, TokenValue(Type), StartPosition.Ptr(), Position.Ptr());
+}
+
+SharedPtr<class Token> Lexer::MakeOrOp()
+{
+	auto StartPosition = Position->Copy();
+	Advance();
+
+	if (CurrentChar == '|') {
+		Advance();
+		return Token::Alloc<Token>(4, TokenType::Or, TokenValue(TokenType::Or), StartPosition.Ptr(), Position.Ptr());
+	}
+
+	Advance();
+	return nullptr;
+}
+
+SharedPtr<class Token> Lexer::MakeAndOp()
+{
+	auto StartPosition = Position->Copy();
+	Advance();
+
+	if (CurrentChar == '&') {
+		Advance();
+		return Token::Alloc<Token>(4, TokenType::And, TokenValue(TokenType::And), StartPosition.Ptr(), Position.Ptr());
+	}
+
+	Advance();
+	return nullptr;
 }
 
 SharedPtr<ParserError> Lexer::CreateIllegalCharacterError()

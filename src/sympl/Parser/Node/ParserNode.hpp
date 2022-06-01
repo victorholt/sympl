@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class ParserNode : public ManagedObject
+class SYMPL_API ParserNode : public ManagedObject
 {
+	SYMPL_OBJECT(ParserNode, ManagedObject)
+
 protected:
     // Handles conversion of the node to a string.
     char TmpNodeString_Allocate[255];

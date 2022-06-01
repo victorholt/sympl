@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class LexerPosition : public ManagedObject
+class SYMPL_API LexerPosition : public ManagedObject
 {
+	SYMPL_OBJECT(LexerPosition, ManagedObject)
+
 private:
     // Index of the position.
     size_t Index;

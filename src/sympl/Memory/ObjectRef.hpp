@@ -3,10 +3,11 @@
 //
 #pragma once
 #include <sympl/SymplPCH.hpp>
+#include "ObjectRefInfo.hpp"
 
 SymplNamespaceStart
 
-class SharedPtrRef
+class SYMPL_API ObjectRef
 {
 public:
 	// Reference count.
@@ -37,7 +38,7 @@ public:
 	 * @param rhs
 	 * @return
 	 */
-	SharedPtrRef& operator=(const SharedPtrRef& rhs)
+	ObjectRef& operator=(const ObjectRef& rhs)
 	{
 		if (this == &rhs) {
 			return *this;
@@ -47,6 +48,18 @@ public:
 
 		return *this;
 	}
+
+	//! Return type name.
+	//! \return string
+	virtual const std::string& GetTypeName() const = 0;
+
+	//! Return type info.
+	//! \return RefInfo
+	virtual const ObjectRefInfo* GetTypeInfo() const = 0;
+
+	//! Return type info static.
+	//! \return RefInfo
+	static const ObjectRefInfo* GetTypeInfoStatic() { return nullptr; }
 };
 
 SymplNamespaceEnd

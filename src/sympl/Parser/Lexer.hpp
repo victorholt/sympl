@@ -5,11 +5,14 @@
 
 #include "sympl/SymplPCH.hpp"
 #include <sympl/Memory/SharedPtr.hpp>
+#include <sympl/Memory/ManagedObject.hpp>
 
 SymplNamespaceStart
 
-class Lexer
+class SYMPL_API Lexer : public ManagedObject
 {
+	SYMPL_OBJECT(Lexer, ManagedObject)
+
 private:
 	// List of tokens.
 	std::vector<SharedPtr<class Token>> TokenList;
@@ -67,6 +70,18 @@ protected:
      * @return
      */
     SharedPtr<class Token> MakeLessThan();
+
+	/**
+	 * Make an or token.
+	 * @return
+	 */
+	SharedPtr<class Token> MakeOrOp();
+
+	/**
+	 * Make an and token.
+	 * @return
+	 */
+	SharedPtr<class Token> MakeAndOp();
 
     /**
      * Reference to the error.

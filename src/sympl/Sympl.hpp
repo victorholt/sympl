@@ -27,7 +27,7 @@
 #include <sympl/Memory/MemBlock.hpp>
 #include <sympl/Memory/MemPool.hpp>
 #include <sympl/Memory/SharedPtr.hpp>
-#include <sympl/Memory/SharedPtrRef.hpp>
+#include <sympl/Memory/ObjectRef.hpp>
 
 #include "SymplPCH.hpp"
 #include <sympl/Core/StringBuffer.hpp>

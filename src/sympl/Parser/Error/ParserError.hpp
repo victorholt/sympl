@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class ParserError : public ManagedObject
+class SYMPL_API ParserError : public ManagedObject
 {
+	SYMPL_OBJECT(ParserError, ManagedObject)
+
 protected:
     // Error name string.
     SharedPtr<class StringBuffer> ErrorName;

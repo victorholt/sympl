@@ -9,8 +9,10 @@
 
 SymplNamespaceStart
 
-class Token : public ManagedObject
+class SYMPL_API Token : public ManagedObject
 {
+	SYMPL_OBJECT(Token, ManagedObject)
+
 private:
 
 	// Our token type base on the list of token types.

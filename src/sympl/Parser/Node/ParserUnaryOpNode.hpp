@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class ParserUnaryOpNode : public ParserNode
+class SYMPL_API ParserUnaryOpNode : public ParserNode
 {
+	SYMPL_OBJECT(ParserUnaryOpNode, ParserNode)
+
 public:
     // Type of node.
     SharedPtr<ParserNode> Node;

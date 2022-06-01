@@ -2,6 +2,7 @@
 // Created by Victor on 5/25/2022.
 //
 #include "Interpreter.hpp"
+#include <sympl/Memory/MemPool.hpp>
 #include "sympl/Parser/Token.hpp"
 #include "sympl/Parser/SymbolTable.hpp"
 #include "sympl/Parser/ParserContext.hpp"
@@ -10,11 +11,16 @@
 #include "sympl/Parser/Error/RuntimeError.hpp"
 #include "sympl/Parser/Node/ParserNumberNode.hpp"
 #include "sympl/Parser/Node/ParserBinaryOpNode.hpp"
+#include "sympl/Parser/Node/ParserIfNode.hpp"
+#include "sympl/Parser/Node/ParserForNode.hpp"
+#include "sympl/Parser/Node/ParserWhileNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 #include "sympl/Parser/Node/VarAccessNode.hpp"
 #include "sympl/Parser/Node/VarAssignNode.hpp"
+#include "sympl/Parser/Handle/CompareHandle.hpp"
 #include "sympl/Parser/Handle/IntHandle.hpp"
 #include "sympl/Parser/Handle/FloatHandle.hpp"
+#include "sympl/Parser/Handle/NullHandle.hpp"
 #include "sympl/Parser/ParserRuntimeResult.hpp"
 #include <fmt/format.h>
 SymplNamespace
@@ -35,6 +41,18 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
         {
             return VisitUnaryOpNode(Node, Context);
         }
+		case ParseNodeType::If:
+		{
+			return VisitIfNode(Node, Context);
+		}
+		case ParseNodeType::For:
+		{
+			return VisitForNode(Node, Context);
+		}
+		case ParseNodeType::While:
+		{
+			return VisitWhileNode(Node, Context);
+		}
         case ParseNodeType::VarAccess:
         {
             return VisitVarAccessNode(Node, Context);
@@ -129,6 +147,62 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNo
             ValueResult = LeftNumber->PowerBy(RightNumber).Ptr();
             break;
         }
+		case TokenType::IsEqual:
+		{
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			ValueResult = LeftComp->CompareEqual(RightComp).Ptr();
+			break;
+		}
+		case TokenType::NotEqual:
+		{
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			ValueResult = LeftComp->CompareNotEqual(RightComp).Ptr();
+			break;
+		}
+		case TokenType::LessThan:
+		{
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			ValueResult = LeftComp->CompareLessThan(RightComp).Ptr();
+			break;
+		}
+		case TokenType::LessThanOrEqual:
+		{
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			ValueResult = LeftComp->CompareLessThanOrEqual(RightComp).Ptr();
+			break;
+		}
+		case TokenType::GreaterThan:
+		{
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			ValueResult = LeftComp->CompareGreaterThan(RightComp).Ptr();
+			break;
+		}
+		case TokenType::GreaterThanOrEqual:
+		{
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			ValueResult = LeftComp->CompareGreaterThanOrEqual(RightComp).Ptr();
+			break;
+		}
+		case TokenType::And:
+		{
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			ValueResult = LeftComp->CompareAnd(RightComp).Ptr();
+			break;
+		}
+		case TokenType::Or:
+		{
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			ValueResult = LeftComp->CompareOr(RightComp).Ptr();
+			break;
+		}
     }
 
     ValueResult->SetPosition(Node->StartPosition, Node->EndPosition);
@@ -171,7 +245,134 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
     return Result;
 }
 
-SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
+SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+	auto IfNode = SharedPtr<ParserIfNode>(dynamic_cast<ParserIfNode*>(Node.Ptr()));
+	assert(IfNode.IsValid());
+
+	for (const auto& entry : IfNode->Cases) {
+		auto Condition = std::get<0>(entry);
+		auto Expr = std::get<1>(entry);
+
+		auto ConditionValue = Result->Register(Visit(Condition, Context));
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+
+		if (ConditionValue->IsTrue()) {
+			auto ExprValue = Result->Register(Visit(Expr, Context));
+			if (Result->Error.IsValid()) {
+				return Result;
+			}
+
+			Result->Success(ExprValue);
+			return Result;
+		}
+	}
+
+	if (IfNode->ElseCase.IsValid()) {
+		auto ElseValue = Result->Register(Visit(IfNode->ElseCase, Context));
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+
+		Result->Success(ElseValue);
+		return Result;
+	}
+
+	Result->Success(NullHandle::Alloc<NullHandle>().Ptr());
+	return Result;
+}
+
+SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+	SharedPtr<ParserForNode> ForNode = dynamic_cast<ParserForNode*>(Node.Ptr());
+
+	auto StartValue = Result->Register(Visit(ForNode->StartValueNode, Context));
+	if (StartValue->Error.IsValid() || StringNotEquals(StartValue->GetTypeName().c_str(), "IntHandle")) {
+		return Result;
+	}
+
+	auto EndValue = Result->Register(Visit(ForNode->EndValueNode, Context));
+	if (EndValue->Error.IsValid() || StringNotEquals(EndValue->GetTypeName().c_str(), "IntHandle")) {
+		return Result;
+	}
+
+	SharedPtr<ValueHandle> StepValue;
+	if (ForNode->StepValueNode.IsValid() && StringEquals(ForNode->StepValueNode->GetTypeName().c_str(), "IntHandle")) {
+		StepValue = Result->Register(Visit(ForNode->StepValueNode, Context));
+		if (StepValue->Error.IsValid()) {
+			return Result;
+		}
+	} else {
+		auto IntValue = IntHandle::Alloc<IntHandle>();
+		IntValue->SetValue(1);
+		StepValue = IntValue.Ptr();
+	}
+
+	int CurrentStepValue = static_cast<int>(dynamic_cast<IntHandle*>(StartValue.Ptr())->Value.IntNum);
+	std::function<bool(int StepValue)> Condition;
+
+	if (CurrentStepValue >= 0) {
+		Condition = [=](int StepValue) {
+			return StepValue < dynamic_cast<IntHandle*>(EndValue.Ptr())->Value.IntNum;
+		};
+	}
+	else {
+		Condition = [=](int StepValue) {
+			return StepValue > dynamic_cast<IntHandle*>(EndValue.Ptr())->Value.IntNum;
+		};
+	}
+
+	while (Condition(CurrentStepValue)) {
+		auto StepHandle = IntHandle::Alloc<IntHandle>();
+		StepHandle->SetValue(CurrentStepValue);
+
+		Context->VariableSymbolTable->Set(
+			Node->NodeToken->GetValue(),
+			StepHandle.Ptr()
+		);
+
+		CurrentStepValue += static_cast<int>(StepValue->Value.IntNum);
+
+		Result->Register(Visit(ForNode->BodyNode, Context));
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+	}
+
+	Result->Success(NullHandle::Alloc<NullHandle>().Ptr());
+	return Result;
+}
+
+SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+	SharedPtr<ParserWhileNode> WhileNode = dynamic_cast<ParserWhileNode*>(Node.Ptr());
+
+	while (!MemPool::Instance()->IsMaxMemUsage()) {
+		auto Condition = Result->Register(Visit(WhileNode->ConditionNode, Context));
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+
+		if (!Condition->IsTrue()) {
+			break;
+		}
+
+		Result->Register(Visit(WhileNode->BodyNode, Context));
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+	}
+
+	Result->Success(NullHandle::Alloc<NullHandle>().Ptr());
+	return Result;
+}
+
+SharedPtr<ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     auto VarName = Node->NodeToken->GetValue();

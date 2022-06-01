@@ -7,8 +7,10 @@ SymplNamespaceStart
 typedef unsigned char uchar;
 #define SYMPL_STRING_BUFFER_CAPACITY 256
 
-class StringBuffer : public ManagedObject
+class SYMPL_API StringBuffer : public ManagedObject
 {
+	SYMPL_OBJECT(StringBuffer, ManagedObject)
+
 private:
     /// Buffer for holding the string.
     uchar      *_Buffer;

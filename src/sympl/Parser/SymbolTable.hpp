@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class SymbolTable : public ManagedObject
+class SYMPL_API SymbolTable : public ManagedObject
 {
+	SYMPL_OBJECT(SymbolTable, ManagedObject)
+
 public:
     // List of symbols to keep track of.
     std::unordered_map<std::string, SharedPtr<class ValueHandle>> SymbolList;

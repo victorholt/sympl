@@ -56,6 +56,11 @@ size_t MemPool::TotalMemUsage() const
 	return Total;
 }
 
+bool MemPool::IsMaxMemUsage() const
+{
+	return false;
+}
+
 MemBlock* MemPool::FindValidInactiveBlock(size_t MinBlockSize)
 {
 	MemBlock* ValidBlock = nullptr;

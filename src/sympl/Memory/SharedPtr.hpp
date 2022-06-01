@@ -3,7 +3,7 @@
 //
 #pragma once
 #include <sympl/SymplPCH.hpp>
-#include "SharedPtrRef.hpp"
+#include "ObjectRef.hpp"
 
 SymplNamespaceStart
 
@@ -12,7 +12,7 @@ class SharedPtr
 {
 private:
 	// Pointer reference.
-	SharedPtrRef* PtrData;
+	ObjectRef* PtrData;
 
 public:
 	/**

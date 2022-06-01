@@ -8,8 +8,10 @@
 
 SymplNamespaceStart
 
-class ParserBinaryOpNode : public ParserNode
+class SYMPL_API ParserBinaryOpNode : public ParserNode
 {
+	SYMPL_OBJECT(ParserBinaryOpNode, ParserNode)
+
 public:
     // Reference to the left node.
     SharedPtr<ParserNode> LeftNode;

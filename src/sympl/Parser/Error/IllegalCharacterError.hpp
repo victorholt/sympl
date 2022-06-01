@@ -6,8 +6,10 @@
 
 SymplNamespaceStart
 
-class IllegalCharacterError : public ParserError
+class SYMPL_API IllegalCharacterError : public ParserError
 {
+	SYMPL_OBJECT(IllegalCharacterError, ParserError)
+
 public:
 
 	/**

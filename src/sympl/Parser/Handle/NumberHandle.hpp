@@ -7,30 +7,11 @@
 
 SymplNamespaceStart
 
-class NumberHandle : public ValueHandle
+class SYMPL_API NumberHandle : public ValueHandle
 {
+	SYMPL_OBJECT(NumberHandle, ValueHandle)
+
 public:
-    // Keep the type of number in the same memory location.
-    struct NumberVariant
-    {
-        long IntNum = 0;
-        float FloatNum = 0.f;
-
-        NumberVariant& operator=(const NumberVariant& rhs) {
-            if (this == &rhs) {
-                return *this;
-            }
-
-            IntNum = rhs.IntNum;
-            FloatNum = rhs.FloatNum;
-
-            return *this;
-        }
-    };
-
-    // Value of the number.
-    NumberVariant Value;
-
     /**
      * Returns a new number that adds another number.
      * @param handle
@@ -67,11 +48,6 @@ public:
     virtual SharedPtr<NumberHandle> PowerBy(const SharedPtr<NumberHandle>& handle) = 0;
 
     /**
-     * Attempts to normalize the value.
-     */
-    void NormalizeValue();
-
-    /**
      * Sets the integer value.
      * @param pValue
      */
@@ -94,6 +70,12 @@ public:
      * @return
      */
     inline float GetFloatValue() const { return Value.FloatNum; }
+
+	/**
+	 * Returns if the value is true.
+	 * @return
+	 */
+	bool IsTrue() const override;
 };
 
 SymplNamespaceEnd

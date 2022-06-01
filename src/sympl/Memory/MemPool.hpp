@@ -54,6 +54,12 @@ public:
 	size_t TotalMemUsage() const;
 
 	/**
+	 * Check if we're at the max mem usage.
+	 * @return
+	 */
+	bool IsMaxMemUsage() const;
+
+	/**
 	 * Returns the instance for the pool.
 	 * @return
 	 */

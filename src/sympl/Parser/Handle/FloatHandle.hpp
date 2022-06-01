@@ -7,8 +7,10 @@
 
 SymplNamespaceStart
 
-class FloatHandle : public NumberHandle
+class SYMPL_API FloatHandle : public NumberHandle
 {
+	SYMPL_OBJECT(FloatHandle, NumberHandle)
+
 public:
     /**
      * Constructor.
