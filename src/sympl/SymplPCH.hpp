@@ -189,33 +189,22 @@ enum class TokenType
 {
     Null = 0,
     EndOfFile,
-    Int,
-    Float,
-    Plus,
-    Minus,
-    Mul,
-    Div,
-    Power,
-    LH_Parenth,
-    RH_Parenth,
-    Identifier,
-    Keyword,
+    Int, Float,
+    Plus, Minus, Mul, Div, Power,
+    LH_Parenth, RH_Parenth,
+    Identifier, Keyword,
     Equals,
-    IsEqual,
-    NotEqual,
-    LessThan,
-    LessThanOrEqual,
-    GreaterThan,
-    GreaterThanOrEqual,
-    Not,
-    Or,
-    And
+    IsEqual, NotEqual, LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual,
+    Not, Or, And,
+    Comma,
+    Arrow
 };
 static const std::vector<CStrPtr> TokenTypeValueList = {
 	"null", "EOF", "int", "float",
 	"+", "-", "*", "/", "^", "(", ")",
 	"identifier", "keyword",
-	"=", "==", "!=", "<", "<=", ">", ">=", "!", "||", "&&"
+	"=", "==", "!=", "<", "<=", ">", ">=", "!", "||", "&&",
+    ",", "->"
 };
 
 enum class ParseNodeType
@@ -228,7 +217,9 @@ enum class ParseNodeType
     VarAssign,
 	If,
 	For,
-	While
+	While,
+    Func,
+    Call
 };
 
 enum class ValueType
@@ -236,7 +227,8 @@ enum class ValueType
     Null = 0,
     Int,
     Float,
-	String
+	String,
+    Func
 };
 
 // Valid keywords.
@@ -249,12 +241,17 @@ static const char* ForKeyword = "for";
 static const char* ToKeyword = "to";
 static const char* StepKeyword = "step";
 static const char* WhileKeyword = "while";
+static const char* FuncKeyword = "func";
+//static const char* TrueKeyword = "true";
+//static const char* FalseKeyword = "false";
 
 static const std::vector<const char*> BuiltInKeywordList = {
     VarKeyword,
     "&&", "||", "!",
 	IfKeyword, ThenKeyword, ElseIfKeyword, ElseKeyword,
-	ForKeyword, ToKeyword, StepKeyword, WhileKeyword
+	ForKeyword, ToKeyword, StepKeyword, WhileKeyword,
+    FuncKeyword
+//    TrueKeyword, FalseKeyword
 };
 
 SymplNamespaceEnd

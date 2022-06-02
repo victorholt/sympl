@@ -102,6 +102,13 @@ public:
     virtual SharedPtr<ValueHandle> Copy() const;
 
     /**
+     * Executes the handle.
+     * @param ArgValueList
+     * @return
+     */
+    virtual SharedPtr<class ParserRuntimeResult> Exec(const std::vector<SharedPtr<ValueHandle>>& ArgValueList);
+
+    /**
      * Returns a string of the value.
      * @return
      */

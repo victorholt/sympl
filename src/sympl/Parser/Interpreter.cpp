@@ -20,6 +20,9 @@
 #include "sympl/Parser/Handle/CompareHandle.hpp"
 #include "sympl/Parser/Handle/IntHandle.hpp"
 #include "sympl/Parser/Handle/FloatHandle.hpp"
+#include "sympl/Parser/Node/ParserFuncDefNode.hpp"
+#include "sympl/Parser/Node/ParserCallNode.hpp"
+#include "sympl/Parser/Handle/FuncHandle.hpp"
 #include "sympl/Parser/Handle/NullHandle.hpp"
 #include "sympl/Parser/ParserRuntimeResult.hpp"
 #include <fmt/format.h>
@@ -60,6 +63,14 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
         case ParseNodeType::VarAssign:
         {
             return VisitVarAssignNode(Node, Context);
+        }
+        case ParseNodeType::Func:
+        {
+            return VisitFuncDefNode(Node, Context);
+        }
+        case ParseNodeType::Call:
+        {
+            return VisitCallNode(Node, Context);
         }
     }
 
@@ -149,57 +160,57 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNo
         }
 		case TokenType::IsEqual:
 		{
-			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
-			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left, Context);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right, Context);
 			ValueResult = LeftComp->CompareEqual(RightComp).Ptr();
 			break;
 		}
 		case TokenType::NotEqual:
 		{
-			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
-			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left, Context);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right, Context);
 			ValueResult = LeftComp->CompareNotEqual(RightComp).Ptr();
 			break;
 		}
 		case TokenType::LessThan:
 		{
-			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
-			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left, Context);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right, Context);
 			ValueResult = LeftComp->CompareLessThan(RightComp).Ptr();
 			break;
 		}
 		case TokenType::LessThanOrEqual:
 		{
-			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
-			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left, Context);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right, Context);
 			ValueResult = LeftComp->CompareLessThanOrEqual(RightComp).Ptr();
 			break;
 		}
 		case TokenType::GreaterThan:
 		{
-			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
-			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left, Context);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right, Context);
 			ValueResult = LeftComp->CompareGreaterThan(RightComp).Ptr();
 			break;
 		}
 		case TokenType::GreaterThanOrEqual:
 		{
-			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
-			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left, Context);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right, Context);
 			ValueResult = LeftComp->CompareGreaterThanOrEqual(RightComp).Ptr();
 			break;
 		}
 		case TokenType::And:
 		{
-			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
-			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left, Context);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right, Context);
 			ValueResult = LeftComp->CompareAnd(RightComp).Ptr();
 			break;
 		}
 		case TokenType::Or:
 		{
-			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left);
-			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right);
+			SharedPtr<CompareHandle> LeftComp = CompareHandle::CreateFrom(Left, Context);
+			SharedPtr<CompareHandle> RightComp = CompareHandle::CreateFrom(Right, Context);
 			ValueResult = LeftComp->CompareOr(RightComp).Ptr();
 			break;
 		}
@@ -315,7 +326,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct Parser
 	int CurrentStepValue = static_cast<int>(dynamic_cast<IntHandle*>(StartValue.Ptr())->Value.IntNum);
 	std::function<bool(int StepValue)> Condition;
 
-	if (CurrentStepValue >= 0) {
+	if (StepValue->Value.IntNum >= 0) {
 		Condition = [=](int StepValue) {
 			return StepValue < dynamic_cast<IntHandle*>(EndValue.Ptr())->Value.IntNum;
 		};
@@ -410,6 +421,65 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<P
     Context->VariableSymbolTable->Set(VarName, Value);
 
     Result->Success(Value);
+    return Result;
+}
+
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ParserFuncDefNode> FuncDefNode = dynamic_cast<ParserFuncDefNode*>(Node.Ptr());
+
+    auto FuncName = FuncDefNode->NodeToken.IsValid() ? FuncDefNode->NodeToken->GetValue() : "";
+    auto BodyNode = FuncDefNode->BodyNode;
+
+    std::vector<std::string> ArgNameList;
+    for (const auto& Arg : FuncDefNode->ArgNameTokenList)
+    {
+        ArgNameList.emplace_back(Arg->GetValue());
+    }
+
+    auto NewFuncValue = FuncHandle::Alloc<FuncHandle>();
+    NewFuncValue->Create(FuncName, BodyNode, ArgNameList);
+    NewFuncValue->Context = Context;
+    NewFuncValue->SetPosition(Node->StartPosition, Node->EndPosition);
+
+    if (FuncDefNode->NodeToken.IsValid())
+    {
+        Context->VariableSymbolTable->Set(FuncName, NewFuncValue.Ptr());
+    }
+
+    Result->Success(NewFuncValue.Ptr());
+    return Result;
+}
+
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ParserCallNode> CallNode = dynamic_cast<ParserCallNode*>(Node.Ptr());
+    std::vector<SharedPtr<ValueHandle>> ArgList;
+
+    auto ValueToCall = Result->Register(Visit(CallNode->CallNode, Context));
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
+
+    ValueToCall = ValueToCall->Copy();
+    ValueToCall->SetPosition(Node->StartPosition, Node->EndPosition);
+
+    for (const auto& ArgNode : CallNode->ArgNodeList)
+    {
+        ArgList.emplace_back(Result->Register(Visit(ArgNode, Context)));
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+    }
+
+    auto ReturnValue = Result->Register(ValueToCall->Exec(ArgList));
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
+
+    Result->Success(ReturnValue);
     return Result;
 }
 

@@ -48,6 +48,12 @@ protected:
     SharedPtr<class Token> MakeIdentifier();
 
     /**
+     * Make either a minus or arrow token.
+     * @return
+     */
+    SharedPtr<class Token> MakeMinusOrArrow();
+
+    /**
      * Make the not equals token.
      * @return
      */

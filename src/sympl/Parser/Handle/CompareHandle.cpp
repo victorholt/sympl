@@ -12,7 +12,10 @@ void CompareHandle::__Construct(int argc, va_list ArgList)
 
 	if (argc > 0) {
 		pType = va_arg(ArgList, ValueType);
-		FromValue = va_arg(ArgList, ValueHandle*);
+
+        if (argc > 1) {
+            FromValue = va_arg(ArgList, ValueHandle*);
+        }
 	}
 
 	Create(pType, FromValue);
@@ -33,9 +36,11 @@ void CompareHandle::Create(ValueType pType, SharedPtr<ValueHandle> FromValue)
 	}
 }
 
-SharedPtr<CompareHandle> CompareHandle::CreateFrom(const SharedPtr<ValueHandle> Handle)
+SharedPtr<CompareHandle> CompareHandle::CreateFrom(const SharedPtr<ValueHandle> Handle, const SharedPtr<ParserContext>& pContext)
 {
-	return CompareHandle::Alloc<CompareHandle>(2, Handle->Type, Handle.Ptr());
+	auto Result = CompareHandle::Alloc<CompareHandle>(2, Handle->Type, Handle.Ptr());
+    Result->Context = pContext;
+    return Result;
 }
 
 SharedPtr<CompareHandle> CompareHandle::CompareEqual(const SharedPtr<CompareHandle> &handle)

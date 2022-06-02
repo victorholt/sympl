@@ -2,8 +2,10 @@
 // Created by Victor on 5/26/2022.
 //
 #include "ValueHandle.hpp"
+#include "NullHandle.hpp"
 #include <sympl/Parser/ParserContext.hpp>
 #include <sympl/Parser/LexerPosition.hpp>
+#include <sympl/Parser/ParserRuntimeResult.hpp>
 #include <sympl/Parser/Error/RuntimeError.hpp>
 SymplNamespace
 
@@ -48,6 +50,18 @@ bool ValueHandle::IsNull() const {
 SharedPtr<ValueHandle> ValueHandle::Copy() const
 {
     return ValueHandle::BaseCopy<ValueHandle>(this);
+}
+
+SharedPtr<ParserRuntimeResult> ValueHandle::Exec(const std::vector<SharedPtr<ValueHandle>>& ArgValueList)
+{
+	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+	Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
+		Context,
+		StartPosition,
+		EndPosition,
+		fmt::format("Illegal operation attempt on executing {0}", ToString()).c_str()
+	)).Ptr();
+	return Result;
 }
 
 CStrPtr ValueHandle::ToString()

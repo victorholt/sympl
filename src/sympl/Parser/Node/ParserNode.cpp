@@ -13,12 +13,15 @@ void ParserNode::__Construct(int argc, va_list ArgList)
     Create(pType, pNodeToken);
 }
 
-void ParserNode::Create(ParseNodeType pType, SharedPtr<Token> pNodeToken)
+void ParserNode::Create(ParseNodeType pType, const SharedPtr<Token>& pNodeToken)
 {
     Type = pType;
     NodeToken = pNodeToken;
-    StartPosition = NodeToken->GetStartPosition();
-    EndPosition = NodeToken->GetEndPosition();
+
+    if (NodeToken.IsValid()) {
+        StartPosition = NodeToken->GetStartPosition();
+        EndPosition = NodeToken->GetEndPosition();
+    }
 }
 
 CStrPtr ParserNode::ToString()

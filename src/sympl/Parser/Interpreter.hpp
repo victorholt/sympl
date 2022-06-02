@@ -85,6 +85,22 @@ public:
     SharedPtr<class ParserRuntimeResult> VisitVarAssignNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
+     * Visits the function definition node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitFuncDefNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
+     * Visits the call node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitCallNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
      * Failed to visit a node.
      * @param Node
      * @param Context

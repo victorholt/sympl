@@ -8,6 +8,8 @@
 #include "sympl/Parser/Node/ParserIfNode.hpp"
 #include "sympl/Parser/Node/ParserForNode.hpp"
 #include "sympl/Parser/Node/ParserWhileNode.hpp"
+#include "sympl/Parser/Node/ParserFuncDefNode.hpp"
+#include "sympl/Parser/Node/ParserCallNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 #include "sympl/Parser/Node/VarAssignNode.hpp"
 #include "sympl/Parser/Node/VarAccessNode.hpp"
@@ -28,9 +30,9 @@ SharedPtr<ParseResult> Parser::Parse()
     if (!Result->Error.IsValid() && CurrentToken->GetType() != TokenType::EndOfFile)
     {
         Result->Failure(new InvalidSyntaxError(
-                CurrentToken->GetStartPosition(),
-                CurrentToken->GetEndPosition(),
-                fmt::format("<parse> Expected '+', '-', '*' or '/', got {0}", CurrentToken->ToString()).c_str()
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<parse> Expected '+', '-', '*' or '/', got {0}", CurrentToken->ToString()).c_str()
         ));
     }
 
@@ -44,6 +46,81 @@ void Parser::Advance()
 	}
 
 	CurrentToken = TokenList[TokenIndex++].Ptr();
+}
+
+SharedPtr<ParseResult> Parser::Power()
+{
+    return BinaryOperation(
+        [=] { return CallFunc(); },
+        { {TokenType::Power, TokenValue(TokenType::Power)} },
+        [=] { return Factor(); }
+    );
+}
+
+SharedPtr<ParseResult> Parser::CallFunc()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+    auto AtomNode = Result->Register(Atom());
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
+
+    // Check if we're calling the atom.
+    if (CurrentToken->GetType() == TokenType::LH_Parenth)
+    {
+        Result->RegisterAdvance();
+        Advance();
+
+        std::vector<SharedPtr<ParserNode>> ArgList;
+        if (CurrentToken->GetType() == TokenType::RH_Parenth)
+        {
+            Result->RegisterAdvance();
+            Advance();
+        } else {
+            ArgList.emplace_back(Result->Register(Expression()));
+            if (Result->Error.IsValid()) {
+                Result->Failure(new InvalidSyntaxError(
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("<atom> Expected ')', 'var', 'if', 'for', 'while', 'func', int, float, identifier, got {0}", CurrentToken->ToString()).c_str()
+                ));
+                return Result;
+            }
+
+            // Check for more arguments.
+            while (CurrentToken->GetType() == TokenType::Comma)
+            {
+                Result->RegisterAdvance();
+                Advance();
+
+                ArgList.emplace_back(Result->Register(Expression()));
+                if (Result->Error.IsValid()) {
+                    return Result;
+                }
+            }
+
+            // Check for closing parenth.
+            if (CurrentToken->GetType() != TokenType::RH_Parenth) {
+                Result->Failure(new InvalidSyntaxError(
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("<atom> Expected ',' or ')', got {0}", CurrentToken->ToString()).c_str()
+                ));
+                return Result;
+            }
+
+            Result->RegisterAdvance();
+            Advance();
+        }
+
+        auto CallNode = ParserCallNode::Alloc<ParserCallNode>();
+        CallNode->Create(CurrentToken, AtomNode, ArgList);
+        Result->Success(CallNode.Ptr());
+        return Result;
+    }
+
+    Result->Success(AtomNode);
+    return Result;
 }
 
 SharedPtr<ParseResult> Parser::Atom()
@@ -88,9 +165,9 @@ SharedPtr<ParseResult> Parser::Atom()
             else
             {
                 Expr->Failure(new InvalidSyntaxError(
-                        FactorToken->GetStartPosition(),
-                        FactorToken->GetEndPosition(),
-                        fmt::format("<atom> Expected ')', got {0}", FactorToken->ToString()).c_str()
+                    FactorToken->GetStartPosition(),
+                    FactorToken->GetEndPosition(),
+                    fmt::format("<atom> Expected ')', got {0}", FactorToken->ToString()).c_str()
                 ));
                 return Expr;
             }
@@ -129,6 +206,16 @@ SharedPtr<ParseResult> Parser::Atom()
 				return Result;
 			}
 
+            if (TokenIsKeyword(FactorToken, FuncKeyword)) {
+                auto FuncDefNode = Result->Register(FuncDef());
+                if (Result->Error.IsValid()) {
+                    return Result;
+                }
+
+                Result->Success(FuncDefNode);
+                return Result;
+            }
+
 			break;
 		}
     }
@@ -136,7 +223,7 @@ SharedPtr<ParseResult> Parser::Atom()
     Result->Failure(new InvalidSyntaxError(
         FactorToken->GetStartPosition(),
         FactorToken->GetEndPosition(),
-        fmt::format("<atom> Expected int, float, identifier, '+', '-', or '(' got {0}", FactorToken->ToString()).c_str()
+        fmt::format("<atom> Expected int, float, identifier, '+', '-', '(', 'if', 'for', 'while', or 'func' got {0}", FactorToken->ToString()).c_str()
     ));
 
     return Result;
@@ -223,64 +310,52 @@ SharedPtr<ParseResult> Parser::BinaryOperation(
     return LeftNodeResult;
 }
 
-SharedPtr<ParseResult> Parser::Power()
-{
-    return BinaryOperation(
-        [=] { return Atom(); },
-        { {TokenType::Power, TokenValue(TokenType::Power)} },
-        [=] { return Factor(); }
-    );
-}
-
 SharedPtr<ParseResult> Parser::Expression()
 {
     SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
 
-    if (CurrentToken->GetType() == TokenType::Keyword)
-    {
-        if (strcmp(CurrentToken->GetValue(), VarKeyword) == 0) {
-            Result->RegisterAdvance();
-            Advance();
+    if (TokenIsKeyword(CurrentToken, VarKeyword)) {
+        Result->RegisterAdvance();
+        Advance();
 
-            // Advanced and didn't find a proper identifier.
-            if (CurrentToken->GetType() != TokenType::Identifier)
-            {
-                Result->Failure(new InvalidSyntaxError(
-                    CurrentToken->GetStartPosition(),
-                    CurrentToken->GetEndPosition(),
-                    fmt::format("<expr> Expected variable identifier, got {0}", CurrentToken->ToString()).c_str()
-                ));
-                return Result;
-            }
-
-            // We found an identifier and we can move forward.
-            auto VarName = CurrentToken->Copy();
-            Result->RegisterAdvance();
-            Advance();
-
-            // Ensure the next token is the set (=) identifier.
-            if (CurrentToken->GetType() != TokenType::Equals)
-            {
-                Result->Failure(new InvalidSyntaxError(
-                    CurrentToken->GetStartPosition(),
-                    CurrentToken->GetEndPosition(),
-                    fmt::format("<expr> Expected = token, got {0}", CurrentToken->ToString()).c_str()
-                ));
-                return Result;
-            }
-
-            // Go to the value of the token.
-            Result->RegisterAdvance();
-            Advance();
-
-            auto ExprNode = Result->Register(Expression());
-            if (Result->Error.IsValid()) {
-                return Result;
-            }
-
-            Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(1, VarName.Ptr(), ExprNode.Ptr()));
+        // Advanced and didn't find a proper identifier.
+        if (CurrentToken->GetType() != TokenType::Identifier)
+        {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<expr> Expected variable identifier, got {0}", CurrentToken->ToString()).c_str()
+            ));
             return Result;
         }
+
+        // We found an identifier and we can move forward.
+        auto VarName = CurrentToken->Copy();
+        Result->RegisterAdvance();
+        Advance();
+
+        // Ensure the next token is the set (=) identifier.
+        if (CurrentToken->GetType() != TokenType::Equals)
+        {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<expr> Expected = token, got {0}", CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+
+        // Go to the value of the token.
+        Result->RegisterAdvance();
+        Advance();
+
+        auto ExprNode = Result->Register(Expression());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(1, VarName.Ptr(), ExprNode.Ptr()));
+        return Result;
     }
 
 	auto NodeBinOp = Result->Register(BinaryOperation(
@@ -295,7 +370,7 @@ SharedPtr<ParseResult> Parser::Expression()
         Result->Failure(new InvalidSyntaxError(
             CurrentToken->GetStartPosition(),
             CurrentToken->GetEndPosition(),
-            fmt::format("<expr> Expected var, int, float, identifier, '+', '-', or '(' got {0}", CurrentToken->ToString()).c_str()
+            fmt::format("<expr> Expected var, int, float, identifier, '+', '-', '(', '!', 'var', 'if', 'for', 'while', or 'func' got {0}", CurrentToken->ToString()).c_str()
         ));
         return Result;
     }
@@ -587,7 +662,7 @@ SharedPtr<ParseResult> Parser::WhileExpr()
 		return Result;
 	}
 
-	// Ensure we have a 'to' keyword to set our ending value.
+	// Ensure we have a 'then' keyword to set our ending value.
 	if (TokenIsNotKeyword(CurrentToken, ThenKeyword)) {
 		Result->Failure(new InvalidSyntaxError(
 				CurrentToken->GetStartPosition(),
@@ -611,4 +686,133 @@ SharedPtr<ParseResult> Parser::WhileExpr()
 	).Ptr());
 
 	return Result;
+}
+
+SharedPtr<ParseResult> Parser::FuncDef()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
+    // Keyword 'func' check.
+    if (TokenIsNotKeyword(CurrentToken, FuncKeyword)) {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<func_def> Expected 'func' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    // Check if we have a name for the function (optional).
+    SharedPtr<Token> FuncNameToken;
+    if (CurrentToken->GetType() == TokenType::Identifier)
+    {
+        FuncNameToken = CurrentToken;
+        Result->RegisterAdvance();
+        Advance();
+
+        // Ensure we have a left parenth.
+        if (CurrentToken->GetType() != TokenType::LH_Parenth) {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<func_def> Expected '(' got {0}", CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+    }
+    else {
+        // Ensure we have a left parenth.
+        if (CurrentToken->GetType() != TokenType::LH_Parenth) {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<func_def> Expected '(' got {0}", CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    // Check for arguments.
+    std::vector<SharedPtr<Token>> ArgNameTokenList;
+
+    if (CurrentToken->GetType() == TokenType::Identifier) {
+        ArgNameTokenList.emplace_back(CurrentToken);
+        Result->RegisterAdvance();
+        Advance();
+
+        // Check for more arguments.
+        while (CurrentToken->GetType() == TokenType::Comma) {
+            Result->RegisterAdvance();
+            Advance();
+
+            // Find another identifier.
+            if (CurrentToken->GetType() != TokenType::Identifier) {
+                Result->Failure(new InvalidSyntaxError(
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("<func_def> Expected 'identifier' got {0}", CurrentToken->ToString()).c_str()
+                ));
+                return Result;
+            }
+
+            ArgNameTokenList.emplace_back(CurrentToken);
+            Result->RegisterAdvance();
+            Advance();
+        }
+
+        // Check for the closing parenth.
+        if (CurrentToken->GetType() != TokenType::RH_Parenth) {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<func_def> Expected ',' or ')' got {0}", CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+    }
+    else {
+        // Check for the closing parenth.
+        if (CurrentToken->GetType() != TokenType::RH_Parenth) {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<func_def> Expected 'identifier' or ')' got {0}", CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    // Check for the body start function token.
+    if (CurrentToken->GetType() != TokenType::Arrow) {
+        Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<func_def> Expected '->' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    auto NodeToReturn = Result->Register(Expression());
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
+
+    // Create our new func def node.
+    auto FuncDefNode = ParserFuncDefNode::Alloc<ParserFuncDefNode>();
+    FuncDefNode->Create(FuncNameToken, ArgNameTokenList, NodeToReturn);
+
+    Result->Success(FuncDefNode.Ptr());
+    return Result;
 }

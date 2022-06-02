@@ -40,7 +40,7 @@ public:
      * @param pType
      * @param pNodeToken
      */
-    void Create(ParseNodeType pType, SharedPtr<class Token> pNodeToken);
+    void Create(ParseNodeType pType, const SharedPtr<class Token>& pNodeToken);
 
     /**
      * Returns the string representation of the node.

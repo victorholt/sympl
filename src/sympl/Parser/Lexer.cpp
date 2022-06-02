@@ -74,8 +74,7 @@ void Lexer::MakeTokens()
 			Advance();
 		}
 		else if (CurrentChar == TokenValueChar(TokenType::Minus)) {
-			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Minus, nullptr, Position.Ptr(), nullptr));
-			Advance();
+            TokenList.emplace_back(MakeMinusOrArrow());
 		}
 		else if (CurrentChar == TokenValueChar(TokenType::Mul)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Mul, nullptr, Position.Ptr(), nullptr));
@@ -122,6 +121,10 @@ void Lexer::MakeTokens()
 		else if (CurrentChar == TokenValueChar(TokenType::And)) {
 			TokenList.emplace_back(MakeAndOp());
 		}
+        else if (CurrentChar == TokenValueChar(TokenType::Comma)) {
+            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Comma, nullptr, Position.Ptr(), nullptr));
+            Advance();
+        }
 		else {
 			// Unable to find a proper token.
 			TokenList.clear();
@@ -181,6 +184,20 @@ SharedPtr<class Token> Lexer::MakeIdentifier()
     );
 
     return Result;
+}
+
+SharedPtr<class Token> Lexer::MakeMinusOrArrow()
+{
+    TokenType Type = TokenType::Minus;
+    auto StartPosition = Position->Copy();
+    Advance();
+
+    if (CurrentChar == '>') {
+        Advance();
+        Type = TokenType::Arrow;
+    }
+
+    return Token::Alloc<Token>(4, Type, nullptr, StartPosition.Ptr(), Position.Ptr());
 }
 
 SharedPtr<Token> Lexer::MakeNotEquals()

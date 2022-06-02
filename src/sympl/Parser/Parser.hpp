@@ -45,25 +45,37 @@ protected:
     void Advance();
 
     /**
-     * Returns a node based on an atom rule.
+     * Returns the result based on a given expression.
+     * @return
+     */
+    SharedPtr<ParseResult> Power();
+
+    /**
+     * Returns a result based on call rules.
+     * @return
+     */
+    SharedPtr<ParseResult> CallFunc();
+
+    /**
+     * Returns a result based on an atom rule.
      * @return
      */
     SharedPtr<ParseResult> Atom();
 
     /**
-     * Returns a node based on a factor.
+     * Returns a result based on a factor.
      * @return
      */
 	SharedPtr<ParseResult> Factor();
 
     /**
-     * Returns a node based on a term.
+     * Returns a result based on a term.
      * @return
      */
 	SharedPtr<ParseResult> Term();
 
     /**
-     * Returns a node based on a binary operation.
+     * Returns a result based on a binary operation.
      * @param OpMethod
      * @param ValidOps
      * @return
@@ -75,46 +87,46 @@ protected:
     );
 
     /**
-     * Returns the node based on a given expression.
-     * @return
-     */
-    SharedPtr<ParseResult> Power();
-
-    /**
-     * Returns the node based on a given expression.
+     * Returns the result based on a given expression.
      * @return
      */
 	SharedPtr<ParseResult> Expression();
 
 	/**
-	 * Returns a node based on a compare expression.
+	 * Returns a result based on a compare expression.
 	 * @return
 	 */
 	SharedPtr<ParseResult> CompExpr();
 
 	/**
-	 * Returns a node based on an arithmetic expression.
+	 * Returns a result based on an arithmetic expression.
 	 * @return
 	 */
 	SharedPtr<ParseResult> ArithExpr();
 
 	/**
-	 * Returns a node based on an if expression.
+	 * Returns a result based on an if expression.
 	 * @return
 	 */
 	SharedPtr<ParseResult> IfExpr();
 
 	/**
-	 * Returns a node based on an if expression.
+	 * Returns a result based on a for expression.
 	 * @return
 	 */
 	SharedPtr<ParseResult> ForExpr();
 
 	/**
-	 * Returns a node based on an if expression.
+	 * Returns a result based on a while expression.
 	 * @return
 	 */
 	SharedPtr<ParseResult> WhileExpr();
+
+    /**
+	 * Returns a result based on a function definition.
+	 * @return
+	 */
+    SharedPtr<ParseResult> FuncDef();
 };
 
 SymplNamespaceEnd

@@ -32,9 +32,10 @@ public:
 	/**
 	 * Creates a new compare handle from a value.
 	 * @param Handle
+	 * @param pContext
 	 * @return
 	 */
-	static SharedPtr<CompareHandle> CreateFrom(const SharedPtr<ValueHandle> Handle);
+	static SharedPtr<CompareHandle> CreateFrom(const SharedPtr<ValueHandle> Handle, const SharedPtr<ParserContext>& pContext);
 
 	/**
 	 * Returns if two values are equal.
