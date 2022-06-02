@@ -31,24 +31,41 @@
 
 #include "SymplPCH.hpp"
 #include <sympl/Core/StringBuffer.hpp>
+
 #include <sympl/Parser/Error/IllegalCharacterError.hpp>
 #include <sympl/Parser/Error/InvalidSyntaxError.hpp>
-#include <sympl/Parser/Error/InvalidSyntaxError.hpp>
 #include <sympl/Parser/Error/RuntimeError.hpp>
+
+#include <sympl/Parser/Handle/ValueHandle.hpp>
+#include <sympl/Parser/Handle/NumberHandle.hpp>
+#include <sympl/Parser/Handle/CompareHandle.hpp>
+#include <sympl/Parser/Handle/IntHandle.hpp>
+#include <sympl/Parser/Handle/FloatHandle.hpp>
+#include <sympl/Parser/Handle/BaseFuncHandle.hpp>
+#include <sympl/Parser/Handle/BuiltInFuncHandle.hpp>
+#include <sympl/Parser/Handle/FuncHandle.hpp>
+#include <sympl/Parser/Handle/ExceptionHandle.hpp>
+#include <sympl/Parser/Handle/NullHandle.hpp>
+
+#include <sympl/Parser/Node/ParserBinaryOpNode.hpp>
+#include <sympl/Parser/Node/ParserCallNode.hpp>
+#include <sympl/Parser/Node/ParserForNode.hpp>
+#include <sympl/Parser/Node/ParserFuncDefNode.hpp>
+#include <sympl/Parser/Node/ParserIfNode.hpp>
+#include <sympl/Parser/Node/ParserListNode.hpp>
+#include <sympl/Parser/Node/ParserNumberNode.hpp>
+#include <sympl/Parser/Node/ParserStringNode.hpp>
+#include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
+#include <sympl/Parser/Node/ParserWhileNode.hpp>
+#include <sympl/Parser/Node/VarAccessNode.hpp>
+#include <sympl/Parser/Node/VarAssignNode.hpp>
+
 #include <sympl/Parser/Token.hpp>
 #include <sympl/Parser/LexerPosition.hpp>
 #include <sympl/Parser/Lexer.hpp>
 #include <sympl/Parser/SymbolTable.hpp>
-#include <sympl/Parser/Handle/ValueHandle.hpp>
-#include <sympl/Parser/Handle/NumberHandle.hpp>
-#include <sympl/Parser/Handle/IntHandle.hpp>
-#include <sympl/Parser/Handle/FloatHandle.hpp>
-#include <sympl/Parser/Node/ParserBinaryOpNode.hpp>
-#include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
-#include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
-#include <sympl/Parser/Node/VarAccessNode.hpp>
-#include <sympl/Parser/Node/VarAssignNode.hpp>
 #include <sympl/Parser/Parser.hpp>
+#include <sympl/Parser/ParseResult.hpp>
 #include <sympl/Parser/ParserRuntimeResult.hpp>
 #include <sympl/Parser/ParserContext.hpp>
 #include <sympl/Parser/Interpreter.hpp>

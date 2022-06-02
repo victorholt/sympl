@@ -7,10 +7,14 @@ int main()
 {
     auto globalSymbolTable = SymbolTable::Alloc<SymbolTable>();
 
-    auto NullValue = IntHandle::Alloc<IntHandle>();
-    NullValue->SetValue(0);
+	auto context = SharedPtr<ParserContext>(new ParserContext());
+	context->Create(nullptr, nullptr, "<program>");
+	context->VariableSymbolTable = globalSymbolTable;
 
-    globalSymbolTable->Set("null", NullValue.Ptr());
+	globalSymbolTable->Set("null", ValueHandle::Null(context.Ptr()));
+	globalSymbolTable->Set("true", ValueHandle::True(context.Ptr()));
+    globalSymbolTable->Set("false", ValueHandle::False(context.Ptr()));
+    globalSymbolTable->Set("Print", BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, "Print").Ptr());
 
     while (true) {
         std::string code;
@@ -47,12 +51,6 @@ int main()
         }
 
         // Run the program.
-        auto context = SharedPtr<ParserContext>(new ParserContext());
-        context->Create(nullptr, nullptr, "<program>");
-        context->VariableSymbolTable = globalSymbolTable;
-
-        NullValue->Context = context;
-
         auto program = SharedPtr<Interpreter>(new Interpreter());
         auto result = program->Visit(node->ParserNodePtr, context);
 

@@ -21,7 +21,7 @@ void StringHandle::Create(CStrPtr pValue)
 SharedPtr<ValueHandle> StringHandle::AddTo(const SharedPtr <ValueHandle>& pHandle)
 {
     if (pHandle->Type != ValueType::String) {
-        return NullHandle::Alloc<NullHandle>().Ptr();
+        return ValueHandle::Null();
     }
 
     auto NewStr = StringBuffer::Alloc<StringBuffer>();
@@ -37,7 +37,7 @@ SharedPtr<ValueHandle> StringHandle::AddTo(const SharedPtr <ValueHandle>& pHandl
 SharedPtr<ValueHandle> StringHandle::MultiplyBy(const SharedPtr<class ValueHandle>& pHandle)
 {
     if (pHandle->Type != ValueType::Int) {
-        return NullHandle::Alloc<NullHandle>().Ptr();
+        return ValueHandle::Null();
     }
 
     auto NewStr = StringBuffer::Alloc<StringBuffer>();

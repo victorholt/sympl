@@ -2,7 +2,9 @@
 // Created by Victor on 5/26/2022.
 //
 #include "ValueHandle.hpp"
+#include "IntHandle.hpp"
 #include "NullHandle.hpp"
+#include "ExceptionHandle.hpp"
 #include <sympl/Parser/ParserContext.hpp>
 #include <sympl/Parser/LexerPosition.hpp>
 #include <sympl/Parser/ParserRuntimeResult.hpp>
@@ -15,37 +17,38 @@ ValueHandle::ValueHandle()
     SetPosition(LexerPosition::Alloc<LexerPosition>(), LexerPosition::Alloc<LexerPosition>());
     Error = nullptr;
     Context = nullptr;
+	StringRep = StringBuffer::Alloc<StringBuffer>();
 }
 
-void ValueHandle::SetPosition(SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition)
+void ValueHandle::SetPosition(const SharedPtr<LexerPosition>& pStartPosition, const SharedPtr<LexerPosition>& pEndPosition)
 {
     StartPosition = pStartPosition;
     EndPosition = pEndPosition;
 }
 
-SharedPtr<ValueHandle> ValueHandle::AddTo(const SharedPtr<ValueHandle>& handle)
+SharedPtr<ValueHandle> ValueHandle::AddTo(const SharedPtr<ValueHandle>& pHandle)
 {
-	return NullHandle::Alloc<NullHandle>().Ptr();
+	return ValueHandle::GetIllegalOperationException(this);
 }
 
-SharedPtr<ValueHandle> ValueHandle::SubtractBy(const SharedPtr<ValueHandle>& handle)
+SharedPtr<ValueHandle> ValueHandle::SubtractBy(const SharedPtr<ValueHandle>& pHandle)
 {
-	return NullHandle::Alloc<NullHandle>().Ptr();
+	return ValueHandle::GetIllegalOperationException(this);
 }
 
-SharedPtr<ValueHandle> ValueHandle::MultiplyBy(const SharedPtr<ValueHandle>& handle)
+SharedPtr<ValueHandle> ValueHandle::MultiplyBy(const SharedPtr<ValueHandle>& pHandle)
 {
-	return NullHandle::Alloc<NullHandle>().Ptr();
+	return ValueHandle::GetIllegalOperationException(this);
 }
 
-SharedPtr<ValueHandle> ValueHandle::DivideBy(const SharedPtr<ValueHandle>& handle)
+SharedPtr<ValueHandle> ValueHandle::DivideBy(const SharedPtr<ValueHandle>& pHandle)
 {
-	return NullHandle::Alloc<NullHandle>().Ptr();
+	return ValueHandle::GetIllegalOperationException(this);
 }
 
-SharedPtr<ValueHandle> ValueHandle::PowerBy(const SharedPtr<ValueHandle>& handle)
+SharedPtr<ValueHandle> ValueHandle::PowerBy(const SharedPtr<ValueHandle>& pHandle)
 {
-	return NullHandle::Alloc<NullHandle>().Ptr();
+	return ValueHandle::GetIllegalOperationException(this);
 }
 
 void ValueHandle::NormalizeValue()
@@ -72,10 +75,10 @@ bool ValueHandle::IsNull() const {
 	return Type == ValueType::Null && GetTypeName() == "NullHandle";
 }
 
-SharedPtr<ValueHandle> ValueHandle::Copy() const
-{
-    return ValueHandle::BaseCopy<ValueHandle>(this);
-}
+//SharedPtr<ValueHandle> ValueHandle::Copy() const
+//{
+//    return ValueHandle::BaseCopy<ValueHandle>(this);
+//}
 
 SharedPtr<ParserRuntimeResult> ValueHandle::Exec(const std::vector<SharedPtr<ValueHandle>>& ArgValueList)
 {
@@ -89,9 +92,54 @@ SharedPtr<ParserRuntimeResult> ValueHandle::Exec(const std::vector<SharedPtr<Val
 	return Result;
 }
 
+SharedPtr<ValueHandle> ValueHandle::GetIllegalOperationException(SharedPtr<ValueHandle> pValue)
+{
+	auto Exception = SharedPtr<RuntimeError>(new RuntimeError(
+		pValue->Context,
+		pValue->StartPosition,
+		pValue->EndPosition,
+		fmt::format("Illegal operation attempt on executing {0}", pValue->ToString()).c_str()
+	));
+	return ExceptionHandle::Alloc<ExceptionHandle>(1, Exception.Ptr()).Ptr();
+}
+
+SharedPtr<ValueHandle> ValueHandle::Null(ParserContext* Context)
+{
+	static SharedPtr<NullHandle> Value;
+	if (!Value.IsValid()) {
+		Value = NullHandle::Alloc<NullHandle>();
+		Value->Context = Context;
+		Value->Immutable = true;
+	}
+	return Value.Ptr();
+}
+
+SharedPtr<ValueHandle> ValueHandle::True(ParserContext* Context)
+{
+	static SharedPtr<IntHandle> Value;
+	if (!Value.IsValid()) {
+		Value = IntHandle::Alloc<IntHandle>();
+		Value->Context = Context;
+		Value->SetValue(1);
+		Value->Immutable = true;
+	}
+	return Value.Ptr();
+}
+
+SharedPtr<ValueHandle> ValueHandle::False(ParserContext* Context)
+{
+	static SharedPtr<IntHandle> Value;
+	if (!Value.IsValid()) {
+		Value = IntHandle::Alloc<IntHandle>();
+		Value->Context = Context;
+		Value->SetValue(0);
+		Value->Immutable = true;
+	}
+	return Value.Ptr();
+}
+
 CStrPtr ValueHandle::ToString()
 {
-    memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));
-    strcpy(TmpNumber_Allocation, "Null");
-    return TmpNumber_Allocation;
+	StringRep->Set("value_handle_null");
+	return StringRep->CStr();
 }

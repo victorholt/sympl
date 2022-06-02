@@ -106,6 +106,13 @@ public:
 	bool IsTrue() const override;
 
 	/**
+     * Copies the value.
+     * @return
+     */
+	[[nodiscard]]
+	SharedPtr<ValueHandle> Copy() const override;
+
+	/**
      * Returns a string of the value.
      * @return
      */

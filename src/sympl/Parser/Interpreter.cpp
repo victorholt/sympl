@@ -27,6 +27,7 @@
 #include "sympl/Parser/Handle/FuncHandle.hpp"
 #include "sympl/Parser/Handle/StringHandle.hpp"
 #include "sympl/Parser/Handle/NullHandle.hpp"
+#include "sympl/Parser/Handle/ListHandle.hpp"
 #include "sympl/Parser/ParserRuntimeResult.hpp"
 #include <fmt/format.h>
 SymplNamespace
@@ -35,7 +36,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
 {
     switch (Node->Type)
     {
-        case ParseNodeType::Number:
+		case ParseNodeType::Number:
         {
             return VisitNumberNode(Node, Context);
         }
@@ -62,6 +63,10 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
 		case ParseNodeType::While:
 		{
 			return VisitWhileNode(Node, Context);
+		}
+		case ParseNodeType::List:
+		{
+			return VisitListNode(Node, Context);
 		}
         case ParseNodeType::VarAccess:
         {
@@ -301,7 +306,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<struct ParserN
 		return Result;
 	}
 
-	Result->Success(NullHandle::Alloc<NullHandle>().Ptr());
+	Result->Success(ValueHandle::Null());
 	return Result;
 }
 
@@ -309,6 +314,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct Parser
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ParserForNode> ForNode = dynamic_cast<ParserForNode*>(Node.Ptr());
+	std::vector<SharedPtr<ValueHandle>> ResultElements;
 
 	auto StartValue = Result->Register(Visit(ForNode->StartValueNode, Context));
 	if (StartValue->Error.IsValid() || StringNotEquals(StartValue->GetTypeName().c_str(), "IntHandle")) {
@@ -357,13 +363,18 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct Parser
 
 		CurrentStepValue += static_cast<int>(StepValue->Value.IntNum);
 
-		Result->Register(Visit(ForNode->BodyNode, Context));
+		ResultElements.emplace_back(Result->Register(Visit(ForNode->BodyNode, Context)));
 		if (Result->Error.IsValid()) {
 			return Result;
 		}
 	}
 
-	Result->Success(NullHandle::Alloc<NullHandle>().Ptr());
+	auto ResultList = ListHandle::Alloc<ListHandle>();
+	ResultList->Create(ResultElements);
+	ResultList->Context = Context;
+	ResultList->SetPosition(Node->StartPosition, Node->EndPosition);
+
+	Result->Success(ResultList.Ptr());
 	return Result;
 }
 
@@ -371,6 +382,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<struct Pars
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ParserWhileNode> WhileNode = dynamic_cast<ParserWhileNode*>(Node.Ptr());
+	std::vector<SharedPtr<ValueHandle>> ResultElements;
 
 	while (!MemPool::Instance()->IsMaxMemUsage()) {
 		auto Condition = Result->Register(Visit(WhileNode->ConditionNode, Context));
@@ -382,13 +394,41 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<struct Pars
 			break;
 		}
 
-		Result->Register(Visit(WhileNode->BodyNode, Context));
+		ResultElements.emplace_back(Result->Register(Visit(WhileNode->BodyNode, Context)));
 		if (Result->Error.IsValid()) {
 			return Result;
 		}
 	}
 
-	Result->Success(NullHandle::Alloc<NullHandle>().Ptr());
+	auto ResultList = ListHandle::Alloc<ListHandle>();
+	ResultList->Create(ResultElements);
+	ResultList->Context = Context;
+	ResultList->SetPosition(Node->StartPosition, Node->EndPosition);
+
+	Result->Success(ResultList.Ptr());
+	return Result;
+}
+
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitListNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+	SharedPtr<ParserListNode> ListNode = dynamic_cast<ParserListNode*>(Node.Ptr());
+	std::vector<SharedPtr<ValueHandle>> Elements;
+
+	for (const auto& ItemNode : ListNode->ElementNodeList)
+	{
+		Elements.emplace_back(Result->Register(Visit(ItemNode, Context)));
+		if (Result->Error.IsValid()) {
+			return Result;
+		}
+	}
+
+	auto NewList = ListHandle::Alloc<ListHandle>();
+	NewList->Create(Elements);
+	NewList->Context = Context;
+	NewList->SetPosition(Node->StartPosition, Node->EndPosition);
+	Result->Success(NewList.Ptr());
+
 	return Result;
 }
 
@@ -426,6 +466,18 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<P
     if (Result->Error.IsValid()) {
         return Result;
     }
+
+	// Check if we have this value, and it's mutable.
+	auto ContextValue = Context->VariableSymbolTable->Get(VarName);
+	if (ContextValue.IsValid() && ContextValue->Immutable) {
+		Result->Failure(new RuntimeError(
+			Context,
+			Node->StartPosition,
+			Node->EndPosition,
+			fmt::format("'{0}' is not a mutable value", VarName).c_str()
+		));
+		return Result;
+	}
 
     Context->VariableSymbolTable->Set(VarName, Value);
 

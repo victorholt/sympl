@@ -43,10 +43,12 @@ public:
     // Context of the value.
     SharedPtr<class ParserContext> Context;
 
-protected:
+	// Check if we can assign a new value.
+	bool Immutable = false;
 
-    // String representation of the number.
-    char TmpNumber_Allocation[64];
+protected:
+	// String representation of the value.
+	SharedPtr<StringBuffer> StringRep;
 
     // Start position of the number value.
     SharedPtr<struct LexerPosition> StartPosition;
@@ -64,42 +66,42 @@ public:
      * @param pStartPosition
      * @param pEndPosition
      */
-    void SetPosition(SharedPtr<class LexerPosition> pStartPosition, SharedPtr<class LexerPosition> pEndPosition);
+    void SetPosition(const SharedPtr<class LexerPosition>& pStartPosition, const SharedPtr<class LexerPosition>& pEndPosition);
 
     /**
      * Returns a new number that adds another number.
      * @param handle
      * @return
      */
-    virtual SharedPtr<ValueHandle> AddTo(const SharedPtr<ValueHandle>& handle);
+    virtual SharedPtr<ValueHandle> AddTo(const SharedPtr<ValueHandle>& pHandle);
 
     /**
      * Returns a new number that's subtracted by the current value.
      * @param handle
      * @return
      */
-    virtual SharedPtr<ValueHandle> SubtractBy(const SharedPtr<ValueHandle>& handle);
+    virtual SharedPtr<ValueHandle> SubtractBy(const SharedPtr<ValueHandle>& pHandle);
 
     /**
      * Returns a new number that's multiplied by the current value.
      * @param handle
      * @return
      */
-    virtual SharedPtr<ValueHandle> MultiplyBy(const SharedPtr<ValueHandle>& handle);
+    virtual SharedPtr<ValueHandle> MultiplyBy(const SharedPtr<ValueHandle>& pHandle);
 
     /**
      * Returns a new number that's divided by the current value.
      * @param handle
      * @return
      */
-    virtual SharedPtr<ValueHandle> DivideBy(const SharedPtr<ValueHandle>& handle);
+    virtual SharedPtr<ValueHandle> DivideBy(const SharedPtr<ValueHandle>& pHandle);
 
     /**
      * Returns a new number that's the power by a given value.
      * @param handle
      * @return
      */
-    virtual SharedPtr<ValueHandle> PowerBy(const SharedPtr<ValueHandle>& handle);
+    virtual SharedPtr<ValueHandle> PowerBy(const SharedPtr<ValueHandle>& pHandle);
 
 	/**
      * Attempts to normalize the value.
@@ -138,7 +140,7 @@ public:
      * @return
      */
     [[nodiscard]]
-    virtual SharedPtr<ValueHandle> Copy() const;
+    virtual SharedPtr<ValueHandle> Copy() const = 0;
 
     /**
      * Executes the handle.
@@ -146,6 +148,31 @@ public:
      * @return
      */
     virtual SharedPtr<class ParserRuntimeResult> Exec(const std::vector<SharedPtr<ValueHandle>>& ArgValueList);
+
+	/**
+	 * Retrieves an illegal operation exception.
+	 * @param pValue
+	 * @return
+	 */
+	static SharedPtr<ValueHandle> GetIllegalOperationException(SharedPtr<ValueHandle> pValue);
+
+	/**
+	 * Retrieve the value handle for null.
+	 * @return
+	 */
+	static SharedPtr<ValueHandle> Null(class ParserContext* Context = nullptr);
+
+	/**
+	 * Retrieve the value handle for true.
+	 * @return
+	 */
+	static SharedPtr<ValueHandle> True(class ParserContext* Context = nullptr);
+
+	/**
+	 * Retrieve the value handle for false.
+	 * @return
+	 */
+	static SharedPtr<ValueHandle> False(class ParserContext* Context = nullptr);
 
     /**
      * Returns a string of the value.

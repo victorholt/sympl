@@ -25,7 +25,7 @@ void FuncHandle::Create(
 {
     Type = ValueType::Func;
     Name = StringBuffer::Alloc<StringBuffer>();
-    Name->Set(strlen(FuncName) > 0 ? FuncName : "<anonymous>");
+    Name->Set(FuncName && strlen(FuncName) > 0 ? FuncName : "<anonymous>");
     BodyNode = pBodyNode;
     ArgNameList = pArgNameList;
 }
@@ -34,48 +34,17 @@ SharedPtr<ParserRuntimeResult> FuncHandle::Exec(const std::vector<SharedPtr<Valu
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     auto Interp = Interpreter::Alloc<Interpreter>();
-    auto NewContext = ParserContext::Alloc<ParserContext>();
+    auto ExecContext = ParserContext::Alloc<ParserContext>();
 
-    NewContext->Create(Context, StartPosition, Name->CStr());
-    NewContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable->Parent.Ptr());
+    ExecContext->Create(Context, StartPosition, Name->CStr());
+    ExecContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable.Ptr());
 
-    if (ArgValueList.size() > ArgNameList.size()) {
-        Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
-            Context,
-            StartPosition,
-            EndPosition,
-            fmt::format(
-                "{0} Too many args passed into '{1}'",
-                ArgValueList.size() - ArgNameList.size(),
-                Name->CStr()
-            ).c_str()
-        )).Ptr();
-        return Result;
-    }
+	Result->Register(CheckAndPopulateArgs(ArgNameList, ArgValueList, ExecContext));
+	if (Result->Error.IsValid()) {
+		return Result;
+	}
 
-    if (ArgValueList.size() < ArgNameList.size()) {
-        Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
-            Context,
-            StartPosition,
-            EndPosition,
-            fmt::format(
-                "{0} Too few args passed into '{1}'",
-                ArgNameList.size() - ArgValueList.size(),
-                Name->CStr()
-            ).c_str()
-        )).Ptr();
-        return Result;
-    }
-
-    for (auto i = 0; i < ArgNameList.size(); ++i)
-    {
-        auto ArgName = ArgNameList[i];
-        auto ArgValue = ArgValueList[i];
-        ArgValue->Context = NewContext;
-        NewContext->VariableSymbolTable->Set(ArgName.c_str(), ArgValue);
-    }
-
-    auto ResultValue = Result->Register(Interp->Visit(BodyNode, NewContext));
+    auto ResultValue = Result->Register(Interp->Visit(BodyNode, ExecContext));
     if (Result->Error.IsValid()) {
         return Result;
     }
@@ -94,7 +63,6 @@ SharedPtr<ValueHandle> FuncHandle::Copy() const
 }
 
 CStrPtr FuncHandle::ToString() {
-    memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));
-    strcpy(TmpNumber_Allocation, fmt::format("<function {0}>", Name->CStr()).c_str());
-    return TmpNumber_Allocation;
+	StringRep->Set(fmt::format("<function {0}>", Name->CStr()).c_str());
+    return StringRep->CStr();
 }

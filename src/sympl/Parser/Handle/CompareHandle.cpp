@@ -249,8 +249,15 @@ bool CompareHandle::IsTrue() const
 	return Result;
 }
 
+SharedPtr<ValueHandle> CompareHandle::Copy() const
+{
+	SharedPtr<CompareHandle> Result = CompareHandle::Alloc<CompareHandle>(1, Type);
+	Result->Context = Context;
+	Result->SetPosition(StartPosition, EndPosition);
+	return Result.Ptr();
+}
+
 CStrPtr CompareHandle::ToString() {
-	memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));
-	strcpy(TmpNumber_Allocation, fmt::format("{0}", Result ? "true" : "false").c_str());
-	return TmpNumber_Allocation;
+	StringRep->Set(fmt::format("{0}", Result ? "true" : "false").c_str());
+	return StringRep->CStr();
 }

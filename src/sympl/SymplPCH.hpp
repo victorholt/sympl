@@ -187,7 +187,6 @@ SymplNamespaceStart
 
 enum class TokenType
 {
-    Null = 0,
     EndOfFile,
     Int, Float, String,
     Plus, Minus, Mul, Div, Power,
@@ -201,7 +200,7 @@ enum class TokenType
     Arrow
 };
 static const std::vector<CStrPtr> TokenTypeValueList = {
-	"null", "EOF", "int", "float", "\"",
+	"EOF", "int", "float", "\"",
 	"+", "-", "*", "/", "^", "(", ")", "[", "]",
 	"identifier", "keyword",
 	"=", "==", "!=", "<", "<=", ">", ">=", "!", "||", "&&",
@@ -232,7 +231,8 @@ enum class ValueType
     Float,
 	String,
     Func,
-    List
+    List,
+	Exception
 };
 
 // Valid keywords.

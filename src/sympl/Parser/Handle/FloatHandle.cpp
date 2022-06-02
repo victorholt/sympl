@@ -72,7 +72,6 @@ SharedPtr<ValueHandle> FloatHandle::Copy() const
 
 CStrPtr FloatHandle::ToString()
 {
-    memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));
-    strcpy(TmpNumber_Allocation, fmt::format("{0}", Value.FloatNum).c_str());
-    return TmpNumber_Allocation;
+	StringRep->Set(fmt::format("{0}", Value.FloatNum).c_str());
+    return StringRep->CStr();
 }

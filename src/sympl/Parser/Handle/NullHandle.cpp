@@ -19,8 +19,13 @@ bool NullHandle::IsTrue() const
 	return false;
 }
 
+SharedPtr<ValueHandle> NullHandle::Copy() const
+{
+	// We don't copy this particular handle.
+	return ValueHandle::Null();
+}
+
 CStrPtr NullHandle::ToString() {
-	memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));
-	strcpy(TmpNumber_Allocation, "null");
-	return TmpNumber_Allocation;
+	StringRep->Set("null");
+	return StringRep->CStr();
 }

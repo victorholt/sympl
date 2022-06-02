@@ -4,17 +4,15 @@
 #pragma once
 #include <sympl/SymplPCH.hpp>
 #include <sympl/Core/StringBuffer.hpp>
-#include "ValueHandle.hpp"
+#include "BaseFuncHandle.hpp"
 
 SymplNamespaceStart
 
-class SYMPL_API FuncHandle : public ValueHandle
+class SYMPL_API FuncHandle : public BaseFuncHandle
 {
-    SYMPL_OBJECT(FuncHandle, ValueHandle)
+    SYMPL_OBJECT(FuncHandle, BaseFuncHandle)
 
 public:
-    // Name of the function.
-    SharedPtr<StringBuffer> Name;
     // Body of the function.
     SharedPtr<class ParserNode> BodyNode;
     // Argument name list.
@@ -43,6 +41,10 @@ public:
      */
     virtual SharedPtr<class ParserRuntimeResult> Exec(const std::vector<SharedPtr<ValueHandle>>& ArgValueList);
 
+	/**
+     * Copies the value.
+     * @return
+     */
     [[nodiscard]]
     SharedPtr<ValueHandle> Copy() const override;
 

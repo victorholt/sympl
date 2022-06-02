@@ -76,6 +76,14 @@ public:
      */
 	SharedPtr<class ParserRuntimeResult> VisitWhileNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
+	/**
+     * Visits the list node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+	SharedPtr<class ParserRuntimeResult> VisitListNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
     /**
      * Visits the variable access node.
      * @param Node

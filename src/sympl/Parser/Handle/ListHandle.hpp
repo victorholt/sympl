@@ -13,7 +13,7 @@ class SYMPL_API ListHandle : public ValueHandle
 
 public:
     // List elements.
-    std::vector<SharedPtr<class ParserNode>> Elements;
+    std::vector<SharedPtr<ValueHandle>> Elements;
 
     /**
      * Overrides the construct.
@@ -25,7 +25,7 @@ public:
     /**
      * Creates the list.
      */
-    void Create(const std::vector<SharedPtr<class ParserNode>>& pElements);
+    void Create(const std::vector<SharedPtr<ValueHandle>>& pElements);
 
     /**
      * Returns a new number that adds another number.
@@ -34,12 +34,26 @@ public:
      */
     SharedPtr<ValueHandle> AddTo(const SharedPtr<ValueHandle>& pHandle) override;
 
+	/**
+     * Returns a new number that's subtracted by the current value.
+     * @param handle
+     * @return
+     */
+	SharedPtr<ValueHandle> SubtractBy(const SharedPtr<ValueHandle>& pHandle) override;
+
     /**
      * Returns a new number that's multiplied by the current value.
      * @param pHandle
      * @return
      */
     SharedPtr<ValueHandle> MultiplyBy(const SharedPtr<ValueHandle>& pHandle) override;
+
+	/**
+     * Returns a new number that's divided by the current value.
+     * @param handle
+     * @return
+     */
+	SharedPtr<ValueHandle> DivideBy(const SharedPtr<ValueHandle>& pHandle) override;
 
     /**
      * Attempts to normalize the value.
@@ -57,7 +71,7 @@ public:
      * @return
      */
     [[nodiscard]]
-    virtual SharedPtr<ValueHandle> Copy() const;
+    SharedPtr<ValueHandle> Copy() const override;
 
     /**
      * Returns a string of the value.

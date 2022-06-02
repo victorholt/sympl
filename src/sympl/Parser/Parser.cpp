@@ -469,9 +469,9 @@ SharedPtr<ParseResult> Parser::ListExpr()
     if (CurrentToken->GetType() != TokenType::L_SqrBracket)
     {
         Result->Failure(new InvalidSyntaxError(
-            CurrentToken->GetStartPosition(),
-            CurrentToken->GetEndPosition(),
-            fmt::format("<list_expr> Expected '[' got {0}", CurrentToken->ToString()).c_str()
+		CurrentToken->GetStartPosition(),
+		CurrentToken->GetEndPosition(),
+		fmt::format("<list_expr> Expected int, float, identifier, '+', '-', '(', '[', or '!' got {0}", CurrentToken->ToString()).c_str()
         ));
     }
 
@@ -489,9 +489,9 @@ SharedPtr<ParseResult> Parser::ListExpr()
         ElementNodes.emplace_back(Result->Register(Expression()));
         if (Result->Error.IsValid()) {
             Result->Failure(new InvalidSyntaxError(
-                    CurrentToken->GetStartPosition(),
-                    CurrentToken->GetEndPosition(),
-                    fmt::format("<list_expr> Expected '[', '+', '-', '(', 'var', 'if', 'for', 'while', 'func', int, float, identifier, got {0}", CurrentToken->ToString()).c_str()
+				CurrentToken->GetStartPosition(),
+				CurrentToken->GetEndPosition(),
+				fmt::format("<list_expr> Expected ']', '[', '(', '+', '-', 'var', 'if', 'for', 'while', 'func', int, float, identifier, got {0}", CurrentToken->ToString()).c_str()
             ));
             return Result;
         }
@@ -523,7 +523,7 @@ SharedPtr<ParseResult> Parser::ListExpr()
     }
 
     auto NewListNode = ParserListNode::Alloc<ParserListNode>();
-    NewListNode->Create(CurrentToken, ElementNodes, StartPosition, CurrentToken->GetEndPosition());
+    NewListNode->Create(CurrentToken, ElementNodes, StartPosition, CurrentToken->GetEndPosition()->Copy());
     Result->Success(NewListNode.Ptr());
 
     return Result;

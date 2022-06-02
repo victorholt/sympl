@@ -72,7 +72,6 @@ SharedPtr<ValueHandle> IntHandle::Copy() const
 
 CStrPtr IntHandle::ToString()
 {
-    memset(TmpNumber_Allocation, 0, sizeof(TmpNumber_Allocation));
-    strcpy(TmpNumber_Allocation, fmt::format("{0}", Value.IntNum).c_str());
-    return TmpNumber_Allocation;
+	StringRep->Set(fmt::format("{0}", Value.IntNum).c_str());
+    return StringRep->CStr();
 }
