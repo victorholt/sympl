@@ -15,6 +15,7 @@
 #include "sympl/Parser/Node/ParserForNode.hpp"
 #include "sympl/Parser/Node/ParserWhileNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
+#include "sympl/Parser/Node/ParserStringNode.hpp"
 #include "sympl/Parser/Node/VarAccessNode.hpp"
 #include "sympl/Parser/Node/VarAssignNode.hpp"
 #include "sympl/Parser/Handle/CompareHandle.hpp"
@@ -23,6 +24,7 @@
 #include "sympl/Parser/Node/ParserFuncDefNode.hpp"
 #include "sympl/Parser/Node/ParserCallNode.hpp"
 #include "sympl/Parser/Handle/FuncHandle.hpp"
+#include "sympl/Parser/Handle/StringHandle.hpp"
 #include "sympl/Parser/Handle/NullHandle.hpp"
 #include "sympl/Parser/ParserRuntimeResult.hpp"
 #include <fmt/format.h>
@@ -35,6 +37,10 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
         case ParseNodeType::Number:
         {
             return VisitNumberNode(Node, Context);
+        }
+        case ParseNodeType::String:
+        {
+            return VisitStringNode(Node, Context);
         }
         case ParseNodeType::Binary:
         {
@@ -104,6 +110,18 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode
     return Result;
 }
 
+SharedPtr<ParserRuntimeResult> Interpreter::VisitStringNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    auto NewStr = StringHandle::Alloc<StringHandle>(1, Node->NodeToken->GetValue());
+
+    NewStr->Context = Context;
+    NewStr->SetPosition(Node->StartPosition, Node->EndPosition);
+
+    Result->Success(NewStr.Ptr());
+    return Result;
+}
+
 SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
@@ -125,37 +143,27 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNo
     {
         case TokenType::Plus:
         {
-            SharedPtr<NumberHandle> LeftNumber = dynamic_cast<NumberHandle*>(Left.Ptr());
-            SharedPtr<NumberHandle> RightNumber = dynamic_cast<NumberHandle*>(Right.Ptr());
-            ValueResult = LeftNumber->AddTo(RightNumber).Ptr();
+            ValueResult = Left->AddTo(Right);
             break;
         }
         case TokenType::Minus:
         {
-            SharedPtr<NumberHandle> LeftNumber = dynamic_cast<NumberHandle*>(Left.Ptr());
-            SharedPtr<NumberHandle> RightNumber = dynamic_cast<NumberHandle*>(Right.Ptr());
-            ValueResult = LeftNumber->SubtractBy(RightNumber).Ptr();
+            ValueResult = Left->SubtractBy(Right);
             break;
         }
         case TokenType::Mul:
         {
-            SharedPtr<NumberHandle> LeftNumber = dynamic_cast<NumberHandle*>(Left.Ptr());
-            SharedPtr<NumberHandle> RightNumber = dynamic_cast<NumberHandle*>(Right.Ptr());
-            ValueResult = LeftNumber->MultiplyBy(RightNumber).Ptr();
+            ValueResult = Left->MultiplyBy(Right);
             break;
         }
         case TokenType::Div:
         {
-            SharedPtr<NumberHandle> LeftNumber = dynamic_cast<NumberHandle*>(Left.Ptr());
-            SharedPtr<NumberHandle> RightNumber = dynamic_cast<NumberHandle*>(Right.Ptr());
-            ValueResult = LeftNumber->DivideBy(RightNumber).Ptr();
+            ValueResult = Left->DivideBy(Right);
             break;
         }
         case TokenType::Power:
         {
-            SharedPtr<NumberHandle> LeftNumber = dynamic_cast<NumberHandle*>(Left.Ptr());
-            SharedPtr<NumberHandle> RightNumber = dynamic_cast<NumberHandle*>(Right.Ptr());
-            ValueResult = LeftNumber->PowerBy(RightNumber).Ptr();
+            ValueResult = Left->PowerBy(Right).Ptr();
             break;
         }
 		case TokenType::IsEqual:
@@ -242,7 +250,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
         auto Number = SharedPtr<NumberHandle>(dynamic_cast<NumberHandle*>(ValueResult.Ptr()));
         auto NegOneNumber = IntHandle::Alloc<IntHandle, NumberHandle>();
         NegOneNumber->SetIntValue(-1);
-        ValueResult = Number->MultiplyBy(NegOneNumber).Ptr();
+        ValueResult = Number->MultiplyBy(NegOneNumber.Ptr()).Ptr();
     }
 
     ValueResult->SetPosition(Node->StartPosition, Node->EndPosition);

@@ -13,7 +13,7 @@ IntHandle::IntHandle()
     SetPosition(nullptr, nullptr);
 }
 
-SharedPtr<NumberHandle> IntHandle::AddTo(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> IntHandle::AddTo(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = IntHandle::Alloc<IntHandle>();
     NewNumber->Context = Context;
@@ -21,7 +21,7 @@ SharedPtr<NumberHandle> IntHandle::AddTo(const SharedPtr<NumberHandle>& handle)
     return NewNumber.Ptr();
 }
 
-SharedPtr<NumberHandle> IntHandle::SubtractBy(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> IntHandle::SubtractBy(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = IntHandle::Alloc<IntHandle>();
     NewNumber->Context = Context;
@@ -29,14 +29,14 @@ SharedPtr<NumberHandle> IntHandle::SubtractBy(const SharedPtr<NumberHandle>& han
     return NewNumber.Ptr();
 }
 
-SharedPtr<NumberHandle> IntHandle::MultiplyBy(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> IntHandle::MultiplyBy(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = IntHandle::Alloc<IntHandle>();
     NewNumber->Context = Context;
     NewNumber->Value.IntNum = Value.IntNum * handle->Value.IntNum;
     return NewNumber.Ptr();
 }
-SharedPtr<NumberHandle> IntHandle::DivideBy(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> IntHandle::DivideBy(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = IntHandle::Alloc<IntHandle>();
     NewNumber->Context = Context;
@@ -55,7 +55,7 @@ SharedPtr<NumberHandle> IntHandle::DivideBy(const SharedPtr<NumberHandle>& handl
     return NewNumber.Ptr();
 }
 
-SharedPtr<NumberHandle> IntHandle::PowerBy(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> IntHandle::PowerBy(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = IntHandle::Alloc<IntHandle>();
     NewNumber->Context = Context;

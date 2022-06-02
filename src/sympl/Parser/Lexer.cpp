@@ -53,23 +53,25 @@ void Lexer::MakeTokens()
 		// Ignore spaces and tabs.
 		if (CurrentChar == ' ' || CurrentChar == '\t') {
 			Advance();
-			continue;
 		}
 
         // Check if the character is a digit.
-		if (std::find(Digits.begin(), Digits.end(), CurrentChar) != Digits.end()) {
+		else if (std::find(Digits.begin(), Digits.end(), CurrentChar) != Digits.end()) {
 			TokenList.emplace_back(MakeNumberToken());
-			continue;
 		}
 
         // Check for identifiers.
-        if (std::find(Letters.begin(), Letters.end(), CurrentChar) != Letters.end()) {
+        else if (std::find(Letters.begin(), Letters.end(), CurrentChar) != Letters.end()) {
             TokenList.emplace_back(MakeIdentifier());
-            continue;
+        }
+
+        // Check for strings.
+        else if (CurrentChar == TokenValueChar(TokenType::String)) {
+            TokenList.emplace_back(MakeString());
         }
 
 		// Check for tokens.
-		if (CurrentChar == TokenValueChar(TokenType::Plus)) {
+		else if (CurrentChar == TokenValueChar(TokenType::Plus)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Plus, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
@@ -184,6 +186,36 @@ SharedPtr<class Token> Lexer::MakeIdentifier()
     );
 
     return Result;
+}
+
+SharedPtr<class Token> Lexer::MakeString()
+{
+    SharedPtr<StringBuffer> StrValue = StringBuffer::Alloc<StringBuffer>();
+    auto StartPosition = Position->Copy();
+    bool EscapeChar = false;
+    Advance();
+
+    std::unordered_map<char, char> EscapeCharList = {
+        {'n', '\n'}, {'t', '\t'}, {'r', '\r'}
+    };
+
+    while (CurrentChar != '\0' && (CurrentChar != TokenValueChar(TokenType::String) || EscapeChar)) {
+        if (EscapeChar) {
+            StrValue->AppendByte(EscapeCharList.find(CurrentChar) != EscapeCharList.end() ? EscapeCharList[CurrentChar] : CurrentChar);
+            Advance();
+            EscapeChar = false;
+        } else {
+            if (CurrentChar == '\\') {
+                EscapeChar = true;
+            } else {
+                StrValue->AppendByte(CurrentChar);
+                Advance();
+            }
+        }
+    }
+
+    Advance();
+    return Token::Alloc<Token>(4, TokenType::String, StrValue->CStr(), StartPosition.Ptr(), Position.Ptr());
 }
 
 SharedPtr<class Token> Lexer::MakeMinusOrArrow()

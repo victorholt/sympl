@@ -13,7 +13,7 @@ void ParserUnaryOpNode::__Construct(int argc, va_list ArgList)
     Create(pToken, pNode);
 }
 
-void ParserUnaryOpNode::Create(SharedPtr<Token> pNodeToken, SharedPtr<ParserNode> pNode)
+void ParserUnaryOpNode::Create(const SharedPtr<Token>& pNodeToken, const SharedPtr<ParserNode>& pNode)
 {
     ParserNode::Create(ParseNodeType::Unary, pNodeToken);
 

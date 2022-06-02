@@ -13,7 +13,7 @@ FloatHandle::FloatHandle()
     SetPosition(nullptr, nullptr);
 }
 
-SharedPtr<NumberHandle> FloatHandle::AddTo(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> FloatHandle::AddTo(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = FloatHandle::Alloc<FloatHandle>();
     NewNumber->Context = Context;
@@ -21,7 +21,7 @@ SharedPtr<NumberHandle> FloatHandle::AddTo(const SharedPtr<NumberHandle>& handle
     return NewNumber.Ptr();
 }
 
-SharedPtr<NumberHandle> FloatHandle::SubtractBy(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> FloatHandle::SubtractBy(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = FloatHandle::Alloc<FloatHandle>();
     NewNumber->Context = Context;
@@ -29,14 +29,14 @@ SharedPtr<NumberHandle> FloatHandle::SubtractBy(const SharedPtr<NumberHandle>& h
     return NewNumber.Ptr();
 }
 
-SharedPtr<NumberHandle> FloatHandle::MultiplyBy(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> FloatHandle::MultiplyBy(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = FloatHandle::Alloc<FloatHandle>();
     NewNumber->Context = Context;
     NewNumber->Value.FloatNum = Value.FloatNum * handle->Value.FloatNum;
     return NewNumber.Ptr();
 }
-SharedPtr<NumberHandle> FloatHandle::DivideBy(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> FloatHandle::DivideBy(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = FloatHandle::Alloc<FloatHandle>();
     NewNumber->Context = Context;
@@ -55,7 +55,7 @@ SharedPtr<NumberHandle> FloatHandle::DivideBy(const SharedPtr<NumberHandle>& han
     return NewNumber.Ptr();
 }
 
-SharedPtr<NumberHandle> FloatHandle::PowerBy(const SharedPtr<NumberHandle>& handle)
+SharedPtr<ValueHandle> FloatHandle::PowerBy(const SharedPtr<ValueHandle>& handle)
 {
     auto NewNumber = FloatHandle::Alloc<FloatHandle>();
     NewNumber->Context = Context;

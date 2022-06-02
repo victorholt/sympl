@@ -10,6 +10,7 @@
 #include "sympl/Parser/Node/ParserWhileNode.hpp"
 #include "sympl/Parser/Node/ParserFuncDefNode.hpp"
 #include "sympl/Parser/Node/ParserCallNode.hpp"
+#include "sympl/Parser/Node/ParserStringNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 #include "sympl/Parser/Node/VarAssignNode.hpp"
 #include "sympl/Parser/Node/VarAccessNode.hpp"
@@ -141,6 +142,13 @@ SharedPtr<ParseResult> Parser::Atom()
             Result->RegisterAdvance();
             Advance();
             Result->Success(VarAccessNode::Alloc<VarAccessNode, ParserNode>(1, FactorToken.Ptr()));
+            return Result;
+        }
+
+        case TokenType::String: {
+            Result->RegisterAdvance();
+            Advance();
+            Result->Success(ParserStringNode::Alloc<ParserStringNode, ParserNode>(1, FactorToken.Ptr()));
             return Result;
         }
 

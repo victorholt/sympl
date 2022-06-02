@@ -1,5 +1,5 @@
 //
-// GameSencha, LLC 5/24/22.
+// GameSencha, LLC 6/2/22.
 //
 #pragma once
 #include "sympl/SymplPCH.hpp"
@@ -7,9 +7,9 @@
 
 SymplNamespaceStart
 
-class SYMPL_API ParserNumberNode : public ParserNode
+class SYMPL_API ParserStringNode : public ParserNode
 {
-	SYMPL_OBJECT(ParserNumberNode, ParserNode)
+    SYMPL_OBJECT(ParserStringNode, ParserNode)
 
 public:
     /**

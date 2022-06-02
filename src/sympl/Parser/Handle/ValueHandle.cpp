@@ -23,6 +23,31 @@ void ValueHandle::SetPosition(SharedPtr<LexerPosition> pStartPosition, SharedPtr
     EndPosition = pEndPosition;
 }
 
+SharedPtr<ValueHandle> ValueHandle::AddTo(const SharedPtr<ValueHandle>& handle)
+{
+	return NullHandle::Alloc<NullHandle>().Ptr();
+}
+
+SharedPtr<ValueHandle> ValueHandle::SubtractBy(const SharedPtr<ValueHandle>& handle)
+{
+	return NullHandle::Alloc<NullHandle>().Ptr();
+}
+
+SharedPtr<ValueHandle> ValueHandle::MultiplyBy(const SharedPtr<ValueHandle>& handle)
+{
+	return NullHandle::Alloc<NullHandle>().Ptr();
+}
+
+SharedPtr<ValueHandle> ValueHandle::DivideBy(const SharedPtr<ValueHandle>& handle)
+{
+	return NullHandle::Alloc<NullHandle>().Ptr();
+}
+
+SharedPtr<ValueHandle> ValueHandle::PowerBy(const SharedPtr<ValueHandle>& handle)
+{
+	return NullHandle::Alloc<NullHandle>().Ptr();
+}
+
 void ValueHandle::NormalizeValue()
 {
 	switch (Type)

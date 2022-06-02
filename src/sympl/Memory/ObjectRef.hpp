@@ -13,6 +13,11 @@ public:
 	// Reference count.
 	size_t RefCount = 0;
 
+    /**
+     * Destructor.
+     */
+    virtual ~ObjectRef() {}
+
 	/**
 	 * Adds to the reference count.
 	 */

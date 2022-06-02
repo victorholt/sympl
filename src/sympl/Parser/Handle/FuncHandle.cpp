@@ -19,7 +19,7 @@ void FuncHandle::__Construct(int argc, va_list ArgList)
 
 void FuncHandle::Create(
     CStrPtr FuncName,
-    const SharedPtr<class ParserNode>& pBodyNode,
+    const SharedPtr<ParserNode>& pBodyNode,
     const std::vector<std::string>& pArgNameList
 )
 {

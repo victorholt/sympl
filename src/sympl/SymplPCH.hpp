@@ -189,7 +189,7 @@ enum class TokenType
 {
     Null = 0,
     EndOfFile,
-    Int, Float,
+    Int, Float, String,
     Plus, Minus, Mul, Div, Power,
     LH_Parenth, RH_Parenth,
     Identifier, Keyword,
@@ -200,7 +200,7 @@ enum class TokenType
     Arrow
 };
 static const std::vector<CStrPtr> TokenTypeValueList = {
-	"null", "EOF", "int", "float",
+	"null", "EOF", "int", "float", "\"",
 	"+", "-", "*", "/", "^", "(", ")",
 	"identifier", "keyword",
 	"=", "==", "!=", "<", "<=", ">", ">=", "!", "||", "&&",
@@ -219,7 +219,8 @@ enum class ParseNodeType
 	For,
 	While,
     Func,
-    Call
+    Call,
+    String
 };
 
 enum class ValueType

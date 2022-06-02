@@ -66,6 +66,41 @@ public:
      */
     void SetPosition(SharedPtr<class LexerPosition> pStartPosition, SharedPtr<class LexerPosition> pEndPosition);
 
+    /**
+     * Returns a new number that adds another number.
+     * @param handle
+     * @return
+     */
+    virtual SharedPtr<ValueHandle> AddTo(const SharedPtr<ValueHandle>& handle);
+
+    /**
+     * Returns a new number that's subtracted by the current value.
+     * @param handle
+     * @return
+     */
+    virtual SharedPtr<ValueHandle> SubtractBy(const SharedPtr<ValueHandle>& handle);
+
+    /**
+     * Returns a new number that's multiplied by the current value.
+     * @param handle
+     * @return
+     */
+    virtual SharedPtr<ValueHandle> MultiplyBy(const SharedPtr<ValueHandle>& handle);
+
+    /**
+     * Returns a new number that's divided by the current value.
+     * @param handle
+     * @return
+     */
+    virtual SharedPtr<ValueHandle> DivideBy(const SharedPtr<ValueHandle>& handle);
+
+    /**
+     * Returns a new number that's the power by a given value.
+     * @param handle
+     * @return
+     */
+    virtual SharedPtr<ValueHandle> PowerBy(const SharedPtr<ValueHandle>& handle);
+
 	/**
      * Attempts to normalize the value.
      */
@@ -98,6 +133,10 @@ public:
         return NewValue;
     }
 
+    /**
+     * Copies the value.
+     * @return
+     */
     [[nodiscard]]
     virtual SharedPtr<ValueHandle> Copy() const;
 

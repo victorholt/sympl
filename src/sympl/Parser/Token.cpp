@@ -63,6 +63,10 @@ CStrPtr Token::GetValue() const
 
 CStrPtr Token::ToString()
 {
+	if (Type == TokenType::String) {
+		return Value->CStr();
+	}
+
 	char TypeStr[10];
 	memset(TypeStr, 0, 10);
 

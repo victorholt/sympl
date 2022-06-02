@@ -26,7 +26,7 @@ public:
      * Constructor
      * @param pNodeToken
      */
-    void Create(SharedPtr<class Token> pNodeToken, SharedPtr<ParserNode> pNode);
+    void Create(const SharedPtr<class Token>& pNodeToken, const SharedPtr<ParserNode>& pNode);
 
     /**
      * Returns the string representation of the node.

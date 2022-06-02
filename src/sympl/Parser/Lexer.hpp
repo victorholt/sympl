@@ -42,10 +42,16 @@ protected:
 	SharedPtr<class Token> MakeNumberToken();
 
     /**
-     * Generates a string token.
+     * Generates an identifier token.
      * @return
      */
     SharedPtr<class Token> MakeIdentifier();
+
+    /**
+     * Generates a string token.
+     * @return
+     */
+    SharedPtr<class Token> MakeString();
 
     /**
      * Make either a minus or arrow token.

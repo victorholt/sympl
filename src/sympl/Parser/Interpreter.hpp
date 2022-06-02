@@ -29,6 +29,14 @@ public:
     SharedPtr<class ParserRuntimeResult> VisitNumberNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
+     * Visits the parser number node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitStringNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
      * Visits the parser binary node.
      * @param Node
      * @param Context
