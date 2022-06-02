@@ -11,6 +11,7 @@
 #include "sympl/Parser/Error/RuntimeError.hpp"
 #include "sympl/Parser/Node/ParserNumberNode.hpp"
 #include "sympl/Parser/Node/ParserBinaryOpNode.hpp"
+#include "sympl/Parser/Node/ParserListNode.hpp"
 #include "sympl/Parser/Node/ParserIfNode.hpp"
 #include "sympl/Parser/Node/ParserForNode.hpp"
 #include "sympl/Parser/Node/ParserWhileNode.hpp"

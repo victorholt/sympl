@@ -104,6 +104,12 @@ protected:
 	 */
 	SharedPtr<ParseResult> ArithExpr();
 
+    /**
+	 * Returns a result based on an list expression.
+	 * @return
+	 */
+    SharedPtr<ParseResult> ListExpr();
+
 	/**
 	 * Returns a result based on an if expression.
 	 * @return

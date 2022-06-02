@@ -25,7 +25,7 @@ void FuncHandle::Create(
 {
     Type = ValueType::Func;
     Name = StringBuffer::Alloc<StringBuffer>();
-    Name->Set(FuncName);
+    Name->Set(strlen(FuncName) > 0 ? FuncName : "<anonymous>");
     BodyNode = pBodyNode;
     ArgNameList = pArgNameList;
 }

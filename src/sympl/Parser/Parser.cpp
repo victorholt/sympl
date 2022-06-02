@@ -10,6 +10,7 @@
 #include "sympl/Parser/Node/ParserWhileNode.hpp"
 #include "sympl/Parser/Node/ParserFuncDefNode.hpp"
 #include "sympl/Parser/Node/ParserCallNode.hpp"
+#include "sympl/Parser/Node/ParserListNode.hpp"
 #include "sympl/Parser/Node/ParserStringNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 #include "sympl/Parser/Node/VarAssignNode.hpp"
@@ -181,6 +182,17 @@ SharedPtr<ParseResult> Parser::Atom()
             }
         }
 
+        case TokenType::L_SqrBracket:
+        {
+            auto ListExprResult = Result->Register(ListExpr());
+            if (Result->Error.IsValid()) {
+                return Result;
+            }
+
+            Result->Success(ListExprResult);
+            return Result;
+        }
+
 		// Keywords
 		case TokenType::Keyword:
 		{
@@ -231,7 +243,7 @@ SharedPtr<ParseResult> Parser::Atom()
     Result->Failure(new InvalidSyntaxError(
         FactorToken->GetStartPosition(),
         FactorToken->GetEndPosition(),
-        fmt::format("<atom> Expected int, float, identifier, '+', '-', '(', 'if', 'for', 'while', or 'func' got {0}", FactorToken->ToString()).c_str()
+        fmt::format("<atom> Expected int, float, identifier, '+', '-', '(', '[', 'if', 'for', 'while', or 'func' got {0}", FactorToken->ToString()).c_str()
     ));
 
     return Result;
@@ -378,7 +390,7 @@ SharedPtr<ParseResult> Parser::Expression()
         Result->Failure(new InvalidSyntaxError(
             CurrentToken->GetStartPosition(),
             CurrentToken->GetEndPosition(),
-            fmt::format("<expr> Expected var, int, float, identifier, '+', '-', '(', '!', 'var', 'if', 'for', 'while', or 'func' got {0}", CurrentToken->ToString()).c_str()
+            fmt::format("<expr> Expected var, int, float, identifier, '+', '-', '(', '[', '!', 'var', 'if', 'for', 'while', or 'func' got {0}", CurrentToken->ToString()).c_str()
         ));
         return Result;
     }
@@ -401,7 +413,7 @@ SharedPtr<ParseResult> Parser::CompExpr() {
 			Result->Failure(new InvalidSyntaxError(
 				CurrentToken->GetStartPosition(),
 				CurrentToken->GetEndPosition(),
-				fmt::format("<comp_expr> Expected var, int, float, identifier, '+', '-', or '(' got {0}", CurrentToken->ToString()).c_str()
+				fmt::format("<comp_expr> Expected var, int, float, identifier, '+', '-', '(', or '[', got {0}", CurrentToken->ToString()).c_str()
 			));
 			return Result;
 		}
@@ -428,7 +440,7 @@ SharedPtr<ParseResult> Parser::CompExpr() {
 		Result->Failure(new InvalidSyntaxError(
 			CurrentToken->GetStartPosition(),
 			CurrentToken->GetEndPosition(),
-			fmt::format("<comp_expr> Expected int, float, identifier, '+', '-', '(', or '!' got {0}", CurrentToken->ToString()).c_str()
+			fmt::format("<comp_expr> Expected int, float, identifier, '+', '-', '(', '[', or '!' got {0}", CurrentToken->ToString()).c_str()
 		));
 		return Result;
 	}
@@ -445,6 +457,76 @@ SharedPtr<ParseResult> Parser::ArithExpr() {
 			{TokenType::Minus, TokenValue(TokenType::Minus)}
 		}
 	);
+}
+
+SharedPtr<ParseResult> Parser::ListExpr()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+    std::vector<SharedPtr<ParserNode>> ElementNodes;
+    auto StartPosition = CurrentToken->GetStartPosition()->Copy();
+
+    // Opening square bracket.
+    if (CurrentToken->GetType() != TokenType::L_SqrBracket)
+    {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<list_expr> Expected '[' got {0}", CurrentToken->ToString()).c_str()
+        ));
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    // Check if we've closed the bracket (empty list).
+    if (CurrentToken->GetType() == TokenType::R_SqrBracket)
+    {
+        Result->RegisterAdvance();
+        Advance();
+    }
+    else {
+        // Check for element.
+        ElementNodes.emplace_back(Result->Register(Expression()));
+        if (Result->Error.IsValid()) {
+            Result->Failure(new InvalidSyntaxError(
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("<list_expr> Expected '[', '+', '-', '(', 'var', 'if', 'for', 'while', 'func', int, float, identifier, got {0}", CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+
+        // Check for more arguments.
+        while (CurrentToken->GetType() == TokenType::Comma)
+        {
+            Result->RegisterAdvance();
+            Advance();
+
+            ElementNodes.emplace_back(Result->Register(Expression()));
+            if (Result->Error.IsValid()) {
+                return Result;
+            }
+        }
+
+        // Check for closing bracket.
+        if (CurrentToken->GetType() != TokenType::R_SqrBracket) {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<list_expr> Expected ',' or ']', got {0}", CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+
+        Result->RegisterAdvance();
+        Advance();
+    }
+
+    auto NewListNode = ParserListNode::Alloc<ParserListNode>();
+    NewListNode->Create(CurrentToken, ElementNodes, StartPosition, CurrentToken->GetEndPosition());
+    Result->Success(NewListNode.Ptr());
+
+    return Result;
 }
 
 SharedPtr<ParseResult> Parser::IfExpr() {

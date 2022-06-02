@@ -192,6 +192,7 @@ enum class TokenType
     Int, Float, String,
     Plus, Minus, Mul, Div, Power,
     LH_Parenth, RH_Parenth,
+    L_SqrBracket, R_SqrBracket,
     Identifier, Keyword,
     Equals,
     IsEqual, NotEqual, LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual,
@@ -201,7 +202,7 @@ enum class TokenType
 };
 static const std::vector<CStrPtr> TokenTypeValueList = {
 	"null", "EOF", "int", "float", "\"",
-	"+", "-", "*", "/", "^", "(", ")",
+	"+", "-", "*", "/", "^", "(", ")", "[", "]",
 	"identifier", "keyword",
 	"=", "==", "!=", "<", "<=", ">", ">=", "!", "||", "&&",
     ",", "->"
@@ -220,7 +221,8 @@ enum class ParseNodeType
 	While,
     Func,
     Call,
-    String
+    String,
+    List
 };
 
 enum class ValueType
@@ -229,7 +231,8 @@ enum class ValueType
     Int,
     Float,
 	String,
-    Func
+    Func,
+    List
 };
 
 // Valid keywords.

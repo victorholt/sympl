@@ -98,6 +98,14 @@ void Lexer::MakeTokens()
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::RH_Parenth, nullptr, Position.Ptr(), nullptr));
 			Advance();
 		}
+        else if (CurrentChar == TokenValueChar(TokenType::L_SqrBracket)) {
+            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::L_SqrBracket, nullptr, Position.Ptr(), nullptr));
+            Advance();
+        }
+        else if (CurrentChar == TokenValueChar(TokenType::R_SqrBracket)) {
+            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::R_SqrBracket, nullptr, Position.Ptr(), nullptr));
+            Advance();
+        }
         else if (CurrentChar == TokenValueChar(TokenType::Not)) {
             auto Result = MakeNotEquals();
             if (Result.IsValid()) {
