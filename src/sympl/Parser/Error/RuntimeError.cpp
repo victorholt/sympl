@@ -31,15 +31,21 @@ SharedPtr<struct StringBuffer> RuntimeError::GenerateTraceback()
     auto CurrentContext = Context;
     auto CurrentPosition = StartPosition;
 
-
     while (CurrentContext.IsValid())
     {
-        Result->Append(fmt::format(
-            "File {0}, Line {1}, in {2}\n",
-            CurrentPosition->GetFileName(),
-            CurrentPosition->GetLineNumber(),
-            CurrentContext->DisplayName->CStr()
-        ).c_str());
+        if (CurrentPosition.IsValid()) {
+            Result->Prepend(fmt::format(
+                    "File {0}, Line {1}, in {2}\n",
+                    CurrentPosition->GetFileName(),
+                    CurrentPosition->GetLineNumber(),
+                    CurrentContext->DisplayName->CStr()
+            ).c_str());
+        } else {
+            Result->Prepend(fmt::format(
+                "{0}\n",
+                CurrentContext->DisplayName->CStr()
+            ).c_str());
+        }
 
         if (!CurrentContext->Parent.IsValid())
         {
