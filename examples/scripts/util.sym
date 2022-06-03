@@ -1,0 +1,51 @@
+# Utility methods for the language examples
+
+# Iterates through a list and performs the callback method on each element.
+func map(elements, funcCallback)
+    var newElements = []
+
+    for i = 0 to len(elements) then
+        newElements = append(newElements, funcCallback(elements/i))
+    end
+
+    return newElements
+end
+
+# Retrieves the substring of a given string.
+func substr(value, start, last)
+    var numChars = len(value)
+    var newString = ""
+
+    for i = start to last then
+        if i >= numChars then
+            break
+        end
+
+        newString = newString + value/i
+    end
+
+    return newString
+end
+
+# Joins elements together with a separator.
+func join(elements, separator)
+    var result = ""
+
+    if (isList(elements) == 0) then
+        print("Error: requires a list as the first argument")
+        return result
+    end
+
+    var elemCount = len(elements)
+    for i = 0 to elemCount then
+        result = result + elements/i
+        result = result + separator
+    end
+
+    return substr(result, 0, len(result) - len(separator))
+end
+
+# Export to the global context.
+export(map)
+export(substr)
+export(join)

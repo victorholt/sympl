@@ -1,0 +1,23 @@
+#| run("../../examples/scripts/example1.sym")
+#| Example of various ways to use the language.
+
+# Include the utility methods
+include("../../examples/scripts/util.sym")
+
+func obj()
+    var bar = 2;
+    var foo = 3;
+end
+
+obj();
+return;
+
+#| Hello World
+print("What's your name?")
+var name = input()
+
+print("Hello " + name + "!")
+
+#| Arrays
+func addHello(str) -> "hello " + str
+print(join( map(["joe", "sally", "amy"] + name, addHello), "! ") + "!")

@@ -5,6 +5,7 @@
 #include "StringHandle.hpp"
 #include "IntHandle.hpp"
 #include "ListHandle.hpp"
+#include "FuncHandle.hpp"
 #include "ExceptionHandle.hpp"
 #include <sympl/Parser/ParserRuntimeResult.hpp>
 #include <sympl/Parser/Interpreter.hpp>
@@ -95,8 +96,26 @@ void BuiltInFuncHandle::__Construct(int argc, va_list ArgList)
     );
 
     AddMethod(
+        StrFunc,
+        [=](SharedPtr<ParserContext> pExecContext) { return ExecStr(pExecContext); },
+        { "value" }
+    );
+
+    AddMethod(
+        ExportFunc,
+        [=](SharedPtr<ParserContext> pExecContext) { return ExecExport(pExecContext); },
+        { "value" }
+    );
+
+    AddMethod(
         IncludeFunc,
         [=](SharedPtr<ParserContext> pExecContext) { return ExecInclude(pExecContext); },
+        { "file" }
+    );
+
+    AddMethod(
+        RunFunc,
+        [=](SharedPtr<ParserContext> pExecContext) { return ExecRun(pExecContext); },
         { "file" }
     );
 }
@@ -108,7 +127,7 @@ void BuiltInFuncHandle::Create(CStrPtr pFuncName)
 	Name->Set(pFuncName && strlen(pFuncName) > 0 ? pFuncName : "<anonymous>");
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::Exec(const std::vector<SharedPtr<ValueHandle>>& ArgValueList)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::Exec(const std::vector<SharedPtr<ValueHandle>>& pArgValueList)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	auto Interp = Interpreter::Alloc<Interpreter>();
@@ -120,7 +139,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::Exec(const std::vector<SharedP
 		return NoVisitMethod(ExecContext);
 	}
 
-	Result->Register(CheckAndPopulateArgs(MethodArgMap[MethodName], ArgValueList, ExecContext));
+	Result->Register(CheckAndPopulateArgs(MethodArgMap[MethodName], pArgValueList, ExecContext));
 	if (Result->ShouldReturn()) {
 		return Result;
 	}
@@ -242,7 +261,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecLength(SharedPtr<struct Pa
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ValueHandle> Value = pExecContext->VariableSymbolTable->Get("value");
 
-    if (Value->Type != ValueType::List || Value->Type != ValueType::String) {
+    if (Value->Type != ValueType::List && Value->Type != ValueType::String) {
         return InvalidMethodArgument(pExecContext, Value->ToString(), "Expected argument to be a list or string");
     }
 
@@ -255,6 +274,16 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecLength(SharedPtr<struct Pa
     }
 
     Result->Success(LengthValue.Ptr());
+    return Result;
+}
+
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecStr(SharedPtr<struct ParserContext>& pExecContext)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ValueHandle> Value = pExecContext->VariableSymbolTable->Get("value");
+
+    auto ReturnValue = StringHandle::Alloc<StringHandle>(1, Value->ToString());
+    Result->Success(ReturnValue.Ptr());
     return Result;
 }
 
@@ -276,7 +305,78 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExtend(SharedPtr<ParserCon
 	return Result;
 }
 
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExport(SharedPtr<struct ParserContext>& pExecContext)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ValueHandle> ExportValue = pExecContext->VariableSymbolTable->Get("value");
+
+    if (ExportValue->Type != ValueType::Func) {
+        return InvalidMethodArgument(pExecContext, ExportValue->ToString(), "Exported values must be functions");
+    }
+
+    auto ParentContext = pExecContext->Parent;
+    while (true) {
+        auto NextContext = ParentContext->Parent;
+        if (!NextContext.IsValid()) {
+            break;
+        }
+        ParentContext = NextContext;
+    }
+
+    if (ParentContext.IsValid()) {
+        ParentContext->VariableSymbolTable->Set(
+            ObjectRef::CastTo<FuncHandle>(ExportValue.Ptr())->Name->CStr(),
+            ExportValue
+        );
+    }
+
+    Result->Success(ValueHandle::Null());
+    return Result;
+}
+
 SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInclude(SharedPtr<struct ParserContext>& pExecContext)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ValueHandle> FileNameValue = pExecContext->VariableSymbolTable->Get("file");
+
+    if (FileNameValue->Type != ValueType::String) {
+        return InvalidMethodArgument(pExecContext, FileNameValue->ToString(), "Expected filename to be a string");
+    }
+
+    std::ifstream inputStream (FileNameValue->Value.String->CStr(), std::ifstream::in);
+    if (!inputStream.is_open()) {
+        return InvalidMethodArgument(pExecContext, FileNameValue->ToString(), "Unable to open file.");
+    }
+
+    std::string str;
+
+    inputStream.seekg(0, std::ios::end);
+    str.reserve(inputStream.tellg());
+    inputStream.seekg(0, std::ios::beg);
+
+    str.assign((std::istreambuf_iterator<char>(inputStream)),
+               std::istreambuf_iterator<char>());
+
+    // Close the stream.
+    inputStream.close();
+
+    auto VM = SymplVM::Alloc<SymplVM>(1, pExecContext.Ptr());
+    auto ReturnTuple = VM->RunScript(FileNameValue->Value.String->CStr(), str.c_str());
+    auto ReturnError = std::get<1>(ReturnTuple);
+
+    if (ReturnError.IsValid()) {
+        return InvalidMethodArgument(
+            pExecContext,
+            FileNameValue->ToString(),
+            fmt::format("Failed execute script {0}.\n{1}", FileNameValue->ToString(), ReturnError->ToString()).c_str()
+        );
+    }
+
+    Result->Success(ValueHandle::Null());
+    return Result;
+}
+
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRun(SharedPtr<struct ParserContext>& pExecContext)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ValueHandle> FileNameValue = pExecContext->VariableSymbolTable->Get("file");
@@ -307,7 +407,11 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInclude(SharedPtr<struct P
     auto ReturnError = std::get<1>(ReturnTuple);
 
     if (ReturnError.IsValid()) {
-        return InvalidMethodArgument(pExecContext, FileNameValue->ToString(), "Failed execute script.");
+        return InvalidMethodArgument(
+                pExecContext,
+                FileNameValue->ToString(),
+                fmt::format("Failed execute script {0}.\n{1}", FileNameValue->ToString(), ReturnError->ToString()).c_str()
+        );
     }
 
     Result->Success(ValueHandle::Null());
@@ -332,14 +436,14 @@ SharedPtr<ParserRuntimeResult>
 BuiltInFuncHandle::InvalidMethodArgument(const SharedPtr<ParserContext> &pExecContext, CStrPtr ArgName, CStrPtr ExpectedStr)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-	auto Error = SharedPtr<RuntimeError>(new RuntimeError(
+	Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
 		pExecContext,
 		StartPosition,
 		EndPosition,
 		fmt::format("Invalid argument '{0}' in '{1}' method. {2}", ArgName, Name->CStr(), ExpectedStr).c_str()
-	));
+	)).Ptr();
 
-	Result->Success(ExceptionHandle::Alloc<ExceptionHandle>(1, Error.Ptr()).Ptr());
+//    Result->Success(ExceptionHandle::Alloc<ExceptionHandle>(1, Error.Ptr()).Ptr());
 	return Result;
 }
 

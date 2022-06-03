@@ -85,6 +85,14 @@ public:
 	SharedPtr<class ParserRuntimeResult> VisitListNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
+     * Visits the access scope node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitAccessScopeNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
      * Visits the variable access node.
      * @param Node
      * @param Context

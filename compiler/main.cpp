@@ -5,6 +5,8 @@ SymplNamespace
 
 int main()
 {
+    auto vm = SymplVM::Alloc<SymplVM>();
+
     while (true) {
         std::string code;
         std::cout << "sympl> ";
@@ -23,7 +25,6 @@ int main()
             continue;
         }
 
-        auto vm = SymplVM::Alloc<SymplVM>();
         auto ret = vm->RunScript("<stdin>", CodeBuffer->CStr());
         auto value = std::get<0>(ret);
         auto error = std::get<1>(ret);

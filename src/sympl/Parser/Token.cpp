@@ -72,37 +72,91 @@ CStrPtr Token::ToString()
 
 	switch (Type)
 	{
+        case TokenType::EndOfFile:
+            strcpy(TypeStr, TokenValue(TokenType::EndOfFile));
+            break;
 		case TokenType::Int:
-			strcpy(TypeStr, "int");
+			strcpy(TypeStr, TokenValue(TokenType::Int));
 			break;
 		case TokenType::Float:
-			strcpy(TypeStr, "float");
+			strcpy(TypeStr, TokenValue(TokenType::Float));
 			break;
 		case TokenType::Plus:
-			strcpy(TypeStr, "+");
+			strcpy(TypeStr, TokenValue(TokenType::Plus));
 			break;
 		case TokenType::Minus:
-			strcpy(TypeStr, "-");
+			strcpy(TypeStr, TokenValue(TokenType::Minus));
 			break;
 		case TokenType::Mul:
-			strcpy(TypeStr, "*");
+			strcpy(TypeStr, TokenValue(TokenType::Mul));
 			break;
 		case TokenType::Div:
-			strcpy(TypeStr, "/");
+			strcpy(TypeStr, TokenValue(TokenType::Div));
 			break;
 		case TokenType::LH_Parenth:
-			strcpy(TypeStr, "(");
+			strcpy(TypeStr, TokenValue(TokenType::LH_Parenth));
 			break;
 		case TokenType::RH_Parenth:
-			strcpy(TypeStr, ")");
+			strcpy(TypeStr, TokenValue(TokenType::RH_Parenth));
 			break;
+        case TokenType::L_SqrBracket:
+            strcpy(TypeStr, TokenValue(TokenType::L_SqrBracket));
+            break;
+        case TokenType::R_SqrBracket:
+            strcpy(TypeStr, TokenValue(TokenType::R_SqrBracket));
+            break;
+        case TokenType::Identifier:
+            strcpy(TypeStr, TokenValue(TokenType::Identifier));
+            break;
+        case TokenType::Keyword:
+            strcpy(TypeStr, TokenValue(TokenType::Keyword));
+            break;
+        case TokenType::Equals:
+            strcpy(TypeStr, TokenValue(TokenType::Equals));
+            break;
+        case TokenType::IsEqual:
+            strcpy(TypeStr, TokenValue(TokenType::IsEqual));
+            break;
+        case TokenType::NotEqual:
+            strcpy(TypeStr, TokenValue(TokenType::NotEqual));
+            break;
+        case TokenType::LessThan:
+            strcpy(TypeStr, TokenValue(TokenType::LessThan));
+            break;
+        case TokenType::LessThanOrEqual:
+            strcpy(TypeStr, TokenValue(TokenType::LessThanOrEqual));
+            break;
+        case TokenType::GreaterThan:
+            strcpy(TypeStr, TokenValue(TokenType::GreaterThan));
+            break;
+        case TokenType::GreaterThanOrEqual:
+            strcpy(TypeStr, TokenValue(TokenType::GreaterThanOrEqual));
+            break;
+        case TokenType::Not:
+            strcpy(TypeStr, TokenValue(TokenType::Not));
+            break;
+        case TokenType::Or:
+            strcpy(TypeStr, TokenValue(TokenType::Or));
+            break;
+        case TokenType::And:
+            strcpy(TypeStr, TokenValue(TokenType::And));
+            break;
+        case TokenType::Comma:
+            strcpy(TypeStr, TokenValue(TokenType::Comma));
+            break;
+        case TokenType::Arrow:
+            strcpy(TypeStr, TokenValue(TokenType::Arrow));
+            break;
+        case TokenType::NewLine:
+            strcpy(TypeStr, TokenValue(TokenType::CloseStatement));
+            break;
 	}
 
 	// Zero out the tmp string.
 	memset(TmpAlloc_ToString, 0, sizeof(TmpAlloc_ToString));
 
 	if (Value->Length() > 0) {
-		strcpy(TmpAlloc_ToString, fmt::format("{0}:{1}", TypeStr, Value->CStr()).c_str());
+		strcpy(TmpAlloc_ToString, fmt::format("{0}: '{1}'", TypeStr, Value->CStr()).c_str());
 		return TmpAlloc_ToString;
 	}
 

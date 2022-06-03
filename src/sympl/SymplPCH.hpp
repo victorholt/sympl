@@ -198,14 +198,16 @@ enum class TokenType
     Not, Or, And,
     Comma,
     Arrow,
-    NewLine, CloseStatement
+    NewLine, CloseStatement,
+    AccessScope
 };
 static const std::vector<CStrPtr> TokenTypeValueList = {
 	"EOF", "int", "float", "\"",
 	"+", "-", "*", "/", "^", "(", ")", "[", "]",
 	"identifier", "keyword",
 	"=", "==", "!=", "<", "<=", ">", ">=", "!", "||", "&&",
-    ",", "->", "\n", ";"
+    ",", "->", "\n", ";",
+    "."
 };
 
 enum class ParseNodeType
@@ -225,7 +227,8 @@ enum class ParseNodeType
     List,
     Return,
     Break,
-    Continue
+    Continue,
+    ScopeAccess
 };
 
 enum class ValueType
@@ -277,7 +280,10 @@ static const char* IsFunctionFunc = "isFunction";
 static const char* AppendFunc = "append";
 static const char* RemoveFunc = "remove";
 static const char* ExtendFunc = "extend";
+static const char* LengthFunc = "len";
+static const char* StrFunc = "str";
+static const char* ExportFunc = "export";
 static const char* IncludeFunc = "include";
-static const char* LengthFunc = "length";
+static const char* RunFunc = "run";
 
 SymplNamespaceEnd

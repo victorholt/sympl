@@ -2,7 +2,9 @@
 // GameSencha, LLC 5/31/22.
 //
 #include "StringHandle.hpp"
+#include "ExceptionHandle.hpp"
 #include "NullHandle.hpp"
+#include <sympl/Parser/Error/RuntimeError.hpp>
 SymplNamespace
 
 void StringHandle::__Construct(int argc, va_list ArgList)
@@ -48,6 +50,28 @@ SharedPtr<ValueHandle> StringHandle::MultiplyBy(const SharedPtr<class ValueHandl
     auto Result = StringHandle::Alloc<StringHandle>(1, NewStr->CStr());
     Result->Context = Context;
 
+    return Result.Ptr();
+}
+
+SharedPtr<ValueHandle> StringHandle::DivideBy(const SharedPtr<ValueHandle>& pHandle)
+{
+    if (pHandle->Type != ValueType::Int) {
+        return ValueHandle::Null();
+    }
+
+    auto Index = pHandle->Value.IntNum;
+    if (Index >= Value.String->Length() || Index < 0) {
+        auto Error = SharedPtr<RuntimeError>(new RuntimeError(
+                Context,
+                StartPosition,
+                EndPosition,
+                fmt::format("Character at index '{0}' in <string> could not be retrieved. Index out of bounds.", Index).c_str()
+        ));
+        return ExceptionHandle::Alloc<ExceptionHandle>(1, Error.Ptr()).Ptr();
+    }
+
+    std::string str(1, Value.String->Get(Index));
+    auto Result = StringHandle::Alloc<StringHandle>(1, str.c_str());
     return Result.Ptr();
 }
 

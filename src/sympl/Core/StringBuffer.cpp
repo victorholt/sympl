@@ -318,7 +318,7 @@ bool StringBuffer::IsWithin(const std::vector<const char*>& searchList)
 {
     for (const auto& str : searchList)
     {
-        if (Contains(str)) {
+        if (Equals(str)) {
             return true;
         }
     }

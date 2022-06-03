@@ -56,7 +56,7 @@ void Lexer::MakeTokens()
 		}
 
         // Skip any comments.
-        if (CurrentChar == '#') {
+        else if (CurrentChar == '#') {
             SkipComment();
         }
 
@@ -82,6 +82,10 @@ void Lexer::MakeTokens()
         }
 
 		// Check for tokens.
+        else if (CurrentChar == TokenValueChar(TokenType::AccessScope)) {
+            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::AccessScope, nullptr, Position.Ptr(), nullptr));
+            Advance();
+        }
 		else if (CurrentChar == TokenValueChar(TokenType::Plus)) {
 			TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::Plus, nullptr, Position.Ptr(), nullptr));
 			Advance();

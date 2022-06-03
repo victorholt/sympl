@@ -39,7 +39,7 @@ public:
 	 * @param ArgValueList
 	 * @return
 	 */
-	virtual SharedPtr<class ParserRuntimeResult> Exec(const std::vector<SharedPtr<ValueHandle>>& ArgValueList);
+	virtual SharedPtr<class ParserRuntimeResult> Exec(const std::vector<SharedPtr<ValueHandle>>& pArgValueList);
 
 	/**
 	 * Executes the print method.
@@ -101,11 +101,25 @@ public:
 	SharedPtr<ParserRuntimeResult> ExecExtend(SharedPtr<class ParserContext>& pExecContext);
 
     /**
-	 * Executes the include method.
+	 * Executes the length method.
 	 * @param pExecContext
 	 * @return
 	 */
     SharedPtr<ParserRuntimeResult> ExecLength(SharedPtr<class ParserContext>& pExecContext);
+
+    /**
+	 * Executes the str method.
+	 * @param pExecContext
+	 * @return
+	 */
+    SharedPtr<ParserRuntimeResult> ExecStr(SharedPtr<class ParserContext>& pExecContext);
+
+    /**
+	 * Executes the export method.
+	 * @param pExecContext
+	 * @return
+	 */
+    SharedPtr<ParserRuntimeResult> ExecExport(SharedPtr<class ParserContext>& pExecContext);
 
     /**
 	 * Executes the include method.
@@ -113,6 +127,13 @@ public:
 	 * @return
 	 */
     SharedPtr<ParserRuntimeResult> ExecInclude(SharedPtr<class ParserContext>& pExecContext);
+
+    /**
+	 * Executes the include method.
+	 * @param pExecContext
+	 * @return
+	 */
+    SharedPtr<ParserRuntimeResult> ExecRun(SharedPtr<class ParserContext>& pExecContext);
 
 	/**
 	 * Method where there was no execute.

@@ -5,6 +5,7 @@
 #include "Token.hpp"
 #include "LexerPosition.hpp"
 #include "sympl/Parser/Error/InvalidSyntaxError.hpp"
+#include "sympl/Parser/Node/ParserAccessScopeNode.hpp"
 #include "sympl/Parser/Node/ParserIfNode.hpp"
 #include "sympl/Parser/Node/ParserForNode.hpp"
 #include "sympl/Parser/Node/ParserWhileNode.hpp"
@@ -155,6 +156,7 @@ SharedPtr<ParseResult> Parser::Atom()
             Result->Success(ParserNumberNode::Alloc<ParserNumberNode, ParserNode>(1, FactorToken.Ptr()));
             return Result;
         }
+
         case TokenType::Identifier: {
             Result->RegisterAdvance();
             Advance();
@@ -466,6 +468,7 @@ SharedPtr<ParseResult> Parser::Expression()
 {
     SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
 
+    // Handle the variable assignment.
     if (TokenIsKeyword(CurrentToken, VarKeyword)) {
         Result->RegisterAdvance();
         Advance();
@@ -510,6 +513,66 @@ SharedPtr<ParseResult> Parser::Expression()
         return Result;
     }
 
+    // Check for an identifier that may be used as a variable assignment.
+    if (CurrentToken->GetType() == TokenType::Identifier) {
+        // We found an identifier and we can move forward.
+        auto VarName = CurrentToken->Copy();
+        Result->RegisterAdvance();
+        Advance();
+
+        // Ensure the next token is the set (=) identifier.
+        if (CurrentToken->GetType() == TokenType::Equals)
+        {
+            // Go to the value of the token.
+            Result->RegisterAdvance();
+            Advance();
+
+            // Grab the expression of the assignment.
+            auto ExprNode = Result->Register(Expression());
+            if (Result->Error.IsValid()) {
+                return Result;
+            }
+
+            // Create the assignment node.
+            Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(1, VarName.Ptr(), ExprNode.Ptr()));
+            return Result;
+        }
+        // Check if we're attempting to access a value in the scope.
+        else if (CurrentToken->GetType() == TokenType::AccessScope)
+        {
+            // Go to the value of the token.
+            Result->RegisterAdvance();
+            Advance();
+
+            // Our next token should be an identifier.
+            if (CurrentToken->GetType() != TokenType::Identifier)
+            {
+                Result->Failure(new InvalidSyntaxError(
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("<expr> Expected 'identifier', got {0}", CurrentToken->ToString()).c_str()
+                ));
+                return Result;
+            }
+
+            // Grab the expression of the assignment.
+            auto ScopeAccessVarName = CurrentToken->Copy();
+
+            // Go to the value of the token.
+            Result->RegisterAdvance();
+            Advance();
+
+            // Create the assignment node.
+            Result->Success(ParserAccessScopeNode::Alloc<ParserAccessScopeNode, ParserNode>(1, ScopeAccessVarName.Ptr(), VarName.Ptr()));
+            return Result;
+        }
+        else {
+            // Reverse the advancement.
+            Reverse(Result->AdvanceCount);
+        }
+    }
+
+    // Do a normal binary operation.
 	auto NodeBinOp = Result->Register(BinaryOperation(
         [=] { return CompExpr(); },
         {

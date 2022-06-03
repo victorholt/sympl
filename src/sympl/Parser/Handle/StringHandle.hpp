@@ -39,6 +39,13 @@ public:
     SharedPtr<ValueHandle> MultiplyBy(const SharedPtr<ValueHandle>& pHandle) override;
 
     /**
+     * Returns a new number that's divided by the current value.
+     * @param handle
+     * @return
+     */
+    SharedPtr<ValueHandle> DivideBy(const SharedPtr<ValueHandle>& pHandle) override;
+
+    /**
      * Attempts to normalize the value.
      */
     void NormalizeValue() override;

@@ -27,6 +27,7 @@
 #include "sympl/Parser/Handle/FloatHandle.hpp"
 #include "sympl/Parser/Node/ParserFuncDefNode.hpp"
 #include "sympl/Parser/Node/ParserCallNode.hpp"
+#include "sympl/Parser/Node/ParserAccessScopeNode.hpp"
 #include "sympl/Parser/Handle/FuncHandle.hpp"
 #include "sympl/Parser/Handle/StringHandle.hpp"
 #include "sympl/Parser/Handle/NullHandle.hpp"
@@ -71,6 +72,10 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
 		{
 			return VisitListNode(Node, Context);
 		}
+        case ParseNodeType::ScopeAccess:
+        {
+            return VisitAccessScopeNode(Node, Context);
+        }
         case ParseNodeType::VarAccess:
         {
             return VisitVarAccessNode(Node, Context);
@@ -480,6 +485,35 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitListNode(SharedPtr<Parser
 	return Result;
 }
 
+SharedPtr<class ParserRuntimeResult>
+Interpreter::VisitAccessScopeNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    auto AccessNode = ObjectRef::CastTo<ParserAccessScopeNode>(Node.Ptr());
+    auto ParentVarName = AccessNode->ParentScopeToken->GetValue();
+    auto VarName = Node->NodeToken->GetValue();
+
+    auto ParentValue = Context->VariableSymbolTable->Get(ParentVarName);
+    auto Value = ParentValue->Context->VariableSymbolTable->Get(VarName);
+
+    if (!Value.IsValid()) {
+        Result->Failure(new RuntimeError(
+            Context,
+            Node->StartPosition,
+            Node->EndPosition,
+            fmt::format("'{0}' is not defined", VarName).c_str()
+        ));
+        return Result;
+    }
+
+    Value = Value->Copy();
+    Value->SetPosition(Node->StartPosition, Node->EndPosition);
+    Value->Context = Value->Context;
+
+    Result->Success(Value);
+    return Result;
+}
+
 SharedPtr<ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
@@ -552,7 +586,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<Par
     NewFuncValue->Create(FuncName, BodyNode, ArgNameList);
     NewFuncValue->Context = Context;
     NewFuncValue->SetPosition(Node->StartPosition, Node->EndPosition);
-    NewFuncValue->ShouldAutoReturn = Node->ShouldReturnNull;
+    NewFuncValue->ShouldAutoReturn = Node->ShouldAutoReturn;
 
     if (FuncDefNode->NodeToken.IsValid())
     {

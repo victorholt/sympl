@@ -21,7 +21,7 @@ void ListHandle::Create(const std::vector<SharedPtr<ValueHandle>>& pElements)
 
 SharedPtr<ValueHandle> ListHandle::AddTo(const SharedPtr <ValueHandle>& pHandle)
 {
-    SharedPtr<ListHandle> Result = dynamic_cast<ListHandle*>(Copy().Ptr());
+    SharedPtr<ListHandle> Result = ObjectRef::CastTo<ListHandle>(Copy().Ptr());
 	Result->Elements.emplace_back(pHandle);
     return Result.Ptr();
 }
