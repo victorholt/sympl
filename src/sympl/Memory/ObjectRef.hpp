@@ -65,6 +65,15 @@ public:
 	//! Return type info static.
 	//! \return RefInfo
 	static const ObjectRefInfo* GetTypeInfoStatic() { return nullptr; }
+
+    //! Casts to another value.
+    //! \tparam T
+    //! \param CastValue
+    //! \return
+    template<class T>
+    static T* CastTo(ObjectRef* CastValue) {
+        return dynamic_cast<T*>(CastValue);
+    }
 };
 
 SymplNamespaceEnd

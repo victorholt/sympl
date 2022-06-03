@@ -96,12 +96,12 @@ public:
         ManagedObject* NewObject = new(Bytes) T();
         NewObject->ObjectSize = sizeof(T);
 
-        if (argc > 0) {
+//        if (argc > 0) {
             va_list ArgList;
             va_start(ArgList, argc);
             NewObject->__Construct(argc, ArgList);
             va_end(ArgList);
-        }
+//        }
 
         return SharedPtr<T>(static_cast<T*>(NewObject));
     }
@@ -119,12 +119,12 @@ public:
         ManagedObject* NewObject = new(Bytes) T();
         NewObject->ObjectSize = sizeof(T);
 
-        if (argc > 0) {
+//        if (argc > 0) {
             va_list ArgList;
             va_start(ArgList, argc);
             NewObject->__Construct(argc, ArgList);
             va_end(ArgList);
-        }
+//        }
 
         return SharedPtr<R>(dynamic_cast<R*>(NewObject));
     }

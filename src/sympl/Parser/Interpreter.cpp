@@ -322,7 +322,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct Parser
 	}
 
 	auto EndValue = Result->Register(Visit(ForNode->EndValueNode, Context));
-	if (EndValue->Error.IsValid() || StringNotEquals(EndValue->GetTypeName().c_str(), "IntHandle")) {
+	if (!EndValue.IsValid() || EndValue->Error.IsValid() || StringNotEquals(EndValue->GetTypeName().c_str(), "IntHandle")) {
 		return Result;
 	}
 
@@ -450,6 +450,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserN
 
     Value = Value->Copy();
     Value->SetPosition(Node->StartPosition, Node->EndPosition);
+    Value->Context = Context;
 
     Result->Success(Value);
     return Result;
@@ -539,6 +540,10 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<struct
     if (Result->Error.IsValid()) {
         return Result;
     }
+
+    ReturnValue = ReturnValue->Copy();
+    ReturnValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    ReturnValue->Context = Context;
 
     Result->Success(ReturnValue);
     return Result;

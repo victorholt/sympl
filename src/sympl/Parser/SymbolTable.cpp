@@ -7,7 +7,10 @@ SymplNamespace
 
 void SymbolTable::__Construct(int argc, va_list ArgList)
 {
-    SharedPtr<SymbolTable> pParent = va_arg(ArgList, SymbolTable*);
+    SharedPtr<SymbolTable> pParent;
+    if (argc > 0) {
+        pParent = va_arg(ArgList, SymbolTable*);
+    }
     Create(pParent);
 }
 

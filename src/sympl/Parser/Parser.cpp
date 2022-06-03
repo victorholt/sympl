@@ -21,12 +21,13 @@ Parser::Parser(const std::vector<SharedPtr<Token>>& pTokenList)
     : TokenIndex(0), CurrentToken(nullptr)
 {
     TokenList = pTokenList;
+    TokenIndex = -1;
     Advance();
 }
 
 SharedPtr<ParseResult> Parser::Parse()
 {
-    auto Result = Expression();
+    auto Result = Statements();
     assert(Result.IsValid());
 
     if (!Result->Error.IsValid() && CurrentToken->GetType() != TokenType::EndOfFile)
@@ -34,20 +35,32 @@ SharedPtr<ParseResult> Parser::Parse()
         Result->Failure(new InvalidSyntaxError(
             CurrentToken->GetStartPosition(),
             CurrentToken->GetEndPosition(),
-            fmt::format("<parse> Expected '+', '-', '*' or '/', got {0}", CurrentToken->ToString()).c_str()
+            fmt::format("<parse> Expected '+', '-', '*' or '/', '^', '==', '!=', '<', '>', '<=', '>=', '&&', '||', or ';' got {0}", CurrentToken->ToString()).c_str()
         ));
     }
 
     return Result;
 }
 
-void Parser::Advance()
+class Token* Parser::Advance()
 {
-    if (TokenIndex >= TokenList.size()) {
-		return;
-	}
+    TokenIndex++;
+    UpdateCurrentToken();
+    return CurrentToken;
+}
 
-	CurrentToken = TokenList[TokenIndex++].Ptr();
+class Token* Parser::Reverse(int Amount)
+{
+    TokenIndex -= Amount;
+    UpdateCurrentToken();
+    return CurrentToken;
+}
+
+void Parser::UpdateCurrentToken()
+{
+    if (TokenIndex >= 0 && TokenIndex < TokenList.size()) {
+        CurrentToken = TokenList[TokenIndex].Ptr();
+    }
 }
 
 SharedPtr<ParseResult> Parser::Power()
@@ -328,6 +341,65 @@ SharedPtr<ParseResult> Parser::BinaryOperation(
     }
 
     return LeftNodeResult;
+}
+
+SharedPtr<ParseResult> Parser::Statements()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+    std::vector<SharedPtr<ParserNode>> Statements;
+    auto StartPosition = CurrentToken->GetStartPosition()->Copy();
+
+    while (CurrentToken->GetType() == TokenType::NewLine)
+    {
+        Result->RegisterAdvance();
+        Advance();
+    }
+
+    auto Statement = Result->Register(Expression());
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
+    Statements.emplace_back(Statement);
+
+    bool MoreStatements = true;
+    while (true) {
+        int NewLineCount = 0;
+
+        while (CurrentToken->GetType() == TokenType::NewLine)
+        {
+            Result->RegisterAdvance();
+            Advance();
+            NewLineCount++;
+        }
+
+        if (NewLineCount == 0) {
+            MoreStatements = false;
+        }
+
+        if (!MoreStatements) {
+            break;
+        }
+
+        Statement = Result->TryRegister(Expression());
+        if (!Statement.IsValid()) {
+            Reverse(Result->ToReverseCount);
+            MoreStatements = false;
+            continue;
+        }
+
+        Statements.emplace_back(Statement);
+    }
+
+    auto ListNode = ParserListNode::Alloc<ParserListNode>();
+    ListNode->Create(
+        CurrentToken,
+        Statements,
+        StartPosition,
+        CurrentToken->GetEndPosition()->Copy()
+    );
+
+    Result->Success(ListNode.Ptr());
+    return Result;
 }
 
 SharedPtr<ParseResult> Parser::Expression()

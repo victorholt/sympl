@@ -16,6 +16,15 @@ SharedPtr<class ParserNode> ParseResult::Register(const SharedPtr<ParseResult>& 
     return Result->ParserNodePtr;
 }
 
+SharedPtr<class ParserNode> ParseResult::TryRegister(const SharedPtr<ParseResult>& Result)
+{
+    if (Result->Error.IsValid()) {
+        ToReverseCount = Result->AdvanceCount;
+        return nullptr;
+    }
+    return Register(Result);
+}
+
 void ParseResult::RegisterAdvance()
 {
     AdvanceCount++;

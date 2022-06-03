@@ -483,6 +483,30 @@ bool StringBuffer::EndsWith(const char* search)
     return true;
 }
 
+void StringBuffer::LTrim()
+{
+    std::string TrimString = CStr();
+    TrimString.erase(TrimString.begin(), std::find_if(TrimString.begin(), TrimString.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+    Set(TrimString.c_str());
+}
+
+void StringBuffer::RTrim()
+{
+    std::string TrimString = CStr();
+    TrimString.erase(std::find_if(TrimString.rbegin(), TrimString.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), TrimString.end());
+    Set(TrimString.c_str());
+}
+
+void StringBuffer::Trim()
+{
+    LTrim();
+    RTrim();
+}
+
 void StringBuffer::Clear()
 {
     if (_Length == 0) return;

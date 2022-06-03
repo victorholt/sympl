@@ -41,6 +41,8 @@
 #include <sympl/Parser/Handle/CompareHandle.hpp>
 #include <sympl/Parser/Handle/IntHandle.hpp>
 #include <sympl/Parser/Handle/FloatHandle.hpp>
+#include <sympl/Parser/Handle/ListHandle.hpp>
+#include <sympl/Parser/Handle/StringHandle.hpp>
 #include <sympl/Parser/Handle/BaseFuncHandle.hpp>
 #include <sympl/Parser/Handle/BuiltInFuncHandle.hpp>
 #include <sympl/Parser/Handle/FuncHandle.hpp>

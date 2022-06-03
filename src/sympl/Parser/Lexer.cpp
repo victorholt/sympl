@@ -55,6 +55,12 @@ void Lexer::MakeTokens()
 			Advance();
 		}
 
+        // Check for a new line token.
+        else if (CurrentChar == TokenValueChar(TokenType::NewLine) || CurrentChar == TokenValueChar(TokenType::CloseStatement)) {
+            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::NewLine, nullptr, Position.Ptr(), nullptr));
+            Advance();
+        }
+
         // Check if the character is a digit.
 		else if (std::find(Digits.begin(), Digits.end(), CurrentChar) != Digits.end()) {
 			TokenList.emplace_back(MakeNumberToken());

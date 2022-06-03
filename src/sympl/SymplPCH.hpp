@@ -197,14 +197,15 @@ enum class TokenType
     IsEqual, NotEqual, LessThan, LessThanOrEqual, GreaterThan, GreaterThanOrEqual,
     Not, Or, And,
     Comma,
-    Arrow
+    Arrow,
+    NewLine, CloseStatement
 };
 static const std::vector<CStrPtr> TokenTypeValueList = {
 	"EOF", "int", "float", "\"",
 	"+", "-", "*", "/", "^", "(", ")", "[", "]",
 	"identifier", "keyword",
 	"=", "==", "!=", "<", "<=", ">", ">=", "!", "||", "&&",
-    ",", "->"
+    ",", "->", "\n", ";"
 };
 
 enum class ParseNodeType
@@ -246,16 +247,28 @@ static const char* ToKeyword = "to";
 static const char* StepKeyword = "step";
 static const char* WhileKeyword = "while";
 static const char* FuncKeyword = "func";
-//static const char* TrueKeyword = "true";
-//static const char* FalseKeyword = "false";
+static const char* EndKeyword = "end";
 
 static const std::vector<const char*> BuiltInKeywordList = {
     VarKeyword,
     "&&", "||", "!",
 	IfKeyword, ThenKeyword, ElseIfKeyword, ElseKeyword,
 	ForKeyword, ToKeyword, StepKeyword, WhileKeyword,
-    FuncKeyword
-//    TrueKeyword, FalseKeyword
+    FuncKeyword,
+    EndKeyword
 };
+
+// Built-In Functions.
+static const char* PrintFunc = "print";
+static const char* PrintRetFunc = "printRet";
+static const char* InputFunc = "input";
+static const char* InputIntFunc = "inputInt";
+static const char* IsNumberFunc = "isNumber";
+static const char* IsStringFunc = "isString";
+static const char* IsListFunc = "isList";
+static const char* IsFunctionFunc = "isFunction";
+static const char* AppendFunc = "append";
+static const char* RemoveFunc = "remove";
+static const char* ExtendFunc = "extend";
 
 SymplNamespaceEnd

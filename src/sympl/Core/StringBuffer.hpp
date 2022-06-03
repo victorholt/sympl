@@ -147,6 +147,15 @@ public:
     //! \return bool
     bool EndsWith(const char* search);
 
+    //! Trim left whitespace.
+    void LTrim();
+
+    //! Trim right whitespace.
+    void RTrim();
+
+    //! Trims the beginning and end of whitespace.
+    void Trim();
+
     //! Clears out the string buffer.
     void Clear();
 

@@ -22,67 +22,67 @@ void BuiltInFuncHandle::__Construct(int argc, va_list ArgList)
 
 	// Create method/argument mappings.
 	AddMethod(
-		"Print",
+		PrintFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecPrint(pExecContext); },
 		{ "value" }
 	);
 
 	AddMethod(
-		"PrintRet",
+		PrintRetFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecPrintRet(pExecContext); },
 		{ "value" }
 	);
 
 	AddMethod(
-		"Input",
+		InputFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecInput(pExecContext); },
 		{}
 	);
 
 	AddMethod(
-		"InputInt",
+		InputIntFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecInputInt(pExecContext); },
 		{}
 	);
 
 	AddMethod(
-		"IsNumber",
+		IsNumberFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecIsType(pExecContext, {ValueType::Int, ValueType::Float}); },
 		{ "value" }
 	);
 
 	AddMethod(
-		"IsString",
+		IsStringFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecIsType(pExecContext, {ValueType::String}); },
 		{ "value" }
 	);
 
 	AddMethod(
-		"IsList",
+		IsListFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecIsType(pExecContext, {ValueType::List}); },
 		{ "value" }
 	);
 
 	AddMethod(
-		"IsFunction",
+		IsFunctionFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecIsType(pExecContext, {ValueType::Func}); },
 		{ "value" }
 	);
 
 	AddMethod(
-		"Append",
+		AppendFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecAppend(pExecContext); },
 		{ "list", "value" }
 	);
 
 	AddMethod(
-		"Remove",
+		RemoveFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecRemove(pExecContext); },
 		{ "list", "index" }
 	);
 
 	AddMethod(
-		"Extend",
+		ExtendFunc,
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecExtend(pExecContext); },
 		{ "listA", "listB" }
 	);
@@ -121,7 +121,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::Exec(const std::vector<SharedP
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecPrint(SharedPtr<struct ParserContext> &pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecPrint(SharedPtr<ParserContext> &pExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	auto ReturnValue = pExecContext->VariableSymbolTable->Get("value");
@@ -132,7 +132,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecPrint(SharedPtr<struct Par
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecPrintRet(SharedPtr<struct ParserContext> &pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecPrintRet(SharedPtr<ParserContext> &pExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ValueHandle> ReturnValue = pExecContext->VariableSymbolTable->Get("value");
@@ -145,7 +145,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecPrintRet(SharedPtr<struct 
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInput(SharedPtr<struct ParserContext> &pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInput(SharedPtr<ParserContext> &pExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	std::string InputStr;
@@ -157,7 +157,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInput(SharedPtr<struct Par
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInputInt(SharedPtr<struct ParserContext> &pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInputInt(SharedPtr<ParserContext> &pExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	std::string InputStr;
@@ -174,7 +174,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInputInt(SharedPtr<struct 
 }
 
 SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecIsType(
-	SharedPtr<struct ParserContext> &pExecContext,
+	SharedPtr<ParserContext> &pExecContext,
 	const std::vector<ValueType>& pTypes
 ) {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
@@ -192,7 +192,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecIsType(
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecAppend(SharedPtr<struct ParserContext> &pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecAppend(SharedPtr<ParserContext> &pExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ValueHandle> DestList = pExecContext->VariableSymbolTable->Get("list");
@@ -206,7 +206,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecAppend(SharedPtr<struct Pa
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRemove(SharedPtr<struct ParserContext> &pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRemove(SharedPtr<ParserContext> &pExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ValueHandle> ListValue = pExecContext->VariableSymbolTable->Get("list");
@@ -224,17 +224,17 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRemove(SharedPtr<struct Pa
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExtend(SharedPtr<struct ParserContext> &pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExtend(SharedPtr<ParserContext> &pExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ValueHandle> DestList = pExecContext->VariableSymbolTable->Get("listA");
 	SharedPtr<ValueHandle> ListValue = pExecContext->VariableSymbolTable->Get("listB");
 
-	if (DestList->Type != ValueType::List) {
+	if (!DestList.IsValid() || DestList->Type != ValueType::List) {
 		return InvalidMethodArgument(pExecContext, DestList->ToString(), "list as first argument");
 	}
 
-	if (ListValue->Type != ValueType::List) {
+	if (!ListValue.IsValid() || ListValue->Type != ValueType::List) {
 		return InvalidMethodArgument(pExecContext, ListValue->ToString(), "list as second argument");
 	}
 
@@ -242,7 +242,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExtend(SharedPtr<struct Pa
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::NoVisitMethod(const SharedPtr<struct ParserContext> &pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::NoVisitMethod(const SharedPtr<ParserContext> &pExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	auto Error = SharedPtr<RuntimeError>(new RuntimeError(
@@ -257,14 +257,14 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::NoVisitMethod(const SharedPtr<
 }
 
 SharedPtr<ParserRuntimeResult>
-BuiltInFuncHandle::InvalidMethodArgument(const SharedPtr<struct ParserContext> &pExecContext, CStrPtr ArgName, CStrPtr ExpectedStr)
+BuiltInFuncHandle::InvalidMethodArgument(const SharedPtr<ParserContext> &pExecContext, CStrPtr ArgName, CStrPtr ExpectedStr)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	auto Error = SharedPtr<RuntimeError>(new RuntimeError(
 		pExecContext,
 		StartPosition,
 		EndPosition,
-		fmt::format("Invalid argument {0} in {1} method. Expected {2}", ArgName, Name->CStr(), ExpectedStr).c_str()
+		fmt::format("Invalid argument '{0}' in '{1}' method. Expected {2}", ArgName, Name->CStr(), ExpectedStr).c_str()
 	));
 
 	Result->Success(ExceptionHandle::Alloc<ExceptionHandle>(1, Error.Ptr()).Ptr());

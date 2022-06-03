@@ -21,6 +21,8 @@ public:
 
     // Check if there has been an advancement.
     int AdvanceCount = 0;
+    // Amount we should reverse the advancement.
+    int ToReverseCount = 0;
 
     /**
      * Registers and returns a node.
@@ -28,6 +30,13 @@ public:
      * @return
      */
     SharedPtr<class ParserNode> Register(const SharedPtr<ParseResult>& Result);
+
+    /**
+     * Registers and returns a node.
+     * @param Result
+     * @return
+     */
+    SharedPtr<class ParserNode> TryRegister(const SharedPtr<ParseResult>& Result);
 
     /**
      * Handles incrementing the advance count.

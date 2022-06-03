@@ -27,6 +27,7 @@ SharedPtr<ParserContext> BaseFuncHandle::GenerateNewContext() const
 	auto NewContext = ParserContext::Alloc<ParserContext>();
 	NewContext->Create(Context, StartPosition, Name->CStr());
 //	NewContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable->Parent.Ptr());
+	NewContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable.Ptr());
 	return NewContext;
 }
 
@@ -34,7 +35,7 @@ SharedPtr<ParserRuntimeResult> BaseFuncHandle::CheckArgs(const std::vector<std::
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 
-	if (pArgNameList.size() > pArgValueList.size()) {
+	if (pArgValueList.size() > pArgNameList.size()) {
 		Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
 			Context,
 			StartPosition,
@@ -48,7 +49,7 @@ SharedPtr<ParserRuntimeResult> BaseFuncHandle::CheckArgs(const std::vector<std::
 		return Result;
 	}
 
-	if (pArgValueList.size() < pArgNameList.size()) {
+	if (pArgNameList.size() > pArgValueList.size()) {
 		Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
 			Context,
 			StartPosition,

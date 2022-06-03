@@ -11,11 +11,11 @@ SymplNamespace
 
 void ListHandle::__Construct(int argc, va_list ArgList)
 {
+    Type = ValueType::List;
 }
 
 void ListHandle::Create(const std::vector<SharedPtr<ValueHandle>>& pElements)
 {
-    Type = ValueType::List;
     Elements = pElements;
 }
 
@@ -35,7 +35,7 @@ SharedPtr<ValueHandle> ListHandle::SubtractBy(const SharedPtr<ValueHandle> &pHan
 	SharedPtr<ListHandle> Result = dynamic_cast<ListHandle*>(Copy().Ptr());
 	auto Index = pHandle->Value.IntNum;
 
-	if (Index >= Elements.size() || Index < 0) {
+	if (Index >= Result->Elements.size() || Index < 0) {
 		auto Error = SharedPtr<RuntimeError>(new RuntimeError(
 			Context,
 			StartPosition,
@@ -45,9 +45,9 @@ SharedPtr<ValueHandle> ListHandle::SubtractBy(const SharedPtr<ValueHandle> &pHan
 		return ExceptionHandle::Alloc<ExceptionHandle>(1, Error.Ptr()).Ptr();
 	}
 
-	Elements.erase(Elements.begin() + Index);
+    Result->Elements.erase(Result->Elements.begin() + Index);
 
-	return ValueHandle::SubtractBy(pHandle);
+	return Result.Ptr();
 }
 
 SharedPtr<ValueHandle> ListHandle::MultiplyBy(const SharedPtr<class ValueHandle>& pHandle)

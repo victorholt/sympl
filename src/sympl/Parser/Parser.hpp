@@ -42,7 +42,18 @@ protected:
     /**
      * Advances the parser.
      */
-    void Advance();
+    class Token* Advance();
+
+    /**
+     * Reverse the parser advancement by a given amount.
+     * @param Amount
+     */
+    class Token* Reverse(int Amount);
+
+    /**
+     * Safely check and update the current token value.
+     */
+    void UpdateCurrentToken();
 
     /**
      * Returns the result based on a given expression.
@@ -85,6 +96,12 @@ protected:
 		const std::unordered_map<TokenType, std::string>& ValidOps,
         const std::function<SharedPtr<ParseResult>()>& RightOpMethod = nullptr
     );
+
+    /**
+     * Returns an array of statements as the parse result.
+     * @return
+     */
+    SharedPtr<ParseResult> Statements();
 
     /**
      * Returns the result based on a given expression.
