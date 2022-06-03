@@ -13,6 +13,9 @@
 #include "sympl/Parser/Node/ParserListNode.hpp"
 #include "sympl/Parser/Node/ParserStringNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
+#include "sympl/Parser/Node/ParserReturnNode.hpp"
+#include "sympl/Parser/Node/ParserBreakNode.hpp"
+#include "sympl/Parser/Node/ParserContinueNode.hpp"
 #include "sympl/Parser/Node/VarAssignNode.hpp"
 #include "sympl/Parser/Node/VarAccessNode.hpp"
 SymplNamespace
@@ -355,11 +358,11 @@ SharedPtr<ParseResult> Parser::Statements()
         Advance();
     }
 
-    auto Statement = Result->Register(Expression());
+    auto StatementNode = Result->Register(Statement());
     if (Result->Error.IsValid()) {
         return Result;
     }
-    Statements.emplace_back(Statement);
+    Statements.emplace_back(StatementNode);
 
     bool MoreStatements = true;
     while (true) {
@@ -380,14 +383,14 @@ SharedPtr<ParseResult> Parser::Statements()
             break;
         }
 
-        Statement = Result->TryRegister(Expression());
-        if (!Statement.IsValid()) {
+        StatementNode = Result->TryRegister(Statement());
+        if (!StatementNode.IsValid()) {
             Reverse(Result->ToReverseCount);
             MoreStatements = false;
             continue;
         }
 
-        Statements.emplace_back(Statement);
+        Statements.emplace_back(StatementNode);
     }
 
     auto ListNode = ParserListNode::Alloc<ParserListNode>();
@@ -399,6 +402,63 @@ SharedPtr<ParseResult> Parser::Statements()
     );
 
     Result->Success(ListNode.Ptr());
+    return Result;
+}
+
+SharedPtr<ParseResult> Parser::Statement()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+    auto StartPosition = CurrentToken->GetStartPosition()->Copy();
+
+    if (TokenIsKeyword(CurrentToken, ReturnKeyword))
+    {
+        Result->RegisterAdvance();
+        Advance();
+
+        auto Expr = Result->TryRegister(Expression());
+        if (!Expr.IsValid()) {
+            Reverse(Result->ToReverseCount);
+        }
+
+        Result->Success(ParserReturnNode::Alloc<ParserReturnNode>(
+            4, CurrentToken, Expr.Ptr(), StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
+        ).Ptr());
+        return Result;
+    }
+
+    if (TokenIsKeyword(CurrentToken, ContinueKeyword))
+    {
+        Result->RegisterAdvance();
+        Advance();
+
+        Result->Success(ParserContinueNode::Alloc<ParserContinueNode>(
+            3, CurrentToken, StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
+        ).Ptr());
+        return Result;
+    }
+
+    if (TokenIsKeyword(CurrentToken, BreakKeyword))
+    {
+        Result->RegisterAdvance();
+        Advance();
+
+        Result->Success(ParserBreakNode::Alloc<ParserBreakNode>(
+            3, CurrentToken, StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
+        ).Ptr());
+        return Result;
+    }
+
+    auto Expr = Result->Register(Expression());
+    if (Result->Error.IsValid()) {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<expr> Expected return, continue, break, var, int, float, identifier, '+', '-', '(', '[', '!', 'var', 'if', 'for', 'while', or 'func' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->Success(Expr);
     return Result;
 }
 
@@ -690,7 +750,7 @@ SharedPtr<ParseResult> Parser::IfExprCases(CStrPtr CaseKeyword)
     else
     {
         // Grab the expression for the if statement.
-        SharedPtr<ParserNode> Expr = Result->Register(Expression());
+        SharedPtr<ParserNode> Expr = Result->Register(Statement());
         if (Result->Error.IsValid()) {
             return Result;
         }
@@ -757,7 +817,7 @@ SharedPtr<ParseResult> Parser::IfExprC()
             }
         }
         else {
-            auto Expr = Result->Register(Expression());
+            auto Expr = Result->Register(Statement());
             if (Result->Error.IsValid()) {
                 return Result;
             }
@@ -928,7 +988,7 @@ SharedPtr<ParseResult> Parser::ForExpr()
     }
 
 	// Grab the body value expression.
-	auto BodyNode = Result->Register(Expression());
+	auto BodyNode = Result->Register(Statement());
 	if (Result->Error.IsValid()) {
 		return Result;
 	}
@@ -1009,7 +1069,7 @@ SharedPtr<ParseResult> Parser::WhileExpr()
     }
 
 	// Grab the body value expression.
-	auto BodyNode = Result->Register(Expression());
+	auto BodyNode = Result->Register(Statement());
 	if (Result->Error.IsValid()) {
 		return Result;
 	}
@@ -1136,6 +1196,7 @@ SharedPtr<ParseResult> Parser::FuncDef()
 
         auto FuncDefNode = ParserFuncDefNode::Alloc<ParserFuncDefNode>();
         FuncDefNode->Create(FuncNameToken, ArgNameTokenList, BodyNode);
+        FuncDefNode->ShouldAutoReturn = true;
 
         Result->Success(FuncDefNode.Ptr());
         return Result;
@@ -1147,7 +1208,7 @@ SharedPtr<ParseResult> Parser::FuncDef()
         Result->Failure(new InvalidSyntaxError(
             CurrentToken->GetStartPosition(),
             CurrentToken->GetEndPosition(),
-            fmt::format("<func_def> Expected '->' got {0}", CurrentToken->ToString()).c_str()
+            fmt::format("<func_def> Expected '->' or 'new line' got {0}", CurrentToken->ToString()).c_str()
         ));
         return Result;
     }
@@ -1177,7 +1238,7 @@ SharedPtr<ParseResult> Parser::FuncDef()
     // Create our new func def node.
     auto FuncDefNode = ParserFuncDefNode::Alloc<ParserFuncDefNode>();
     FuncDefNode->Create(FuncNameToken, ArgNameTokenList, BodyNode);
-    FuncDefNode->ShouldReturnNull = true;
+    FuncDefNode->ShouldAutoReturn = false;
 
     Result->Success(FuncDefNode.Ptr());
     return Result;

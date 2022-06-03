@@ -117,6 +117,30 @@ public:
     SharedPtr<class ParserRuntimeResult> VisitCallNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
+     * Visits the return node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitReturnNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
+     * Visits the continue node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitContinueNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
+     * Visits the break node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitBreakNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
      * Failed to visit a node.
      * @param Node
      * @param Context

@@ -17,6 +17,9 @@
 #include "sympl/Parser/Node/ParserWhileNode.hpp"
 #include "sympl/Parser/Node/ParserUnaryOpNode.hpp"
 #include "sympl/Parser/Node/ParserStringNode.hpp"
+#include "sympl/Parser/Node/ParserReturnNode.hpp"
+#include "sympl/Parser/Node/ParserContinueNode.hpp"
+#include "sympl/Parser/Node/ParserBreakNode.hpp"
 #include "sympl/Parser/Node/VarAccessNode.hpp"
 #include "sympl/Parser/Node/VarAssignNode.hpp"
 #include "sympl/Parser/Handle/CompareHandle.hpp"
@@ -76,6 +79,18 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
         {
             return VisitVarAssignNode(Node, Context);
         }
+        case ParseNodeType::Return:
+        {
+            return VisitReturnNode(Node, Context);
+        }
+        case ParseNodeType::Continue:
+        {
+            return VisitContinueNode(Node, Context);
+        }
+        case ParseNodeType::Break:
+        {
+            return VisitBreakNode(Node, Context);
+        }
         case ParseNodeType::Func:
         {
             return VisitFuncDefNode(Node, Context);
@@ -134,12 +149,12 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNo
     auto OpNode = static_cast<ParserBinaryOpNode*>(Node.Ptr());
 
     auto Left = Result->Register(Visit(OpNode->LeftNode, Context));
-    if (Result->Error.IsValid()) {
+    if (Result->ShouldReturn()) {
         return Result;
     }
 
     auto Right = Result->Register(Visit(OpNode->RightNode, Context));
-    if (Result->Error.IsValid()) {
+    if (Result->ShouldReturn()) {
         return Result;
     }
 
@@ -247,7 +262,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
     auto OpNode = dynamic_cast<ParserUnaryOpNode*>(Node.Ptr());
 
     auto ValueResult = Result->Register(Visit(OpNode->Node, Context));
-    if (Result->Error.IsValid()) {
+    if (Result->ShouldReturn()) {
         return Result;
     }
 
@@ -270,7 +285,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	auto IfNode = SharedPtr<ParserIfNode>(dynamic_cast<ParserIfNode*>(Node.Ptr()));
@@ -282,13 +297,13 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<struct ParserN
         auto ShouldReturnNull = std::get<2>(entry);
 
 		auto ConditionValue = Result->Register(Visit(Condition, Context));
-		if (Result->Error.IsValid()) {
+		if (Result->ShouldReturn()) {
 			return Result;
 		}
 
 		if (ConditionValue->IsTrue()) {
 			auto ExprValue = Result->Register(Visit(Expr, Context));
-			if (Result->Error.IsValid()) {
+			if (Result->ShouldReturn()) {
 				return Result;
 			}
 
@@ -301,7 +316,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<struct ParserN
     if (ElseCase.IsValid()) {
         auto ElseCaseShouldReturnNull = std::get<1>(IfNode->ElseCase);
 		auto ElseValue = Result->Register(Visit(ElseCase, Context));
-		if (Result->Error.IsValid()) {
+		if (Result->ShouldReturn()) {
 			return Result;
 		}
 
@@ -313,7 +328,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<struct ParserN
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ParserForNode> ForNode = dynamic_cast<ParserForNode*>(Node.Ptr());
@@ -366,10 +381,20 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct Parser
 
 		CurrentStepValue += static_cast<int>(StepValue->Value.IntNum);
 
-		ResultElements.emplace_back(Result->Register(Visit(ForNode->BodyNode, Context)));
-		if (Result->Error.IsValid()) {
+		auto LoopValue = Result->Register(Visit(ForNode->BodyNode, Context));
+		if (Result->ShouldReturn() && !Result->LoopShouldContinue && !Result->LoopShouldBreak) {
 			return Result;
 		}
+
+        if (Result->LoopShouldContinue) {
+            continue;
+        }
+
+        if (Result->LoopShouldBreak) {
+            break;
+        }
+
+        ResultElements.emplace_back(LoopValue);
 	}
 
     if (Node->ShouldReturnNull) {
@@ -386,7 +411,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct Parser
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ParserWhileNode> WhileNode = dynamic_cast<ParserWhileNode*>(Node.Ptr());
@@ -394,7 +419,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<struct Pars
 
 	while (!MemPool::Instance()->IsMaxMemUsage()) {
 		auto Condition = Result->Register(Visit(WhileNode->ConditionNode, Context));
-		if (Result->Error.IsValid()) {
+		if (Result->ShouldReturn()) {
 			return Result;
 		}
 
@@ -402,10 +427,20 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<struct Pars
 			break;
 		}
 
-		ResultElements.emplace_back(Result->Register(Visit(WhileNode->BodyNode, Context)));
-		if (Result->Error.IsValid()) {
-			return Result;
-		}
+		auto LoopValue = Result->Register(Visit(WhileNode->BodyNode, Context));
+        if (Result->ShouldReturn() && !Result->LoopShouldContinue && !Result->LoopShouldBreak) {
+            return Result;
+        }
+
+        if (Result->LoopShouldContinue) {
+            continue;
+        }
+
+        if (Result->LoopShouldBreak) {
+            break;
+        }
+
+        ResultElements.emplace_back(LoopValue);
 	}
 
     if (Node->ShouldReturnNull) {
@@ -422,7 +457,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<struct Pars
 	return Result;
 }
 
-SharedPtr<class ParserRuntimeResult> Interpreter::VisitListNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitListNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	SharedPtr<ParserListNode> ListNode = dynamic_cast<ParserListNode*>(Node.Ptr());
@@ -431,7 +466,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitListNode(SharedPtr<struct
 	for (const auto& ItemNode : ListNode->ElementNodeList)
 	{
 		Elements.emplace_back(Result->Register(Visit(ItemNode, Context)));
-		if (Result->Error.IsValid()) {
+		if (Result->ShouldReturn()) {
 			return Result;
 		}
 	}
@@ -477,7 +512,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<P
     auto AssignNode = SharedPtr<VarAssignNode>(dynamic_cast<VarAssignNode*>(Node.Ptr()));
     auto Value = Result->Register(Visit(AssignNode->Value, Context));
 
-    if (Result->Error.IsValid()) {
+    if (Result->ShouldReturn()) {
         return Result;
     }
 
@@ -499,7 +534,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<P
     return Result;
 }
 
-SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ParserFuncDefNode> FuncDefNode = dynamic_cast<ParserFuncDefNode*>(Node.Ptr());
@@ -517,7 +552,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<str
     NewFuncValue->Create(FuncName, BodyNode, ArgNameList);
     NewFuncValue->Context = Context;
     NewFuncValue->SetPosition(Node->StartPosition, Node->EndPosition);
-    NewFuncValue->ShouldReturnNull = Node->ShouldReturnNull;
+    NewFuncValue->ShouldAutoReturn = Node->ShouldReturnNull;
 
     if (FuncDefNode->NodeToken.IsValid())
     {
@@ -528,14 +563,14 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<str
     return Result;
 }
 
-SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ParserCallNode> CallNode = dynamic_cast<ParserCallNode*>(Node.Ptr());
     std::vector<SharedPtr<ValueHandle>> ArgList;
 
     auto ValueToCall = Result->Register(Visit(CallNode->CallNode, Context));
-    if (Result->Error.IsValid()) {
+    if (Result->ShouldReturn()) {
         return Result;
     }
 
@@ -545,13 +580,13 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<struct
     for (const auto& ArgNode : CallNode->ArgNodeList)
     {
         ArgList.emplace_back(Result->Register(Visit(ArgNode, Context)));
-        if (Result->Error.IsValid()) {
+        if (Result->ShouldReturn()) {
             return Result;
         }
     }
 
     auto ReturnValue = Result->Register(ValueToCall->Exec(ArgList));
-    if (Result->Error.IsValid()) {
+    if (Result->ShouldReturn()) {
         return Result;
     }
 
@@ -560,6 +595,38 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<struct
     ReturnValue->Context = Context;
 
     Result->Success(ReturnValue);
+    return Result;
+}
+
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitReturnNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    auto ReturnNode = ObjectRef::CastTo<ParserReturnNode>(Node.Ptr());
+    SharedPtr<ValueHandle> Value = ValueHandle::Null();
+
+    if (ReturnNode->NodeToReturn.IsValid()) {
+        Value = Result->Register(Visit(ReturnNode->NodeToReturn.Ptr(), Context));
+        if (Result->ShouldReturn()) {
+            return Result;
+        }
+    }
+
+    Result->SuccessReturn(Value);
+    return Result;
+}
+
+SharedPtr<class ParserRuntimeResult>
+Interpreter::VisitContinueNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    Result->SuccessContinue();
+    return Result;
+}
+
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitBreakNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    Result->SuccessBreak();
     return Result;
 }
 

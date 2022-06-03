@@ -59,6 +59,9 @@
 #include <sympl/Parser/Node/ParserStringNode.hpp>
 #include <sympl/Parser/Node/ParserUnaryOpNode.hpp>
 #include <sympl/Parser/Node/ParserWhileNode.hpp>
+#include <sympl/Parser/Node/ParserBreakNode.hpp>
+#include <sympl/Parser/Node/ParserReturnNode.hpp>
+#include <sympl/Parser/Node/ParserContinueNode.hpp>
 #include <sympl/Parser/Node/VarAccessNode.hpp>
 #include <sympl/Parser/Node/VarAssignNode.hpp>
 

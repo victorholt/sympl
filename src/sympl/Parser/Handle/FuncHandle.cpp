@@ -40,16 +40,20 @@ SharedPtr<ParserRuntimeResult> FuncHandle::Exec(const std::vector<SharedPtr<Valu
     ExecContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable.Ptr());
 
 	Result->Register(CheckAndPopulateArgs(ArgNameList, ArgValueList, ExecContext));
-	if (Result->Error.IsValid()) {
+	if (Result->ShouldReturn()) {
 		return Result;
 	}
 
     auto ResultValue = Result->Register(Interp->Visit(BodyNode, ExecContext));
-    if (Result->Error.IsValid()) {
+    if (Result->ShouldReturn() && !Result->FuncReturnValue.IsValid()) {
         return Result;
     }
 
-    Result->Success(ShouldReturnNull ? ValueHandle::Null() : ResultValue);
+    SharedPtr<ValueHandle> ReturnValue = ResultValue;
+    if (!ShouldAutoReturn) {
+        ReturnValue = Result->FuncReturnValue.IsValid() ? Result->FuncReturnValue : ValueHandle::Null();
+    }
+    Result->Success(ReturnValue);
     return Result;
 }
 
@@ -59,7 +63,7 @@ SharedPtr<ValueHandle> FuncHandle::Copy() const
     NewFunc->Create(Name->CStr(), BodyNode, ArgNameList);
     NewFunc->SetPosition(StartPosition, EndPosition);
     NewFunc->Context = Context;
-    NewFunc->ShouldReturnNull = ShouldReturnNull;
+    NewFunc->ShouldAutoReturn = ShouldAutoReturn;
     return NewFunc.Ptr();
 }
 

@@ -30,6 +30,8 @@ public:
 
     // Check if we should return null.
     bool ShouldReturnNull = false;
+    // For methods, should auto-return.
+    bool ShouldAutoReturn = false;
 
     /**
      * Overrides the construct.

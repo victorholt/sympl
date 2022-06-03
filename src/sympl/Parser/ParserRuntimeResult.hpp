@@ -19,6 +19,14 @@ public:
     // Reference to value handle.
     SharedPtr<class ValueHandle> Value;
 
+    // Reference to the function return value.
+    SharedPtr<class ValueHandle> FuncReturnValue;
+
+    // Check if a loop should continue.
+    bool LoopShouldContinue = false;
+    // Check if a loop should break.
+    bool LoopShouldBreak = false;
+
     /**
      * Registers a result.
      * @param pResult
@@ -32,10 +40,37 @@ public:
     void Success(const SharedPtr<class ValueHandle>& pValue);
 
     /**
+     * Handles the success.
+     * @param pValue
+     */
+    void SuccessReturn(const SharedPtr<class ValueHandle>& pValue);
+
+    /**
+     * Handles the success.
+     */
+    void SuccessContinue();
+
+    /**
+     * Handles the success.
+     */
+    void SuccessBreak();
+
+    /**
      * Handles a failure.
      * @param pError
      */
     void Failure(const SharedPtr<ParserError>& pError);
+
+    /**
+     * Check if we should return.
+     * @return
+     */
+    bool ShouldReturn();
+
+    /**
+     * Resets the value.
+     */
+    void Reset();
 
 };
 

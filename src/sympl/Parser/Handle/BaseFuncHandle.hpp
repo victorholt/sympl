@@ -15,8 +15,8 @@ class SYMPL_API BaseFuncHandle : public ValueHandle
 public:
 	// Name of the function.
 	SharedPtr<StringBuffer> Name;
-    // Check if we should return null.
-    bool ShouldReturnNull = false;
+    // Check if we should return the expression of the function.
+    bool ShouldAutoReturn = true;
 
 	/**
 	 * Overrides the construct.

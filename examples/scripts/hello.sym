@@ -1,8 +1,10 @@
 // Example of a hello world program that will run
 // in a console environment.
 
-var name = "Jim";
-print("Hello! How are you ");
+print("Hello! What is your name?");
 
-// TODO: Bug where the object can't concat with a string...
-printl(name + "?");
+var name = input()
+
+print("Glad to meet you " + name)
+
+func test(); var foo = 5; return foo; end

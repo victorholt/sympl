@@ -89,7 +89,7 @@ SharedPtr<ParserRuntimeResult> BaseFuncHandle::CheckAndPopulateArgs(
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 
 	Result->Register(CheckArgs(pArgNameList, pArgValueList));
-	if (Result->Error.IsValid()) {
+	if (Result->ShouldReturn()) {
 		return Result;
 	}
 

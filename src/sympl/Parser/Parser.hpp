@@ -104,6 +104,12 @@ protected:
     SharedPtr<ParseResult> Statements();
 
     /**
+     * Returns a single statement as the parse result.
+     * @return
+     */
+    SharedPtr<ParseResult> Statement();
+
+    /**
      * Returns the result based on a given expression.
      * @return
      */

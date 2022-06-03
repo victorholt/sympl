@@ -222,7 +222,10 @@ enum class ParseNodeType
     Func,
     Call,
     String,
-    List
+    List,
+    Return,
+    Break,
+    Continue
 };
 
 enum class ValueType
@@ -248,6 +251,9 @@ static const char* StepKeyword = "step";
 static const char* WhileKeyword = "while";
 static const char* FuncKeyword = "func";
 static const char* EndKeyword = "end";
+static const char* ReturnKeyword = "return";
+static const char* BreakKeyword = "break";
+static const char* ContinueKeyword = "continue";
 
 static const std::vector<const char*> BuiltInKeywordList = {
     VarKeyword,
@@ -255,7 +261,8 @@ static const std::vector<const char*> BuiltInKeywordList = {
 	IfKeyword, ThenKeyword, ElseIfKeyword, ElseKeyword,
 	ForKeyword, ToKeyword, StepKeyword, WhileKeyword,
     FuncKeyword,
-    EndKeyword
+    EndKeyword,
+    ReturnKeyword, BreakKeyword, ContinueKeyword
 };
 
 // Built-In Functions.

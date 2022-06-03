@@ -108,12 +108,12 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::Exec(const std::vector<SharedP
 	}
 
 	Result->Register(CheckAndPopulateArgs(MethodArgMap[MethodName], ArgValueList, ExecContext));
-	if (Result->Error.IsValid()) {
+	if (Result->ShouldReturn()) {
 		return Result;
 	}
 
 	auto ResultValue = Result->Register(MethodMap[MethodName](ExecContext));
-	if (Result->Error.IsValid()) {
+	if (Result->ShouldReturn()) {
 		return Result;
 	}
 
