@@ -36,6 +36,11 @@ private:
 
 protected:
 
+    /**
+     * Attempt to skip a comment.
+     */
+    void SkipComment();
+
 	/**
 	 * Generates a number.
 	 */

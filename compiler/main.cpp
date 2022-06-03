@@ -5,27 +5,6 @@ SymplNamespace
 
 int main()
 {
-    auto globalSymbolTable = SymbolTable::Alloc<SymbolTable>();
-
-	auto context = SharedPtr<ParserContext>(new ParserContext());
-	context->Create(nullptr, nullptr, "<program>");
-	context->VariableSymbolTable = globalSymbolTable;
-
-	globalSymbolTable->Set("null", ValueHandle::Null(context.Ptr()));
-	globalSymbolTable->Set("true", ValueHandle::True(context.Ptr()));
-    globalSymbolTable->Set("false", ValueHandle::False(context.Ptr()));
-    globalSymbolTable->Set(PrintFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, PrintFunc).Ptr());
-    globalSymbolTable->Set(PrintRetFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, PrintRetFunc).Ptr());
-    globalSymbolTable->Set(InputFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, InputFunc).Ptr());
-    globalSymbolTable->Set(InputIntFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, InputIntFunc).Ptr());
-    globalSymbolTable->Set(IsNumberFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, IsNumberFunc).Ptr());
-    globalSymbolTable->Set(IsStringFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, IsStringFunc).Ptr());
-    globalSymbolTable->Set(IsListFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, IsListFunc).Ptr());
-    globalSymbolTable->Set(IsFunctionFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, IsFunctionFunc).Ptr());
-    globalSymbolTable->Set(AppendFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, AppendFunc).Ptr());
-    globalSymbolTable->Set(RemoveFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, RemoveFunc).Ptr());
-    globalSymbolTable->Set(ExtendFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, ExtendFunc).Ptr());
-
     while (true) {
         std::string code;
         std::cout << "sympl> ";
@@ -44,47 +23,24 @@ int main()
             continue;
         }
 
-        Lexer lexer("<stdin>", code.c_str());
+        auto vm = SymplVM::Alloc<SymplVM>();
+        auto ret = vm->RunScript("<stdin>", CodeBuffer->CStr());
+        auto value = std::get<0>(ret);
+        auto error = std::get<1>(ret);
 
-        lexer.MakeTokens();
-        auto tokens = lexer.GetTokens();
-        auto errors = lexer.GetErrors();
-
-        if (!errors.empty()) {
-            cout << "Failed to Run!" << endl;
-
-            for (auto& error: errors) {
-                cout << error->ToString() << endl;
-            }
-
-            continue;
-        }
-
-        Parser parser(tokens);
-        auto node = parser.Parse();
-
-        if (node->Error.IsValid()) {
-            cout << node->Error->ToString() << endl;
-            continue;
-        }
-
-        // Run the program.
-        auto program = SharedPtr<Interpreter>(new Interpreter());
-        auto result = program->Visit(node->ParserNodePtr, context);
-
-        if (result->Error.IsValid())
+        if (error.IsValid())
         {
-            cout << result->Error->ToString() << endl;
+            cout << error->ToString() << endl;
         }
         else
         {
-            auto ListResult = ObjectRef::CastTo<ListHandle>(result->Value.Ptr());
+            auto ListResult = ObjectRef::CastTo<ListHandle>(value.Ptr());
             if (!ListResult->Elements.empty()) {
                 if (ListResult->Elements.size() == 1) {
                     cout << ListResult->Elements[0]->ToString() << endl;
                 }
                 else {
-                    cout << result->Value->ToString() << endl;
+                    cout << value->ToString() << endl;
                 }
             }
         }

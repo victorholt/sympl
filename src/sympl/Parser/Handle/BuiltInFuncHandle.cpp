@@ -8,6 +8,7 @@
 #include "ExceptionHandle.hpp"
 #include <sympl/Parser/ParserRuntimeResult.hpp>
 #include <sympl/Parser/Interpreter.hpp>
+#include <sympl/Parser/SymplVM.hpp>
 #include <sympl/Parser/ParserContext.hpp>
 #include <sympl/Parser/SymbolTable.hpp>
 #include <sympl/Parser/Token.hpp>
@@ -86,6 +87,18 @@ void BuiltInFuncHandle::__Construct(int argc, va_list ArgList)
 		[=](SharedPtr<ParserContext> pExecContext) { return ExecExtend(pExecContext); },
 		{ "listA", "listB" }
 	);
+
+    AddMethod(
+        LengthFunc,
+        [=](SharedPtr<ParserContext> pExecContext) { return ExecLength(pExecContext); },
+        { "value" }
+    );
+
+    AddMethod(
+        IncludeFunc,
+        [=](SharedPtr<ParserContext> pExecContext) { return ExecInclude(pExecContext); },
+        { "file" }
+    );
 }
 
 void BuiltInFuncHandle::Create(CStrPtr pFuncName)
@@ -199,7 +212,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecAppend(SharedPtr<ParserCon
 	SharedPtr<ValueHandle> ListValue = pExecContext->VariableSymbolTable->Get("value");
 
 	if (DestList->Type != ValueType::List) {
-		return InvalidMethodArgument(pExecContext, DestList->ToString(), "list as first argument");
+		return InvalidMethodArgument(pExecContext, DestList->ToString(), "Expected list as first argument");
 	}
 
 	Result->Success(DestList->AddTo(ListValue));
@@ -208,20 +221,41 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecAppend(SharedPtr<ParserCon
 
 SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRemove(SharedPtr<ParserContext> &pExecContext)
 {
-	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-	SharedPtr<ValueHandle> ListValue = pExecContext->VariableSymbolTable->Get("list");
-	SharedPtr<ValueHandle> ListIndexValue = pExecContext->VariableSymbolTable->Get("index");
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ValueHandle> ListValue = pExecContext->VariableSymbolTable->Get("list");
+    SharedPtr<ValueHandle> ListIndexValue = pExecContext->VariableSymbolTable->Get("index");
 
-	if (ListValue->Type != ValueType::List) {
-		return InvalidMethodArgument(pExecContext, ListValue->ToString(), "list as first argument");
-	}
+    if (ListValue->Type != ValueType::List) {
+        return InvalidMethodArgument(pExecContext, ListValue->ToString(), "list as first argument");
+    }
 
-	if (ListIndexValue->Type != ValueType::Int) {
-		return InvalidMethodArgument(pExecContext, ListIndexValue->ToString(), "integer as second argument");
-	}
+    if (ListIndexValue->Type != ValueType::Int) {
+        return InvalidMethodArgument(pExecContext, ListIndexValue->ToString(), "integer as second argument");
+    }
 
-	Result->Success(ListValue->SubtractBy(ListIndexValue));
-	return Result;
+    Result->Success(ListValue->SubtractBy(ListIndexValue));
+    return Result;
+}
+
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecLength(SharedPtr<struct ParserContext>& pExecContext)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ValueHandle> Value = pExecContext->VariableSymbolTable->Get("value");
+
+    if (Value->Type != ValueType::List || Value->Type != ValueType::String) {
+        return InvalidMethodArgument(pExecContext, Value->ToString(), "Expected argument to be a list or string");
+    }
+
+    auto LengthValue = IntHandle::Alloc<IntHandle>();
+    if (Value->Type == ValueType::List) {
+        LengthValue->SetValue(ObjectRef::CastTo<ListHandle>(Value.Ptr())->Elements.size());
+    }
+    else {
+        LengthValue->SetValue(Value->Value.String->Length());
+    }
+
+    Result->Success(LengthValue.Ptr());
+    return Result;
 }
 
 SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExtend(SharedPtr<ParserContext> &pExecContext)
@@ -231,15 +265,53 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExtend(SharedPtr<ParserCon
 	SharedPtr<ValueHandle> ListValue = pExecContext->VariableSymbolTable->Get("listB");
 
 	if (!DestList.IsValid() || DestList->Type != ValueType::List) {
-		return InvalidMethodArgument(pExecContext, DestList->ToString(), "list as first argument");
+		return InvalidMethodArgument(pExecContext, DestList->ToString(), "Expected list as first argument");
 	}
 
 	if (!ListValue.IsValid() || ListValue->Type != ValueType::List) {
-		return InvalidMethodArgument(pExecContext, ListValue->ToString(), "list as second argument");
+		return InvalidMethodArgument(pExecContext, ListValue->ToString(), "Expected list as second argument");
 	}
 
 	Result->Success(DestList->MultiplyBy(ListValue));
 	return Result;
+}
+
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInclude(SharedPtr<struct ParserContext>& pExecContext)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ValueHandle> FileNameValue = pExecContext->VariableSymbolTable->Get("file");
+
+    if (FileNameValue->Type != ValueType::String) {
+        return InvalidMethodArgument(pExecContext, FileNameValue->ToString(), "Expected filename to be a string");
+    }
+
+    std::ifstream inputStream (FileNameValue->Value.String->CStr(), std::ifstream::in);
+    if (!inputStream.is_open()) {
+        return InvalidMethodArgument(pExecContext, FileNameValue->ToString(), "Unable to open file.");
+    }
+
+    std::string str;
+
+    inputStream.seekg(0, std::ios::end);
+    str.reserve(inputStream.tellg());
+    inputStream.seekg(0, std::ios::beg);
+
+    str.assign((std::istreambuf_iterator<char>(inputStream)),
+               std::istreambuf_iterator<char>());
+
+    // Close the stream.
+    inputStream.close();
+
+    auto VM = SymplVM::Alloc<SymplVM>();
+    auto ReturnTuple = VM->RunScript(FileNameValue->Value.String->CStr(), str.c_str());
+    auto ReturnError = std::get<1>(ReturnTuple);
+
+    if (ReturnError.IsValid()) {
+        return InvalidMethodArgument(pExecContext, FileNameValue->ToString(), "Failed execute script.");
+    }
+
+    Result->Success(ValueHandle::Null());
+    return Result;
 }
 
 SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::NoVisitMethod(const SharedPtr<ParserContext> &pExecContext)
@@ -264,7 +336,7 @@ BuiltInFuncHandle::InvalidMethodArgument(const SharedPtr<ParserContext> &pExecCo
 		pExecContext,
 		StartPosition,
 		EndPosition,
-		fmt::format("Invalid argument '{0}' in '{1}' method. Expected {2}", ArgName, Name->CStr(), ExpectedStr).c_str()
+		fmt::format("Invalid argument '{0}' in '{1}' method. {2}", ArgName, Name->CStr(), ExpectedStr).c_str()
 	));
 
 	Result->Success(ExceptionHandle::Alloc<ExceptionHandle>(1, Error.Ptr()).Ptr());

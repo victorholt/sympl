@@ -100,6 +100,20 @@ public:
 	 */
 	SharedPtr<ParserRuntimeResult> ExecExtend(SharedPtr<class ParserContext>& pExecContext);
 
+    /**
+	 * Executes the include method.
+	 * @param pExecContext
+	 * @return
+	 */
+    SharedPtr<ParserRuntimeResult> ExecLength(SharedPtr<class ParserContext>& pExecContext);
+
+    /**
+	 * Executes the include method.
+	 * @param pExecContext
+	 * @return
+	 */
+    SharedPtr<ParserRuntimeResult> ExecInclude(SharedPtr<class ParserContext>& pExecContext);
+
 	/**
 	 * Method where there was no execute.
 	 * @param pExecContext

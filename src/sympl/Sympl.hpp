@@ -74,3 +74,4 @@
 #include <sympl/Parser/ParserRuntimeResult.hpp>
 #include <sympl/Parser/ParserContext.hpp>
 #include <sympl/Parser/Interpreter.hpp>
+#include <sympl/Parser/SymplVM.hpp>

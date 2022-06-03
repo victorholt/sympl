@@ -277,5 +277,7 @@ static const char* IsFunctionFunc = "isFunction";
 static const char* AppendFunc = "append";
 static const char* RemoveFunc = "remove";
 static const char* ExtendFunc = "extend";
+static const char* IncludeFunc = "include";
+static const char* LengthFunc = "length";
 
 SymplNamespaceEnd

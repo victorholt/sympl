@@ -55,6 +55,11 @@ void Lexer::MakeTokens()
 			Advance();
 		}
 
+        // Skip any comments.
+        if (CurrentChar == '#') {
+            SkipComment();
+        }
+
         // Check for a new line token.
         else if (CurrentChar == TokenValueChar(TokenType::NewLine) || CurrentChar == TokenValueChar(TokenType::CloseStatement)) {
             TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::NewLine, nullptr, Position.Ptr(), nullptr));
@@ -150,6 +155,15 @@ void Lexer::MakeTokens()
 	}
 
     TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::EndOfFile, nullptr, Position.Ptr(), nullptr));
+}
+
+void Lexer::SkipComment()
+{
+    Advance();
+    while (CurrentChar != '\n' && CurrentChar != '\0') {
+        Advance();
+    }
+    Advance();
 }
 
 SharedPtr<Token> Lexer::MakeNumberToken()

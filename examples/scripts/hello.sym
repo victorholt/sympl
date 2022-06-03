@@ -1,10 +1,8 @@
-// Example of a hello world program that will run
-// in a console environment.
+# Example of a hello world program that will run
+# in a console environment.
 
 print("Hello! What is your name?");
 
 var name = input()
 
 print("Glad to meet you " + name)
-
-func test(); var foo = 5; return foo; end
