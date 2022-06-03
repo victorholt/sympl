@@ -9,7 +9,7 @@ void ParserIfNode::__Construct(int argc, va_list ArgList)
 {
 }
 
-void ParserIfNode::Create(const SharedPtr<class Token>& pNodeToken, const IfCaseList& pCases, const SharedPtr<ParserNode>& pElseCase)
+void ParserIfNode::Create(const SharedPtr<class Token>& pNodeToken, const IfCaseList& pCases, const ElseCaseTuple& pElseCase)
 {
 	ParserNode::Create(ParseNodeType::If, pNodeToken);
 
@@ -24,8 +24,9 @@ void ParserIfNode::Create(const SharedPtr<class Token>& pNodeToken, const IfCase
 	}
 
 	// Grab the end position.
-	if (pElseCase.IsValid()) {
-		EndPosition = pElseCase->EndPosition;
+    auto ElseCaseNode = std::get<0>(pElseCase);
+	if (ElseCaseNode.IsValid()) {
+		EndPosition = ElseCaseNode->EndPosition;
 	} else if (!Cases.empty()) {
 		EndPosition = std::get<0>(Cases[Cases.size() - 1])->EndPosition;
 	}
@@ -33,11 +34,12 @@ void ParserIfNode::Create(const SharedPtr<class Token>& pNodeToken, const IfCase
 
 CStrPtr ParserIfNode::ToString()
 {
-	memset(TmpNodeString_Allocate, 0, sizeof(TmpNodeString_Allocate));
+    auto ElseCaseNode = std::get<0>(ElseCase);
+    memset(TmpNodeString_Allocate, 0, sizeof(TmpNodeString_Allocate));
 	strcpy(TmpNodeString_Allocate, fmt::format(
 			"({0}, {1})",
 			NodeToken->ToString(),
-			ElseCase->ToString()
+            ElseCaseNode->ToString()
 	).c_str());
 
 	return TmpNodeString_Allocate;

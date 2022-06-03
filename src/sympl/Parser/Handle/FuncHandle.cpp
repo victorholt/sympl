@@ -49,7 +49,7 @@ SharedPtr<ParserRuntimeResult> FuncHandle::Exec(const std::vector<SharedPtr<Valu
         return Result;
     }
 
-    Result->Success(ResultValue);
+    Result->Success(ShouldReturnNull ? ValueHandle::Null() : ResultValue);
     return Result;
 }
 
@@ -59,6 +59,7 @@ SharedPtr<ValueHandle> FuncHandle::Copy() const
     NewFunc->Create(Name->CStr(), BodyNode, ArgNameList);
     NewFunc->SetPosition(StartPosition, EndPosition);
     NewFunc->Context = Context;
+    NewFunc->ShouldReturnNull = ShouldReturnNull;
     return NewFunc.Ptr();
 }
 

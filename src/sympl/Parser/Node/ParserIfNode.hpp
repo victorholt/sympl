@@ -7,7 +7,9 @@
 
 SymplNamespaceStart
 
-typedef std::vector< std::tuple<SharedPtr<ParserNode>, SharedPtr<ParserNode>> > IfCaseList;
+// Condition, Statement, ShouldReturnNull
+typedef std::vector< std::tuple<SharedPtr<ParserNode>, SharedPtr<ParserNode>, bool> > IfCaseList;
+typedef std::tuple<SharedPtr<ParserNode>, bool> ElseCaseTuple;
 
 class SYMPL_API ParserIfNode : public ParserNode
 {
@@ -18,7 +20,7 @@ public:
 	IfCaseList Cases;
 
 	// Else case to check.
-	SharedPtr<ParserNode> ElseCase;
+    ElseCaseTuple ElseCase;
 
 	/**
 	 * Overrides the construct.
@@ -33,7 +35,7 @@ public:
 	 * @param pCases
 	 * @param pElseCases
 	 */
-	void Create(const SharedPtr<class Token>& pNodeToken, const IfCaseList& pCases, const SharedPtr<ParserNode>& pElseCase);
+	void Create(const SharedPtr<class Token>& pNodeToken, const IfCaseList& pCases, const ElseCaseTuple& pElseCase);
 
 	/**
 	 * Returns the string representation of the node.

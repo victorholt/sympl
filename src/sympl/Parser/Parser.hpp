@@ -133,6 +133,34 @@ protected:
 	 */
 	SharedPtr<ParseResult> IfExpr();
 
+    /**
+     * Returns cases of if expressions.
+     * @param CaseKeyword
+     * @return
+     */
+    SharedPtr<ParseResult> IfExprCases(CStrPtr CaseKeyword);
+
+    /**
+     * Returns cases of if expressions.
+     * @param CaseKeyword
+     * @return
+     */
+    SharedPtr<ParseResult> IfExprB();
+
+    /**
+     * Returns cases of if expressions.
+     * @param CaseKeyword
+     * @return
+     */
+    SharedPtr<ParseResult> IfExprC();
+
+    /**
+     * Returns cases of if expressions.
+     * @param CaseKeyword
+     * @return
+     */
+    SharedPtr<ParseResult> IfExprBOrC();
+
 	/**
 	 * Returns a result based on a for expression.
 	 * @return

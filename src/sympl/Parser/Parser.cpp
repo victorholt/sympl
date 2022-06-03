@@ -601,97 +601,204 @@ SharedPtr<ParseResult> Parser::ListExpr()
     return Result;
 }
 
-SharedPtr<ParseResult> Parser::IfExpr() {
-	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
-	IfCaseList Cases;
-	SharedPtr<ParserNode> ElseCase;
+SharedPtr<ParseResult> Parser::IfExpr()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
 
-	if (TokenIsNotKeyword(CurrentToken, IfKeyword)) {
-		Result->Failure(new InvalidSyntaxError(
-			CurrentToken->GetStartPosition(),
-			CurrentToken->GetEndPosition(),
-			fmt::format("<if_expr> Expected 'if' got {0}", CurrentToken->ToString()).c_str()
-		));
-		return Result;
-	}
+    auto AllCases = Result->Register(IfExprCases(IfKeyword));
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
 
-	Result->RegisterAdvance();
-	Advance();
+    assert(AllCases->GetTypeName() == ParserIfNode::GetTypeNameStatic());
+    auto AllCasesIfNode = ObjectRef::CastTo<ParserIfNode>(AllCases.Ptr());
 
-	// Grab the condition from the expression.
-	SharedPtr<ParserNode> Condition = Result->Register(Expression());
-	if (Result->Error.IsValid()) {
-		return Result;
-	}
+    auto IfNode = ParserIfNode::Alloc<ParserIfNode>();
+    IfNode->Create(CurrentToken, AllCasesIfNode->Cases, AllCasesIfNode->ElseCase);
 
-	// Our next token should be the 'then' keyword.
-	if (TokenIsNotKeyword(CurrentToken, ThenKeyword)) {
-		Result->Failure(new InvalidSyntaxError(
-			CurrentToken->GetStartPosition(),
-			CurrentToken->GetEndPosition(),
-			fmt::format("<if_expr> Expected 'then' got {0}", CurrentToken->ToString()).c_str()
-		));
-		return Result;
-	}
+    Result->Success(IfNode.Ptr());
+    return Result;
+}
 
-	Result->RegisterAdvance();
-	Advance();
+SharedPtr<ParseResult> Parser::IfExprCases(CStrPtr CaseKeyword)
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+    IfCaseList Cases;
+    ElseCaseTuple ElseCase;
 
-	// Grab the expression for the if statement.
-	SharedPtr<ParserNode> Expr = Result->Register(Expression());
-	if (Result->Error.IsValid()) {
-		return Result;
-	}
-	// Save the expression.
-	Cases.emplace_back(std::make_tuple(Condition, Expr));
+    if (TokenIsNotKeyword(CurrentToken, CaseKeyword)) {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<if_expr_cases> Expected '{0}' got {1}", CaseKeyword, CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
 
-	while (TokenIsKeyword(CurrentToken, ElseIfKeyword)) {
-		Result->RegisterAdvance();
-		Advance();
+    Result->RegisterAdvance();
+    Advance();
 
-		Condition = Result->Register(Expression());
-		if (Result->Error.IsValid()) {
-			return Result;
-		}
+    // Grab the condition from the expression.
+    SharedPtr<ParserNode> Condition = Result->Register(Expression());
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
 
-		// Our next token should be the 'then' keyword.
-		if (TokenIsNotKeyword(CurrentToken, ThenKeyword)) {
-			Result->Failure(new InvalidSyntaxError(
-				CurrentToken->GetStartPosition(),
-				CurrentToken->GetEndPosition(),
-				fmt::format("<if_expr> Expected 'then' got {0}", CurrentToken->ToString()).c_str()
-			));
-			return Result;
-		}
+    // Our next token should be the 'then' keyword.
+    if (TokenIsNotKeyword(CurrentToken, ThenKeyword)) {
+        Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<if_expr_cases> Expected 'then' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
 
-		Result->RegisterAdvance();
-		Advance();
+    Result->RegisterAdvance();
+    Advance();
 
-		Expr = Result->Register(Expression());
-		if (Result->Error.IsValid()) {
-			return Result;
-		}
-		Cases.emplace_back(std::make_tuple(Condition, Expr));
-	}
+    if (CurrentToken->GetType() == TokenType::NewLine)
+    {
+        Result->RegisterAdvance();
+        Advance();
 
-	// Check if we are ending with an else statement.
-	if (strcmp(CurrentToken->GetValue(), ElseKeyword) == 0) {
-		Result->RegisterAdvance();
-		Advance();
+        auto StatementListNode = Result->Register(Statements());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
 
-		ElseCase = Result->Register(Expression());
-		if (Result->Error.IsValid()) {
-			return Result;
-		}
-	}
+        Cases.emplace_back(std::make_tuple(Condition, StatementListNode, true));
 
-	auto ResultIfNode = ParserIfNode::Alloc<ParserIfNode>();
+        if (TokenIsKeyword(CurrentToken, EndKeyword)) {
+            Result->RegisterAdvance();
+            Advance();
+        }
+        else {
+            auto AllCases = Result->Register(IfExprBOrC());
+            if (Result->Error.IsValid()) {
+                return Result;
+            }
 
-	// Explicity call create here since I don't believe C++ can handle tuples in va_list???
-	ResultIfNode->Create(CurrentToken, Cases, ElseCase);
-	Result->Success(ResultIfNode.Ptr());
+            assert(AllCases->GetTypeName() == ParserIfNode::GetTypeNameStatic());
+            auto AllCasesIfNode = ObjectRef::CastTo<ParserIfNode>(AllCases.Ptr());
+            for (const auto& IfCase : AllCasesIfNode->Cases) {
+                Cases.emplace_back(IfCase);
+            }
+            ElseCase = AllCasesIfNode->ElseCase;
+        }
+    }
+    else
+    {
+        // Grab the expression for the if statement.
+        SharedPtr<ParserNode> Expr = Result->Register(Expression());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+        // Save the expression.
+        Cases.emplace_back(std::make_tuple(Condition, Expr, false));
 
-	return Result;
+        auto AllCases = Result->Register(IfExprBOrC());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        assert(AllCases->GetTypeName() == ParserIfNode::GetTypeNameStatic());
+        auto AllCasesIfNode = ObjectRef::CastTo<ParserIfNode>(AllCases.Ptr());
+        for (const auto& IfCase : AllCasesIfNode->Cases) {
+            Cases.emplace_back(IfCase);
+        }
+        ElseCase = AllCasesIfNode->ElseCase;
+    }
+
+    auto ResultIfNode = ParserIfNode::Alloc<ParserIfNode>();
+    ResultIfNode->Create(CurrentToken, Cases, ElseCase);
+    Result->Success(ResultIfNode.Ptr());
+
+    return Result;
+}
+
+SharedPtr<ParseResult> Parser::IfExprB()
+{
+    return IfExprCases(ElseIfKeyword);
+}
+SharedPtr<ParseResult> Parser::IfExprC()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+    ElseCaseTuple ElseCase;
+
+    if (TokenIsKeyword(CurrentToken, ElseKeyword))
+    {
+        Result->RegisterAdvance();
+        Advance();
+
+        if (CurrentToken->GetType() == TokenType::NewLine)
+        {
+            Result->RegisterAdvance();
+            Advance();
+
+            auto StatementListNode = Result->Register(Statements());
+            if (Result->Error.IsValid()) {
+                return Result;
+            }
+            ElseCase = std::make_tuple(StatementListNode, true);
+
+            if (TokenIsKeyword(CurrentToken, EndKeyword))
+            {
+                Result->RegisterAdvance();
+                Advance();
+            }
+            else {
+                Result->Failure(new InvalidSyntaxError(
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("<if_expr_c> Expected 'end' got {0}", CurrentToken->ToString()).c_str()
+                ));
+                return Result;
+            }
+        }
+        else {
+            auto Expr = Result->Register(Expression());
+            if (Result->Error.IsValid()) {
+                return Result;
+            }
+            ElseCase = std::make_tuple(Expr, false);
+        }
+    }
+
+    Result->Success(std::get<0>(ElseCase).Ptr());
+    return Result;
+}
+
+SharedPtr<ParseResult> Parser::IfExprBOrC()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+    IfCaseList Cases;
+    ElseCaseTuple ElseCase;
+
+    if (TokenIsKeyword(CurrentToken, ElseIfKeyword))
+    {
+        auto AllCases = Result->Register(IfExprB());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        assert(AllCases->GetTypeName() == ParserIfNode::GetTypeNameStatic());
+        auto AllCasesIfNode = ObjectRef::CastTo<ParserIfNode>(AllCases.Ptr());
+        Cases = AllCasesIfNode->Cases;
+        ElseCase = AllCasesIfNode->ElseCase;
+    }
+    else {
+        ElseCase = std::make_tuple(Result->Register(IfExprC()), false);
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+    }
+
+    auto IfNode = ParserIfNode::Alloc<ParserIfNode>();
+    IfNode->Create(CurrentToken, Cases, ElseCase);
+    Result->Success(IfNode.Ptr());
+
+    return Result;
 }
 
 SharedPtr<ParseResult> Parser::ForExpr()
@@ -788,6 +895,38 @@ SharedPtr<ParseResult> Parser::ForExpr()
 	Result->RegisterAdvance();
 	Advance();
 
+    // Check for new lines.
+    if (CurrentToken->GetType() == TokenType::NewLine)
+    {
+        Result->RegisterAdvance();
+        Advance();
+
+        auto BodyNode = Result->Register(Statements());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        if (TokenIsNotKeyword(CurrentToken, EndKeyword))
+        {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<for_expr> Expected '{0}' got {1}", EndKeyword, CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+
+        Result->RegisterAdvance();
+        Advance();
+
+        auto ForNode = ParserForNode::Alloc<ParserForNode>(
+            5, VarNameToken, StartValue.Ptr(), EndValue.Ptr(), StepValue.IsValid() ? StepValue.Ptr() : nullptr, BodyNode.Ptr()
+        );
+        ForNode->ShouldReturnNull = true;
+        Result->Success(ForNode.Ptr());
+        return Result;
+    }
+
 	// Grab the body value expression.
 	auto BodyNode = Result->Register(Expression());
 	if (Result->Error.IsValid()) {
@@ -836,6 +975,38 @@ SharedPtr<ParseResult> Parser::WhileExpr()
 
 	Result->RegisterAdvance();
 	Advance();
+
+    // Check for new lines.
+    if (CurrentToken->GetType() == TokenType::NewLine)
+    {
+        Result->RegisterAdvance();
+        Advance();
+
+        auto BodyNode = Result->Register(Statements());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        if (TokenIsNotKeyword(CurrentToken, EndKeyword))
+        {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<for_expr> Expected '{0}' got {1}", EndKeyword, CurrentToken->ToString()).c_str()
+            ));
+            return Result;
+        }
+
+        Result->RegisterAdvance();
+        Advance();
+
+        auto WhileNode = ParserWhileNode::Alloc<ParserWhileNode>(
+            3, CurrentToken, Condition.Ptr(), BodyNode.Ptr()
+        );
+        WhileNode->ShouldReturnNull = true;
+        Result->Success(WhileNode.Ptr());
+        return Result;
+    }
 
 	// Grab the body value expression.
 	auto BodyNode = Result->Register(Expression());
@@ -886,7 +1057,7 @@ SharedPtr<ParseResult> Parser::FuncDef()
         }
     }
     else {
-        // Ensure we have a left parenth.
+        // Ensure we have a left parenth (anon function).
         if (CurrentToken->GetType() != TokenType::LH_Parenth) {
             Result->Failure(new InvalidSyntaxError(
                 CurrentToken->GetStartPosition(),
@@ -954,11 +1125,29 @@ SharedPtr<ParseResult> Parser::FuncDef()
     Advance();
 
     // Check for the body start function token.
-    if (CurrentToken->GetType() != TokenType::Arrow) {
+    if (CurrentToken->GetType() == TokenType::Arrow) {
+        Result->RegisterAdvance();
+        Advance();
+
+        auto BodyNode = Result->Register(Expression());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        auto FuncDefNode = ParserFuncDefNode::Alloc<ParserFuncDefNode>();
+        FuncDefNode->Create(FuncNameToken, ArgNameTokenList, BodyNode);
+
+        Result->Success(FuncDefNode.Ptr());
+        return Result;
+    }
+
+    // If we're not on a new line then we should have an arrow.
+    if (CurrentToken->GetType() != TokenType::NewLine)
+    {
         Result->Failure(new InvalidSyntaxError(
-                CurrentToken->GetStartPosition(),
-                CurrentToken->GetEndPosition(),
-                fmt::format("<func_def> Expected '->' got {0}", CurrentToken->ToString()).c_str()
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<func_def> Expected '->' got {0}", CurrentToken->ToString()).c_str()
         ));
         return Result;
     }
@@ -966,14 +1155,29 @@ SharedPtr<ParseResult> Parser::FuncDef()
     Result->RegisterAdvance();
     Advance();
 
-    auto NodeToReturn = Result->Register(Expression());
+    auto BodyNode = Result->Register(Statements());
     if (Result->Error.IsValid()) {
         return Result;
     }
 
+    // Expect the END keyword to close the function.
+    if (TokenIsNotKeyword(CurrentToken, EndKeyword))
+    {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<func_def> Expected '{0}' got {1}", EndKeyword, CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
     // Create our new func def node.
     auto FuncDefNode = ParserFuncDefNode::Alloc<ParserFuncDefNode>();
-    FuncDefNode->Create(FuncNameToken, ArgNameTokenList, NodeToReturn);
+    FuncDefNode->Create(FuncNameToken, ArgNameTokenList, BodyNode);
+    FuncDefNode->ShouldReturnNull = true;
 
     Result->Success(FuncDefNode.Ptr());
     return Result;

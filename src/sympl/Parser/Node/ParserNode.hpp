@@ -28,6 +28,9 @@ public:
     // End position of the token.
     SharedPtr<class LexerPosition> EndPosition;
 
+    // Check if we should return null.
+    bool ShouldReturnNull = false;
+
     /**
      * Overrides the construct.
      * @param argc

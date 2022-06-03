@@ -279,6 +279,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<struct ParserN
 	for (const auto& entry : IfNode->Cases) {
 		auto Condition = std::get<0>(entry);
 		auto Expr = std::get<1>(entry);
+        auto ShouldReturnNull = std::get<2>(entry);
 
 		auto ConditionValue = Result->Register(Visit(Condition, Context));
 		if (Result->Error.IsValid()) {
@@ -291,18 +292,20 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitIfNode(SharedPtr<struct ParserN
 				return Result;
 			}
 
-			Result->Success(ExprValue);
+			Result->Success(ShouldReturnNull ? ValueHandle::Null() : ExprValue);
 			return Result;
 		}
 	}
 
-	if (IfNode->ElseCase.IsValid()) {
-		auto ElseValue = Result->Register(Visit(IfNode->ElseCase, Context));
+    auto ElseCase = std::get<0>(IfNode->ElseCase);
+    if (ElseCase.IsValid()) {
+        auto ElseCaseShouldReturnNull = std::get<1>(IfNode->ElseCase);
+		auto ElseValue = Result->Register(Visit(ElseCase, Context));
 		if (Result->Error.IsValid()) {
 			return Result;
 		}
 
-		Result->Success(ElseValue);
+		Result->Success(ElseCaseShouldReturnNull ? ValueHandle::Null() : ElseValue);
 		return Result;
 	}
 
@@ -369,6 +372,11 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<struct Parser
 		}
 	}
 
+    if (Node->ShouldReturnNull) {
+        Result->Success(ValueHandle::Null());
+        return Result;
+    }
+
 	auto ResultList = ListHandle::Alloc<ListHandle>();
 	ResultList->Create(ResultElements);
 	ResultList->Context = Context;
@@ -399,6 +407,11 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<struct Pars
 			return Result;
 		}
 	}
+
+    if (Node->ShouldReturnNull) {
+        Result->Success(ValueHandle::Null());
+        return Result;
+    }
 
 	auto ResultList = ListHandle::Alloc<ListHandle>();
 	ResultList->Create(ResultElements);
@@ -504,6 +517,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<str
     NewFuncValue->Create(FuncName, BodyNode, ArgNameList);
     NewFuncValue->Context = Context;
     NewFuncValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    NewFuncValue->ShouldReturnNull = Node->ShouldReturnNull;
 
     if (FuncDefNode->NodeToken.IsValid())
     {
