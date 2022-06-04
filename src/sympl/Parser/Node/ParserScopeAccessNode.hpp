@@ -12,7 +12,7 @@ class SYMPL_API ParserScopeAccessNode : public ParserNode
     SYMPL_OBJECT(ParserScopeAccessNode, ParserNode)
 
 public:
-    // Parent node that contains the context.
+    // Parent scope token for accessing the variable.
     SharedPtr<class Token> ParentScopeToken;
 
     /**
@@ -25,9 +25,12 @@ public:
     /**
      * Constructor
      * @param pNodeToken
-     * @param pParentScopeToken
+     * @param pExprNode
      */
-    void Create(const SharedPtr<class Token>& pNodeToken, const SharedPtr<class Token> pParentScopeToken);
+    void Create(
+        const SharedPtr<class Token>& pNodeToken,
+        const SharedPtr<class Token>& pParentScopeToken
+    );
 };
 
 SymplNamespaceEnd

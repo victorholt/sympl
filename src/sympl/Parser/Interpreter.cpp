@@ -500,14 +500,14 @@ Interpreter::VisitScopeAccessNode(SharedPtr<struct ParserNode> Node, SharedPtr<P
     auto VarName = Node->NodeToken->GetValue();
 
     auto ParentValue = Context->VariableSymbolTable->Get(ParentVarName);
-    auto Value = ParentValue->Context->VariableSymbolTable->Get(VarName);
+    SharedPtr<ValueHandle> Value = ParentValue->Context->VariableSymbolTable->Get(VarName);
 
     if (!ParentValue.IsValid() || ParentValue->Type != ValueType::Object) {
         Result->Failure(new RuntimeError(
-                Context,
-                Node->StartPosition,
-                Node->EndPosition,
-                fmt::format("'{0}' must be an object", ParentVarName).c_str()
+            Context,
+            Node->StartPosition,
+            Node->EndPosition,
+            fmt::format("'{0}' must be an object", ParentVarName).c_str()
         ));
         return Result;
     }
@@ -522,11 +522,11 @@ Interpreter::VisitScopeAccessNode(SharedPtr<struct ParserNode> Node, SharedPtr<P
         return Result;
     }
 
-    Value = Value->Copy();
-    Value->SetPosition(Node->StartPosition, Node->EndPosition);
-    Value->Context = Value->Context;
+    auto NewValue = Value->Copy();
+    NewValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    NewValue->Context = Value->Context;
 
-    Result->Success(Value);
+    Result->Success(NewValue);
     return Result;
 }
 

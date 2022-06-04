@@ -68,6 +68,12 @@ protected:
     SharedPtr<ParseResult> CallFunc();
 
     /**
+     * Returns a result based on call rules.
+     * @return
+     */
+    SharedPtr<ParseResult> CallFuncFromAtom(SharedPtr<ParserNode> AtomNode);
+
+    /**
      * Returns a result based on an atom rule.
      * @return
      */
@@ -178,6 +184,13 @@ protected:
 	 * @return
 	 */
 	SharedPtr<ParseResult> WhileExpr();
+
+    /**
+     * Returns a result based on an access expression.
+     * @param pParentScopeToken
+     * @return
+     */
+    SharedPtr<ParseResult> ScopeAccessExpr(const SharedPtr<class Token>& pParentScopeToken);
 
     /**
 	 * Returns a result based on a function definition.

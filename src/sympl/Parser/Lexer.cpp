@@ -82,8 +82,8 @@ void Lexer::MakeTokens()
         }
 
 		// Check for tokens.
-        else if (CurrentChar == TokenValueChar(TokenType::AccessScope)) {
-            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::AccessScope, nullptr, Position.Ptr(), nullptr));
+        else if (CurrentChar == TokenValueChar(TokenType::ScopeAccess)) {
+            TokenList.emplace_back(Token::Alloc<Token>(4, TokenType::ScopeAccess, nullptr, Position.Ptr(), nullptr));
             Advance();
         }
 		else if (CurrentChar == TokenValueChar(TokenType::Plus)) {

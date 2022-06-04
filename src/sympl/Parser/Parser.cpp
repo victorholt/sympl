@@ -85,6 +85,13 @@ SharedPtr<ParseResult> Parser::CallFunc()
         return Result;
     }
 
+    return CallFuncFromAtom(AtomNode);
+}
+
+SharedPtr<ParseResult> Parser::CallFuncFromAtom(SharedPtr<ParserNode> AtomNode)
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
     // Check if we're calling the atom.
     if (CurrentToken->GetType() == TokenType::LH_Parenth)
     {
@@ -100,9 +107,9 @@ SharedPtr<ParseResult> Parser::CallFunc()
             ArgList.emplace_back(Result->Register(Expression()));
             if (Result->Error.IsValid()) {
                 Result->Failure(new InvalidSyntaxError(
-                    CurrentToken->GetStartPosition(),
-                    CurrentToken->GetEndPosition(),
-                    fmt::format("<atom> Expected ')', 'var', 'if', 'for', 'while', 'func', int, float, identifier, got {0}", CurrentToken->ToString()).c_str()
+                        CurrentToken->GetStartPosition(),
+                        CurrentToken->GetEndPosition(),
+                        fmt::format("<atom> Expected ')', 'var', 'if', 'for', 'while', 'func', int, float, identifier, got {0}", CurrentToken->ToString()).c_str()
                 ));
                 return Result;
             }
@@ -122,9 +129,9 @@ SharedPtr<ParseResult> Parser::CallFunc()
             // Check for closing parenth.
             if (CurrentToken->GetType() != TokenType::RH_Parenth) {
                 Result->Failure(new InvalidSyntaxError(
-                    CurrentToken->GetStartPosition(),
-                    CurrentToken->GetEndPosition(),
-                    fmt::format("<atom> Expected ',' or ')', got {0}", CurrentToken->ToString()).c_str()
+                        CurrentToken->GetStartPosition(),
+                        CurrentToken->GetEndPosition(),
+                        fmt::format("<atom> Expected ',' or ')', got {0}", CurrentToken->ToString()).c_str()
                 ));
                 return Result;
             }
@@ -520,7 +527,7 @@ SharedPtr<ParseResult> Parser::Expression()
             return Result;
         }
 
-        Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(1, VarName.Ptr(), ExprNode.Ptr()));
+        Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(2, VarName.Ptr(), ExprNode.Ptr()));
         return Result;
     }
 
@@ -545,36 +552,18 @@ SharedPtr<ParseResult> Parser::Expression()
             }
 
             // Create the assignment node.
-            Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(1, VarName.Ptr(), ExprNode.Ptr()));
+            Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(2, VarName.Ptr(), ExprNode.Ptr()));
             return Result;
         }
-        // Check if we're attempting to access a value in the scope.
-        else if (CurrentToken->GetType() == TokenType::AccessScope)
-        {
-            // Go to the value of the token.
-            Result->RegisterAdvance();
-            Advance();
-
-            // Our next token should be an identifier.
-            if (CurrentToken->GetType() != TokenType::Identifier)
-            {
-                Result->Failure(new InvalidSyntaxError(
-                        CurrentToken->GetStartPosition(),
-                        CurrentToken->GetEndPosition(),
-                        fmt::format("<expr> Expected 'identifier', got {0}", CurrentToken->ToString()).c_str()
-                ));
+        // Check if we are attempting to access a value.
+        else if (CurrentToken->GetType() == TokenType::ScopeAccess) {
+            // Create the assignment node.
+            auto ScopeAccessNode = Result->Register(ScopeAccessExpr(VarName));
+            if (Result->Error.IsValid()) {
                 return Result;
             }
 
-            // Grab the expression of the assignment.
-            auto ScopeAccessVarName = CurrentToken->Copy();
-
-            // Go to the value of the token.
-            Result->RegisterAdvance();
-            Advance();
-
-            // Create the assignment node.
-            Result->Success(ParserScopeAccessNode::Alloc<ParserScopeAccessNode, ParserNode>(1, ScopeAccessVarName.Ptr(), VarName.Ptr()));
+            Result->Success(ScopeAccessNode);
             return Result;
         }
         else {
@@ -1153,6 +1142,79 @@ SharedPtr<ParseResult> Parser::WhileExpr()
 	).Ptr());
 
 	return Result;
+}
+
+SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentScopeToken)
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
+    // Check if we're attempting to access a value in the scope.
+    if (CurrentToken->GetType() != TokenType::ScopeAccess)
+    {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<scope_access_expr> Expected '.' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    // Go to the value of the token.
+    Result->RegisterAdvance();
+    Advance();
+
+    // Our next token should be an identifier.
+    if (CurrentToken->GetType() != TokenType::Identifier)
+    {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<expr> Expected 'identifier', got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    // Grab the expression of the assignment.
+    auto ScopeAccessVarName = CurrentToken->Copy();
+
+    // Go to the value of the token.
+    Result->RegisterAdvance();
+    Advance();
+
+    // Check if we need to evaluate an expression.
+    if (CurrentToken->GetType() == TokenType::Equals) {
+        Result->RegisterAdvance();
+        Advance();
+
+        auto ExprNode = Result->Register(Expression());
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(2, ScopeAccessVarName.Ptr(), ExprNode.Ptr()));
+        return Result;
+    }
+
+    // Check if we are calling a method.
+    auto ScopeAccessNode = ParserScopeAccessNode::Alloc<ParserScopeAccessNode, ParserNode>(
+        2,
+        ScopeAccessVarName.Ptr(),
+        pParentScopeToken.Ptr()
+    );
+
+    if (CurrentToken->GetType() == TokenType::LH_Parenth) {
+        auto FuncNode = Result->Register(CallFuncFromAtom(ScopeAccessNode));
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        Result->Success(FuncNode);
+        return Result;
+    }
+
+    // Create the assignment node.
+    Result->Success(ScopeAccessNode);
+    return Result;
 }
 
 SharedPtr<ParseResult> Parser::FuncDef()

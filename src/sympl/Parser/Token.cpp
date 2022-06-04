@@ -150,6 +150,9 @@ CStrPtr Token::ToString()
         case TokenType::NewLine:
             strcpy(TypeStr, TokenValue(TokenType::CloseStatement));
             break;
+        case TokenType::ScopeAccess:
+            strcpy(TypeStr, TokenValue(TokenType::ScopeAccess));
+            break;
 	}
 
 	// Zero out the tmp string.

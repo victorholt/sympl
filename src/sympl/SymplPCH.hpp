@@ -199,7 +199,7 @@ enum class TokenType
     Comma,
     Arrow,
     NewLine, CloseStatement,
-    AccessScope
+    ScopeAccess
 };
 static const std::vector<CStrPtr> TokenTypeValueList = {
 	"EOF", "int", "float", "\"",
