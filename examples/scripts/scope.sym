@@ -11,13 +11,27 @@ object Person
         b = b + 2
     end
 
-    func values()
-        return "a: " + str(a) + ", b: " + str(b)
-    end
+    func values() -> str("a: " + str(a) + ", b: " + str(b))
 end
 
-var obj = new Person
-obj.inc()
+# Add people to a list
+var people = []
+for i = 0 to 5 then
+    var person = new Person
+    person.a = i
+    people = extend(people, [person])
+end
+print(people)
 
-print("Person: " + str(Person.values()))
-print("New Object: " + str(obj.values()))
+# Print out the people in the list.
+for i = 0 to len(people) then
+    var person = people/i
+    print(person.values())
+end
+
+# Random new object.
+var newObj = new Person
+newObj.b = 100
+
+print(newObj.values())
+print(Person.values())

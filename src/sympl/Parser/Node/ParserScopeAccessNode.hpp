@@ -14,6 +14,8 @@ class SYMPL_API ParserScopeAccessNode : public ParserNode
 public:
     // Parent scope token for accessing the variable.
     SharedPtr<class Token> ParentScopeToken;
+    // Node if there is a variable assignment.
+    SharedPtr<ParserNode> AssignNode;
 
     /**
      * Overrides the construct.

@@ -65,7 +65,10 @@ CStrPtr ObjectHandle::ToString() {
     if (BodyListValues.IsValid()) {
         size_t StringIndex = 0;
         for (auto& Item: BodyListValues->ElementNodeList) {
-            StringRep->Append(fmt::format("{0}", Item->NodeToken->GetValue()));
+            auto ItemValue = Context->VariableSymbolTable->Get(Item->NodeToken->GetValue());
+            CStrPtr ValueStr = ItemValue.IsValid() ? ItemValue->ToString() : "null";
+
+            StringRep->Append(fmt::format("{0}:{1}", Item->NodeToken->GetValue(), ValueStr));
             StringIndex++;
 
             if (StringIndex < BodyListValues->ElementNodeList.size()) {

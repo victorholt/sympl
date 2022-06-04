@@ -516,6 +516,12 @@ Interpreter::VisitScopeAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserCo
     }
 
     SharedPtr<ValueHandle> Value = ParentValue->Context->VariableSymbolTable->Get(VarName);
+    if (AccessNode->AssignNode.IsValid()) {
+        Value = Result->Register(Visit(AccessNode->AssignNode, ParentValue->Context));
+    } else {
+        Value = ParentValue->Context->VariableSymbolTable->Get(VarName);
+    }
+
     if (!Value.IsValid()) {
         Result->Failure(new RuntimeError(
             Context,
@@ -581,7 +587,8 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<P
 		return Result;
 	}
 
-    auto VarContext = Context->Parent.IsValid() ? Context->Parent : Context;
+//    auto VarContext = Context->Parent.IsValid() ? Context->Parent : Context;
+    auto VarContext = Context;
     VarContext->VariableSymbolTable->Set(VarName, Value);
 
     Result->Success(Value);

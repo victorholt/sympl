@@ -1193,6 +1193,7 @@ SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentSc
     Advance();
 
     // Check if we need to evaluate an expression.
+    SharedPtr<ParserNode> AssignNode;
     if (CurrentToken->GetType() == TokenType::Equals) {
         Result->RegisterAdvance();
         Advance();
@@ -1202,12 +1203,12 @@ SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentSc
             return Result;
         }
 
-        auto AssignNode = VarAssignNode::Alloc<VarAssignNode, ParserNode>(
+        AssignNode = VarAssignNode::Alloc<VarAssignNode, ParserNode>(
             2, ScopeAccessVarName.Ptr(), ExprNode.Ptr()
         );
 
-        Result->Success(AssignNode);
-        return Result;
+//        Result->RegisterAdvance();
+//        Advance();
     }
 
     // Check if we are calling a method.
@@ -1216,6 +1217,7 @@ SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentSc
         ScopeAccessVarName.Ptr(),
         pParentScopeToken.Ptr()
     );
+    ObjectRef::CastTo<ParserScopeAccessNode>(ScopeAccessNode.Ptr())->AssignNode = AssignNode;
 
     if (CurrentToken->GetType() == TokenType::LH_Parenth) {
         auto FuncNode = Result->Register(CallFuncFromAtom(ScopeAccessNode));
