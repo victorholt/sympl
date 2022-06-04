@@ -130,7 +130,7 @@ void BuiltInFuncHandle::Create(CStrPtr pFuncName)
 SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::Exec(const std::vector<SharedPtr<ValueHandle>>& pArgValueList)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-	auto ExecContext = GenerateNewContext(Name->CStr());
+	auto ExecContext = GenerateNewContext(Name->CStr(), Context);
 
 	CStrPtr MethodName = Name->CStr();
 	if (MethodMap.find(MethodName) == MethodMap.end() || MethodArgMap.find(MethodName) == MethodArgMap.end())
@@ -442,7 +442,6 @@ BuiltInFuncHandle::InvalidMethodArgument(const SharedPtr<ParserContext> &pExecCo
 		fmt::format("Invalid argument '{0}' in '{1}' method. {2}", ArgName, Name->CStr(), ExpectedStr).c_str()
 	)).Ptr();
 
-//    Result->Success(ExceptionHandle::Alloc<ExceptionHandle>(1, Error.Ptr()).Ptr());
 	return Result;
 }
 

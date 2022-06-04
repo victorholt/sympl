@@ -42,7 +42,9 @@ func join(elements, separator)
         result = result + separator
     end
 
-    return substr(result, 0, len(result) - len(separator))
+    #substr(result, 0, len(result) - len(separator))
+    substr(result, 0, 2)
+    return result
 end
 
 # Export to the global context.
