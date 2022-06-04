@@ -69,7 +69,7 @@ public:
      * Sets the float value.
      * @param pValue
      */
-    inline void SetValue(int pValue) { Value.IntNum = pValue; NormalizeValue(); }
+    inline void SetValue(long pValue) { Value.IntNum = pValue; NormalizeValue(); }
 
     /**
      * Returns the value of the number.

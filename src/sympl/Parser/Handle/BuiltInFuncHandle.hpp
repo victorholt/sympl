@@ -115,6 +115,13 @@ public:
     SharedPtr<ParserRuntimeResult> ExecStr(SharedPtr<class ParserContext>& pExecContext);
 
     /**
+	 * Executes the time method.
+	 * @param pExecContext
+	 * @return
+	 */
+    SharedPtr<ParserRuntimeResult> ExecTime(SharedPtr<class ParserContext>& pExecContext);
+
+    /**
 	 * Executes the export method.
 	 * @param pExecContext
 	 * @return

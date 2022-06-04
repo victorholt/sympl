@@ -1,0 +1,18 @@
+# run("../../examples/scripts/math.sym")
+# Simple math example.
+
+# Shorthand definition for a method.
+var start = time()
+func add(a, b) -> a + b
+
+# Loop through and add to the x variable.
+var x = 0
+while x < 25000 then
+    x = add(x, 1)
+end
+
+# print our results.
+print(x)
+
+var endTime = (time() - start)
+print("Took: " + str(endTime) + "ms to run")

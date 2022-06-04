@@ -102,6 +102,12 @@ void BuiltInFuncHandle::__Construct(int argc, va_list ArgList)
     );
 
     AddMethod(
+        TimeFunc,
+        [=](SharedPtr<ParserContext> pExecContext) { return ExecTime(pExecContext); },
+        { }
+    );
+
+    AddMethod(
         ExportFunc,
         [=](SharedPtr<ParserContext> pExecContext) { return ExecExport(pExecContext); },
         { "value" }
@@ -282,6 +288,23 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecStr(SharedPtr<struct Parse
     SharedPtr<ValueHandle> Value = pExecContext->VariableSymbolTable->Get("value");
 
     auto ReturnValue = StringHandle::Alloc<StringHandle>(1, Value->ToString());
+    Result->Success(ReturnValue.Ptr());
+    return Result;
+}
+
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecTime(SharedPtr<struct ParserContext>& pExecContext)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::milliseconds ms;
+    typedef std::chrono::duration<float> fsec;
+    auto CurrentTime = Time::now().time_since_epoch();
+    ms Duration = std::chrono::duration_cast<ms>(CurrentTime);
+
+    auto ReturnValue = IntHandle::Alloc<IntHandle>();
+    ReturnValue->SetValue(static_cast<long>(Duration.count()));
+
     Result->Success(ReturnValue.Ptr());
     return Result;
 }

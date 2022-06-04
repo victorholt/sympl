@@ -288,6 +288,7 @@ static const char* RemoveFunc = "remove";
 static const char* ExtendFunc = "extend";
 static const char* LengthFunc = "len";
 static const char* StrFunc = "str";
+static const char* TimeFunc = "time";
 static const char* ExportFunc = "export";
 static const char* IncludeFunc = "include";
 static const char* RunFunc = "run";

@@ -39,6 +39,7 @@ void SymplVM::__Construct(int argc, va_list ArgList)
         GlobalSymbolTable->Set(ExtendFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, ExtendFunc).Ptr());
         GlobalSymbolTable->Set(LengthFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, LengthFunc).Ptr());
         GlobalSymbolTable->Set(StrFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, StrFunc).Ptr());
+        GlobalSymbolTable->Set(TimeFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, TimeFunc).Ptr());
 
         // Utility functions.
         GlobalSymbolTable->Set(ExportFunc, BuiltInFuncHandle::Alloc<BuiltInFuncHandle>(1, ExportFunc).Ptr());

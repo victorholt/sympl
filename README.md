@@ -6,20 +6,18 @@ This language is mainly built for the purpose of embedding into my own games. As
 
 ### Example
 ```
-// Simple math example.
-profiler_start("math");
+# Simple math example.
 
-func add(a, b) : int {
-    return a + b;
-}
+# Shorthand definition for a method.
+func add(a, b) -> return a + b
 
-var x = 0;
-while (x < 250000) {
-    x = add(x, 1);
-}
+# Loop through and add to the x variable.
+var x = 0
+while x < 250000 then
+    x = add(x, 1)
+end
 
-printl(x);
-
-profiler_stop("math");
+# print our results.
+print(x)
 ```
 
