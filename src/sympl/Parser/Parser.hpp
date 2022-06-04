@@ -184,6 +184,12 @@ protected:
 	 * @return
 	 */
     SharedPtr<ParseResult> FuncDef();
+
+    /**
+	 * Returns a result based on a object definition.
+	 * @return
+	 */
+    SharedPtr<ParseResult> ObjectDef();
 };
 
 SymplNamespaceEnd

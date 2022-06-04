@@ -26,9 +26,11 @@
 #include "sympl/Parser/Handle/IntHandle.hpp"
 #include "sympl/Parser/Handle/FloatHandle.hpp"
 #include "sympl/Parser/Node/ParserFuncDefNode.hpp"
+#include "sympl/Parser/Node/ParserObjectNode.hpp"
 #include "sympl/Parser/Node/ParserCallNode.hpp"
-#include "sympl/Parser/Node/ParserAccessScopeNode.hpp"
+#include "sympl/Parser/Node/ParserScopeAccessNode.hpp"
 #include "sympl/Parser/Handle/FuncHandle.hpp"
+#include "sympl/Parser/Handle/ObjectHandle.hpp"
 #include "sympl/Parser/Handle/StringHandle.hpp"
 #include "sympl/Parser/Handle/NullHandle.hpp"
 #include "sympl/Parser/Handle/ListHandle.hpp"
@@ -74,7 +76,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
 		}
         case ParseNodeType::ScopeAccess:
         {
-            return VisitAccessScopeNode(Node, Context);
+            return VisitScopeAccessNode(Node, Context);
         }
         case ParseNodeType::VarAccess:
         {
@@ -99,6 +101,10 @@ SharedPtr<ParserRuntimeResult> Interpreter::Visit(SharedPtr<ParserNode> Node, Sh
         case ParseNodeType::Func:
         {
             return VisitFuncDefNode(Node, Context);
+        }
+        case ParseNodeType::Object:
+        {
+            return VisitObjectNode(Node, Context);
         }
         case ParseNodeType::Call:
         {
@@ -486,15 +492,25 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitListNode(SharedPtr<Parser
 }
 
 SharedPtr<class ParserRuntimeResult>
-Interpreter::VisitAccessScopeNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+Interpreter::VisitScopeAccessNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-    auto AccessNode = ObjectRef::CastTo<ParserAccessScopeNode>(Node.Ptr());
+    auto AccessNode = ObjectRef::CastTo<ParserScopeAccessNode>(Node.Ptr());
     auto ParentVarName = AccessNode->ParentScopeToken->GetValue();
     auto VarName = Node->NodeToken->GetValue();
 
     auto ParentValue = Context->VariableSymbolTable->Get(ParentVarName);
     auto Value = ParentValue->Context->VariableSymbolTable->Get(VarName);
+
+    if (!ParentValue.IsValid() || ParentValue->Type != ValueType::Object) {
+        Result->Failure(new RuntimeError(
+                Context,
+                Node->StartPosition,
+                Node->EndPosition,
+                fmt::format("'{0}' must be an object", ParentVarName).c_str()
+        ));
+        return Result;
+    }
 
     if (!Value.IsValid()) {
         Result->Failure(new RuntimeError(
@@ -594,6 +610,33 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<Par
     }
 
     Result->Success(NewFuncValue.Ptr());
+    return Result;
+}
+
+SharedPtr<class ParserRuntimeResult> Interpreter::VisitObjectNode(SharedPtr<struct ParserNode> Node, SharedPtr<ParserContext> Context)
+{
+    auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+    SharedPtr<ParserObjectNode> ObjectNode = ObjectRef::CastTo<ParserObjectNode>(Node.Ptr());
+
+    auto ObjectName = ObjectNode->NodeToken->GetValue();
+    auto BodyNode = ObjectNode->BodyNode;
+
+    auto NewObjectValue = ObjectHandle::Alloc<ObjectHandle>(2, ObjectName, BodyNode.Ptr());
+    NewObjectValue->Context = Context;
+    NewObjectValue->SetPosition(Node->StartPosition, Node->EndPosition);
+
+    Context->VariableSymbolTable->Set(ObjectName, NewObjectValue.Ptr());
+
+    // Register body variables
+    SharedPtr<ParserListNode> BodyListValues = ObjectRef::CastTo<ParserListNode>(BodyNode.Ptr());
+    if (BodyListValues.IsValid()) {
+        for (auto& Item: BodyListValues->ElementNodeList) {
+            auto Value = Result->Register(Visit(Item, Context));
+            Context->VariableSymbolTable->Set(Item->NodeToken->GetValue(), Value);
+        }
+    }
+
+    Result->Success(NewObjectValue.Ptr());
     return Result;
 }
 

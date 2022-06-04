@@ -7,9 +7,9 @@
 
 SymplNamespaceStart
 
-class SYMPL_API ParserAccessScopeNode : public ParserNode
+class SYMPL_API ParserScopeAccessNode : public ParserNode
 {
-    SYMPL_OBJECT(ParserAccessScopeNode, ParserNode)
+    SYMPL_OBJECT(ParserScopeAccessNode, ParserNode)
 
 public:
     // Parent node that contains the context.

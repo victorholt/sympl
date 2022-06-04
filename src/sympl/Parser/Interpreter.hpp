@@ -90,7 +90,7 @@ public:
      * @param Context
      * @return
      */
-    SharedPtr<class ParserRuntimeResult> VisitAccessScopeNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+    SharedPtr<class ParserRuntimeResult> VisitScopeAccessNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
      * Visits the variable access node.
@@ -115,6 +115,14 @@ public:
      * @return
      */
     SharedPtr<class ParserRuntimeResult> VisitFuncDefNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
+     * Visits the object node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitObjectNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
      * Visits the call node.

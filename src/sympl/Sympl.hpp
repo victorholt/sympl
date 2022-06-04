@@ -46,6 +46,7 @@
 #include <sympl/Parser/Handle/BaseFuncHandle.hpp>
 #include <sympl/Parser/Handle/BuiltInFuncHandle.hpp>
 #include <sympl/Parser/Handle/FuncHandle.hpp>
+#include <sympl/Parser/Handle/ObjectHandle.hpp>
 #include <sympl/Parser/Handle/ExceptionHandle.hpp>
 #include <sympl/Parser/Handle/NullHandle.hpp>
 
@@ -53,6 +54,8 @@
 #include <sympl/Parser/Node/ParserCallNode.hpp>
 #include <sympl/Parser/Node/ParserForNode.hpp>
 #include <sympl/Parser/Node/ParserFuncDefNode.hpp>
+#include <sympl/Parser/Node/ParserObjectNode.hpp>
+#include <sympl/Parser/Node/ParserScopeAccessNode.hpp>
 #include <sympl/Parser/Node/ParserIfNode.hpp>
 #include <sympl/Parser/Node/ParserListNode.hpp>
 #include <sympl/Parser/Node/ParserNumberNode.hpp>

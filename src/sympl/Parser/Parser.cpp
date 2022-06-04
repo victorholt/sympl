@@ -5,7 +5,8 @@
 #include "Token.hpp"
 #include "LexerPosition.hpp"
 #include "sympl/Parser/Error/InvalidSyntaxError.hpp"
-#include "sympl/Parser/Node/ParserAccessScopeNode.hpp"
+#include "sympl/Parser/Node/ParserScopeAccessNode.hpp"
+#include "sympl/Parser/Node/ParserObjectNode.hpp"
 #include "sympl/Parser/Node/ParserIfNode.hpp"
 #include "sympl/Parser/Node/ParserForNode.hpp"
 #include "sympl/Parser/Node/ParserWhileNode.hpp"
@@ -251,6 +252,16 @@ SharedPtr<ParseResult> Parser::Atom()
                 }
 
                 Result->Success(FuncDefNode);
+                return Result;
+            }
+
+            if (TokenIsKeyword(FactorToken, ObjectKeyword)) {
+                auto ObjectNode = Result->Register(ObjectDef());
+                if (Result->Error.IsValid()) {
+                    return Result;
+                }
+
+                Result->Success(ObjectNode);
                 return Result;
             }
 
@@ -548,9 +559,9 @@ SharedPtr<ParseResult> Parser::Expression()
             if (CurrentToken->GetType() != TokenType::Identifier)
             {
                 Result->Failure(new InvalidSyntaxError(
-                    CurrentToken->GetStartPosition(),
-                    CurrentToken->GetEndPosition(),
-                    fmt::format("<expr> Expected 'identifier', got {0}", CurrentToken->ToString()).c_str()
+                        CurrentToken->GetStartPosition(),
+                        CurrentToken->GetEndPosition(),
+                        fmt::format("<expr> Expected 'identifier', got {0}", CurrentToken->ToString()).c_str()
                 ));
                 return Result;
             }
@@ -563,7 +574,7 @@ SharedPtr<ParseResult> Parser::Expression()
             Advance();
 
             // Create the assignment node.
-            Result->Success(ParserAccessScopeNode::Alloc<ParserAccessScopeNode, ParserNode>(1, ScopeAccessVarName.Ptr(), VarName.Ptr()));
+            Result->Success(ParserScopeAccessNode::Alloc<ParserScopeAccessNode, ParserNode>(1, ScopeAccessVarName.Ptr(), VarName.Ptr()));
             return Result;
         }
         else {
@@ -1304,5 +1315,76 @@ SharedPtr<ParseResult> Parser::FuncDef()
     FuncDefNode->ShouldAutoReturn = false;
 
     Result->Success(FuncDefNode.Ptr());
+    return Result;
+}
+
+SharedPtr<ParseResult> Parser::ObjectDef()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
+    // Keyword 'object' check.
+    if (TokenIsNotKeyword(CurrentToken, ObjectKeyword)) {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<object_def> Expected 'object' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    SharedPtr<Token> ObjectNameToken;
+    if (CurrentToken->GetType() != TokenType::Identifier) {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<object_def> Expected 'object identifier' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    ObjectNameToken = CurrentToken;
+    Result->RegisterAdvance();
+    Advance();
+
+    // We should have a new line.
+    if (CurrentToken->GetType() != TokenType::NewLine)
+    {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<object_def> Expected 'new line' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    // Get the body of the object.
+    auto BodyNode = Result->Register(Statements());
+    if (Result->Error.IsValid()) {
+        return Result;
+    }
+
+    // Expect the END keyword to close the function.
+    if (TokenIsNotKeyword(CurrentToken, EndKeyword))
+    {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<func_def> Expected '{0}' got {1}", EndKeyword, CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    // Create our new func def node.
+    auto ObjectNode = ParserObjectNode::Alloc<ParserObjectNode>(2, ObjectNameToken.Ptr(), BodyNode.Ptr());
+    Result->Success(ObjectNode.Ptr());
     return Result;
 }

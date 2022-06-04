@@ -4,12 +4,17 @@
 # Include the utility methods
 include("../../examples/scripts/util.sym")
 
-func obj()
-    var bar = 2;
-    var foo = 3;
+# Create new object.
+object Person
+    var a = func() -> print("hello")
+    var bar = 2
+    var foo = 3
 end
 
-obj();
+# Copy object into person.
+var person = new Person()
+person.a()
+
 return;
 
 #| Hello World
