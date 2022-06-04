@@ -1,0 +1,23 @@
+# run("../../examples/scripts/scope.sym")
+# Example of various ways to use the language.
+
+# Create new object.
+object Person
+    var a = 0
+    var b = 0
+
+    func inc()
+        a = a + 1
+        b = b + 2
+    end
+
+    func values()
+        return "a: " + str(a) + ", b: " + str(b)
+    end
+end
+
+var obj = new Person
+obj.inc()
+
+print("Person: " + str(Person.values()))
+print("New Object: " + str(obj.values()))

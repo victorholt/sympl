@@ -1,4 +1,4 @@
-# run("../../examples/scripts/example1.sym")
+# run("../../examples/scripts/basic.sym")
 # Example of various ways to use the language.
 
 # Include the utility methods
@@ -8,7 +8,10 @@
 object Person
     var bar = 0
     var foo = 0
-    var hello = func() -> print("hello"); foo = foo + 1; bar = bar + 2;
+
+    func hello()
+        print("hello"); foo = foo + 1; bar = bar + 2;
+    end
 
     func talk(say) -> print(say)
 end

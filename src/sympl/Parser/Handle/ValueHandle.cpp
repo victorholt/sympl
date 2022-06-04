@@ -52,17 +52,23 @@ SharedPtr<ValueHandle> ValueHandle::PowerBy(const SharedPtr<ValueHandle>& pHandl
 	return ValueHandle::GetIllegalOperationException(this);
 }
 
-SharedPtr<ParserContext> ValueHandle::GenerateNewContext(CStrPtr ContextName) const
+SharedPtr<ParserContext> ValueHandle::GenerateNewContext(
+    CStrPtr ContextName,
+    const SharedPtr<class ParserContext>& pParentContext
+) const
 {
-    auto NewContext = ParserContext::Alloc<ParserContext>();
-    NewContext->Create(Context, StartPosition, ContextName);
+    auto ParentContext = pParentContext.IsValid() ? pParentContext : Context;
 
-    if (Context.IsValid() && Context->VariableSymbolTable.IsValid()) {
-        NewContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable.Ptr());
+    auto NewContext = ParserContext::Alloc<ParserContext>();
+    NewContext->Create(ParentContext, StartPosition, ContextName);
+
+    if (ParentContext.IsValid() && ParentContext->VariableSymbolTable.IsValid()) {
+        NewContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, ParentContext->VariableSymbolTable.Ptr());
     }
     else {
         NewContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>();
     }
+
     return NewContext;
 }
 

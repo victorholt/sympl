@@ -1205,7 +1205,6 @@ SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentSc
         auto AssignNode = VarAssignNode::Alloc<VarAssignNode, ParserNode>(
             2, ScopeAccessVarName.Ptr(), ExprNode.Ptr()
         );
-        ObjectRef::CastTo<VarAssignNode>(AssignNode.Ptr())->AccessorToken = pParentScopeToken;
 
         Result->Success(AssignNode);
         return Result;

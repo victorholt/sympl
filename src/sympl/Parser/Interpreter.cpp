@@ -528,7 +528,7 @@ Interpreter::VisitScopeAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserCo
 
     auto NewValue = Value->Copy();
     NewValue->SetPosition(Node->StartPosition, Node->EndPosition);
-    NewValue->Context = Value->Context;
+    NewValue->Context = ParentValue->Context;
 
     Result->Success(NewValue);
     return Result;
@@ -563,9 +563,6 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<P
     auto VarName = Node->NodeToken->GetValue();
 
     auto AssignNode = SharedPtr<VarAssignNode>(dynamic_cast<VarAssignNode*>(Node.Ptr()));
-    auto AccessorValue = AssignNode->AccessorToken.IsValid() ?
-            Context->VariableSymbolTable->Get(AssignNode->AccessorToken->GetValue())
-            : nullptr;
     auto Value = Result->Register(Visit(AssignNode->Value, Context));
 
     if (Result->ShouldReturn()) {
@@ -584,7 +581,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<P
 		return Result;
 	}
 
-    auto VarContext = AccessorValue.IsValid() ? AccessorValue->Context : Context;
+    auto VarContext = Context->Parent.IsValid() ? Context->Parent : Context;
     VarContext->VariableSymbolTable->Set(VarName, Value);
 
     Result->Success(Value);
@@ -672,7 +669,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitNewObjectNode(SharedPtr<P
 
     auto NewObjectValue = CopyObject->Copy();
     auto ContextObjectName = fmt::format("{0}:#{1}", ObjectToCopyName, NewObjectValue->InstanceId);
-    NewObjectValue->Context = CopyObject->GenerateNewContext(ContextObjectName.c_str());
+    NewObjectValue->Context = CopyObject->GenerateNewContext(ContextObjectName.c_str(), Context);
 
     ObjectRef::CastTo<ObjectHandle>(NewObjectValue.Ptr())->IsInstancedObject = true;
     NewObjectValue->SetPosition(Node->StartPosition, Node->EndPosition);
@@ -710,9 +707,11 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<Parser
     ValueToCall = ValueToCall->Copy();
     ValueToCall->SetPosition(Node->StartPosition, Node->EndPosition);
 
+    auto ValueContext = ValueToCall->Context.IsValid() ? ValueToCall->Context : Context;
+
     for (const auto& ArgNode : CallNode->ArgNodeList)
     {
-        ArgList.emplace_back(Result->Register(Visit(ArgNode, Context)));
+        ArgList.emplace_back(Result->Register(Visit(ArgNode, ValueContext)));
         if (Result->ShouldReturn()) {
             return Result;
         }
@@ -725,7 +724,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<Parser
 
     ReturnValue = ReturnValue->Copy();
     ReturnValue->SetPosition(Node->StartPosition, Node->EndPosition);
-    ReturnValue->Context = Context;
+    ReturnValue->Context = ValueContext;
 
     Result->Success(ReturnValue);
     return Result;

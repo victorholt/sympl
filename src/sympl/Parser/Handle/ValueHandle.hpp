@@ -108,7 +108,10 @@ public:
      * @param ContextName
      * @return
      */
-    virtual SharedPtr<class ParserContext> GenerateNewContext(CStrPtr ContextName) const;
+    SharedPtr<class ParserContext> GenerateNewContext(
+            CStrPtr ContextName,
+            const SharedPtr<class ParserContext>& pParentContext = nullptr
+    ) const;
 
 	/**
      * Attempts to normalize the value.

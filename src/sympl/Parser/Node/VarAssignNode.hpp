@@ -12,8 +12,6 @@ class SYMPL_API VarAssignNode : public ParserNode
 	SYMPL_OBJECT(VarAssignNode, ParserNode)
 
 public:
-    // Token that may be used to access the variable.
-    SharedPtr<class Token> AccessorToken;
     // Expression result.
     SharedPtr<ParserNode> Value;
 

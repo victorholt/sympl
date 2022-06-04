@@ -34,10 +34,7 @@ SharedPtr<ParserRuntimeResult> FuncHandle::Exec(const std::vector<SharedPtr<Valu
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     auto Interp = Interpreter::Alloc<Interpreter>();
-    auto ExecContext = ParserContext::Alloc<ParserContext>();
-
-    ExecContext->Create(Context, StartPosition, Name->CStr());
-    ExecContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable.Ptr());
+    auto ExecContext = GenerateNewContext(Name->CStr(), Context);
 
 	Result->Register(CheckAndPopulateArgs(ArgNameList, ArgValueList, ExecContext));
 	if (Result->ShouldReturn()) {
