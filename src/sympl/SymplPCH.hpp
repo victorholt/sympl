@@ -229,7 +229,8 @@ enum class ParseNodeType
     Break,
     Continue,
     Object,
-    ScopeAccess
+    ScopeAccess,
+    NewObject
 };
 
 enum class ValueType
@@ -260,6 +261,7 @@ static const char* EndKeyword = "end";
 static const char* ReturnKeyword = "return";
 static const char* BreakKeyword = "break";
 static const char* ContinueKeyword = "continue";
+static const char* NewKeyword = "new";
 
 static const std::vector<const char*> BuiltInKeywordList = {
     VarKeyword,
@@ -268,7 +270,8 @@ static const std::vector<const char*> BuiltInKeywordList = {
 	ForKeyword, ToKeyword, StepKeyword, WhileKeyword,
     FuncKeyword, ObjectKeyword,
     EndKeyword,
-    ReturnKeyword, BreakKeyword, ContinueKeyword
+    ReturnKeyword, BreakKeyword, ContinueKeyword,
+    NewKeyword
 };
 
 // Built-In Functions.

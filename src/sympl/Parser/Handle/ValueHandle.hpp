@@ -103,6 +103,13 @@ public:
      */
     virtual SharedPtr<ValueHandle> PowerBy(const SharedPtr<ValueHandle>& pHandle);
 
+    /**
+     * Creates a new context.
+     * @param ContextName
+     * @return
+     */
+    virtual SharedPtr<class ParserContext> GenerateNewContext(CStrPtr ContextName) const;
+
 	/**
      * Attempts to normalize the value.
      */

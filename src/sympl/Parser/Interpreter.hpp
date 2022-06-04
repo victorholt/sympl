@@ -125,6 +125,14 @@ public:
     SharedPtr<class ParserRuntimeResult> VisitObjectNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
 
     /**
+     * Visits the object node.
+     * @param Node
+     * @param Context
+     * @return
+     */
+    SharedPtr<class ParserRuntimeResult> VisitNewObjectNode(SharedPtr<class ParserNode> Node, SharedPtr<ParserContext> Context);
+
+    /**
      * Visits the call node.
      * @param Node
      * @param Context

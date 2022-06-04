@@ -22,15 +22,6 @@ void BaseFuncHandle::Create(CStrPtr FuncName)
 	Name->Set(FuncName && strlen(FuncName) > 0 ? FuncName : "<anonymous>");
 }
 
-SharedPtr<ParserContext> BaseFuncHandle::GenerateNewContext() const
-{
-	auto NewContext = ParserContext::Alloc<ParserContext>();
-	NewContext->Create(Context, StartPosition, Name->CStr());
-//	NewContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable->Parent.Ptr());
-	NewContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable.Ptr());
-	return NewContext;
-}
-
 SharedPtr<ParserRuntimeResult> BaseFuncHandle::CheckArgs(const std::vector<std::string> &pArgNameList, const std::vector<SharedPtr<ValueHandle>>& pArgValueList)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();

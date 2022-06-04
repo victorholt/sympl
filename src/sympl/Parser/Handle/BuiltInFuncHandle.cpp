@@ -130,8 +130,7 @@ void BuiltInFuncHandle::Create(CStrPtr pFuncName)
 SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::Exec(const std::vector<SharedPtr<ValueHandle>>& pArgValueList)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-	auto Interp = Interpreter::Alloc<Interpreter>();
-	auto ExecContext = GenerateNewContext();
+	auto ExecContext = GenerateNewContext(Name->CStr());
 
 	CStrPtr MethodName = Name->CStr();
 	if (MethodMap.find(MethodName) == MethodMap.end() || MethodArgMap.find(MethodName) == MethodArgMap.end())

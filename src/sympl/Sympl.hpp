@@ -55,6 +55,7 @@
 #include <sympl/Parser/Node/ParserForNode.hpp>
 #include <sympl/Parser/Node/ParserFuncDefNode.hpp>
 #include <sympl/Parser/Node/ParserObjectNode.hpp>
+#include <sympl/Parser/Node/ParserNewObjectNode.hpp>
 #include <sympl/Parser/Node/ParserScopeAccessNode.hpp>
 #include <sympl/Parser/Node/ParserIfNode.hpp>
 #include <sympl/Parser/Node/ParserListNode.hpp>

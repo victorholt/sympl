@@ -2,23 +2,28 @@
 # Example of various ways to use the language.
 
 # Include the utility methods
-include("../../examples/scripts/util.sym")
+#include("../../examples/scripts/util.sym")
 
 # Create new object.
 object Person
-    var hello = func() -> print("hello")
-    var bar = 2
-    var foo = 3
+    var bar = 0
+    var foo = 0
+    var hello = func() -> print("hello"); foo = foo + 1; bar = bar + 2;
 
     func talk(say) -> print(say)
 end
 
-Person.hello()
-Person.talk("bar: " + str(Person.bar) + ", foo: " + str(Person.foo))
-
 # Copy object into person.
-#var person = new Person()
-#person.a()
+var newPerson = new Person
+
+newPerson.bar = 100
+newPerson.hello()
+newPerson.talk("bar: " + str(Person.bar) + ", foo: " + str(Person.foo))
+
+print("static: " + str(Person.bar))
+print("new: " + str(newPerson.bar))
+
+print(newPerson)
 
 return;
 

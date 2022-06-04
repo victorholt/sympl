@@ -7,6 +7,7 @@
 #include "sympl/Parser/Error/InvalidSyntaxError.hpp"
 #include "sympl/Parser/Node/ParserScopeAccessNode.hpp"
 #include "sympl/Parser/Node/ParserObjectNode.hpp"
+#include "sympl/Parser/Node/ParserNewObjectNode.hpp"
 #include "sympl/Parser/Node/ParserIfNode.hpp"
 #include "sympl/Parser/Node/ParserForNode.hpp"
 #include "sympl/Parser/Node/ParserWhileNode.hpp"
@@ -264,6 +265,16 @@ SharedPtr<ParseResult> Parser::Atom()
 
             if (TokenIsKeyword(FactorToken, ObjectKeyword)) {
                 auto ObjectNode = Result->Register(ObjectDef());
+                if (Result->Error.IsValid()) {
+                    return Result;
+                }
+
+                Result->Success(ObjectNode);
+                return Result;
+            }
+
+            if (TokenIsKeyword(FactorToken, NewKeyword)) {
+                auto ObjectNode = Result->Register(NewObjectDef());
                 if (Result->Error.IsValid()) {
                     return Result;
                 }
@@ -1191,7 +1202,12 @@ SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentSc
             return Result;
         }
 
-        Result->Success(VarAssignNode::Alloc<VarAssignNode, ParserNode>(2, ScopeAccessVarName.Ptr(), ExprNode.Ptr()));
+        auto AssignNode = VarAssignNode::Alloc<VarAssignNode, ParserNode>(
+            2, ScopeAccessVarName.Ptr(), ExprNode.Ptr()
+        );
+        ObjectRef::CastTo<VarAssignNode>(AssignNode.Ptr())->AccessorToken = pParentScopeToken;
+
+        Result->Success(AssignNode);
         return Result;
     }
 
@@ -1407,7 +1423,7 @@ SharedPtr<ParseResult> Parser::ObjectDef()
         return Result;
     }
 
-    ObjectNameToken = CurrentToken;
+    ObjectNameToken = CurrentToken->Copy();
     Result->RegisterAdvance();
     Advance();
 
@@ -1437,7 +1453,7 @@ SharedPtr<ParseResult> Parser::ObjectDef()
         Result->Failure(new InvalidSyntaxError(
             CurrentToken->GetStartPosition(),
             CurrentToken->GetEndPosition(),
-            fmt::format("<func_def> Expected '{0}' got {1}", EndKeyword, CurrentToken->ToString()).c_str()
+            fmt::format("<object_def> Expected '{0}' got {1}", EndKeyword, CurrentToken->ToString()).c_str()
         ));
         return Result;
     }
@@ -1448,5 +1464,45 @@ SharedPtr<ParseResult> Parser::ObjectDef()
     // Create our new func def node.
     auto ObjectNode = ParserObjectNode::Alloc<ParserObjectNode>(2, ObjectNameToken.Ptr(), BodyNode.Ptr());
     Result->Success(ObjectNode.Ptr());
+    return Result;
+}
+
+SharedPtr<ParseResult> Parser::NewObjectDef()
+{
+    SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
+    // Keyword 'new' check.
+    if (TokenIsNotKeyword(CurrentToken, NewKeyword)) {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<new_object_def> Expected 'new' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    Result->RegisterAdvance();
+    Advance();
+
+    if (CurrentToken->GetType() != TokenType::Identifier) {
+        Result->Failure(new InvalidSyntaxError(
+            CurrentToken->GetStartPosition(),
+            CurrentToken->GetEndPosition(),
+            fmt::format("<new_object_def> Expected 'new identifier' got {0}", CurrentToken->ToString()).c_str()
+        ));
+        return Result;
+    }
+
+    auto ObjectName = CurrentToken->Copy();
+
+    Result->RegisterAdvance();
+    Advance();
+
+    // Create our new func def node.
+    auto NewObjectNode = ParserNewObjectNode::Alloc<ParserNewObjectNode>(
+        1,
+        ObjectName.Ptr()
+    );
+    Result->Success(NewObjectNode.Ptr());
     return Result;
 }

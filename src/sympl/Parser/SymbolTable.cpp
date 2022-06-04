@@ -19,6 +19,15 @@ void SymbolTable::Create(const SharedPtr<SymbolTable>& pParent)
     Parent = pParent;
 }
 
+void SymbolTable::CopyFrom(const SharedPtr<SymbolTable>& SrcTable)
+{
+    assert(SrcTable.IsValid());
+    for (const auto& Item : SrcTable->SymbolList)
+    {
+        SymbolList[Item.first] = Item.second->Copy();
+    }
+}
+
 void SymbolTable::Remove(const char* VarName)
 {
     auto entry = SymbolList.find(VarName);

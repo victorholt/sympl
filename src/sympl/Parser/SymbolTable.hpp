@@ -31,6 +31,12 @@ public:
     void Create(const SharedPtr<SymbolTable>& pParent);
 
     /**
+     * Copies values to another table.
+     * @param SrcTable
+     */
+    void CopyFrom(const SharedPtr<SymbolTable>& SrcTable);
+
+    /**
      * Removes an entry in the table.
      * @param VarName
      */

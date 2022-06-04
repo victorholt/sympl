@@ -31,12 +31,6 @@ public:
 	void Create(CStrPtr FuncName);
 
 	/**
-	 * Generates a new context.
-	 * @return
-	 */
-	SharedPtr<class ParserContext> GenerateNewContext() const;
-
-	/**
 	 * Checks to see if we have a valid set of arguments.
 	 * @param pArgNameList
 	 * @param pArgValueList

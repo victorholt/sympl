@@ -19,6 +19,9 @@ public:
     // Body of the function.
     SharedPtr<class ParserNode> BodyNode;
 
+    // Check if this is an instanced object.
+    bool IsInstancedObject = false;
+
     /**
      * Overrides the construct.
      * @param argc

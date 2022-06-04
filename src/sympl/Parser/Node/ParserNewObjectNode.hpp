@@ -7,14 +7,11 @@
 
 SymplNamespaceStart
 
-class SYMPL_API ParserScopeAccessNode : public ParserNode
+class SYMPL_API ParserNewObjectNode : public ParserNode
 {
-    SYMPL_OBJECT(ParserScopeAccessNode, ParserNode)
+    SYMPL_OBJECT(ParserNewObjectNode, ParserNode)
 
 public:
-    // Parent scope token for accessing the variable.
-    SharedPtr<class Token> ParentScopeToken;
-
     /**
      * Overrides the construct.
      * @param argc
@@ -25,11 +22,9 @@ public:
     /**
      * Constructor
      * @param pNodeToken
-     * @param pParentScopeToken
      */
     void Create(
-        const SharedPtr<class Token>& pNodeToken,
-        const SharedPtr<class Token>& pParentScopeToken
+        const SharedPtr<class Token>& pNodeToken
     );
 };
 
