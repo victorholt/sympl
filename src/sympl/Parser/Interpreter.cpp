@@ -557,6 +557,9 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserN
     }
 
     auto RetValue = Value->Copy();
+    if (!RetValue->Context.IsValid()) {
+        RetValue->Context = Context;
+    }
     RetValue->SetPosition(Node->StartPosition, Node->EndPosition);
 
     Result->Success(RetValue);
@@ -707,6 +710,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<Parser
     std::vector<SharedPtr<ValueHandle>> ArgList;
 
     auto ValueToCall = Result->Register(Visit(CallNode->CallNode, Context));
+
     if (Result->ShouldReturn()) {
         return Result;
     }
@@ -714,7 +718,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<Parser
     ValueToCall = ValueToCall->Copy();
     ValueToCall->SetPosition(Node->StartPosition, Node->EndPosition);
 
-    if (ValueToCall->GetTypeName() == "BuiltInFuncHandle" || !ValueToCall->Context.IsValid()) {
+    if (!ValueToCall->Context.IsValid()) {
         ValueToCall->Context = Context;
     }
 

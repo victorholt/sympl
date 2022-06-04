@@ -67,7 +67,7 @@ void BaseFuncHandle::PopulateArgs(
 	{
 		auto ArgName = pArgNameList[i];
 		auto ArgValue = pArgValueList[i];
-		ArgValue->Context = ExecContext;
+		ArgValue->Context = ArgValue->Context.IsValid() ? ArgValue->Context : ExecContext;
 		ExecContext->VariableSymbolTable->Set(ArgName.c_str(), ArgValue);
 	}
 }

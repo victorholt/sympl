@@ -19,7 +19,7 @@ var people = []
 for i = 0 to 5 then
     var person = new Person
     person.a = i
-    people = extend(people, [person])
+    people = append(people, person)
 end
 print(people)
 
