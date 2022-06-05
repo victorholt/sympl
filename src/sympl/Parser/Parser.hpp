@@ -15,7 +15,7 @@ class SYMPL_API Parser : public ManagedObject
 
 private:
     // Current token index.
-    size_t TokenIndex;
+    long long TokenIndex;
 
     // List of tokens to iterate through.
     std::vector<SharedPtr<class Token>> TokenList;
@@ -49,6 +49,18 @@ protected:
      * @param Amount
      */
     class Token* Reverse(int Amount);
+
+    /**
+     * Retrieve the previous token.
+     * @return
+     */
+    class Token* Previous(int Amount = 1);
+
+    /**
+     * Peek ahead to get the next token.
+     * @return
+     */
+    class Token* Peek(int Amount = 1);
 
     /**
      * Safely check and update the current token value.

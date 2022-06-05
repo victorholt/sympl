@@ -1,0 +1,20 @@
+# run("../../examples/scripts/tests.sym")
+# Various tests.
+
+# Structure to hold the value.
+object Data
+    var value = 2
+    func get_value() -> str(value)
+end
+
+print(Data.get_value())
+
+print("Data.value = " + Data.get_value())
+
+print("Setting Data.value = 3")
+Data.value = 3
+
+print("Data.value < 3")
+print(Data.value < 2)
+
+print("Data.value = " + str(Data.value))

@@ -48,18 +48,36 @@ SharedPtr<ParseResult> Parser::Parse()
     return Result;
 }
 
-class Token* Parser::Advance()
+Token* Parser::Advance()
 {
     TokenIndex++;
     UpdateCurrentToken();
     return CurrentToken;
 }
 
-class Token* Parser::Reverse(int Amount)
+Token* Parser::Reverse(int Amount)
 {
     TokenIndex -= Amount;
     UpdateCurrentToken();
     return CurrentToken;
+}
+
+Token* Parser::Previous(int Amount)
+{
+    auto PrevIndex = TokenIndex - Amount;
+    if (PrevIndex < 0) {
+        return nullptr;
+    }
+    return TokenList[PrevIndex].Ptr();
+}
+
+Token* Parser::Peek(int Amount)
+{
+    auto NextIndex = TokenIndex + Amount;
+    if (NextIndex >= TokenList.size()) {
+        return nullptr;
+    }
+    return TokenList[NextIndex].Ptr();
 }
 
 void Parser::UpdateCurrentToken()
@@ -110,7 +128,7 @@ SharedPtr<ParseResult> Parser::CallFuncFromAtom(SharedPtr<ParserNode> AtomNode)
                 Result->Failure(new InvalidSyntaxError(
                         CurrentToken->GetStartPosition(),
                         CurrentToken->GetEndPosition(),
-                        fmt::format("<atom> Expected ')', 'var', 'if', 'for', 'while', 'func', int, float, identifier, got {0}", CurrentToken->ToString()).c_str()
+                        fmt::format("<call_func_from_atom> Expected ')', 'var', 'if', 'for', 'while', 'func', int, float, identifier, got {0}", CurrentToken->ToString()).c_str()
                 ));
                 return Result;
             }
@@ -130,9 +148,9 @@ SharedPtr<ParseResult> Parser::CallFuncFromAtom(SharedPtr<ParserNode> AtomNode)
             // Check for closing parenth.
             if (CurrentToken->GetType() != TokenType::RH_Parenth) {
                 Result->Failure(new InvalidSyntaxError(
-                        CurrentToken->GetStartPosition(),
-                        CurrentToken->GetEndPosition(),
-                        fmt::format("<atom> Expected ',' or ')', got {0}", CurrentToken->ToString()).c_str()
+                    CurrentToken->GetStartPosition(),
+                    CurrentToken->GetEndPosition(),
+                    fmt::format("<call_func_from_atom> Expected ',' or ')', got {0}", CurrentToken->ToString()).c_str()
                 ));
                 return Result;
             }
@@ -166,10 +184,27 @@ SharedPtr<ParseResult> Parser::Atom()
             return Result;
         }
 
+        case TokenType::ScopeAccess:
         case TokenType::Identifier: {
             Result->RegisterAdvance();
             Advance();
-            Result->Success(VarAccessNode::Alloc<VarAccessNode, ParserNode>(1, FactorToken.Ptr()));
+
+            // Check if we are attempting to access a scoped variable.
+            auto PreviousToken = Previous(2);
+            if (PreviousToken && PreviousToken->GetType() == TokenType::ScopeAccess) {
+                auto ScopeAccessNode = ParserScopeAccessNode::Alloc<ParserScopeAccessNode, ParserNode>(
+                    2,
+                    FactorToken.Ptr(),
+                    Previous(3)
+                );
+                Result->Success(ScopeAccessNode);
+            }
+            else if (CurrentToken && CurrentToken->GetType() == TokenType::ScopeAccess) {
+                return ScopeAccessExpr(FactorToken);
+            }
+            else {
+                Result->Success(VarAccessNode::Alloc<VarAccessNode, ParserNode>(1, FactorToken.Ptr()));
+            }
             return Result;
         }
 
@@ -1180,17 +1215,33 @@ SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentSc
         Result->Failure(new InvalidSyntaxError(
             CurrentToken->GetStartPosition(),
             CurrentToken->GetEndPosition(),
-            fmt::format("<expr> Expected 'identifier', got {0}", CurrentToken->ToString()).c_str()
+            fmt::format("<scope_access_expr> Expected 'identifier', got {0}", CurrentToken->ToString()).c_str()
         ));
         return Result;
     }
 
     // Grab the expression of the assignment.
     auto ScopeAccessVarName = CurrentToken->Copy();
+    auto ScopeAccessNode = ParserScopeAccessNode::Alloc<ParserScopeAccessNode, ParserNode>(
+        2,
+        ScopeAccessVarName.Ptr(),
+        pParentScopeToken.Ptr()
+    );
 
     // Go to the value of the token.
     Result->RegisterAdvance();
     Advance();
+
+    // Check if we are calling a method.
+    if (CurrentToken->GetType() == TokenType::LH_Parenth) {
+        auto FuncNode = Result->Register(CallFuncFromAtom(ScopeAccessNode));
+        if (Result->Error.IsValid()) {
+            return Result;
+        }
+
+        Result->Success(FuncNode);
+        return Result;
+    }
 
     // Check if we need to evaluate an expression.
     SharedPtr<ParserNode> AssignNode;
@@ -1207,25 +1258,35 @@ SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentSc
             2, ScopeAccessVarName.Ptr(), ExprNode.Ptr()
         );
 
-//        Result->RegisterAdvance();
-//        Advance();
+        ObjectRef::CastTo<ParserScopeAccessNode>(ScopeAccessNode.Ptr())->AssignNode = AssignNode;
+        Result->Success(ScopeAccessNode);
+        return Result;
     }
 
-    // Check if we are calling a method.
-    auto ScopeAccessNode = ParserScopeAccessNode::Alloc<ParserScopeAccessNode, ParserNode>(
-        2,
-        ScopeAccessVarName.Ptr(),
-        pParentScopeToken.Ptr()
-    );
-    ObjectRef::CastTo<ParserScopeAccessNode>(ScopeAccessNode.Ptr())->AssignNode = AssignNode;
+    // If this is not the end of our definition then we should handle
+    // the binary operation.
+    if (CurrentToken->GetType() != TokenType::NewLine) {
+        // Reverse so we can get the argument.
+        Reverse(1);
 
-    if (CurrentToken->GetType() == TokenType::LH_Parenth) {
-        auto FuncNode = Result->Register(CallFuncFromAtom(ScopeAccessNode));
+        auto NodeBinOp = Result->Register(BinaryOperation(
+            [=] { return CompExpr(); },
+            {
+                {TokenType::And, TokenValue(TokenType::And)},
+                {TokenType::Or, TokenValue(TokenType::Or)}
+            }
+        ));
+
         if (Result->Error.IsValid()) {
+            Result->Failure(new InvalidSyntaxError(
+                CurrentToken->GetStartPosition(),
+                CurrentToken->GetEndPosition(),
+                fmt::format("<scope_access_expr> Expected var, int, float, identifier, '+', '-', '(', '[', '!', 'var', 'if', 'for', 'while', or 'func' got {0}", CurrentToken->ToString()).c_str()
+            ));
             return Result;
         }
 
-        Result->Success(FuncNode);
+        Result->Success(NodeBinOp);
         return Result;
     }
 
