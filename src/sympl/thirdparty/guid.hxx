@@ -22,7 +22,7 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "sympl/System/SymplPCH.hpp"
+#include "sympl/include/System/SymplPCH.hpp"
 
 #ifdef GUID_ANDROID
 #include <thread>

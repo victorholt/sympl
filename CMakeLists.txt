@@ -87,10 +87,7 @@ include_directories(${SYMPL_INCLUDES})
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/fmt/CMakeLists.txt)
 
 # Include the source.
-include(src/sympl/Core/CMakeLists.txt)
-include(src/sympl/Memory/CMakeLists.txt)
-include(src/sympl/Parser/CMakeLists.txt)
-include(src/sympl/Test/CMakeLists.txt)
+include(src/sympl/SymplLib/CMakeLists.txt)
 
 # Include the compiler.
 include(${CMAKE_CURRENT_SOURCE_DIR}/compiler/CMakeLists.txt)
