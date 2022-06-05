@@ -6,18 +6,27 @@ This language is mainly built for the purpose of embedding into my own games. As
 
 ### Example
 ```
-# Simple math example.
+# Structure to hold the value.
+object Data
+    var value = 0
+end
+
+# Simple method to add two values.
+func add(a, b) -> a + b
 
 # Shorthand definition for a method.
-func add(a, b) -> return a + b
+var start = time()
 
 # Loop through and add to the x variable.
-var x = 0
-while x < 250000 then
-    x = add(x, 1)
+var data = new Data
+while data.value < 2500 then
+    data.value = add(data.value, 1)
 end
 
 # print our results.
-print(x)
+print(data.value)
+
+var endTime = (time() - start)
+print("Took: " + str(endTime) + "ms to run")
 ```
 
