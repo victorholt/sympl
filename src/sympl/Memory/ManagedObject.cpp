@@ -4,8 +4,6 @@
 #include "ManagedObject.hpp"
 SymplNamespace
 
-size_t ManagedObject::NextInstanceId = 0;
-
 ManagedObject::ManagedObject()
 {
     Block = nullptr;

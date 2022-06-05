@@ -137,7 +137,7 @@
 #ifdef _WIN32
 #ifndef SYMPL_IMPORTS
 /* We are building this library */
-#define SYMPL_API  //__declspec(dllexport)
+#define SYMPL_API __declspec(dllexport)
 #else
 /* We are using this library */
     #define SYMPL_API __declspec(dllimport)
@@ -292,5 +292,7 @@ static const char* TimeFunc = "time";
 static const char* ExportFunc = "export";
 static const char* IncludeFunc = "include";
 static const char* RunFunc = "run";
+
+static size_t _Sympl_Object_NextInstanceId = 0;
 
 SymplNamespaceEnd

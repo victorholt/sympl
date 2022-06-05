@@ -18,9 +18,6 @@ private:
     // Size of the object.
     size_t ObjectSize = 0;
 
-    // The next available instance id.
-    static size_t NextInstanceId;
-
 public:
     // The instance id.
     size_t InstanceId = -1;
@@ -67,7 +64,7 @@ public:
 		ManagedObject* NewObject = new(Block->Bytes) T();
 		NewObject->Block = Block;
         NewObject->ObjectSize = ObjectSize;
-        NewObject->InstanceId = NextInstanceId++;
+        NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
 		return SharedPtr<T>(static_cast<T*>(NewObject));
 	}
@@ -87,7 +84,7 @@ public:
         ManagedObject* NewObject = new(Block->Bytes) T();
         NewObject->Block = Block;
         NewObject->ObjectSize = ObjectSize;
-        NewObject->InstanceId = NextInstanceId++;
+        NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
         return SharedPtr<R>(static_cast<R*>(NewObject));
     }
@@ -103,7 +100,7 @@ public:
         char* Bytes = static_cast<char*>(malloc(sizeof(T)));
         ManagedObject* NewObject = new(Bytes) T();
         NewObject->ObjectSize = sizeof(T);
-        NewObject->InstanceId = NextInstanceId++;
+        NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
         if (argc > 0) {
             va_list ArgList;
@@ -129,7 +126,7 @@ public:
         char* Bytes = static_cast<char*>(malloc(sizeof(T)));
         ManagedObject* NewObject = new(Bytes) T();
         NewObject->ObjectSize = sizeof(T);
-        NewObject->InstanceId = NextInstanceId++;
+        NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
         if (argc > 0) {
             va_list ArgList;
