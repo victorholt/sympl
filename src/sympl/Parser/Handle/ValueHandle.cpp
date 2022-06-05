@@ -54,7 +54,7 @@ SharedPtr<ValueHandle> ValueHandle::PowerBy(const SharedPtr<ValueHandle>& pHandl
 
 SharedPtr<ParserContext> ValueHandle::GenerateNewContext(
     CStrPtr ContextName,
-    const SharedPtr<class ParserContext>& pParentContext
+    const SharedPtr<ParserContext>& pParentContext
 ) const
 {
     auto ParentContext = pParentContext.IsValid() ? pParentContext : Context;

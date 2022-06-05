@@ -75,7 +75,7 @@ public:
 	 * @return
 	 */
 	SharedPtr<ParserRuntimeResult> ExecIsType(
-		SharedPtr<struct ParserContext> &pExecContext,
+		SharedPtr<ParserContext> &pExecContext,
 		const std::vector<ValueType>& pTypes
 	);
 

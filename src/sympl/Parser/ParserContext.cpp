@@ -10,7 +10,7 @@ ParserContext::ParserContext()
     DisplayName = StringBuffer::Alloc<StringBuffer>();
 }
 
-void ParserContext::Create(SharedPtr<ParserContext> pParent, SharedPtr<struct LexerPosition> pParentEntryPosition,
+void ParserContext::Create(SharedPtr<ParserContext> pParent, SharedPtr<class LexerPosition> pParentEntryPosition,
                            CStrPtr pDisplayName)
 {
     Parent = pParent;

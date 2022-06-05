@@ -137,7 +137,7 @@
 #ifdef _WIN32
 #ifndef SYMPL_IMPORTS
 /* We are building this library */
-#define SYMPL_API __declspec(dllexport)
+#define SYMPL_API  //__declspec(dllexport)
 #else
 /* We are using this library */
     #define SYMPL_API __declspec(dllimport)

@@ -39,4 +39,4 @@ person.name = "Mike"
 
 print(person.get_likes())
 
-person.print_pretty_likes(["their mom", "their dad", "their sisters"])
+person.print_pretty_likes(["their mom", "their dad", "their family"])

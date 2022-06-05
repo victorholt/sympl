@@ -105,12 +105,14 @@ public:
         NewObject->ObjectSize = sizeof(T);
         NewObject->InstanceId = NextInstanceId++;
 
-//        if (argc > 0) {
+        if (argc > 0) {
             va_list ArgList;
             va_start(ArgList, argc);
             NewObject->__Construct(argc, ArgList);
             va_end(ArgList);
-//        }
+        } else {
+            NewObject->__Construct(0, nullptr);
+        }
 
         return SharedPtr<T>(static_cast<T*>(NewObject));
     }
@@ -129,12 +131,14 @@ public:
         NewObject->ObjectSize = sizeof(T);
         NewObject->InstanceId = NextInstanceId++;
 
-//        if (argc > 0) {
+        if (argc > 0) {
             va_list ArgList;
             va_start(ArgList, argc);
             NewObject->__Construct(argc, ArgList);
             va_end(ArgList);
-//        }
+        } else {
+            NewObject->__Construct(0, nullptr);
+        }
 
         return SharedPtr<R>(dynamic_cast<R*>(NewObject));
     }

@@ -51,9 +51,9 @@ protected:
 	SharedPtr<StringBuffer> StringRep;
 
     // Start position of the number value.
-    SharedPtr<struct LexerPosition> StartPosition;
+    SharedPtr<class LexerPosition> StartPosition;
     // End position of the number value.
-    SharedPtr<struct LexerPosition> EndPosition;
+    SharedPtr<class LexerPosition> EndPosition;
 
 public:
     /**

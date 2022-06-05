@@ -19,7 +19,12 @@ SymplNamespace
 
 void BuiltInFuncHandle::__Construct(int argc, va_list ArgList)
 {
-	CStrPtr pFuncName = va_arg(ArgList, CStrPtr);
+    CStrPtr pFuncName = nullptr;
+
+    if (argc > 0) {
+        pFuncName = va_arg(ArgList, CStrPtr);
+    }
+
 	Create(pFuncName);
 
 	// Create method/argument mappings.
@@ -261,7 +266,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRemove(SharedPtr<ParserCon
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecLength(SharedPtr<struct ParserContext>& pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecLength(SharedPtr<ParserContext>& pExecContext)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ValueHandle> Value = pExecContext->VariableSymbolTable->Get("value");
@@ -282,7 +287,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecLength(SharedPtr<struct Pa
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecStr(SharedPtr<struct ParserContext>& pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecStr(SharedPtr<ParserContext>& pExecContext)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ValueHandle> Value = pExecContext->VariableSymbolTable->Get("value");
@@ -292,7 +297,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecStr(SharedPtr<struct Parse
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecTime(SharedPtr<struct ParserContext>& pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecTime(SharedPtr<ParserContext>& pExecContext)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 
@@ -327,7 +332,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExtend(SharedPtr<ParserCon
 	return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExport(SharedPtr<struct ParserContext>& pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExport(SharedPtr<ParserContext>& pExecContext)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ValueHandle> ExportValue = pExecContext->VariableSymbolTable->Get("value");
@@ -356,7 +361,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecExport(SharedPtr<struct Pa
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInclude(SharedPtr<struct ParserContext>& pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInclude(SharedPtr<ParserContext>& pExecContext)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ValueHandle> FileNameValue = pExecContext->VariableSymbolTable->Get("file");
@@ -398,7 +403,7 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecInclude(SharedPtr<struct P
     return Result;
 }
 
-SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRun(SharedPtr<struct ParserContext>& pExecContext)
+SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRun(SharedPtr<ParserContext>& pExecContext)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ValueHandle> FileNameValue = pExecContext->VariableSymbolTable->Get("file");

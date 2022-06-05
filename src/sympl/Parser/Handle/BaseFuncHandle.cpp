@@ -75,7 +75,7 @@ void BaseFuncHandle::PopulateArgs(
 SharedPtr<ParserRuntimeResult> BaseFuncHandle::CheckAndPopulateArgs(
 	const std::vector<std::string> &pArgNameList,
 	const std::vector<SharedPtr<ValueHandle>> &pArgValueList,
-  	SharedPtr<struct ParserContext> ExecContext)
+  	SharedPtr<ParserContext> ExecContext)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 
