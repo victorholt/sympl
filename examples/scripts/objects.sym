@@ -1,0 +1,42 @@
+# run("../../examples/scripts/objects.sym")
+# Example of various ways to use the language.
+
+# Basic Object
+object Data
+    var value = 0
+    func get_value() -> str(value)
+
+    func hello(name)
+      return "hello " + name
+    end
+end
+
+var obj = new Data
+obj.value = 100
+
+print(obj.get_value())
+print(obj.hello("Mike"))
+
+# output
+# > 100
+
+# Object with methods.
+object Character
+    var name = ""
+    var likes = ["golf", "plants", "exercise"]
+
+    func get_likes() -> likes
+
+    func print_pretty_likes(input_likes)
+        for i = 0 to len(input_likes) then
+            print(name + " likes " + input_likes/i)
+        end
+    end
+end
+
+var person = new Character
+person.name = "Mike"
+
+print(person.get_likes())
+
+person.print_pretty_likes(["their mom", "their dad", "their sisters"])
