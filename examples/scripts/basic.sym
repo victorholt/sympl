@@ -1,6 +1,8 @@
 # run("../../examples/scripts/basic.sym")
 # Example of various ways to use the language.
 
+fasdf
+
 # Include the utility methods
 include("../../examples/scripts/util.sym")
 

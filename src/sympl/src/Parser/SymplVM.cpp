@@ -95,3 +95,13 @@ SymplVM::RunScript(CStrPtr FileName, CStrPtr Script)
         nullptr
     );
 }
+
+SharedPtr<class ParserContext> SymplVM::GetContext() const
+{
+    return GlobalContext;
+}
+
+SharedPtr<class SymbolTable> SymplVM::GetSymbolTable() const
+{
+    return GlobalSymbolTable;
+}

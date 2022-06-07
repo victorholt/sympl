@@ -29,7 +29,7 @@ file (GLOB SYMPL_LIB_SRC
     "${SYMPL_SOURCE_DIR}/sympl/src/Parser/Handle/*.cpp"
 )
 
-add_library(sympl SHARED
+add_library(sympl STATIC
     ${SYMPL_LIB_HEADERS} ${SYMPL_LIB_SRC}
 )
 

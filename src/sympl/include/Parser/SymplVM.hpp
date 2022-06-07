@@ -29,6 +29,18 @@ public:
      * @param VarName
      */
     std::tuple<SharedPtr<class ValueHandle>, SharedPtr<class ParserError>> RunScript(CStrPtr FileName, CStrPtr Script);
+
+    /**
+     * Returns the global parser.
+     * @return
+     */
+    SharedPtr<class ParserContext> GetContext() const;
+
+    /**
+     * Returns the global symbol table.
+     * @return
+     */
+    SharedPtr<class SymbolTable> GetSymbolTable() const;
 };
 
 SymplNamespaceEnd
