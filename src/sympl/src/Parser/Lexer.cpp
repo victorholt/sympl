@@ -30,6 +30,7 @@ Lexer::Lexer(CStrPtr FileName, CStrPtr Text) :
 
 Lexer::~Lexer()
 {
+	TokenList.clear();
 }
 
 void Lexer::Advance()

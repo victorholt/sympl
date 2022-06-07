@@ -57,9 +57,10 @@ SymplVM::RunScript(CStrPtr FileName, CStrPtr Script)
 {
     Lexer lexer(FileName, Script);
 
-    lexer.MakeTokens();
-    auto tokens = lexer.GetTokens();
-    auto errors = lexer.GetErrors();
+	lexer.MakeTokens();
+
+	auto tokens = lexer.GetTokens();
+	auto errors = lexer.GetErrors();
 
     if (!errors.empty()) {
         return std::make_tuple(
@@ -80,7 +81,7 @@ SymplVM::RunScript(CStrPtr FileName, CStrPtr Script)
 
     // Run the program.
     auto program = SharedPtr<Interpreter>(new Interpreter());
-    auto result = program->Visit(node->ParserNodePtr, GlobalContext);
+	auto result = program->Visit(node->ParserNodePtr, GlobalContext);
 
     if (result->Error.IsValid())
     {

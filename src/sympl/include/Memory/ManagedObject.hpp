@@ -18,7 +18,7 @@ private:
 
 public:
     // The instance id.
-    size_t InstanceId = -1;
+    long long InstanceId = -1;
 
 	/**
 	 * Constructor.
@@ -57,12 +57,14 @@ public:
 	{
 		size_t ObjectSize = sizeof(T);
 		MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+		assert(Block != nullptr);
 
 //		ManagedObject* NewObject = reinterpret_cast<T*>(Block->Bytes);
 		ManagedObject* NewObject = new(Block->Bytes) T();
 		NewObject->Block = Block;
         NewObject->ObjectSize = ObjectSize;
         NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
+		Block->SetIdentifier(NewObject->GetTypeName().c_str());
 
 		return SharedPtr<T>(static_cast<T*>(NewObject));
 	}
@@ -78,11 +80,13 @@ public:
     {
         size_t ObjectSize = sizeof(T);
         MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+		assert(Block != nullptr);
 
         ManagedObject* NewObject = new(Block->Bytes) T();
         NewObject->Block = Block;
         NewObject->ObjectSize = ObjectSize;
         NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
+		Block->SetIdentifier(NewObject->GetTypeName().c_str());
 
         return SharedPtr<R>(static_cast<R*>(NewObject));
     }
@@ -96,14 +100,17 @@ public:
     static SharedPtr<T> Alloc(int argc = 0, ...)
     {
         size_t ObjectSize = sizeof(T);
-//        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
-//        ManagedObject* NewObject = new(Block->Bytes) T();
-//        NewObject->Block = Block;
-//        NewObject->ObjectSize = ObjectSize;
+        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+		assert(Block != nullptr);
 
-        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
-        ManagedObject* NewObject = new(Bytes) T();
+        ManagedObject* NewObject = new(Block->Bytes) T();
+        NewObject->Block = Block;
         NewObject->ObjectSize = ObjectSize;
+		Block->SetIdentifier(NewObject->GetTypeName().c_str());
+
+//        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
+//        ManagedObject* NewObject = new(Bytes) T();
+//        NewObject->ObjectSize = ObjectSize;
         NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
         if (argc > 0) {
@@ -128,14 +135,17 @@ public:
     static SharedPtr<R> Alloc(int argc = 0, ...)
     {
         size_t ObjectSize = sizeof(T);
-//        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
-//        ManagedObject* NewObject = new(Block->Bytes) T();
-//        NewObject->Block = Block;
-//        NewObject->ObjectSize = ObjectSize;
+        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+		assert(Block != nullptr);
 
-        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
-        ManagedObject* NewObject = new(Bytes) T();
-        NewObject->ObjectSize = sizeof(T);
+        ManagedObject* NewObject = new(Block->Bytes) T();
+        NewObject->Block = Block;
+        NewObject->ObjectSize = ObjectSize;
+		Block->SetIdentifier(NewObject->GetTypeName().c_str());
+
+//        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
+//        ManagedObject* NewObject = new(Bytes) T();
+//        NewObject->ObjectSize = sizeof(T);
         NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
         if (argc > 0) {

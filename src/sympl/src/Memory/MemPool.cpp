@@ -8,13 +8,14 @@ SymplNamespace
 
 MemPool::MemPool()
 {
-    AllocBlock(2000);
+    AllocBlocks(100);
 }
 
-void MemPool::AllocBlock(int NumBlocks)
+void MemPool::AllocBlocks(int NumBlocks)
 {
     for (int i = 0; i < NumBlocks; ++i) {
-        CreateBlock(DefaultBlockSize);
+        auto Block = CreateBlock(DefaultBlockSize);
+		Block->Active = false;
     }
 }
 
@@ -30,24 +31,33 @@ MemBlock* MemPool::CreateBlock(size_t BlockSize)
         Blocks.emplace_back(Block);
 	}
 
+	assert(Block->BlockSize >= BlockSize);
+
+	Block->Clear();
+	Block->Active = true;
 	return Block;
 }
 
 void MemPool::FreeBlock(MemBlock* pBlock)
 {
-    if (!pBlock) {
+    if (!pBlock || pBlock->Static) {
         return;
     }
 
-	if (pBlock->BlockIndex <= 0 || pBlock->BlockIndex >= Blocks.size()) {
-		return;
-	}
+	assert(pBlock->BlockIndex >= 0 && pBlock->BlockIndex < Blocks.size());
 
     MemBlock* Block = Blocks[pBlock->BlockIndex];
 	Block->Active = false;
+	Block->Static = false;
+}
 
-//	auto Object = reinterpret_cast<ManagedObject*>(Block->Bytes);
-//	Object->Release();
+void MemPool::FreeAllBlocks()
+{
+	for (auto& Block : Blocks)
+	{
+		Block->Active = false;
+		Block->Static = false;
+	}
 }
 
 void MemPool::Clear()
@@ -87,17 +97,78 @@ MemBlock* MemPool::FindValidInactiveBlock(size_t MinBlockSize)
 			continue;
 		}
 
-		if (!ValidBlock) {
-			ValidBlock = Block;
-			continue;
-		}
+		if (Block->BlockSize > MinBlockSize) {
+			if (!ValidBlock) {
+				ValidBlock = Block;
+				continue;
+			}
 
-		if (MinBlockSize > 0) {
-			if (Block->BlockSize > MinBlockSize && ValidBlock->BlockSize > Block->BlockSize) {
+			// Choose the smallest active block.
+			if (ValidBlock->BlockSize > Block->BlockSize) {
 				ValidBlock = Block;
 			}
 		}
 	}
 
+	// Ensure the block is cleaned.
 	return ValidBlock;
+}
+
+size_t MemPool::GetMemUsage() const
+{
+	size_t Result = 0;
+	for (const auto& Block : Blocks) {
+		if (!Block->Active) {
+			continue;
+		}
+		Result += Block->BlockSize;
+	}
+	return Result;
+}
+
+size_t MemPool::GetUsedBlocks() const
+{
+	size_t Result = 0;
+	for (const auto& Block : Blocks) {
+		if (!Block->Active) {
+			continue;
+		}
+		Result++;
+	}
+	return Result;
+}
+
+size_t MemPool::GetUnusedBlocks() const
+{
+	size_t Result = 0;
+	for (const auto& Block : Blocks) {
+		if (Block->Active) {
+			continue;
+		}
+		Result++;
+	}
+	return Result;
+}
+
+void MemPool::GetUsedBlockObjectNames(std::vector<std::string> &Output)
+{
+	std::unordered_map<std::string, int> BlockMapCount;
+
+	for (const auto& Block : Blocks) {
+		if (!Block->Active) {
+			continue;
+		}
+
+		auto Entry = BlockMapCount.find(Block->GetIndenifier());
+		if (Entry == BlockMapCount.end()) {
+			BlockMapCount[Block->GetIndenifier()] = 1;
+			continue;
+		}
+
+		Entry->second++;
+	}
+
+	for (const auto& Entry : BlockMapCount) {
+		Output.emplace_back(fmt::format("{0}: {1}", Entry.first, Entry.second));
+	}
 }

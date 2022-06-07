@@ -2,7 +2,7 @@
 # Tests for memory leaks.
 
 object MemoryTest
-    var max_iterations = 10000
+    var max_iterations = 1
 end
 
 var value = 0;

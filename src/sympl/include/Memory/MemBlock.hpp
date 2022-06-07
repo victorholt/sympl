@@ -8,6 +8,10 @@ SymplNamespaceStart
 
 class MemBlock
 {
+protected:
+	// Identifier used for debugging.
+	char Identifier[256];
+
 public:
 	// Memory block index.
 	size_t BlockIndex = 0;
@@ -35,6 +39,15 @@ public:
 
 	// Frees the memory.
 	void Free();
+
+	// Sets the identifier.
+	void SetIdentifier(CStrPtr pIdentifier);
+
+	/**
+	 * Returns the identifier.
+	 * @return
+	 */
+	inline const char* GetIndenifier() const { return Identifier; }
 };
 
 SymplNamespaceEnd

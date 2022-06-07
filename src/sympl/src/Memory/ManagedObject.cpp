@@ -19,7 +19,12 @@ void ManagedObject::__Construct(int argc, va_list ArgList)
 
 int ManagedObject::Release()
 {
-    auto Result = ObjectRef::Release();
+	if (Block && Block->Static) {
+		return 1;
+	}
+
+	auto Result = ObjectRef::Release();
+	assert(Result >= 0);
 
 	if (Result == 0 && Block && Block->BlockIndex > 0)
 	{

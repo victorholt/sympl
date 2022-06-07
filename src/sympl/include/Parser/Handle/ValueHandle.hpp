@@ -195,4 +195,8 @@ public:
     virtual CStrPtr ToString();
 };
 
+//SharedPtr<NullHandle> ValueHandle::NullValue;
+//SharedPtr<IntHandle> ValueHandle::TrueValue;
+//SharedPtr<IntHandle> ValueHandle::FalseValue;
+
 SymplNamespaceEnd

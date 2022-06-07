@@ -33,7 +33,7 @@ public:
      * Allocates a certain number of new blocks.
      * @param NumBlocks
      */
-    void AllocBlock(int NumBlocks);
+    void AllocBlocks(int NumBlocks);
 
 	/**
 	 * Creates a new block of a given size.
@@ -47,6 +47,11 @@ public:
 	 * @param pBlock
 	 */
 	void FreeBlock(class MemBlock* pBlock);
+
+	/**
+	 * Frees all blocks.
+	 */
+	void FreeAllBlocks();
 
 	/**
 	 * Free all blocks in the pool.
@@ -64,6 +69,26 @@ public:
 	 * @return
 	 */
 	bool IsMaxMemUsage() const;
+
+	/**
+	 * Returns the current memory usage.
+	 * @return
+	 */
+	size_t GetMemUsage() const;
+	/**
+	 * Returns the number of used blocks.
+	 * @return
+	 */
+	size_t GetUsedBlocks() const;
+	/**
+	 * Returns the number of unused blocks.
+	 * @return
+	 */
+	size_t GetUnusedBlocks() const;
+	/**
+	 * Returns the object names that are being used.
+	 */
+	void GetUsedBlockObjectNames(std::vector<std::string>& Output);
 
 	/**
 	 * Returns the instance for the pool.

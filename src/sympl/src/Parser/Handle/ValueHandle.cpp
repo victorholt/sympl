@@ -12,9 +12,9 @@
 #include <sympl/include/Parser/Error/RuntimeError.hpp>
 SymplNamespace
 
-SharedPtr<class NullHandle> ValueHandle::NullValue;
-SharedPtr<class IntHandle> ValueHandle::TrueValue;
-SharedPtr<class IntHandle> ValueHandle::FalseValue;
+SharedPtr<NullHandle> ValueHandle::NullValue;
+SharedPtr<IntHandle> ValueHandle::TrueValue;
+SharedPtr<IntHandle> ValueHandle::FalseValue;
 
 void ValueHandle::__Construct(int argc, va_list Args)
 {
@@ -130,6 +130,8 @@ SharedPtr<ValueHandle> ValueHandle::GetIllegalOperationException(SharedPtr<Value
 
 SharedPtr<ValueHandle> ValueHandle::Null(ParserContext* Context)
 {
+//	static SharedPtr<NullHandle> NullValue;
+//	SharedPtr<NullHandle> NullValue;
 	if (!NullValue.IsValid()) {
         NullValue = NullHandle::Alloc<NullHandle>();
         NullValue->SetPosition(
@@ -137,13 +139,19 @@ SharedPtr<ValueHandle> ValueHandle::Null(ParserContext* Context)
             LexerPosition::Alloc<LexerPosition>()
         );
         NullValue->Context = Context;
+		NullValue->Value.IntNum = 0;
+		NullValue->Value.FloatNum = 0;
+		NullValue->Value.String = StringBuffer::Alloc<StringBuffer>();
         NullValue->Immutable = true;
+		NullValue->Block->Static = true;
 	}
 	return NullValue.Ptr();
 }
 
 SharedPtr<ValueHandle> ValueHandle::True(ParserContext* Context)
 {
+//	static SharedPtr<IntHandle> TrueValue;
+//	SharedPtr<IntHandle> TrueValue;
 	if (!TrueValue.IsValid()) {
 		TrueValue = IntHandle::Alloc<IntHandle>();
         TrueValue->SetPosition(
@@ -151,14 +159,19 @@ SharedPtr<ValueHandle> ValueHandle::True(ParserContext* Context)
             LexerPosition::Alloc<LexerPosition>()
         );
 		TrueValue->Context = Context;
-		TrueValue->SetValue(1);
+		TrueValue->Value.IntNum = 1;
+		TrueValue->Value.FloatNum = 1;
+		TrueValue->Value.String = StringBuffer::Alloc<StringBuffer>();
         TrueValue->Immutable = true;
+		TrueValue->Block->Static = true;
 	}
 	return TrueValue.Ptr();
 }
 
 SharedPtr<ValueHandle> ValueHandle::False(ParserContext* Context)
 {
+//	static SharedPtr<IntHandle> FalseValue;
+//	SharedPtr<IntHandle> FalseValue;
 	if (!FalseValue.IsValid()) {
 		FalseValue = IntHandle::Alloc<IntHandle>();
         FalseValue->SetPosition(
@@ -166,8 +179,11 @@ SharedPtr<ValueHandle> ValueHandle::False(ParserContext* Context)
             LexerPosition::Alloc<LexerPosition>()
         );
 		FalseValue->Context = Context;
-		FalseValue->SetValue(0);
+		FalseValue->Value.IntNum = 1;
+		FalseValue->Value.FloatNum = 1;
+		FalseValue->Value.String = StringBuffer::Alloc<StringBuffer>();
         FalseValue->Immutable = true;
+		FalseValue->Block->Static = true;
 	}
 	return FalseValue.Ptr();
 }

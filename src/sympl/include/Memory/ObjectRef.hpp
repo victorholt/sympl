@@ -4,6 +4,7 @@
 #pragma once
 #include <sympl/SymplPCH.hpp>
 #include "ObjectRefInfo.hpp"
+#include <sympl/include/Memory/MemBlock.hpp>
 
 SymplNamespaceStart
 
@@ -11,10 +12,10 @@ class SYMPL_API ObjectRef
 {
 public:
 	// Reference count.
-	size_t RefCount = 0;
+	long long RefCount = 0;
 
     // Reference to the memory block.
-    class MemBlock* Block;
+    MemBlock* Block = nullptr;
 
     /**
      * Destructor.
@@ -26,6 +27,10 @@ public:
 	 */
 	void AddRef()
 	{
+		if (Block && Block->Static) {
+			RefCount = 1;
+		}
+
 		// Increment the reference count
         RefCount++;
 	}
@@ -36,6 +41,10 @@ public:
 	 */
 	virtual int Release()
 	{
+		if (Block && Block->Static) {
+			return 1;
+		}
+
 		// Decrement the reference count and
 		// return the reference count.
 		return --RefCount;

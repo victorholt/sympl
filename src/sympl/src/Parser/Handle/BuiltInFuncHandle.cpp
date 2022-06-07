@@ -431,19 +431,23 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRun(SharedPtr<ParserContex
     // Close the stream.
     inputStream.close();
 
-    auto VM = SymplVM::Alloc<SymplVM>();
-    auto ReturnTuple = VM->RunScript(FileNameValue->Value.String->CStr(), str.c_str());
-    auto ReturnError = std::get<1>(ReturnTuple);
+	{
+		auto VM = SymplVM::Alloc<SymplVM>();
+		auto ReturnTuple = VM->RunScript(FileNameValue->Value.String->CStr(), str.c_str());
+		auto ReturnError = std::get<1>(ReturnTuple);
 
-    if (ReturnError.IsValid()) {
-        return InvalidMethodArgument(
-                pExecContext,
-                FileNameValue->ToString(),
-                fmt::format("Failed execute script {0}.\n{1}", FileNameValue->ToString(), ReturnError->ToString()).c_str()
-        );
-    }
+		if (ReturnError.IsValid()) {
+			return InvalidMethodArgument(
+					pExecContext,
+					FileNameValue->ToString(),
+					fmt::format("Failed execute script {0}.\n{1}", FileNameValue->ToString(),
+								ReturnError->ToString()).c_str()
+			);
+		}
 
-    Result->Success(ValueHandle::Null());
+		Result->Success(ValueHandle::Null());
+	}
+
     return Result;
 }
 

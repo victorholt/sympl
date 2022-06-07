@@ -3,6 +3,7 @@
 //
 #pragma once
 #include <sympl/SymplPCH.hpp>
+#include <sympl/include/Memory/MemPool.hpp>
 #include "ObjectRef.hpp"
 
 SymplNamespaceStart
@@ -105,6 +106,7 @@ SharedPtr<T>::SharedPtr(const SharedPtr<T> &CopySharedPtr)
 template<typename T>
 SharedPtr<T>::~SharedPtr()
 {
+	assert(!PtrData || PtrData->RefCount > 0);
 	if (PtrData && PtrData->Release() == 0)
 	{
 		MemPool::Instance()->FreeBlock(PtrData->Block);
@@ -150,7 +152,7 @@ SharedPtr<T> &SharedPtr<T>::operator=(const SharedPtr<T> &Ptr)
     }
 
 	// Check if we need to delete the data.
-	if(PtrData && PtrData->Release() == 0)
+	if(PtrData && PtrData->Block && !PtrData->Block->Static && PtrData->Release() == 0)
 	{
 		MemPool::Instance()->FreeBlock(PtrData->Block);
 	}

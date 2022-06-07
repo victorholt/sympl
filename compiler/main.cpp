@@ -5,26 +5,41 @@ SymplNamespace
 
 int main()
 {
-    auto vm = SymplVM::Alloc<SymplVM>();
+	while (true) {
+		cout << "Mem Usage: " << MemPool::Instance()->GetMemUsage() << endl;
+		cout << "Num Used Blocks: " << MemPool::Instance()->GetUsedBlocks() << endl;
+		cout << "Num Unused Blocks: " << MemPool::Instance()->GetUnusedBlocks() << endl;
 
-    while (true) {
         std::string code;
         std::cout << "sympl> ";
         std::getline(cin, code);
 
-        auto CodeBuffer = StringBuffer::Alloc<StringBuffer>();
-        CodeBuffer->Set(code.c_str());
-        CodeBuffer->Trim();
+		auto CodeBuffer = StringBuffer::Alloc<StringBuffer>();
+		CodeBuffer->Set(code.c_str());
+		CodeBuffer->Trim();
 
-        if (CodeBuffer->Equals("exit"))
-        {
-            break;
-        }
-        if (CodeBuffer->Empty())
-        {
-            continue;
-        }
+		if (CodeBuffer->Equals("exit")) {
+			break;
+		}
+		if (CodeBuffer->Equals("blocks")) {
+			std::vector<std::string> BlockNames;
+			MemPool::Instance()->GetUsedBlockObjectNames(BlockNames);
 
+			for (const auto& Name : BlockNames) {
+				cout << Name << endl;
+			}
+
+			continue;
+		}
+		if (CodeBuffer->Equals("clrmem")) {
+			MemPool::Instance()->FreeAllBlocks();
+			continue;
+		}
+		if (CodeBuffer->Empty()) {
+			continue;
+		}
+
+		auto vm = SymplVM::Alloc<SymplVM>();
         auto ret = vm->RunScript("<stdin>", CodeBuffer->CStr());
         auto value = std::get<0>(ret);
         auto error = std::get<1>(ret);
