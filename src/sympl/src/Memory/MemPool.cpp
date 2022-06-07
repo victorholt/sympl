@@ -6,6 +6,18 @@
 #include <sympl/include/Memory/ManagedObject.hpp>
 SymplNamespace
 
+MemPool::MemPool()
+{
+    AllocBlock(2000);
+}
+
+void MemPool::AllocBlock(int NumBlocks)
+{
+    for (int i = 0; i < NumBlocks; ++i) {
+        CreateBlock(DefaultBlockSize);
+    }
+}
+
 MemBlock* MemPool::CreateBlock(size_t BlockSize)
 {
 	MemBlock* Block = FindValidInactiveBlock(BlockSize);
@@ -14,24 +26,28 @@ MemBlock* MemPool::CreateBlock(size_t BlockSize)
 		Block = new MemBlock();
 		Block->Create(BlockSize);
 
-		Blocks.emplace_back(Block);
-		Block->BlockIndex = Blocks.size();
+        Block->BlockIndex = Blocks.size();
+        Blocks.emplace_back(Block);
 	}
 
 	return Block;
 }
 
-void MemPool::FreeBlock(size_t Index)
+void MemPool::FreeBlock(MemBlock* pBlock)
 {
-	if (Index <= 0 || Index >= Blocks.size()) {
+    if (!pBlock) {
+        return;
+    }
+
+	if (pBlock->BlockIndex <= 0 || pBlock->BlockIndex >= Blocks.size()) {
 		return;
 	}
 
-	MemBlock* Block = Blocks[Block->BlockIndex];
+    MemBlock* Block = Blocks[pBlock->BlockIndex];
 	Block->Active = false;
 
-	auto Object = reinterpret_cast<ManagedObject*>(Block->Bytes);
-	Object->Release();
+//	auto Object = reinterpret_cast<ManagedObject*>(Block->Bytes);
+//	Object->Release();
 }
 
 void MemPool::Clear()

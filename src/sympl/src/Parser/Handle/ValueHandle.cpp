@@ -12,7 +12,11 @@
 #include <sympl/include/Parser/Error/RuntimeError.hpp>
 SymplNamespace
 
-ValueHandle::ValueHandle()
+SharedPtr<class NullHandle> ValueHandle::NullValue;
+SharedPtr<class IntHandle> ValueHandle::TrueValue;
+SharedPtr<class IntHandle> ValueHandle::FalseValue;
+
+void ValueHandle::__Construct(int argc, va_list Args)
 {
     Type = ValueType::Null;
     SetPosition(LexerPosition::Alloc<LexerPosition>(), LexerPosition::Alloc<LexerPosition>());
@@ -126,37 +130,46 @@ SharedPtr<ValueHandle> ValueHandle::GetIllegalOperationException(SharedPtr<Value
 
 SharedPtr<ValueHandle> ValueHandle::Null(ParserContext* Context)
 {
-	static SharedPtr<NullHandle> Value;
-	if (!Value.IsValid()) {
-		Value = NullHandle::Alloc<NullHandle>();
-		Value->Context = Context;
-		Value->Immutable = true;
+	if (!NullValue.IsValid()) {
+        NullValue = NullHandle::Alloc<NullHandle>();
+        NullValue->SetPosition(
+            LexerPosition::Alloc<LexerPosition>(),
+            LexerPosition::Alloc<LexerPosition>()
+        );
+        NullValue->Context = Context;
+        NullValue->Immutable = true;
 	}
-	return Value.Ptr();
+	return NullValue.Ptr();
 }
 
 SharedPtr<ValueHandle> ValueHandle::True(ParserContext* Context)
 {
-	static SharedPtr<IntHandle> Value;
-	if (!Value.IsValid()) {
-		Value = IntHandle::Alloc<IntHandle>();
-		Value->Context = Context;
-		Value->SetValue(1);
-		Value->Immutable = true;
+	if (!TrueValue.IsValid()) {
+		TrueValue = IntHandle::Alloc<IntHandle>();
+        TrueValue->SetPosition(
+            LexerPosition::Alloc<LexerPosition>(),
+            LexerPosition::Alloc<LexerPosition>()
+        );
+		TrueValue->Context = Context;
+		TrueValue->SetValue(1);
+        TrueValue->Immutable = true;
 	}
-	return Value.Ptr();
+	return TrueValue.Ptr();
 }
 
 SharedPtr<ValueHandle> ValueHandle::False(ParserContext* Context)
 {
-	static SharedPtr<IntHandle> Value;
-	if (!Value.IsValid()) {
-		Value = IntHandle::Alloc<IntHandle>();
-		Value->Context = Context;
-		Value->SetValue(0);
-		Value->Immutable = true;
+	if (!FalseValue.IsValid()) {
+		FalseValue = IntHandle::Alloc<IntHandle>();
+        FalseValue->SetPosition(
+            LexerPosition::Alloc<LexerPosition>(),
+            LexerPosition::Alloc<LexerPosition>()
+        );
+		FalseValue->Context = Context;
+		FalseValue->SetValue(0);
+        FalseValue->Immutable = true;
 	}
-	return Value.Ptr();
+	return FalseValue.Ptr();
 }
 
 CStrPtr ValueHandle::ToString()

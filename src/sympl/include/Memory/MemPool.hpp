@@ -10,7 +10,7 @@ class MemPool
 {
 private:
 	// Default size of a block.
-	size_t DefaultBlockSize = 512;
+	size_t DefaultBlockSize = 1024;
 
 	// Current blocks in use.
 	std::vector<class MemBlock*> Blocks;
@@ -18,7 +18,7 @@ private:
 	/**
 	 * Constructor.
 	 */
-	MemPool() = default;
+	MemPool();
 
 	/**
 	 * Attempts to find a valid inactive block.
@@ -29,6 +29,12 @@ private:
 
 public:
 
+    /**
+     * Allocates a certain number of new blocks.
+     * @param NumBlocks
+     */
+    void AllocBlock(int NumBlocks);
+
 	/**
 	 * Creates a new block of a given size.
 	 * @param BlockSize
@@ -38,9 +44,9 @@ public:
 
 	/**
 	 * Frees a block from at a given index.
-	 * @param Index
+	 * @param pBlock
 	 */
-	void FreeBlock(size_t Index);
+	void FreeBlock(class MemBlock* pBlock);
 
 	/**
 	 * Free all blocks in the pool.

@@ -18,6 +18,9 @@ public:
 	// Max size of the block.
 	bool Active;
 
+	// Check if this block can be changed.
+	bool Static;
+
 	// Memory of the block.
 	StrPtr Bytes;
 

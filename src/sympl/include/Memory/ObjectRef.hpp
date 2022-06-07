@@ -13,6 +13,9 @@ public:
 	// Reference count.
 	size_t RefCount = 0;
 
+    // Reference to the memory block.
+    class MemBlock* Block;
+
     /**
      * Destructor.
      */

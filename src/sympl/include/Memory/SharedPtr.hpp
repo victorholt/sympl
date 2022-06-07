@@ -107,7 +107,7 @@ SharedPtr<T>::~SharedPtr()
 {
 	if (PtrData && PtrData->Release() == 0)
 	{
-		delete PtrData;
+		MemPool::Instance()->FreeBlock(PtrData->Block);
         PtrData = nullptr;
 	}
 }
@@ -152,7 +152,7 @@ SharedPtr<T> &SharedPtr<T>::operator=(const SharedPtr<T> &Ptr)
 	// Check if we need to delete the data.
 	if(PtrData && PtrData->Release() == 0)
 	{
-		delete PtrData;
+		MemPool::Instance()->FreeBlock(PtrData->Block);
 	}
 
 	// Copy over our data.
@@ -171,7 +171,7 @@ SharedPtr<T> &SharedPtr<T>::operator=(T* Ptr)
     // Check if we need to delete the data.
     if(PtrData && PtrData != Ptr && PtrData->Release() == 0)
     {
-        delete PtrData;
+        MemPool::Instance()->FreeBlock(PtrData->Block);
         PtrData = nullptr;
     }
 

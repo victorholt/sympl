@@ -46,6 +46,10 @@ public:
 	// Check if we can assign a new value.
 	bool Immutable = false;
 
+    static SharedPtr<class NullHandle> NullValue;
+    static SharedPtr<class IntHandle> TrueValue;
+    static SharedPtr<class IntHandle> FalseValue;
+
 protected:
 	// String representation of the value.
 	SharedPtr<StringBuffer> StringRep;
@@ -59,7 +63,7 @@ public:
     /**
      * Constructor.
      */
-    ValueHandle();
+    void __Construct(int argc, va_list Args) override;
 
     /**
      * Sets the position of the number handle.

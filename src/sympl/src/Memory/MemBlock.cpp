@@ -9,6 +9,7 @@ MemBlock::MemBlock()
 	Bytes = nullptr;
 	BlockIndex = -1;
 	Active = false;
+    Static = false;
 }
 
 void MemBlock::Create(size_t Size)
@@ -16,7 +17,7 @@ void MemBlock::Create(size_t Size)
 	// Delete any previous bytes.
 	delete [] Bytes;
 
-	Bytes = static_cast<StrPtr>(malloc(Size));
+	Bytes = static_cast<StrPtr>(calloc(1, Size + 1));
 	BlockSize = Size;
 	Active = true;
 

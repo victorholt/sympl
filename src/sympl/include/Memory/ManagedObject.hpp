@@ -13,8 +13,6 @@ SymplNamespaceStart
 class SYMPL_API ManagedObject : public ObjectRef
 {
 private:
-	// Reference to the memory block.
-	MemBlock* Block;
     // Size of the object.
     size_t ObjectSize = 0;
 
@@ -97,9 +95,15 @@ public:
     template<class T>
     static SharedPtr<T> Alloc(int argc = 0, ...)
     {
+        size_t ObjectSize = sizeof(T);
+//        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+//        ManagedObject* NewObject = new(Block->Bytes) T();
+//        NewObject->Block = Block;
+//        NewObject->ObjectSize = ObjectSize;
+
         char* Bytes = static_cast<char*>(malloc(sizeof(T)));
         ManagedObject* NewObject = new(Bytes) T();
-        NewObject->ObjectSize = sizeof(T);
+        NewObject->ObjectSize = ObjectSize;
         NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
         if (argc > 0) {
@@ -123,6 +127,12 @@ public:
     template<class T, class R>
     static SharedPtr<R> Alloc(int argc = 0, ...)
     {
+        size_t ObjectSize = sizeof(T);
+//        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+//        ManagedObject* NewObject = new(Block->Bytes) T();
+//        NewObject->Block = Block;
+//        NewObject->ObjectSize = ObjectSize;
+
         char* Bytes = static_cast<char*>(malloc(sizeof(T)));
         ManagedObject* NewObject = new(Bytes) T();
         NewObject->ObjectSize = sizeof(T);

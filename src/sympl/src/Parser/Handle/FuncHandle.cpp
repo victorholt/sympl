@@ -13,6 +13,8 @@ SymplNamespace
 
 void FuncHandle::__Construct(int argc, va_list ArgList)
 {
+    ValueHandle::__Construct(argc, ArgList);
+
     SharedPtr<ParserNode> pBodyNode;
     Create("<anonymous>", pBodyNode, {});
 }

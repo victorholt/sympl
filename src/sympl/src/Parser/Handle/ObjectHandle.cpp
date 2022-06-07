@@ -13,6 +13,8 @@ SymplNamespace
 
 void ObjectHandle::__Construct(int argc, va_list ArgList)
 {
+    ValueHandle::__Construct(argc, ArgList);
+
     CStrPtr pObjectName = va_arg(ArgList, CStrPtr);
     SharedPtr<ParserNode> pBodyNode = va_arg(ArgList, ParserNode*);
     Create(pObjectName, pBodyNode);

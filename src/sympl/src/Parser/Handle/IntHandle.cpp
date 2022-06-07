@@ -7,8 +7,10 @@
 #include <fmt/format.h>
 SymplNamespace
 
-IntHandle::IntHandle()
+void IntHandle::__Construct(int argc, va_list Args)
 {
+    ValueHandle::__Construct(argc, Args);
+
     Type = ValueType::Int;
     SetPosition(nullptr, nullptr);
 }

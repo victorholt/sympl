@@ -23,7 +23,7 @@ int ManagedObject::Release()
 
 	if (Result == 0 && Block && Block->BlockIndex > 0)
 	{
-		MemPool::Instance()->FreeBlock(Block->BlockIndex);
+		MemPool::Instance()->FreeBlock(Block);
         Block = nullptr;
 	}
 

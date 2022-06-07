@@ -7,6 +7,8 @@ SymplNamespace
 
 void CompareHandle::__Construct(int argc, va_list ArgList)
 {
+    ValueHandle::__Construct(argc, ArgList);
+
 	ValueType pType = ValueType::Int;
 	SharedPtr<ValueHandle> FromValue;
 

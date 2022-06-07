@@ -9,6 +9,8 @@ SymplNamespace
 
 void StringHandle::__Construct(int argc, va_list ArgList)
 {
+    ValueHandle::__Construct(argc, ArgList);
+
     CStrPtr pValue = va_arg(ArgList, CStrPtr);
     Create(pValue);
 }

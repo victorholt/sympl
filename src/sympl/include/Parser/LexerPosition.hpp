@@ -13,13 +13,13 @@ class SYMPL_API LexerPosition : public ManagedObject
 
 private:
     // Index of the position.
-    size_t Index;
+    size_t Index = 0;
 
     // Line number of the position.
-    size_t LineNumber;
+    size_t LineNumber = 0;
 
-    // Line colume of the position.
-    int64_t LineCol;
+    // Line column of the position.
+    int64_t LineCol = 0;
 
     // Name of the file we're in.
     std::string FileName;
