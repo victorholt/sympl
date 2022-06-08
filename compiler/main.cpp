@@ -3,9 +3,28 @@
 using namespace std;
 SymplNamespace
 
+void rec(SharedPtr<StringBuffer> str, int i)
+{
+    if (i == 10) {
+        return;
+    }
+
+    str = StringBuffer::Alloc<StringBuffer>();
+    str->Set(fmt::format("value = {0}", i).c_str());
+
+    i++;
+    rec(str, i);
+}
+
 int main()
 {
-	while (true) {
+    while (true) {
+        {
+            auto str = StringBuffer::Alloc<StringBuffer>();
+            str->Set("whatup");
+            rec(str, 0);
+        }
+
 		cout << "Mem Usage: " << MemPool::Instance()->GetMemUsage() << endl;
 		cout << "Num Used Blocks: " << MemPool::Instance()->GetUsedBlocks() << endl;
 		cout << "Num Unused Blocks: " << MemPool::Instance()->GetUnusedBlocks() << endl;
