@@ -25,8 +25,8 @@ void ParserWhileNode::Create(
 	ConditionNode = pCondition;
 	BodyNode = pBody;
 
-	StartPosition = ConditionNode->StartPosition;
-	EndPosition = BodyNode->EndPosition;
+	StartPosition = ConditionNode->GetStartPosition();
+	EndPosition = BodyNode->GetEndPosition();
 }
 
 CStrPtr ParserWhileNode::ToString()

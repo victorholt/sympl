@@ -151,7 +151,7 @@ void BuiltInFuncHandle::Create(CStrPtr pFuncName)
 SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::Exec(const std::vector<SharedPtr<ValueHandle>>& pArgValueList)
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-	auto ExecContext = GenerateNewContext(Name->CStr(), Context);
+	auto ExecContext = GenerateNewContext(Name->CStr(), Context.Ptr());
 
 	CStrPtr MethodName = Name->CStr();
 	if (MethodMap.find(MethodName) == MethodMap.end() || MethodArgMap.find(MethodName) == MethodArgMap.end())
@@ -441,12 +441,14 @@ SharedPtr<ParserRuntimeResult> BuiltInFuncHandle::ExecRun(SharedPtr<ParserContex
 
 	{
 		auto VM = SymplVM::Alloc<SymplVM>();
-		auto ReturnTuple = VM->RunScript(FileNameValue->Value.String->CStr(), str.c_str());
-		auto ReturnError = std::get<1>(ReturnTuple);
+        VM->IsChildVM = true;
+
+        auto ReturnTuple = VM->RunScript(FileNameValue->Value.String->CStr(), str.c_str());
+        auto ReturnError = std::get<1>(ReturnTuple);
 
 		if (ReturnError.IsValid()) {
 			return InvalidMethodArgument(
-					pExecContext,
+					VM->GetContext(),
 					FileNameValue->ToString(),
 					fmt::format("Failed execute script {0}.\n{1}", FileNameValue->ToString(),
 								ReturnError->ToString()).c_str()

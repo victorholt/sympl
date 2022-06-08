@@ -12,12 +12,13 @@ class SYMPL_API ParserBinaryOpNode : public ParserNode
 {
 	SYMPL_OBJECT(ParserBinaryOpNode, ParserNode)
 
-public:
+protected:
     // Reference to the left node.
     SharedPtr<ParserNode> LeftNode;
     // Reference to the right node.
     SharedPtr<ParserNode> RightNode;
 
+public:
     /**
      * Overrides the construct.
      * @param argc
@@ -32,6 +33,18 @@ public:
      * @param pRightNode
      */
     void Create(const SharedPtr<ParserNode>& pLeftNode, SharedPtr<class Token> pNodeToken, const SharedPtr<ParserNode>& pRightNode);
+
+    /**
+     * Returns the right node.
+     * @return
+     */
+    SharedPtr<ParserNode> GetLeftNode() const;
+
+    /**
+     * Returns the left node.
+     * @return
+     */
+    SharedPtr<ParserNode> GetRightNode() const;
 
     /**
      * Returns the string representation of the node.

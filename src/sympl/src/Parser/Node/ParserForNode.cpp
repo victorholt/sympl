@@ -32,7 +32,7 @@ void ParserForNode::Create(
 	BodyNode = pBody;
 
 	StartPosition = NodeToken->GetStartPosition();
-	EndPosition = BodyNode->EndPosition;
+	EndPosition = BodyNode->GetEndPosition();
 }
 
 CStrPtr ParserForNode::ToString()

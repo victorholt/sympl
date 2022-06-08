@@ -24,12 +24,40 @@ void ParserNode::__Destruct()
 void ParserNode::Create(ParseNodeType pType, const SharedPtr<Token>& pNodeToken)
 {
     Type = pType;
-    NodeToken = pNodeToken;
+    NodeToken = pNodeToken->Copy();
 
     if (NodeToken.IsValid()) {
         StartPosition = NodeToken->GetStartPosition();
         EndPosition = NodeToken->GetEndPosition();
     }
+}
+
+SharedPtr<Token> ParserNode::GetNodeToken() const
+{
+    return NodeToken->Copy();
+}
+
+void ParserNode::SetNodeToken(const SharedPtr<Token>& pNodeToken)
+{
+    NodeToken = pNodeToken;
+}
+
+SharedPtr<LexerPosition> ParserNode::GetStartPosition() const
+{
+    return StartPosition->Copy();
+}
+
+SharedPtr<LexerPosition> ParserNode::GetEndPosition() const
+{
+    return EndPosition->Copy();
+}
+
+void
+ParserNode::SetPosition(const SharedPtr<LexerPosition>& pStartPosition,
+                        const SharedPtr<LexerPosition>& pEndPosition)
+{
+    StartPosition = pStartPosition;
+    EndPosition = pEndPosition;
 }
 
 CStrPtr ParserNode::ToString()

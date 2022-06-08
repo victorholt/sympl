@@ -10,6 +10,7 @@
 #include <sympl/include/Parser/ParserRuntimeResult.hpp>
 #include <sympl/include/Parser/SymbolTable.hpp>
 #include <sympl/include/Parser/Error/RuntimeError.hpp>
+#include <sympl/include/Parser/ParserContext.hpp>
 SymplNamespace
 
 SharedPtr<NullHandle> ValueHandle::NullValue;
@@ -71,7 +72,7 @@ SharedPtr<ParserContext> ValueHandle::GenerateNewContext(
     const SharedPtr<ParserContext>& pParentContext
 ) const
 {
-    auto ParentContext = pParentContext.IsValid() ? pParentContext : Context;
+    SharedPtr<ParserContext> ParentContext = pParentContext.IsValid() ? pParentContext : Context.Ptr();
 
     auto NewContext = ParserContext::Alloc<ParserContext>();
     NewContext->Create(ParentContext, StartPosition, ContextName);
@@ -119,7 +120,7 @@ SharedPtr<ParserRuntimeResult> ValueHandle::Exec(const std::vector<SharedPtr<Val
 {
 	auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
 	Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
-		Context,
+		Context.Ptr(),
 		StartPosition,
 		EndPosition,
 		fmt::format("Illegal operation attempt on executing {0}", ToString()).c_str()
@@ -130,9 +131,9 @@ SharedPtr<ParserRuntimeResult> ValueHandle::Exec(const std::vector<SharedPtr<Val
 SharedPtr<ValueHandle> ValueHandle::GetIllegalOperationException(SharedPtr<ValueHandle> pValue)
 {
 	auto Exception = SharedPtr<RuntimeError>(new RuntimeError(
-		pValue->Context,
-		pValue->StartPosition,
-		pValue->EndPosition,
+		pValue->Context.Ptr(),
+		pValue->StartPosition->Copy(),
+		pValue->EndPosition->Copy(),
 		fmt::format("Illegal operation attempt on executing {0}", pValue->ToString()).c_str()
 	));
 	return ExceptionHandle::Alloc<ExceptionHandle>(1, Exception.Ptr()).Ptr();
@@ -140,6 +141,13 @@ SharedPtr<ValueHandle> ValueHandle::GetIllegalOperationException(SharedPtr<Value
 
 SharedPtr<ValueHandle> ValueHandle::Null(ParserContext* Context)
 {
+    auto Value = NullHandle::Alloc<NullHandle>();
+    Value->Context = Context;
+    Value->Value.IntNum = 1;
+    Value->Value.FloatNum = 1;
+    Value->Immutable = true;
+    return Value.Ptr();
+
 //	static SharedPtr<NullHandle> NullValue;
 //	SharedPtr<NullHandle> NullValue;
 	if (!NullValue.IsValid()) {
@@ -160,6 +168,13 @@ SharedPtr<ValueHandle> ValueHandle::Null(ParserContext* Context)
 
 SharedPtr<ValueHandle> ValueHandle::True(ParserContext* Context)
 {
+    auto Value = IntHandle::Alloc<IntHandle>();
+    Value->Context = Context;
+    Value->Value.IntNum = 1;
+    Value->Value.FloatNum = 1;
+    Value->Immutable = true;
+    return Value.Ptr();
+
 //	static SharedPtr<IntHandle> TrueValue;
 //	SharedPtr<IntHandle> TrueValue;
 	if (!TrueValue.IsValid()) {
@@ -180,6 +195,13 @@ SharedPtr<ValueHandle> ValueHandle::True(ParserContext* Context)
 
 SharedPtr<ValueHandle> ValueHandle::False(ParserContext* Context)
 {
+    auto Value = IntHandle::Alloc<IntHandle>();
+    Value->Context = Context;
+    Value->Value.IntNum = 0;
+    Value->Value.FloatNum = 0;
+    Value->Immutable = true;
+    return Value.Ptr();
+
 //	static SharedPtr<IntHandle> FalseValue;
 //	SharedPtr<IntHandle> FalseValue;
 	if (!FalseValue.IsValid()) {

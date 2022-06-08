@@ -178,7 +178,7 @@ SharedPtr<ParseResult> Parser::CallFuncFromAtom(SharedPtr<ParserNode> AtomNode)
 SharedPtr<ParseResult> Parser::Atom()
 {
     SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
-    SharedPtr<Token> FactorToken = CurrentToken;
+    SharedPtr<Token> FactorToken = CurrentToken->Copy();
 
     switch (FactorToken->GetType())
     {
@@ -340,7 +340,7 @@ SharedPtr<ParseResult> Parser::Atom()
 SharedPtr<ParseResult> Parser::Factor()
 {
 	SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
-	SharedPtr<Token> FactorToken = CurrentToken;
+	SharedPtr<Token> FactorToken = CurrentToken->Copy();
 
 	switch (FactorToken->GetType())
     {
@@ -396,7 +396,7 @@ SharedPtr<ParseResult> Parser::BinaryOperation(
 
     while ( VectorHas(OpKeys, CurrentToken->GetType()) || VectorHas(OpValues, CurrentToken->GetValue()) )
     {
-        Token* OpToken = CurrentToken.Ptr();
+        Token* OpToken = CurrentToken->Copy().Ptr();
         Result->RegisterAdvance();
         Advance();
 
@@ -1004,7 +1004,7 @@ SharedPtr<ParseResult> Parser::ForExpr()
 		return Result;
 	}
 
-	auto VarNameToken = CurrentToken;
+	auto VarNameToken = CurrentToken->Copy();
 	Result->RegisterAdvance();
 	Advance();
 
@@ -1265,7 +1265,7 @@ SharedPtr<ParseResult> Parser::ScopeAccessExpr(const SharedPtr<Token>& pParentSc
             2, ScopeAccessVarName.Ptr(), ExprNode.Ptr()
         );
 
-        ObjectRef::CastTo<ParserScopeAccessNode>(ScopeAccessNode.Ptr())->AssignNode = AssignNode;
+        ObjectRef::CastTo<ParserScopeAccessNode>(ScopeAccessNode.Ptr())->SetAssignNode(AssignNode);
         Result->Success(ScopeAccessNode);
         return Result;
     }
@@ -1323,7 +1323,7 @@ SharedPtr<ParseResult> Parser::FuncDef()
     SharedPtr<Token> FuncNameToken;
     if (CurrentToken->GetType() == TokenType::Identifier)
     {
-        FuncNameToken = CurrentToken;
+        FuncNameToken = CurrentToken->Copy();
         Result->RegisterAdvance();
         Advance();
 
@@ -1356,7 +1356,7 @@ SharedPtr<ParseResult> Parser::FuncDef()
     std::vector<SharedPtr<Token>> ArgNameTokenList;
 
     if (CurrentToken->GetType() == TokenType::Identifier) {
-        ArgNameTokenList.emplace_back(CurrentToken);
+        ArgNameTokenList.emplace_back(CurrentToken->Copy());
         Result->RegisterAdvance();
         Advance();
 

@@ -4,6 +4,7 @@
 #include <sympl/include/Parser/Handle/FloatHandle.hpp>
 #include <sympl/include/Parser/LexerPosition.hpp>
 #include <sympl/include/Parser/Error/RuntimeError.hpp>
+#include <sympl/include/Parser/ParserContext.hpp>
 #include <fmt/format.h>
 SymplNamespace
 
@@ -45,7 +46,7 @@ SharedPtr<ValueHandle> FloatHandle::DivideBy(const SharedPtr<ValueHandle>& handl
 
     if (handle->Value.IntNum == 0) {
         NewNumber->Error = SharedPtr<RuntimeError>(new RuntimeError(
-                Context,
+                Context.Ptr(),
                 StartPosition,
                 EndPosition,
                 "Division by zero"

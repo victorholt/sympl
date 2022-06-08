@@ -15,10 +15,6 @@ protected:
     // Handles conversion of the node to a string.
     char TmpNodeString_Allocate[255];
 
-public:
-    // Type of node.
-    ParseNodeType Type;
-
     // Reference to the token associated with the node.
     SharedPtr<class Token> NodeToken;
 
@@ -27,6 +23,10 @@ public:
 
     // End position of the token.
     SharedPtr<class LexerPosition> EndPosition;
+
+public:
+    // Type of node.
+    ParseNodeType Type;
 
     // Check if we should return null.
     bool ShouldReturnNull = false;
@@ -51,6 +51,38 @@ public:
      * @param pNodeToken
      */
     void Create(ParseNodeType pType, const SharedPtr<class Token>& pNodeToken);
+
+    /**
+     * Returns the node token.
+     * @return
+     */
+    SharedPtr<class Token> GetNodeToken() const;
+
+    /**
+     * Sets the node token.
+     * @param pNodeToken
+     */
+    void SetNodeToken(const SharedPtr<class Token>& pNodeToken);
+
+    /**
+     * Returns the start position.
+     * @return
+     */
+    SharedPtr<class LexerPosition> GetStartPosition() const;
+
+    /**
+     * Returns the end position.
+     * @return
+     */
+    SharedPtr<class LexerPosition> GetEndPosition() const;
+
+    /**
+     * Sets the positions.
+     * @param pStartPosition
+     * @param pEndPosition
+     */
+    void SetPosition(const SharedPtr<class LexerPosition>& pStartPosition,
+                    const SharedPtr<class LexerPosition>& pEndPosition);
 
     /**
      * Returns the string representation of the node.

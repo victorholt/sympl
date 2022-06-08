@@ -19,7 +19,7 @@ void ParserUnaryOpNode::Create(const SharedPtr<Token>& pNodeToken, const SharedP
 
     Node = pNode;
     StartPosition = NodeToken->GetStartPosition();
-    EndPosition = Node->EndPosition;
+    EndPosition = Node->GetEndPosition();
 }
 
 CStrPtr ParserUnaryOpNode::ToString()

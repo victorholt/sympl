@@ -4,6 +4,7 @@
 #include <sympl/include/Parser/Interpreter.hpp>
 #include <sympl/include/Memory/MemPool.hpp>
 #include <sympl/include/Parser/Token.hpp>
+#include <sympl/include/Parser/LexerPosition.hpp>
 #include <sympl/include/Parser/SymbolTable.hpp>
 #include <sympl/include/Parser/ParserContext.hpp>
 #include <sympl/include/Parser/ParseResult.hpp>
@@ -124,7 +125,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     char* pNumEnd;
-    auto NodeToken = Node->NodeToken;
+    auto NodeToken = Node->GetNodeToken();
     SharedPtr<ValueHandle> ValueResult;
 
     if (NodeToken->GetType() == TokenType::Int)
@@ -132,16 +133,16 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode
         ValueResult = IntHandle::Alloc<IntHandle, ValueHandle>();
         ValueResult->Context = Context;
 
-        dynamic_cast<IntHandle*>(ValueResult.Ptr())->SetValue(static_cast<int>(std::strtol(Node->NodeToken->GetValue(), &pNumEnd, 10)));
+        dynamic_cast<IntHandle*>(ValueResult.Ptr())->SetValue(static_cast<int>(std::strtol(Node->GetNodeToken()->GetValue(), &pNumEnd, 10)));
     }
     else if (NodeToken->GetType() == TokenType::Float)
     {
         ValueResult = FloatHandle::Alloc<FloatHandle, ValueHandle>();
         ValueResult->Context = Context;
 
-        dynamic_cast<FloatHandle*>(ValueResult.Ptr())->SetValue(static_cast<float>(std::strtof(Node->NodeToken->GetValue(), &pNumEnd)));
+        dynamic_cast<FloatHandle*>(ValueResult.Ptr())->SetValue(static_cast<float>(std::strtof(Node->GetNodeToken()->GetValue(), &pNumEnd)));
     }
-    ValueResult->SetPosition(Node->StartPosition, Node->EndPosition);
+    ValueResult->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 
     Result->Success(ValueResult);
     return Result;
@@ -150,10 +151,10 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitNumberNode(SharedPtr<ParserNode
 SharedPtr<ParserRuntimeResult> Interpreter::VisitStringNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-    auto NewStr = StringHandle::Alloc<StringHandle>(1, Node->NodeToken->GetValue());
+    auto NewStr = StringHandle::Alloc<StringHandle>(1, Node->GetNodeToken()->GetValue());
 
     NewStr->Context = Context;
-    NewStr->SetPosition(Node->StartPosition, Node->EndPosition);
+    NewStr->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 
     Result->Success(NewStr.Ptr());
     return Result;
@@ -164,19 +165,19 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNo
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     auto OpNode = static_cast<ParserBinaryOpNode*>(Node.Ptr());
 
-    auto Left = Result->Register(Visit(OpNode->LeftNode, Context));
+    auto Left = Result->Register(Visit(OpNode->GetLeftNode(), Context));
     if (Result->ShouldReturn()) {
         return Result;
     }
 
-    auto Right = Result->Register(Visit(OpNode->RightNode, Context));
+    auto Right = Result->Register(Visit(OpNode->GetRightNode(), Context));
     if (Result->ShouldReturn()) {
         return Result;
     }
 
     SharedPtr<ValueHandle> ValueResult;
 
-    switch (Node->NodeToken->GetType())
+    switch (Node->GetNodeToken()->GetType())
     {
         case TokenType::Plus:
         {
@@ -261,7 +262,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitBinaryOpNode(SharedPtr<ParserNo
 		}
     }
 
-    ValueResult->SetPosition(Node->StartPosition, Node->EndPosition);
+    ValueResult->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
     if (ValueResult->Error.IsValid()) {
         Result->Failure(ValueResult->Error);
         return Result;
@@ -282,7 +283,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
         return Result;
     }
 
-    if (Node->NodeToken->GetType() == TokenType::Minus)
+    if (Node->GetNodeToken()->GetType() == TokenType::Minus)
     {
         auto Number = SharedPtr<NumberHandle>(dynamic_cast<NumberHandle*>(ValueResult.Ptr()));
         auto NegOneNumber = IntHandle::Alloc<IntHandle, NumberHandle>();
@@ -290,7 +291,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitUnaryOpNode(SharedPtr<ParserNod
         ValueResult = Number->MultiplyBy(NegOneNumber.Ptr()).Ptr();
     }
 
-    ValueResult->SetPosition(Node->StartPosition, Node->EndPosition);
+    ValueResult->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
     if (ValueResult->Error.IsValid()) {
         Result->Failure(ValueResult->Error);
         return Result;
@@ -391,7 +392,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<ParserNode> N
 		StepHandle->SetValue(CurrentStepValue);
 
 		Context->VariableSymbolTable->Set(
-			Node->NodeToken->GetValue(),
+			Node->GetNodeToken()->GetValue(),
 			StepHandle.Ptr()
 		);
 
@@ -421,7 +422,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitForNode(SharedPtr<ParserNode> N
 	auto ResultList = ListHandle::Alloc<ListHandle>();
 	ResultList->Create(ResultElements);
 	ResultList->Context = Context;
-	ResultList->SetPosition(Node->StartPosition, Node->EndPosition);
+	ResultList->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 
 	Result->Success(ResultList.Ptr());
 	return Result;
@@ -467,7 +468,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitWhileNode(SharedPtr<ParserNode>
 	auto ResultList = ListHandle::Alloc<ListHandle>();
 	ResultList->Create(ResultElements);
 	ResultList->Context = Context;
-	ResultList->SetPosition(Node->StartPosition, Node->EndPosition);
+	ResultList->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 
 	Result->Success(ResultList.Ptr());
 	return Result;
@@ -490,7 +491,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitListNode(SharedPtr<Parser
 	auto NewList = ListHandle::Alloc<ListHandle>();
 	NewList->Create(Elements);
 	NewList->Context = Context;
-	NewList->SetPosition(Node->StartPosition, Node->EndPosition);
+	NewList->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 	Result->Success(NewList.Ptr());
 
 	return Result;
@@ -501,23 +502,23 @@ Interpreter::VisitScopeAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserCo
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     auto AccessNode = ObjectRef::CastTo<ParserScopeAccessNode>(Node.Ptr());
-    auto ParentVarName = AccessNode->ParentScopeToken->GetValue();
-    auto VarName = Node->NodeToken->GetValue();
+    auto ParentVarName = AccessNode->GetParentScopeToken()->GetValue();
+    auto VarName = Node->GetNodeToken()->GetValue();
 
     auto ParentValue = Context->VariableSymbolTable->Get(ParentVarName);
     if (!ParentValue.IsValid() || ParentValue->Type != ValueType::Object) {
         Result->Failure(new RuntimeError(
             Context,
-            Node->StartPosition,
-            Node->EndPosition,
+            Node->GetStartPosition(),
+            Node->GetEndPosition(),
             fmt::format("'{0}' must be an object", ParentVarName).c_str()
         ));
         return Result;
     }
 
     SharedPtr<ValueHandle> Value = ParentValue->Context->VariableSymbolTable->Get(VarName);
-    if (AccessNode->AssignNode.IsValid()) {
-        Value = Result->Register(Visit(AccessNode->AssignNode, ParentValue->Context));
+    if (AccessNode->GetAssignNode().IsValid()) {
+        Value = Result->Register(Visit(AccessNode->GetAssignNode(), ParentValue->Context.Ptr()));
     } else {
         Value = ParentValue->Context->VariableSymbolTable->Get(VarName);
     }
@@ -525,15 +526,15 @@ Interpreter::VisitScopeAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserCo
     if (!Value.IsValid()) {
         Result->Failure(new RuntimeError(
             Context,
-            Node->StartPosition,
-            Node->EndPosition,
+            Node->GetStartPosition(),
+            Node->GetEndPosition(),
             fmt::format("'{0}' is not defined", VarName).c_str()
         ));
         return Result;
     }
 
     auto NewValue = Value->Copy();
-    NewValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    NewValue->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
     NewValue->Context = ParentValue->Context;
 
     Result->Success(NewValue);
@@ -543,14 +544,14 @@ Interpreter::VisitScopeAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserCo
 SharedPtr<ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-    auto VarName = Node->NodeToken->GetValue();
+    auto VarName = Node->GetNodeToken()->GetValue();
     auto Value = Context->VariableSymbolTable->Get(VarName);
 
     if (!Value.IsValid()) {
         Result->Failure(new RuntimeError(
             Context,
-            Node->StartPosition,
-            Node->EndPosition,
+            Node->GetStartPosition(),
+            Node->GetEndPosition(),
             fmt::format("'{0}' is not defined", VarName).c_str()
         ));
         return Result;
@@ -560,7 +561,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserN
     if (!RetValue->Context.IsValid()) {
         RetValue->Context = Context;
     }
-    RetValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    RetValue->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 
     Result->Success(RetValue);
     return Result;
@@ -569,7 +570,7 @@ SharedPtr<ParserRuntimeResult> Interpreter::VisitVarAccessNode(SharedPtr<ParserN
 SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
-    auto VarName = Node->NodeToken->GetValue();
+    auto VarName = Node->GetNodeToken()->GetValue();
 
     auto AssignNode = SharedPtr<VarAssignNode>(dynamic_cast<VarAssignNode*>(Node.Ptr()));
     auto Value = Result->Register(Visit(AssignNode->Value, Context));
@@ -583,8 +584,8 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitVarAssignNode(SharedPtr<P
 	if (ContextValue.IsValid() && ContextValue->Immutable) {
 		Result->Failure(new RuntimeError(
 			Context,
-			Node->StartPosition,
-			Node->EndPosition,
+			Node->GetStartPosition(),
+			Node->GetEndPosition(),
 			fmt::format("'{0}' is not a mutable value", VarName).c_str()
 		));
 		return Result;
@@ -603,7 +604,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<Par
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ParserFuncDefNode> FuncDefNode = dynamic_cast<ParserFuncDefNode*>(Node.Ptr());
 
-    auto FuncName = FuncDefNode->NodeToken.IsValid() ? FuncDefNode->NodeToken->GetValue() : "";
+    auto FuncName = FuncDefNode->GetNodeToken().IsValid() ? FuncDefNode->GetNodeToken()->GetValue() : "";
     auto BodyNode = FuncDefNode->BodyNode;
 
     std::vector<std::string> ArgNameList;
@@ -615,10 +616,10 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitFuncDefNode(SharedPtr<Par
     auto NewFuncValue = FuncHandle::Alloc<FuncHandle>();
     NewFuncValue->Create(FuncName, BodyNode, ArgNameList);
     NewFuncValue->Context = Context;
-    NewFuncValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    NewFuncValue->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
     NewFuncValue->ShouldAutoReturn = Node->ShouldAutoReturn;
 
-    if (FuncDefNode->NodeToken.IsValid())
+    if (FuncDefNode->GetNodeToken().IsValid())
     {
         Context->VariableSymbolTable->Set(FuncName, NewFuncValue.Ptr());
     }
@@ -632,16 +633,16 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitObjectNode(SharedPtr<Pars
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ParserObjectNode> ObjectNode = ObjectRef::CastTo<ParserObjectNode>(Node.Ptr());
 
-    auto ObjectName = ObjectNode->NodeToken->GetValue();
+    auto ObjectName = ObjectNode->GetNodeToken()->GetValue();
     auto BodyNode = ObjectNode->BodyNode;
 
     auto NewObjectContext = ParserContext::Alloc<ParserContext>();
-    NewObjectContext->Create(Context, Node->StartPosition, ObjectName);
+    NewObjectContext->Create(Context, Node->GetStartPosition(), ObjectName);
     NewObjectContext->VariableSymbolTable = SymbolTable::Alloc<SymbolTable>(1, Context->VariableSymbolTable.Ptr());
 
     auto NewObjectValue = ObjectHandle::Alloc<ObjectHandle>(2, ObjectName, BodyNode.Ptr());
     NewObjectValue->Context = NewObjectContext;
-    NewObjectValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    NewObjectValue->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 
     Context->VariableSymbolTable->Set(ObjectName, NewObjectValue.Ptr());
 
@@ -651,7 +652,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitObjectNode(SharedPtr<Pars
         for (auto& Item: BodyListValues->ElementNodeList) {
             auto Value = Result->Register(Visit(Item, NewObjectContext));
             Value->Context = NewObjectContext;
-            NewObjectContext->VariableSymbolTable->Set(Item->NodeToken->GetValue(), Value);
+            NewObjectContext->VariableSymbolTable->Set(Item->GetNodeToken()->GetValue(), Value);
         }
     }
 
@@ -664,14 +665,14 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitNewObjectNode(SharedPtr<P
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     SharedPtr<ParserNewObjectNode> NewObjectNode = ObjectRef::CastTo<ParserNewObjectNode>(Node.Ptr());
 
-    auto ObjectToCopyName = NewObjectNode->NodeToken->GetValue();
+    auto ObjectToCopyName = NewObjectNode->GetNodeToken()->GetValue();
     auto CopyObject = Context->VariableSymbolTable->Get(ObjectToCopyName);
 
     if (CopyObject->Type != ValueType::Object) {
         Result->Failure(new RuntimeError(
             Context,
-            Node->StartPosition,
-            Node->EndPosition,
+            Node->GetStartPosition(),
+            Node->GetEndPosition(),
             fmt::format("'{0}' cannot be instantiated", CopyObject->ToString()).c_str()
         ));
         return Result;
@@ -682,7 +683,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitNewObjectNode(SharedPtr<P
     NewObjectValue->Context = CopyObject->GenerateNewContext(ContextObjectName.c_str(), Context);
 
     ObjectRef::CastTo<ObjectHandle>(NewObjectValue.Ptr())->IsInstancedObject = true;
-    NewObjectValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    NewObjectValue->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 
     // Copy over the body variables
     auto ObjectContext = NewObjectValue->Context;
@@ -692,8 +693,8 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitNewObjectNode(SharedPtr<P
     );
     if (BodyListValues.IsValid()) {
         for (auto& Item: BodyListValues->ElementNodeList) {
-            auto Value = Result->Register(Visit(Item, ObjectContext));
-            ObjectContext->VariableSymbolTable->Set(Item->NodeToken->GetValue(), Value);
+            auto Value = Result->Register(Visit(Item, ObjectContext.Ptr()));
+            ObjectContext->VariableSymbolTable->Set(Item->GetNodeToken()->GetValue(), Value);
         }
     }
 
@@ -706,6 +707,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitNewObjectNode(SharedPtr<P
 SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<ParserNode> Node, SharedPtr<ParserContext> Context)
 {
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
+
     SharedPtr<ParserCallNode> CallNode = dynamic_cast<ParserCallNode*>(Node.Ptr());
     std::vector<SharedPtr<ValueHandle>> ArgList;
 
@@ -716,7 +718,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<Parser
     }
 
     ValueToCall = ValueToCall->Copy();
-    ValueToCall->SetPosition(Node->StartPosition, Node->EndPosition);
+    ValueToCall->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
 
     if (!ValueToCall->Context.IsValid()) {
         ValueToCall->Context = Context;
@@ -736,7 +738,7 @@ SharedPtr<class ParserRuntimeResult> Interpreter::VisitCallNode(SharedPtr<Parser
     }
 
     ReturnValue = ReturnValue->Copy();
-    ReturnValue->SetPosition(Node->StartPosition, Node->EndPosition);
+    ReturnValue->SetPosition(Node->GetStartPosition(), Node->GetEndPosition());
     ReturnValue->Context = Context;
 
     Result->Success(ReturnValue);
@@ -780,8 +782,8 @@ SharedPtr<ParserRuntimeResult> Interpreter::NoVisit(SharedPtr<ParserNode> Node, 
     auto Result = ParserRuntimeResult::Alloc<ParserRuntimeResult>();
     Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
         Context,
-        Node->StartPosition,
-        Node->EndPosition,
+        Node->GetStartPosition(),
+        Node->GetEndPosition(),
         "Interpreter unable to execute code"
     )).Ptr();
 

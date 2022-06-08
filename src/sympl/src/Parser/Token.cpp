@@ -54,7 +54,7 @@ void Token::CopyFrom(SharedPtr<Token> CopyToken)
     Value = CopyToken->Value;
 }
 
-SharedPtr<Token> Token::Copy()
+SharedPtr<Token> Token::Copy() const
 {
     return Token::Alloc<Token>(4, Type, Value->CStr(), StartPosition.Ptr(), EndPosition.Ptr());
 }
@@ -65,6 +65,16 @@ CStrPtr Token::GetValue() const
         return "";
     }
     return Value->CStr();
+}
+
+SharedPtr<class LexerPosition> Token::GetStartPosition() const
+{
+    return StartPosition->Copy();
+}
+
+SharedPtr<class LexerPosition> Token::GetEndPosition() const
+{
+    return EndPosition->Copy();
 }
 
 CStrPtr Token::ToString()

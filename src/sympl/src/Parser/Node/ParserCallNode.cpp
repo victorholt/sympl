@@ -28,13 +28,13 @@ void ParserCallNode::Create(
     CallNode = pCallNode;
     ArgNodeList = pArgNodeList;
 
-    StartPosition = CallNode->StartPosition;
+    StartPosition = CallNode->GetStartPosition();
 
     if (!ArgNodeList.empty()) {
-        EndPosition = ArgNodeList[ArgNodeList.size() - 1]->EndPosition;
+        EndPosition = ArgNodeList[ArgNodeList.size() - 1]->GetEndPosition();
     }
     else {
-        EndPosition = CallNode->EndPosition;
+        EndPosition = CallNode->GetEndPosition();
     }
 }
 

@@ -18,6 +18,11 @@ public:
     void __Construct(int argc, va_list ArgList) override;
 
     /**
+     * Destructor.
+     */
+    void __Destruct() override;
+
+    /**
      * Returns a new number that adds another number.
      * @param handle
      * @return

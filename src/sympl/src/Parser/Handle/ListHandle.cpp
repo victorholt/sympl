@@ -7,6 +7,7 @@
 #include <sympl/include/Parser/Error/RuntimeError.hpp>
 #include <sympl/include/Parser/Node/ParserListNode.hpp>
 #include <sympl/include/Parser/Token.hpp>
+#include <sympl/include/Parser/ParserContext.hpp>
 SymplNamespace
 
 void ListHandle::__Construct(int argc, va_list ArgList)
@@ -39,7 +40,7 @@ SharedPtr<ValueHandle> ListHandle::SubtractBy(const SharedPtr<ValueHandle> &pHan
 
 	if (Index >= Result->Elements.size() || Index < 0) {
 		auto Error = SharedPtr<RuntimeError>(new RuntimeError(
-			Context,
+			Context.Ptr(),
 			StartPosition,
 			EndPosition,
 			fmt::format("Element at index '{0}' in <list> could not be removed. Index out of bounds.", Index).c_str()
@@ -76,7 +77,7 @@ SharedPtr<ValueHandle> ListHandle::DivideBy(const SharedPtr<ValueHandle> &pHandl
 	auto Index = pHandle->Value.IntNum;
 	if (Index >= Elements.size() || Index < 0) {
 		auto Error = SharedPtr<RuntimeError>(new RuntimeError(
-			Context,
+			Context.Ptr(),
 			StartPosition,
 			EndPosition,
 			fmt::format("Element at index '{0}' in <list> could not be retrieved. Index out of bounds.", Index).c_str()

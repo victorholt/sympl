@@ -27,10 +27,10 @@ void ParserFuncDefNode::Create(
         StartPosition = ArgNameTokenList[0]->GetStartPosition();
     }
     else {
-        StartPosition = BodyNode->StartPosition;
+        StartPosition = BodyNode->GetStartPosition();
     }
 
-    EndPosition = BodyNode->EndPosition;
+    EndPosition = BodyNode->GetEndPosition();
 }
 
 CStrPtr ParserFuncDefNode::ToString()

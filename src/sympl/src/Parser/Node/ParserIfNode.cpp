@@ -20,15 +20,15 @@ void ParserIfNode::Create(const SharedPtr<class Token>& pNodeToken, const IfCase
 
 	// Grab the start position from the cases.
 	if (!Cases.empty()) {
-		StartPosition = std::get<0>(Cases[0])->StartPosition;
+		StartPosition = std::get<0>(Cases[0])->GetStartPosition();
 	}
 
 	// Grab the end position.
     auto ElseCaseNode = std::get<0>(pElseCase);
 	if (ElseCaseNode.IsValid()) {
-		EndPosition = ElseCaseNode->EndPosition;
+		EndPosition = ElseCaseNode->GetEndPosition();
 	} else if (!Cases.empty()) {
-		EndPosition = std::get<0>(Cases[Cases.size() - 1])->EndPosition;
+		EndPosition = std::get<0>(Cases[Cases.size() - 1])->GetEndPosition();
 	}
 }
 

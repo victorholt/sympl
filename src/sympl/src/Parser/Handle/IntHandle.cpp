@@ -4,6 +4,7 @@
 #include <sympl/include/Parser/Handle/IntHandle.hpp>
 #include <sympl/include/Parser/LexerPosition.hpp>
 #include <sympl/include/Parser/Error/RuntimeError.hpp>
+#include <sympl/include/Parser/ParserContext.hpp>
 #include <fmt/format.h>
 SymplNamespace
 
@@ -13,6 +14,11 @@ void IntHandle::__Construct(int argc, va_list Args)
 
     Type = ValueType::Int;
     SetPosition(nullptr, nullptr);
+}
+
+void IntHandle::__Destruct()
+{
+    ValueHandle::__Destruct();
 }
 
 SharedPtr<ValueHandle> IntHandle::AddTo(const SharedPtr<ValueHandle>& handle)
@@ -45,7 +51,7 @@ SharedPtr<ValueHandle> IntHandle::DivideBy(const SharedPtr<ValueHandle>& handle)
 
     if (handle->Value.IntNum == 0) {
         NewNumber->Error = SharedPtr<RuntimeError>(new RuntimeError(
-            Context,
+            Context.Ptr(),
             StartPosition,
             EndPosition,
             "Division by zero"

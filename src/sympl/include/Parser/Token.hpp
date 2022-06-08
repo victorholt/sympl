@@ -63,7 +63,7 @@ public:
      * Creates a copy of the token.
      * @return
      */
-    SharedPtr<Token> Copy();
+    SharedPtr<Token> Copy() const;
 
 	/**
 	 * Prints a nice representation of the token.
@@ -94,13 +94,13 @@ public:
 	 * Returns the start position.
 	 * @return
 	 */
-	inline SharedPtr<LexerPosition> GetStartPosition() const { return StartPosition; }
+	SharedPtr<class LexerPosition> GetStartPosition() const;
 
 	/**
 	 * Returns the end position.
 	 * @return
 	 */
-	inline SharedPtr<LexerPosition> GetEndPosition() const { return EndPosition; }
+	SharedPtr<class LexerPosition> GetEndPosition() const;
 };
 
 SymplNamespaceEnd

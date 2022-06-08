@@ -6,6 +6,7 @@
 #include "MemBlock.hpp"
 #include "MemPool.hpp"
 #include "SharedPtr.hpp"
+#include "WeakPtr.hpp"
 #include "ObjectRef.hpp"
 
 SymplNamespaceStart

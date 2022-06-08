@@ -5,6 +5,7 @@
 #include <sympl/include/Parser/Handle/ExceptionHandle.hpp>
 #include <sympl/include/Parser/Handle/NullHandle.hpp>
 #include <sympl/include/Parser/Error/RuntimeError.hpp>
+#include <sympl/include/Parser/ParserContext.hpp>
 SymplNamespace
 
 void StringHandle::__Construct(int argc, va_list ArgList)
@@ -64,7 +65,7 @@ SharedPtr<ValueHandle> StringHandle::DivideBy(const SharedPtr<ValueHandle>& pHan
     auto Index = pHandle->Value.IntNum;
     if (Index >= Value.String->Length() || Index < 0) {
         auto Error = SharedPtr<RuntimeError>(new RuntimeError(
-                Context,
+                Context.Ptr(),
                 StartPosition,
                 EndPosition,
                 fmt::format("Character at index '{0}' in <string> could not be retrieved. Index out of bounds.", Index).c_str()

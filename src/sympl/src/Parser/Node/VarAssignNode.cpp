@@ -3,15 +3,17 @@
 //
 #include <sympl/include/Parser/Node/VarAssignNode.hpp>
 #include <sympl/include/Parser/Token.hpp>
-#include "sympl/include/Parser/ParseResult.hpp"
+#include "sympl/include/Parser/LexerPosition.hpp"
 SymplNamespace
 
 void VarAssignNode::__Construct(int argc, va_list ArgList)
 {
-    SharedPtr<Token> pToken = va_arg(ArgList, Token*);
-    SharedPtr<ParserNode> pValue = va_arg(ArgList, ParserNode*);
+    if (argc > 0) {
+        SharedPtr<Token> pToken = va_arg(ArgList, Token*);
+        SharedPtr<ParserNode> pValue = va_arg(ArgList, ParserNode*);
 
-    Create(pToken, pValue);
+        Create(pToken, pValue);
+    }
 }
 
 void VarAssignNode::__Destruct()

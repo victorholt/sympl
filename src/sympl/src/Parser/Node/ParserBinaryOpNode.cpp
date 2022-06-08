@@ -15,15 +15,25 @@ void ParserBinaryOpNode::__Construct(int argc, va_list ArgList)
     Create(pLeftNode, pToken, pRightNode);
 }
 
-void ParserBinaryOpNode::Create(const SharedPtr<ParserNode>& pLeftNode, SharedPtr<class Token> pNodeToken, const SharedPtr<ParserNode>& pRightNode)
+void ParserBinaryOpNode::Create(const SharedPtr<ParserNode>& pLeftNode, SharedPtr<Token> pNodeToken, const SharedPtr<ParserNode>& pRightNode)
 {
     ParserNode::Create(ParseNodeType::Binary, pNodeToken);
 
     LeftNode = pLeftNode;
     RightNode = pRightNode;
 
-    StartPosition = LeftNode->StartPosition;
-    EndPosition = RightNode->EndPosition;
+    StartPosition = LeftNode->GetStartPosition();
+    EndPosition = RightNode->GetEndPosition();
+}
+
+SharedPtr<ParserNode> ParserBinaryOpNode::GetLeftNode() const
+{
+    return LeftNode;
+}
+
+SharedPtr<ParserNode> ParserBinaryOpNode::GetRightNode() const
+{
+    return RightNode;
 }
 
 CStrPtr ParserBinaryOpNode::ToString()

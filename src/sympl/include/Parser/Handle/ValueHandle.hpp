@@ -41,7 +41,7 @@ public:
     // Error from the value.
     SharedPtr<class ParserError> Error;
     // Context of the value.
-    SharedPtr<class ParserContext> Context;
+    WeakPtr<class ParserContext> Context;
 
 	// Check if we can assign a new value.
 	bool Immutable = false;

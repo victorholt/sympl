@@ -7,6 +7,7 @@
 #include <sympl/include/Parser/ParserContext.hpp>
 #include <sympl/include/Parser/SymbolTable.hpp>
 #include <sympl/include/Parser/Error/RuntimeError.hpp>
+#include <sympl/include/Parser/ParserContext.hpp>
 SymplNamespace
 
 void BaseFuncHandle::__Construct(int argc, va_list ArgList)
@@ -36,7 +37,7 @@ SharedPtr<ParserRuntimeResult> BaseFuncHandle::CheckArgs(const std::vector<std::
 
 	if (pArgValueList.size() > pArgNameList.size()) {
 		Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
-			Context,
+			Context.Ptr(),
 			StartPosition,
 			EndPosition,
 			fmt::format(
@@ -50,7 +51,7 @@ SharedPtr<ParserRuntimeResult> BaseFuncHandle::CheckArgs(const std::vector<std::
 
 	if (pArgNameList.size() > pArgValueList.size()) {
 		Result->Error = SharedPtr<RuntimeError>(new RuntimeError(
-			Context,
+			Context.Ptr(),
 			StartPosition,
 			EndPosition,
 			fmt::format(
@@ -75,7 +76,7 @@ void BaseFuncHandle::PopulateArgs(
 	{
 		auto ArgName = pArgNameList[i];
 		auto ArgValue = pArgValueList[i];
-		ArgValue->Context = ArgValue->Context.IsValid() ? ArgValue->Context : ExecContext;
+		ArgValue->Context = ArgValue->Context.IsValid() ? ArgValue->Context : ExecContext.Ptr();
 		ExecContext->VariableSymbolTable->Set(ArgName.c_str(), ArgValue);
 	}
 }

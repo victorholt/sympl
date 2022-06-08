@@ -10,7 +10,7 @@ void ParserScopeAccessNode::__Construct(int argc, va_list ArgList)
     SharedPtr<Token> pToken = va_arg(ArgList, Token*);
     SharedPtr<Token> pParentScopeToken = va_arg(ArgList, Token*);
 
-    Create(pToken, pParentScopeToken);
+    Create(pToken->Copy(), pParentScopeToken->Copy());
 }
 
 void ParserScopeAccessNode::Create(
@@ -20,4 +20,19 @@ void ParserScopeAccessNode::Create(
 {
     ParserNode::Create(ParseNodeType::ScopeAccess, pNodeToken);
     ParentScopeToken = pParentScopeToken;
+}
+
+SharedPtr<Token> ParserScopeAccessNode::GetParentScopeToken() const
+{
+    return ParentScopeToken->Copy();
+}
+
+SharedPtr<ParserNode> ParserScopeAccessNode::GetAssignNode() const
+{
+    return AssignNode;
+}
+
+void ParserScopeAccessNode::SetAssignNode(const SharedPtr<ParserNode>& Value)
+{
+    AssignNode = Value;
 }

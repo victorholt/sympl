@@ -11,6 +11,9 @@ SymplNamespaceStart
 template<typename T>
 class SharedPtr
 {
+    template<class T>
+    friend class WeakPtr;
+
 private:
 	// Pointer reference.
 	ObjectRef* PtrData = nullptr;

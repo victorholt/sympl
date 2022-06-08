@@ -39,9 +39,8 @@ SharedPtr<ValueHandle> ObjectHandle::Copy() const
     NewObject->Context = Context;
 
     auto NewBodyNode = ParserListNode::Alloc<ParserListNode>();
-    NewBodyNode->NodeToken = BodyNode->NodeToken;
-    NewBodyNode->StartPosition = BodyNode->StartPosition;
-    NewBodyNode->EndPosition = BodyNode->EndPosition;
+    NewBodyNode->SetNodeToken(BodyNode->GetNodeToken());
+    NewBodyNode->SetPosition(BodyNode->GetStartPosition(), BodyNode->GetEndPosition());
 
     SharedPtr<ParserListNode> BodyListValues = ObjectRef::CastTo<ParserListNode>(BodyNode.Ptr());
     if (BodyListValues.IsValid()) {
@@ -67,10 +66,10 @@ CStrPtr ObjectHandle::ToString() {
     if (BodyListValues.IsValid()) {
         size_t StringIndex = 0;
         for (auto& Item: BodyListValues->ElementNodeList) {
-            auto ItemValue = Context->VariableSymbolTable->Get(Item->NodeToken->GetValue());
+            auto ItemValue = Context->VariableSymbolTable->Get(Item->GetNodeToken()->GetValue());
             CStrPtr ValueStr = ItemValue.IsValid() ? ItemValue->ToString() : "null";
 
-            StringRep->Append(fmt::format("{0}:{1}", Item->NodeToken->GetValue(), ValueStr));
+            StringRep->Append(fmt::format("{0}:{1}", Item->GetNodeToken()->GetValue(), ValueStr));
             StringIndex++;
 
             if (StringIndex < BodyListValues->ElementNodeList.size()) {

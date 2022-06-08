@@ -44,8 +44,6 @@ int main()
         auto value = std::get<0>(ret);
         auto error = std::get<1>(ret);
 
-        continue;
-
         if (error.IsValid())
         {
             cout << error->ToString() << endl;

@@ -18,6 +18,9 @@ protected:
     SharedPtr<class ParserContext> GlobalContext;
 
 public:
+    // Flag if we are spawned from another vm.
+    bool IsChildVM = false;
+
     /**
      * Constructs the object.
      * @param ArgList
