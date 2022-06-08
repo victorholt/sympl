@@ -87,12 +87,12 @@ SymplVM::RunScript(CStrPtr FileName, CStrPtr Script)
     parser->Create(tokens);
     auto node = parser->Parse();
 
-    if (IsChildVM) {
-        return std::make_tuple(
-                nullptr,
-                nullptr
-        );
-    }
+//    if (IsChildVM) {
+//        return std::make_tuple(
+//                nullptr,
+//                nullptr
+//        );
+//    }
 
     if (node->Error.IsValid()) {
         return std::make_tuple(
