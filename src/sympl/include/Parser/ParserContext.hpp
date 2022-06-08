@@ -24,7 +24,12 @@ public:
     /**
      * Constructor.
      */
-    ParserContext();
+    void __Construct(int argc, va_list Args);
+
+    /**
+     * Destructor.
+     */
+    void __Destruct() override;
 
     /**
      * Creat

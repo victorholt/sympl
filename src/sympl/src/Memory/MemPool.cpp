@@ -8,7 +8,8 @@ SymplNamespace
 
 MemPool::MemPool()
 {
-    AllocBlocks(100);
+    DefaultBlockSize = 256;
+    AllocBlocks(2000);
 }
 
 void MemPool::AllocBlocks(int NumBlocks)
@@ -49,6 +50,8 @@ void MemPool::FreeBlock(MemBlock* pBlock)
     MemBlock* Block = Blocks[pBlock->BlockIndex];
 	Block->Active = false;
 	Block->Static = false;
+    reinterpret_cast<ManagedObject*>(Block->Bytes)->~ManagedObject();
+    Block->Clear();
 }
 
 void MemPool::FreeAllBlocks()
@@ -57,6 +60,7 @@ void MemPool::FreeAllBlocks()
 	{
 		Block->Active = false;
 		Block->Static = false;
+        Block->Clear();
 	}
 }
 

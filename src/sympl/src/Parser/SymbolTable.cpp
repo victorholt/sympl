@@ -14,6 +14,11 @@ void SymbolTable::__Construct(int argc, va_list ArgList)
     Create(pParent);
 }
 
+void SymbolTable::__Destruct()
+{
+    SymbolList.clear();
+}
+
 void SymbolTable::Create(const SharedPtr<SymbolTable>& pParent)
 {
     Parent = pParent;

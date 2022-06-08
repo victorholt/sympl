@@ -37,6 +37,11 @@ public:
     virtual void __Construct(int argc, va_list ArgList);
 
     /**
+     * Destructor.
+     */
+    virtual void __Destruct() {}
+
+    /**
 	 * Subtract from the reference count.
 	 */
     virtual int Release() override;

@@ -6,6 +6,13 @@
 #include <sympl/include/Parser/Handle/ValueHandle.hpp>
 SymplNamespace
 
+void ParserRuntimeResult::__Destruct()
+{
+    Error = nullptr;
+    Value = nullptr;
+    FuncReturnValue = nullptr;
+}
+
 SharedPtr<ValueHandle> ParserRuntimeResult::Register(const SharedPtr<ParserRuntimeResult>& pResult)
 {
     Error = pResult->Error;

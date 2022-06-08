@@ -25,6 +25,11 @@ public:
     virtual void __Construct(int argc, va_list ArgList) override;
 
     /**
+     * Destructor.
+     */
+    void __Destruct() override;
+
+    /**
      * Creates the table.
      * @param pParent
      */

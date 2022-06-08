@@ -12,6 +12,11 @@ void ParserNumberNode::__Construct(int argc, va_list ArgList)
     Create(pToken);
 }
 
+void ParserNumberNode::__Destruct()
+{
+    ParserNode::__Destruct();
+}
+
 void ParserNumberNode::Create(const SharedPtr<Token>& pNodeToken)
 {
     ParserNode::Create(ParseNodeType::Number, pNodeToken);

@@ -17,6 +17,12 @@ void Token::__Construct(int argc, va_list ArgList)
     Create(pType, pValueStr, pStartPosition, pEndPosition);
 }
 
+void Token::__Destruct()
+{
+    StartPosition = nullptr;
+    EndPosition = nullptr;
+}
+
 void Token::Create(TokenType pType, CStrPtr ValueStr, SharedPtr<LexerPosition> pStartPosition, SharedPtr<LexerPosition> pEndPosition)
 {
     Type = pType;

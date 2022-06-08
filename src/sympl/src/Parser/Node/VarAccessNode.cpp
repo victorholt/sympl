@@ -12,6 +12,11 @@ void VarAccessNode::__Construct(int argc, va_list ArgList)
     Create(pToken);
 }
 
+void VarAccessNode::__Destruct()
+{
+    ParserNode::__Destruct();
+}
+
 void VarAccessNode::Create(const SharedPtr<Token>& pNodeToken)
 {
     ParserNode::Create(ParseNodeType::VarAccess, pNodeToken);

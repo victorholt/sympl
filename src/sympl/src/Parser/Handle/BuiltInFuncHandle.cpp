@@ -133,6 +133,14 @@ void BuiltInFuncHandle::__Construct(int argc, va_list ArgList)
     );
 }
 
+void BuiltInFuncHandle::__Destruct()
+{
+    BaseFuncHandle::__Destruct();
+
+    MethodMap.clear();
+    MethodArgMap.clear();
+}
+
 void BuiltInFuncHandle::Create(CStrPtr pFuncName)
 {
 	Type = ValueType::Func;

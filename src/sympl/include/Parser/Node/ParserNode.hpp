@@ -38,7 +38,12 @@ public:
      * @param argc
      * @param ArgList
      */
-    virtual void __Construct(int argc, va_list ArgList) override;
+    void __Construct(int argc, va_list ArgList) override;
+
+    /**
+     * Destructor.
+     */
+    void __Destruct() override;
 
     /**
      * Creates the parser node.

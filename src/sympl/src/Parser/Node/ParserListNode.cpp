@@ -9,6 +9,12 @@ void ParserListNode::__Construct(int argc, va_list ArgList)
 {
 }
 
+void ParserListNode::__Destruct()
+{
+    ParserNode::__Destruct();
+    ElementNodeList.clear();
+}
+
 void ParserListNode::Create(
     const SharedPtr<Token>& pNodeToken,
     const std::vector<SharedPtr<ParserNode>>& pElementNodeList,

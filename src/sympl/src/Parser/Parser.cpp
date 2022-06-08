@@ -23,9 +23,15 @@
 #include <sympl/include/Parser/Node/VarAccessNode.hpp>
 SymplNamespace
 
-Parser::Parser(const std::vector<SharedPtr<Token>>& pTokenList)
-    : TokenIndex(0), CurrentToken(nullptr)
+void Parser::__Destruct()
 {
+    CurrentToken = nullptr;
+    TokenList.clear();
+}
+
+void Parser::Create(const std::vector<SharedPtr<Token>>& pTokenList)
+{
+    CurrentToken = nullptr;
     TokenList = pTokenList;
     TokenIndex = -1;
     Advance();
@@ -52,14 +58,14 @@ Token* Parser::Advance()
 {
     TokenIndex++;
     UpdateCurrentToken();
-    return CurrentToken;
+    return CurrentToken.Ptr();
 }
 
 Token* Parser::Reverse(int Amount)
 {
     TokenIndex -= Amount;
     UpdateCurrentToken();
-    return CurrentToken;
+    return CurrentToken.Ptr();
 }
 
 Token* Parser::Previous(int Amount)
@@ -199,7 +205,7 @@ SharedPtr<ParseResult> Parser::Atom()
                 );
                 Result->Success(ScopeAccessNode);
             }
-            else if (CurrentToken && CurrentToken->GetType() == TokenType::ScopeAccess) {
+            else if (CurrentToken.IsValid() && CurrentToken->GetType() == TokenType::ScopeAccess) {
                 return ScopeAccessExpr(FactorToken);
             }
             else {
@@ -390,7 +396,7 @@ SharedPtr<ParseResult> Parser::BinaryOperation(
 
     while ( VectorHas(OpKeys, CurrentToken->GetType()) || VectorHas(OpValues, CurrentToken->GetValue()) )
     {
-        Token* OpToken = CurrentToken;
+        Token* OpToken = CurrentToken.Ptr();
         Result->RegisterAdvance();
         Advance();
 
@@ -415,6 +421,7 @@ SharedPtr<ParseResult> Parser::BinaryOperation(
 SharedPtr<ParseResult> Parser::Statements()
 {
     SharedPtr<ParseResult> Result = ParseResult::Alloc<ParseResult>();
+
     std::vector<SharedPtr<ParserNode>> Statements;
     auto StartPosition = CurrentToken->GetStartPosition()->Copy();
 
@@ -487,7 +494,7 @@ SharedPtr<ParseResult> Parser::Statement()
         }
 
         Result->Success(ParserReturnNode::Alloc<ParserReturnNode>(
-            4, CurrentToken, Expr.Ptr(), StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
+            4, CurrentToken.Ptr(), Expr.Ptr(), StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
         ).Ptr());
         return Result;
     }
@@ -498,7 +505,7 @@ SharedPtr<ParseResult> Parser::Statement()
         Advance();
 
         Result->Success(ParserContinueNode::Alloc<ParserContinueNode>(
-            3, CurrentToken, StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
+            3, CurrentToken.Ptr(), StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
         ).Ptr());
         return Result;
     }
@@ -509,7 +516,7 @@ SharedPtr<ParseResult> Parser::Statement()
         Advance();
 
         Result->Success(ParserBreakNode::Alloc<ParserBreakNode>(
-            3, CurrentToken, StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
+            3, CurrentToken.Ptr(), StartPosition.Ptr(), CurrentToken->GetEndPosition().Ptr()
         ).Ptr());
         return Result;
     }
@@ -660,7 +667,7 @@ SharedPtr<ParseResult> Parser::CompExpr() {
 		}
 
 		Result->Success(
-			ParserUnaryOpNode::Alloc<ParserUnaryOpNode, ParserNode>(2, CurrentToken, Node.Ptr())
+			ParserUnaryOpNode::Alloc<ParserUnaryOpNode, ParserNode>(2, CurrentToken.Ptr(), Node.Ptr())
 		);
 	}
 
@@ -1089,7 +1096,7 @@ SharedPtr<ParseResult> Parser::ForExpr()
         Advance();
 
         auto ForNode = ParserForNode::Alloc<ParserForNode>(
-            5, VarNameToken, StartValue.Ptr(), EndValue.Ptr(), StepValue.IsValid() ? StepValue.Ptr() : nullptr, BodyNode.Ptr()
+            5, VarNameToken.Ptr(), StartValue.Ptr(), EndValue.Ptr(), StepValue.IsValid() ? StepValue.Ptr() : nullptr, BodyNode.Ptr()
         );
         ForNode->ShouldReturnNull = true;
         Result->Success(ForNode.Ptr());
@@ -1103,7 +1110,7 @@ SharedPtr<ParseResult> Parser::ForExpr()
 	}
 
 	Result->Success(ParserForNode::Alloc<ParserForNode>(
-		5, VarNameToken, StartValue.Ptr(), EndValue.Ptr(), StepValue.IsValid() ? StepValue.Ptr() : nullptr, BodyNode.Ptr()
+		5, VarNameToken.Ptr(), StartValue.Ptr(), EndValue.Ptr(), StepValue.IsValid() ? StepValue.Ptr() : nullptr, BodyNode.Ptr()
 	).Ptr());
 
 	return Result;
@@ -1170,7 +1177,7 @@ SharedPtr<ParseResult> Parser::WhileExpr()
         Advance();
 
         auto WhileNode = ParserWhileNode::Alloc<ParserWhileNode>(
-            3, CurrentToken, Condition.Ptr(), BodyNode.Ptr()
+            3, CurrentToken.Ptr(), Condition.Ptr(), BodyNode.Ptr()
         );
         WhileNode->ShouldReturnNull = true;
         Result->Success(WhileNode.Ptr());
@@ -1184,7 +1191,7 @@ SharedPtr<ParseResult> Parser::WhileExpr()
 	}
 
 	Result->Success(ParserWhileNode::Alloc<ParserWhileNode>(
-		3, CurrentToken, Condition.Ptr(), BodyNode.Ptr()
+		3, CurrentToken.Ptr(), Condition.Ptr(), BodyNode.Ptr()
 	).Ptr());
 
 	return Result;

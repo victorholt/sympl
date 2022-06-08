@@ -9,6 +9,14 @@ void ParserCallNode::__Construct(int argc, va_list ArgList)
 {
 }
 
+void ParserCallNode::__Destruct()
+{
+    ParserNode::__Destruct();
+
+    CallNode = nullptr;
+    ArgNodeList.clear();
+}
+
 void ParserCallNode::Create(
     const SharedPtr<Token>& pNodeToken,
     const SharedPtr<ParserNode>& pCallNode,

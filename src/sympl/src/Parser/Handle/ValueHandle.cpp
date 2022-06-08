@@ -25,6 +25,16 @@ void ValueHandle::__Construct(int argc, va_list Args)
 	StringRep = StringBuffer::Alloc<StringBuffer>();
 }
 
+void ValueHandle::__Destruct()
+{
+    Value.String = nullptr;
+    StringRep = nullptr;
+    Error = nullptr;
+    StartPosition = nullptr;
+    EndPosition = nullptr;
+    Context = nullptr;
+}
+
 void ValueHandle::SetPosition(const SharedPtr<LexerPosition>& pStartPosition, const SharedPtr<LexerPosition>& pEndPosition)
 {
     StartPosition = pStartPosition;

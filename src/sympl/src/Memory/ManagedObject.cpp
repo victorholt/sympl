@@ -28,6 +28,7 @@ int ManagedObject::Release()
 
 	if (Result == 0 && Block && Block->BlockIndex > 0)
 	{
+        __Destruct();
 		MemPool::Instance()->FreeBlock(Block);
         Block = nullptr;
 	}

@@ -67,9 +67,14 @@ SharedPtr<ValueHandle> IntHandle::PowerBy(const SharedPtr<ValueHandle>& handle)
 
 SharedPtr<ValueHandle> IntHandle::Copy() const
 {
+//    if (Block->Static) {
+//        SharedPtr<ValueHandle> Self = const_cast<IntHandle*>(this);
+//        return Self;
+//    }
+
     auto NewValue = ValueHandle::BaseCopy<IntHandle>(this);
     NewValue->Value = Value;
-    return dynamic_cast<ValueHandle*>(NewValue.Ptr());
+    return ObjectRef::CastTo<ValueHandle>(NewValue.Ptr());
 }
 
 CStrPtr IntHandle::ToString()

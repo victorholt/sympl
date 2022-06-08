@@ -23,7 +23,7 @@ bool NullHandle::IsTrue() const
 
 SharedPtr<ValueHandle> NullHandle::Copy() const
 {
-	// We don't copy this particular handle.
+    // We don't copy this particular handle.
 	return ValueHandle::Null();
 }
 

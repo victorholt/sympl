@@ -5,6 +5,12 @@
 #include <sympl/include/Parser/Node/ParserNode.hpp>
 SymplNamespace
 
+void ParseResult::__Destruct()
+{
+    Error = nullptr;
+    ParserNodePtr = nullptr;
+}
+
 SharedPtr<class ParserNode> ParseResult::Register(const SharedPtr<ParseResult>& Result)
 {
     AdvanceCount += Result->AdvanceCount;

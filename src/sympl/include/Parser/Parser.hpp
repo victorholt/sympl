@@ -18,18 +18,23 @@ private:
     long long TokenIndex;
 
     // List of tokens to iterate through.
-    std::vector<SharedPtr<class Token>> TokenList;
+    std::vector<SharedPtr<Token>> TokenList;
 
     // Reference to the current token.
-    class Token* CurrentToken;
+    SharedPtr<Token> CurrentToken;
 
 public:
 
     /**
-     * Constructor.
+     * Destructor.
+     */
+    void __Destruct() override;
+
+    /**
+     * Creates the parser.
      * @param TokenList
      */
-    Parser(const std::vector<SharedPtr<class Token>>& pTokenList);
+    void Create(const std::vector<SharedPtr<class Token>>& pTokenList);
 
 	/**
 	 * Parses the tokens.

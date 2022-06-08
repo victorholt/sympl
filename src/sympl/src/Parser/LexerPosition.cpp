@@ -4,7 +4,7 @@
 #include <sympl/include/Parser/LexerPosition.hpp>
 SymplNamespace
 
-LexerPosition::LexerPosition()
+void LexerPosition::__Construct(int argc, va_list Args)
 {
     Index = 0;
     LineNumber = 0;

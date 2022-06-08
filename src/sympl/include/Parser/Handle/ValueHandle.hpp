@@ -66,6 +66,11 @@ public:
     void __Construct(int argc, va_list Args) override;
 
     /**
+     * Destructor.
+     */
+    void __Destruct() override;
+
+    /**
      * Sets the position of the number handle.
      * @param pStartPosition
      * @param pEndPosition

@@ -31,7 +31,7 @@ public:
     /**
      * Constructor.
      */
-    LexerPosition();
+    void __Construct(int argc, va_list Args);
 
     /**
      * Creates the position.

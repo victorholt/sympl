@@ -16,6 +16,12 @@ void ParserReturnNode::__Construct(int argc, va_list ArgList)
     Create(pToken, pNodeToReturn, pStartPosition, pEndPosition);
 }
 
+void ParserReturnNode::__Destruct()
+{
+    ParserNode::__Destruct();
+    NodeToReturn = nullptr;
+}
+
 void ParserReturnNode::Create(
     const SharedPtr<class Token>& pNodeToken,
     const SharedPtr<ParserNode>& pNodeToReturn,

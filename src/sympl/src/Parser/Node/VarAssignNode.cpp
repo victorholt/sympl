@@ -14,6 +14,13 @@ void VarAssignNode::__Construct(int argc, va_list ArgList)
     Create(pToken, pValue);
 }
 
+void VarAssignNode::__Destruct()
+{
+    ParserNode::__Destruct();
+
+    Value = nullptr;
+}
+
 void VarAssignNode::Create(const SharedPtr<Token>& pNodeToken, const SharedPtr<ParserNode>& pValue)
 {
     ParserNode::Create(ParseNodeType::VarAssign, pNodeToken);

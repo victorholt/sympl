@@ -37,6 +37,11 @@ private:
 protected:
 
     /**
+     * Destructor.
+     */
+    void __Destruct() override;
+
+    /**
      * Attempt to skip a comment.
      */
     void SkipComment();
@@ -117,12 +122,7 @@ public:
 	 * @param FileName
 	 * @param Text
 	 */
-	Lexer(CStrPtr FileName, CStrPtr Text);
-
-    /**
-     * Destructor.
-     */
-    ~Lexer();
+	void Create(CStrPtr FileName, CStrPtr Text);
 
 	/**
 	 * Generates a list of tokens from the buffer.

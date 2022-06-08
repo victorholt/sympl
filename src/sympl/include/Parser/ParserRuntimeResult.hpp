@@ -28,6 +28,11 @@ public:
     bool LoopShouldBreak = false;
 
     /**
+     * Destructor.
+     */
+    void __Destruct() override;
+
+    /**
      * Registers a result.
      * @param pResult
      */

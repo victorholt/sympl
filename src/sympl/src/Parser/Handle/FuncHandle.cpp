@@ -19,6 +19,12 @@ void FuncHandle::__Construct(int argc, va_list ArgList)
     Create("<anonymous>", pBodyNode, {});
 }
 
+void FuncHandle::__Destruct()
+{
+    BaseFuncHandle::__Destruct();
+    BodyNode = nullptr;
+}
+
 void FuncHandle::Create(
     CStrPtr FuncName,
     const SharedPtr<ParserNode>& pBodyNode,

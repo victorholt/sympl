@@ -17,6 +17,12 @@ void BaseFuncHandle::__Construct(int argc, va_list ArgList)
 	Create(pValue);
 }
 
+void BaseFuncHandle::__Destruct()
+{
+    ValueHandle::__Destruct();
+    Name = nullptr;
+}
+
 void BaseFuncHandle::Create(CStrPtr FuncName)
 {
 	Type = ValueType::Func;

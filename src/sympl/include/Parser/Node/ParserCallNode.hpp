@@ -22,7 +22,12 @@ public:
      * @param argc
      * @param ArgList
      */
-    virtual void __Construct(int argc, va_list ArgList) override;
+    void __Construct(int argc, va_list ArgList) override;
+
+    /**
+     * Destruct.
+     */
+    void __Destruct() override;
 
     /**
      * Constructor

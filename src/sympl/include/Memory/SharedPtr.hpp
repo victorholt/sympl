@@ -13,7 +13,7 @@ class SharedPtr
 {
 private:
 	// Pointer reference.
-	ObjectRef* PtrData;
+	ObjectRef* PtrData = nullptr;
 
 public:
 	/**
@@ -81,14 +81,14 @@ public:
 
 template<typename T>
 SharedPtr<T>::SharedPtr()
-		: PtrData(nullptr)
 {
+    PtrData = nullptr;
 }
 
 template<typename T>
 SharedPtr<T>::SharedPtr(T* Value)
-		: PtrData(Value)
 {
+    PtrData = Value;
     if (PtrData) {
         PtrData->AddRef();
     }
@@ -96,8 +96,12 @@ SharedPtr<T>::SharedPtr(T* Value)
 
 template<typename T>
 SharedPtr<T>::SharedPtr(const SharedPtr<T> &CopySharedPtr)
-		: PtrData(CopySharedPtr.PtrData)
 {
+    if (PtrData) {
+        PtrData->Release();
+    }
+
+    PtrData = CopySharedPtr.PtrData;
     if (PtrData) {
         PtrData->AddRef();
     }
@@ -106,7 +110,10 @@ SharedPtr<T>::SharedPtr(const SharedPtr<T> &CopySharedPtr)
 template<typename T>
 SharedPtr<T>::~SharedPtr()
 {
-	assert(!PtrData || PtrData->RefCount > 0);
+    if (PtrData && PtrData->RefCount <= 0) {
+        return;
+    }
+
 	if (PtrData && PtrData->Release() == 0)
 	{
 		MemPool::Instance()->FreeBlock(PtrData->Block);

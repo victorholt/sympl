@@ -1,16 +1,18 @@
 # run("../../examples/scripts/memory.sym")
 # Tests for memory leaks.
 
-object MemoryTest
-    var max_iterations = 1
-end
+1
 
-var value = 0;
-while value < MemoryTest.max_iterations then
-    print("Test Value: " + str(value))
-    value = value + 1
-end
+#object MemoryTest
+#    var max_iterations = 1
+#end
 
-print("Final Value: " + str(value))
+#var value = 0;
+#while value < MemoryTest.max_iterations then
+#    print("Test Value: " + str(value))
+#    value = value + 1
+#end
+
+#print("Final Value: " + str(value))
 
 

@@ -8,9 +8,10 @@
 #include <sympl/include/Parser/Error/IllegalCharacterError.hpp>
 SymplNamespace
 
-Lexer::Lexer(CStrPtr FileName, CStrPtr Text) :
-    CurrentChar('\0')
+void Lexer::Create(CStrPtr FileName, CStrPtr Text)
 {
+    CurrentChar = '\0';
+
     Position = LexerPosition::Alloc<LexerPosition>();
     Position->Create(0, 1, 0, FileName, Text);
 
@@ -28,9 +29,12 @@ Lexer::Lexer(CStrPtr FileName, CStrPtr Text) :
                '_'};
 }
 
-Lexer::~Lexer()
+void Lexer::__Destruct()
 {
-	TokenList.clear();
+    Position = nullptr;
+    Buffer = nullptr;
+    TokenList.clear();
+    ErrorList.clear();
 }
 
 void Lexer::Advance()

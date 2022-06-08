@@ -25,6 +25,11 @@ public:
     int ToReverseCount = 0;
 
     /**
+     * Destruct.
+     */
+    void __Destruct() override;
+
+    /**
      * Registers and returns a node.
      * @param Result
      * @return
