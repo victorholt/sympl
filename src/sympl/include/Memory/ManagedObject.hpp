@@ -106,17 +106,17 @@ public:
     static SharedPtr<T> Alloc(int argc = 0, ...)
     {
         size_t ObjectSize = sizeof(T);
-        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
-		assert(Block != nullptr);
-
-        ManagedObject* NewObject = new(Block->Bytes) T();
-        NewObject->Block = Block;
-        NewObject->ObjectSize = ObjectSize;
-		Block->SetIdentifier(NewObject->GetTypeName().c_str());
-
-//        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
-//        ManagedObject* NewObject = new(Bytes) T();
+//        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+//		assert(Block != nullptr);
+//
+//        ManagedObject* NewObject = new(Block->Bytes) T();
+//        NewObject->Block = Block;
 //        NewObject->ObjectSize = ObjectSize;
+//		Block->SetIdentifier(NewObject->GetTypeName().c_str());
+
+        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
+        ManagedObject* NewObject = new(Bytes) T();
+        NewObject->ObjectSize = ObjectSize;
         NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
         if (argc > 0) {
@@ -140,18 +140,18 @@ public:
     template<class T, class R>
     static SharedPtr<R> Alloc(int argc = 0, ...)
     {
-        size_t ObjectSize = sizeof(T);
-        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
-		assert(Block != nullptr);
+//        size_t ObjectSize = sizeof(T);
+//        MemBlock* Block = MemPool::Instance()->CreateBlock(ObjectSize);
+//		assert(Block != nullptr);
+//
+//        ManagedObject* NewObject = new(Block->Bytes) T();
+//        NewObject->Block = Block;
+//        NewObject->ObjectSize = ObjectSize;
+//		Block->SetIdentifier(NewObject->GetTypeName().c_str());
 
-        ManagedObject* NewObject = new(Block->Bytes) T();
-        NewObject->Block = Block;
-        NewObject->ObjectSize = ObjectSize;
-		Block->SetIdentifier(NewObject->GetTypeName().c_str());
-
-//        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
-//        ManagedObject* NewObject = new(Bytes) T();
-//        NewObject->ObjectSize = sizeof(T);
+        char* Bytes = static_cast<char*>(malloc(sizeof(T)));
+        ManagedObject* NewObject = new(Bytes) T();
+        NewObject->ObjectSize = sizeof(T);
         NewObject->InstanceId = _Sympl_Object_NextInstanceId++;
 
         if (argc > 0) {

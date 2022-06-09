@@ -41,11 +41,11 @@ MemBlock* MemPool::CreateBlock(size_t BlockSize)
 
 void MemPool::FreeBlock(MemBlock* pBlock)
 {
-    if (!pBlock || pBlock->Static) {
+    if (!pBlock || pBlock->BlockIndex < 0 || pBlock->Static) {
         return;
     }
 
-	assert(pBlock->BlockIndex >= 0 && pBlock->BlockIndex < Blocks.size());
+	assert(pBlock->BlockIndex < Blocks.size());
 
     MemBlock* Block = Blocks[pBlock->BlockIndex];
 	Block->Active = false;
