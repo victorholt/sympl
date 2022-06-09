@@ -11,7 +11,7 @@ SymplNamespaceStart
 template<typename T>
 class SharedPtr
 {
-    template<class T>
+    template<class R>
     friend class WeakPtr;
 
 private:
