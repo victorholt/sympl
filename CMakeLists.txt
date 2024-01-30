@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
+project(SymplProject)
 
 # Add the windows definition if it does not exists.
 if (WIN32)
@@ -68,29 +69,26 @@ list (APPEND SymplAppleLibs "")
 if (APPLE)
     if (IOS OR TVOS)
         list (APPEND SymplAppleLibs
-                "-framework Foundation"
-                "-framework QuartzCore"
-                )
+            "-framework Foundation"
+            "-framework QuartzCore"
+        )
     else ()
         list (APPEND SymplAppleLibs
-                "-framework CoreFoundation"
-                "-framework SystemConfiguration"
-                "-framework CoreServices"
-                )
+            "-framework CoreFoundation"
+            "-framework SystemConfiguration"
+            "-framework CoreServices"
+        )
     endif ()
 endif ()
 
 # Setup our Sympl includes.
 include_directories(${SYMPL_INCLUDES})
 
-# Include the thirdparty libs.
-include(${CMAKE_CURRENT_SOURCE_DIR}/src/sympl/thirdparty/fmt/CMakeLists.txt)
-
 # Include the source.
-include(src/sympl/SymplLib/CMakeLists.txt)
+include(src/sympl/CMakeLists.txt)
 
 # Include the compiler.
-include(${CMAKE_CURRENT_SOURCE_DIR}/compiler/CMakeLists.txt)
+include(src/cli/CMakeLists.txt)
 
 # Print out the Sympl includes.
 message (STATUS "Sympl Framework Includes\n${SYMPL_INCLUDES}\n")
