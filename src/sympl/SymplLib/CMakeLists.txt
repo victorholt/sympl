@@ -1,33 +1,21 @@
 project(sympl)
 
 # Header and src files.
-file (GLOB SYMPL_LIB_HEADERS
-    # Core
-    "${SYMPL_SOURCE_DIR}/sympl/include/Core/*.hpp"
-
-    # Memory
-    "${SYMPL_SOURCE_DIR}/sympl/include/Memory/*.hpp"
-
-    # Parser
-    "${SYMPL_SOURCE_DIR}/sympl/include/Parser/*.hpp"
-    "${SYMPL_SOURCE_DIR}/sympl/include/Parser/Error/*.hpp"
-    "${SYMPL_SOURCE_DIR}/sympl/include/Parser/Node/*.hpp"
-    "${SYMPL_SOURCE_DIR}/sympl/include/Parser/Handle/*.hpp"
-)
-
-file (GLOB SYMPL_LIB_SRC
-    # Core
-    "${SYMPL_SOURCE_DIR}/sympl/src/Core/*.cpp"
-
-    # Memory
-    "${SYMPL_SOURCE_DIR}/sympl/src/Memory/*.cpp"
-
-    # Parser
-    "${SYMPL_SOURCE_DIR}/sympl/src/Parser/*.cpp"
-    "${SYMPL_SOURCE_DIR}/sympl/src/Parser/Error/*.cpp"
-    "${SYMPL_SOURCE_DIR}/sympl/src/Parser/Node/*.cpp"
-    "${SYMPL_SOURCE_DIR}/sympl/src/Parser/Handle/*.cpp"
-)
+#file (GLOB SYMPL_LIB_HEADERS
+#    # Core
+#    "${SYMPL_SOURCE_DIR}/sympl/include/Core/*.hpp"
+#
+#    # Memory
+#    "${SYMPL_SOURCE_DIR}/sympl/include/Memory/*.hpp"
+#
+#    # Parser
+#    "${SYMPL_SOURCE_DIR}/sympl/include/Parser/*.hpp"
+#    "${SYMPL_SOURCE_DIR}/sympl/include/Parser/Error/*.hpp"
+#    "${SYMPL_SOURCE_DIR}/sympl/include/Parser/Node/*.hpp"
+#    "${SYMPL_SOURCE_DIR}/sympl/include/Parser/Handle/*.hpp"
+#)
+file(GLOB_RECURSE SYMPL_LIB_HEADERS "${SYMPL_SOURCE_DIR}/sympl/*.h**")
+file(GLOB_RECURSE SYMPL_LIB_SRC "${SYMPL_SOURCE_DIR}/sympl/*.c**")
 
 add_library(sympl STATIC
     ${SYMPL_LIB_HEADERS} ${SYMPL_LIB_SRC}
