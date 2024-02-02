@@ -286,6 +286,6 @@ static const char* ExportFunc = "export";
 static const char* IncludeFunc = "include";
 static const char* RunFunc = "run";
 
-static size_t _sympl_object_next_instance_id = 0;
+static long long _sympl_object_next_instance_id = 0;
 
 SymplNamespaceEnd

@@ -5,3 +5,5 @@
 //
 #pragma once
 #include <sympl/sympl_pch.hpp>
+#include <sympl/memory/mem_block.hpp>
+#include <sympl/memory/mem_pool.hpp>
