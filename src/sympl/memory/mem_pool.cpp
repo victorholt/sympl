@@ -146,7 +146,7 @@ void MemPool::get_used_block_object_names(std::vector<std::string>& output) {
     }
 
     for (const auto& entry : block_map_count) {
-        output.emplace_back(fmt::format("{0}: {1}", entry.first, entry.second));
+        //output.emplace_back(fmt::format("{0}: {1}", entry.first, entry.second));
     }
 }
 

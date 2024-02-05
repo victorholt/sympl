@@ -525,7 +525,7 @@ StringBuffer& StringBuffer::operator=(const StringBuffer& Str)
 }
 StringBuffer& StringBuffer::operator=(const SharedPtr<StringBuffer>& Str)
 {
-    if (this == Str.Ptr()) {
+    if (this == Str.ptr()) {
         return *this;
     }
 

@@ -50,7 +50,7 @@ public: \
 using ClassName = type_name; \
 using BaseClassName = base_type_name; \
 virtual const std::string& get_type_name() const override { return get_type_info_static()->get_type_name(); } \
-virtual const Sympl::ObjectRefInfo* GetTypeInfo() const override { return get_type_info_static(); } \
+virtual const Sympl::ObjectRefInfo* get_type_info() const override { return get_type_info_static(); } \
 static const std::string& get_type_name_static() { return get_type_info_static()->get_type_name(); } \
 static const Sympl::ObjectRefInfo* get_type_info_static() { static const Sympl::ObjectRefInfo type_info_static(#type_name, BaseClassName::get_type_info_static()); return &type_info_static; } \
 
